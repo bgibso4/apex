@@ -12,7 +12,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
-import { getActiveProgram, getSessionsForWeek } from '../../src/db';
+import { getActiveProgram, getSessionsForWeek, getCompletedSessionForDay } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES
@@ -110,7 +110,16 @@ export default function HomeScreen() {
           completedDays={completedDays}
           blockColor={blockColor}
           dayNames={DAY_NAMES}
-          onDayPress={() => router.push('/workout')}
+          onDayPress={async (day) => {
+            if (completedDays.includes(day)) {
+              const session = await getCompletedSessionForDay(program.id, currentWeek, day);
+              if (session) {
+                router.push(`/session/${session.id}`);
+                return;
+              }
+            }
+            router.push('/workout');
+          }}
         />
 
         <TodayCard

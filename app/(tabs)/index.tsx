@@ -4,19 +4,22 @@
  * today's session card, and quick stats.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, RefreshControl
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius, SharedStyles } from '../../src/theme';
-import { getActiveProgram, getSessionsForWeek, getEstimated1RM } from '../../src/db';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { getActiveProgram, getSessionsForWeek } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES
 } from '../../src/utils/program';
+import { ProgramTimeline } from '../../src/components/ProgramTimeline';
+import { WeekRow } from '../../src/components/WeekRow';
+import { TodayCard } from '../../src/components/TodayCard';
 import type { Program, ProgramDefinition, Session } from '../../src/types';
 
 export default function HomeScreen() {
@@ -48,7 +51,6 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  // No active program → show prompt to go to library
   if (!program) {
     return (
       <View style={styles.container}>
@@ -72,6 +74,7 @@ export default function HomeScreen() {
   const trainingDays = getTrainingDays(def.weekly_template);
   const todayKey = getTodayKey();
   const completedDays = weekSessions.filter(s => s.completed_at).map(s => s.scheduled_day);
+  const todayTemplate = trainingDays.find(d => d.day === todayKey)?.template;
 
   return (
     <View style={styles.container}>
@@ -95,132 +98,34 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Periodization Timeline */}
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>PROGRAM TIMELINE</Text>
-          <View style={styles.timeline}>
-            {Array.from({ length: def.duration_weeks }, (_, i) => {
-              const weekNum = i + 1;
-              const weekBlock = getBlockForWeek(def.blocks, weekNum);
-              const color = weekBlock ? getBlockColor(weekBlock) : Colors.border;
-              const isCurrent = weekNum === currentWeek;
-              return (
-                <View
-                  key={i}
-                  style={[
-                    styles.timelineBar,
-                    {
-                      backgroundColor: isCurrent ? color : `${color}40`,
-                      borderWidth: isCurrent ? 1.5 : 0,
-                      borderColor: isCurrent ? color : 'transparent',
-                    }
-                  ]}
-                />
-              );
-            })}
-          </View>
-          <View style={styles.timelineLabels}>
-            {def.blocks.map((b, i) => (
-              <Text key={i} style={[styles.timelineLabelText, { color: getBlockColor(b) }]}>
-                {b.name}
-              </Text>
-            ))}
-          </View>
-        </View>
+        <ProgramTimeline
+          durationWeeks={def.duration_weeks}
+          blocks={def.blocks}
+          currentWeek={currentWeek}
+        />
 
-        {/* This Week's Schedule */}
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>THIS WEEK</Text>
-          <View style={styles.weekRow}>
-            {trainingDays.map(({ day, template }) => {
-              const isToday = day === todayKey;
-              const isCompleted = completedDays.includes(day);
-              return (
-                <TouchableOpacity
-                  key={day}
-                  style={[
-                    styles.dayPill,
-                    isToday && styles.dayPillToday,
-                    isCompleted && styles.dayPillDone,
-                  ]}
-                  onPress={() => router.push('/workout')}
-                >
-                  <Text style={[
-                    styles.dayPillText,
-                    isToday && { color: Colors.text },
-                    isCompleted && { color: Colors.green },
-                  ]}>
-                    {DAY_NAMES[day]}
-                  </Text>
-                  {isCompleted && (
-                    <Ionicons name="checkmark" size={14} color={Colors.green} />
-                  )}
-                  {isToday && !isCompleted && (
-                    <View style={[styles.todayDot, { backgroundColor: blockColor }]} />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+        <WeekRow
+          trainingDays={trainingDays}
+          todayKey={todayKey}
+          completedDays={completedDays}
+          blockColor={blockColor}
+          dayNames={DAY_NAMES}
+          onDayPress={() => router.push('/workout')}
+        />
 
-        {/* Today's Session Card */}
-        {(() => {
-          const todayTemplate = trainingDays.find(d => d.day === todayKey);
-          if (!todayTemplate) {
-            return (
-              <View style={styles.card}>
-                <Text style={styles.restDayText}>Rest Day</Text>
-                <Text style={styles.restDaySubtext}>Recovery is training too.</Text>
-              </View>
-            );
-          }
-
-          const isCompleted = completedDays.includes(todayKey);
-          return (
-            <TouchableOpacity
-              style={[styles.card, styles.sessionCard]}
-              onPress={() => router.push('/workout')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.sessionCardHeader}>
-                <Text style={styles.sessionName}>{todayTemplate.template.name}</Text>
-                {isCompleted ? (
-                  <View style={styles.completedBadge}>
-                    <Ionicons name="checkmark-circle" size={16} color={Colors.green} />
-                    <Text style={styles.completedText}>Done</Text>
-                  </View>
-                ) : (
-                  <Ionicons name="chevron-forward" size={20} color={Colors.textDim} />
-                )}
-              </View>
-              <Text style={styles.sessionExercises}>
-                {todayTemplate.template.exercises
-                  .slice(0, 4)
-                  .map(e => e.exercise_id.replace(/_/g, ' '))
-                  .join(' · ')}
-                {todayTemplate.template.exercises.length > 4
-                  ? ` +${todayTemplate.template.exercises.length - 4} more`
-                  : ''}
-              </Text>
-              {!isCompleted && (
-                <View style={[styles.startButton, { backgroundColor: blockColor }]}>
-                  <Text style={styles.startButtonText}>Start Workout</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })()}
+        <TodayCard
+          todayTemplate={todayTemplate}
+          isCompleted={completedDays.includes(todayKey)}
+          blockColor={blockColor}
+          onPress={() => router.push('/workout')}
+        />
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.bg,
-  },
+  container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
   scrollContent: {
     paddingTop: Spacing.screenTop,
@@ -228,167 +133,23 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.screenBottom,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.xl,
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'flex-start', marginBottom: Spacing.xl,
   },
-  programName: {
-    color: Colors.text,
-    fontSize: FontSize.xxl,
-    fontWeight: '700',
-  },
-  blockLabel: {
-    fontSize: FontSize.md,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  card: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  cardLabel: {
-    color: Colors.textDim,
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: Spacing.md,
-  },
-  // Timeline
-  timeline: {
-    flexDirection: 'row',
-    gap: BorderRadius.xs,
-    marginBottom: Spacing.sm,
-  },
-  timelineBar: {
-    flex: 1,
-    height: Spacing.sm,
-    borderRadius: BorderRadius.xs,
-  },
-  timelineLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  timelineLabelText: {
-    fontSize: FontSize.xs,
-    fontWeight: '500',
-  },
-  // Week row
-  weekRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  dayPill: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.surface,
-  },
-  dayPillToday: {
-    borderWidth: 1,
-    borderColor: Colors.indigo,
-  },
-  dayPillDone: {
-    backgroundColor: Colors.greenMuted,
-  },
-  dayPillText: {
-    color: Colors.textDim,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-  todayDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    marginTop: 3,
-  },
-  // Session card
-  sessionCard: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  sessionCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  sessionName: {
-    color: Colors.text,
-    fontSize: FontSize.lg,
-    fontWeight: '600',
-    flex: 1,
-  },
-  sessionExercises: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.sm,
-    textTransform: 'capitalize',
-    marginBottom: Spacing.lg,
-  },
-  startButton: {
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  startButtonText: {
-    color: Colors.text,
-    fontSize: FontSize.md,
-    fontWeight: '700',
-  },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  completedText: {
-    color: Colors.green,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-  // Rest day
-  restDayText: {
-    color: Colors.text,
-    fontSize: FontSize.xl,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  restDaySubtext: {
-    color: Colors.textDim,
-    fontSize: FontSize.md,
-    textAlign: 'center',
-    marginTop: Spacing.xs,
-  },
-  // Empty state
+  programName: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700' },
+  blockLabel: { fontSize: FontSize.md, fontWeight: '600', marginTop: 2 },
   emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1, justifyContent: 'center', alignItems: 'center',
     paddingHorizontal: Spacing.xxxl,
   },
   logo: {
-    color: Colors.text,
-    fontSize: FontSize.logo,
-    fontWeight: '800',
-    letterSpacing: 4,
-    marginBottom: Spacing.xl,
+    color: Colors.text, fontSize: FontSize.logo, fontWeight: '800',
+    letterSpacing: 4, marginBottom: Spacing.xl,
   },
-  emptyText: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.lg,
-    marginBottom: Spacing.xxl,
-  },
+  emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg, marginBottom: Spacing.xxl },
   primaryButton: {
-    backgroundColor: Colors.indigo,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xxxl,
-    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.indigo, paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xxxl, borderRadius: BorderRadius.md,
   },
-  primaryButtonText: {
-    color: Colors.text,
-    fontSize: FontSize.md,
-    fontWeight: '700',
-  },
+  primaryButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
 });

@@ -1,2 +1,3 @@
 export { Colors } from './colors';
-export { Spacing, FontSize, BorderRadius } from './spacing';
+export { Spacing, FontSize, BorderRadius, ComponentSize } from './spacing';
+export { SharedStyles } from './shared';

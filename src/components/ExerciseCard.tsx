@@ -28,6 +28,7 @@ export interface ExerciseCardProps {
   onCompleteSet: (setIdx: number) => void;
   onLongPressSet: (setIdx: number) => void;
   onSetRPE: (rpe: number) => void;
+  onLongPressCard?: () => void;
 }
 
 function getSetColor(status: SetLog['status']) {
@@ -43,6 +44,7 @@ export function ExerciseCard({
   exerciseName, category, target, sets, rpe, expanded,
   lastWeight, lastReps, blockColor,
   onToggleExpand, onCompleteSet, onLongPressSet, onSetRPE,
+  onLongPressCard,
 }: ExerciseCardProps) {
   const allDone = sets.every(s => s.status !== 'pending');
 
@@ -50,6 +52,7 @@ export function ExerciseCard({
     <TouchableOpacity
       style={styles.exerciseCard}
       onPress={onToggleExpand}
+      onLongPress={onLongPressCard}
       activeOpacity={0.8}
     >
       {/* Exercise Header */}

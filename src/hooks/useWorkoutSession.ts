@@ -5,6 +5,7 @@ import {
   getActiveProgram, createSession, logSet, updateSet,
   completeSession, updateReadiness, updateWarmup,
   getLastSessionForExercise, calculateTargetWeight,
+  ensureExerciseExists,
 } from '../db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
@@ -13,6 +14,7 @@ import {
 import { Colors } from '../theme';
 import type { Program, ProgramDefinition, ExerciseSlot, SetLog } from '../types';
 import type { SetState } from '../components/ExerciseCard';
+import type { LibraryExercise } from '../data/exercise-library';
 
 export type WorkoutPhase = 'select' | 'readiness' | 'warmup' | 'logging' | 'complete';
 
@@ -24,6 +26,7 @@ export interface ExerciseState {
   expanded: boolean;
   lastWeight?: number;
   lastReps?: number;
+  isAdhoc?: boolean;
 }
 
 export function useWorkoutSession() {
@@ -54,6 +57,18 @@ export function useWorkoutSession() {
   } | null>(null);
   const [overrideWeight, setOverrideWeight] = useState(0);
   const [overrideReps, setOverrideReps] = useState(0);
+
+  // Exercise picker
+  const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerStep, setPickerStep] = useState<'pick' | 'configure'>('pick');
+  const [selectedLibraryExercise, setSelectedLibraryExercise] = useState<LibraryExercise | null>(null);
+  const [adhocSets, setAdhocSets] = useState(3);
+  const [adhocReps, setAdhocReps] = useState(10);
+  const [adhocWeight, setAdhocWeight] = useState(0);
+
+  // Reorder mode
+  const [reorderMode, setReorderMode] = useState(false);
 
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
@@ -163,6 +178,7 @@ export function useWorkoutSession() {
       actualWeight: set.actualWeight,
       actualReps: set.actualReps,
       status: 'completed',
+      isAdhoc: ex.isAdhoc,
     });
 
     setExercises(prev => {
@@ -230,6 +246,7 @@ export function useWorkoutSession() {
         actualWeight: overrideWeight,
         actualReps: overrideReps,
         status,
+        isAdhoc: ex.isAdhoc,
       });
       setExercises(prev => {
         const next = [...prev];
@@ -278,6 +295,71 @@ export function useWorkoutSession() {
     setPhase('logging');
   };
 
+  /** Add an ad-hoc exercise to the current workout */
+  const addAdhocExercise = async () => {
+    if (!selectedLibraryExercise || !sessionId) return;
+
+    await ensureExerciseExists({
+      id: selectedLibraryExercise.id,
+      name: selectedLibraryExercise.name,
+      type: selectedLibraryExercise.type,
+      muscleGroups: [selectedLibraryExercise.muscleGroup],
+    });
+
+    const sets: SetState[] = Array.from({ length: adhocSets }, (_, i) => ({
+      setNumber: i + 1,
+      targetWeight: adhocWeight,
+      targetReps: adhocReps,
+      actualWeight: adhocWeight,
+      actualReps: adhocReps,
+      status: 'pending' as const,
+    }));
+
+    const newExercise: ExerciseState = {
+      slot: {
+        exercise_id: selectedLibraryExercise.id,
+        category: selectedLibraryExercise.type === 'core' ? 'core' : 'accessory',
+        targets: [],
+      },
+      exerciseName: selectedLibraryExercise.name,
+      sets,
+      expanded: false,
+      isAdhoc: true,
+    };
+
+    setExercises(prev => [...prev, newExercise]);
+
+    // Reset picker state
+    setShowExercisePicker(false);
+    setPickerStep('pick');
+    setPickerSearch('');
+    setSelectedLibraryExercise(null);
+    setAdhocSets(3);
+    setAdhocReps(10);
+    setAdhocWeight(0);
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
+  /** Move an exercise up or down in the list */
+  const moveExercise = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= exercises.length) return;
+    setExercises(prev => {
+      const next = [...prev];
+      [next[index], next[newIndex]] = [next[newIndex], next[index]];
+      return next;
+    });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  /** Enter reorder mode */
+  const enterReorderMode = () => {
+    setReorderMode(true);
+    setExercises(prev => prev.map(e => ({ ...e, expanded: false })));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  };
+
   /** Complete the session */
   const finishSession = async () => {
     if (!sessionId) return;
@@ -315,6 +397,18 @@ export function useWorkoutSession() {
     overrideWeight, setOverrideWeight,
     overrideReps, setOverrideReps,
 
+    // Exercise picker
+    showExercisePicker, setShowExercisePicker,
+    pickerSearch, setPickerSearch,
+    pickerStep, setPickerStep,
+    selectedLibraryExercise, setSelectedLibraryExercise,
+    adhocSets, setAdhocSets,
+    adhocReps, setAdhocReps,
+    adhocWeight, setAdhocWeight,
+
+    // Reorder
+    reorderMode, setReorderMode,
+
     // Actions
     selectDay,
     startSession,
@@ -328,5 +422,8 @@ export function useWorkoutSession() {
     finishSession,
     setConditioningDone,
     closeOverride: () => setOverrideModal(null),
+    addAdhocExercise,
+    moveExercise,
+    enterReorderMode,
   };
 }

@@ -1,0 +1,332 @@
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import {
+  getActiveProgram, createSession, logSet, updateSet,
+  completeSession, updateReadiness, updateWarmup,
+  getLastSessionForExercise, calculateTargetWeight,
+} from '../db';
+import {
+  getBlockForWeek, getBlockColor, getTrainingDays,
+  getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
+} from '../utils/program';
+import { Colors } from '../theme';
+import type { Program, ProgramDefinition, ExerciseSlot, SetLog } from '../types';
+import type { SetState } from '../components/ExerciseCard';
+
+export type WorkoutPhase = 'select' | 'readiness' | 'warmup' | 'logging' | 'complete';
+
+export interface ExerciseState {
+  slot: ExerciseSlot;
+  exerciseName: string;
+  sets: SetState[];
+  rpe?: number;
+  expanded: boolean;
+  lastWeight?: number;
+  lastReps?: number;
+}
+
+export function useWorkoutSession() {
+  const [program, setProgram] = useState<(Program & { definition: ProgramDefinition }) | null>(null);
+  const [currentWeek, setCurrentWeek] = useState(1);
+  const [selectedDay, setSelectedDay] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [phase, setPhase] = useState<WorkoutPhase>('select');
+
+  // Readiness
+  const [sleep, setSleep] = useState(3);
+  const [soreness, setSoreness] = useState(3);
+  const [energy, setEnergy] = useState(3);
+
+  // Warmup
+  const [warmupRope, setWarmupRope] = useState(false);
+  const [warmupAnkle, setWarmupAnkle] = useState(false);
+  const [warmupHipIr, setWarmupHipIr] = useState(false);
+
+  // Exercise logging
+  const [exercises, setExercises] = useState<ExerciseState[]>([]);
+  const [conditioningDone, setConditioningDone] = useState(false);
+
+  // Override modal
+  const [overrideModal, setOverrideModal] = useState<{
+    exerciseIdx: number;
+    setIdx: number;
+  } | null>(null);
+  const [overrideWeight, setOverrideWeight] = useState(0);
+  const [overrideReps, setOverrideReps] = useState(0);
+
+  const loadData = useCallback(async () => {
+    const active = await getActiveProgram();
+    setProgram(active);
+    if (active?.activated_date) {
+      const week = getCurrentWeek(active.activated_date);
+      setCurrentWeek(week);
+      setSelectedDay(getTodayKey());
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    loadData();
+  }, [loadData]));
+
+  // Derived values
+  const def = program?.definition.program;
+  const block = def ? getBlockForWeek(def.blocks, currentWeek) : undefined;
+  const blockColor = block ? getBlockColor(block) : Colors.indigo;
+  const trainingDays = def ? getTrainingDays(def.weekly_template) : [];
+  const selectedTemplate = trainingDays.find(d => d.day === selectedDay)?.template;
+
+  const oneRmValues: Record<string, number> = program?.one_rm_values
+    ? (typeof program.one_rm_values === 'string'
+      ? JSON.parse(program.one_rm_values)
+      : program.one_rm_values)
+    : {};
+
+  /** Select a day (and reset to select phase if mid-session) */
+  const selectDay = (day: string) => {
+    setSelectedDay(day);
+    if (phase !== 'select') setPhase('select');
+  };
+
+  /** Start a workout session */
+  const startSession = async () => {
+    if (!selectedTemplate || !block || !program || !def) return;
+
+    const id = await createSession({
+      programId: program.id,
+      weekNumber: currentWeek,
+      blockName: block.name,
+      dayTemplateId: selectedDay,
+      scheduledDay: selectedDay,
+      actualDay: getTodayKey(),
+      date: new Date().toISOString().split('T')[0],
+    });
+    setSessionId(id);
+
+    const exStates: ExerciseState[] = [];
+    for (const slot of selectedTemplate.exercises) {
+      const target = getTargetForWeek(slot, currentWeek);
+      if (!target) continue;
+
+      const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
+      const reps = typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
+
+      let suggestedWeight = 0;
+      if (target.percent && oneRmValues[slot.exercise_id]) {
+        const pct = typeof target.percent === 'string' ? parseFloat(target.percent) : target.percent;
+        suggestedWeight = calculateTargetWeight(oneRmValues[slot.exercise_id], pct);
+      }
+
+      const lastSets = await getLastSessionForExercise(slot.exercise_id, program.id);
+      const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
+      const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
+      const weight = suggestedWeight || lastWeight || 0;
+
+      const sets: SetState[] = Array.from({ length: target.sets }, (_, i) => ({
+        setNumber: i + 1,
+        targetWeight: weight,
+        targetReps: reps,
+        actualWeight: weight,
+        actualReps: reps,
+        status: 'pending' as const,
+      }));
+
+      exStates.push({
+        slot,
+        exerciseName: exerciseDef?.name ?? slot.exercise_id.replace(/_/g, ' '),
+        sets,
+        expanded: exStates.length === 0,
+        lastWeight: lastWeight ?? undefined,
+        lastReps: lastReps ?? undefined,
+      });
+    }
+
+    setExercises(exStates);
+    setPhase('readiness');
+  };
+
+  /** Complete a set (1 tap) */
+  const completeSetAction = async (exIdx: number, setIdx: number) => {
+    if (!sessionId) return;
+
+    const ex = exercises[exIdx];
+    const set = ex.sets[setIdx];
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const setId = await logSet({
+      sessionId,
+      exerciseId: ex.slot.exercise_id,
+      setNumber: set.setNumber,
+      targetWeight: set.targetWeight,
+      targetReps: set.targetReps,
+      actualWeight: set.actualWeight,
+      actualReps: set.actualReps,
+      status: 'completed',
+    });
+
+    setExercises(prev => {
+      const next = [...prev];
+      next[exIdx] = {
+        ...next[exIdx],
+        sets: next[exIdx].sets.map((s, i) =>
+          i === setIdx ? { ...s, status: 'completed' as const, id: setId } : s
+        ),
+      };
+
+      const allDone = next[exIdx].sets.every((s, i) =>
+        i === setIdx ? true : s.status !== 'pending'
+      );
+      if (allDone && exIdx < next.length - 1) {
+        next[exIdx] = { ...next[exIdx], expanded: false };
+        next[exIdx + 1] = { ...next[exIdx + 1], expanded: true };
+      }
+
+      return next;
+    });
+  };
+
+  /** Toggle exercise expand/collapse */
+  const toggleExpand = (exIdx: number) => {
+    setExercises(prev => {
+      const next = [...prev];
+      next[exIdx] = { ...next[exIdx], expanded: !next[exIdx].expanded };
+      return next;
+    });
+  };
+
+  /** Open override modal (long press) */
+  const openOverride = (exIdx: number, setIdx: number) => {
+    const set = exercises[exIdx].sets[setIdx];
+    setOverrideWeight(set.actualWeight);
+    setOverrideReps(set.actualReps);
+    setOverrideModal({ exerciseIdx: exIdx, setIdx });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  /** Save override */
+  const saveOverride = async () => {
+    if (!overrideModal || !sessionId) return;
+    const { exerciseIdx, setIdx } = overrideModal;
+    const ex = exercises[exerciseIdx];
+    const set = ex.sets[setIdx];
+
+    const hitTarget = overrideWeight >= set.targetWeight && overrideReps >= set.targetReps;
+    const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
+
+    if (set.id) {
+      await updateSet(set.id, {
+        actualWeight: overrideWeight,
+        actualReps: overrideReps,
+        status,
+      });
+    } else {
+      const setId = await logSet({
+        sessionId,
+        exerciseId: ex.slot.exercise_id,
+        setNumber: set.setNumber,
+        targetWeight: set.targetWeight,
+        targetReps: set.targetReps,
+        actualWeight: overrideWeight,
+        actualReps: overrideReps,
+        status,
+      });
+      setExercises(prev => {
+        const next = [...prev];
+        next[exerciseIdx].sets[setIdx] = {
+          ...next[exerciseIdx].sets[setIdx],
+          id: setId,
+        };
+        return next;
+      });
+    }
+
+    setExercises(prev => {
+      const next = [...prev];
+      next[exerciseIdx].sets[setIdx] = {
+        ...next[exerciseIdx].sets[setIdx],
+        actualWeight: overrideWeight,
+        actualReps: overrideReps,
+        status,
+      };
+      return next;
+    });
+
+    setOverrideModal(null);
+  };
+
+  /** Set RPE for an exercise */
+  const setRPE = (exIdx: number, rpe: number) => {
+    setExercises(prev => {
+      const next = [...prev];
+      next[exIdx] = { ...next[exIdx], rpe };
+      return next;
+    });
+  };
+
+  /** Submit readiness and move to warmup */
+  const submitReadiness = async () => {
+    if (sessionId) await updateReadiness(sessionId, sleep, soreness, energy);
+    setPhase('warmup');
+  };
+
+  /** Submit warmup and move to logging */
+  const submitWarmup = async () => {
+    if (sessionId) await updateWarmup(sessionId, {
+      rope: warmupRope, ankle: warmupAnkle, hipIr: warmupHipIr,
+    });
+    setPhase('logging');
+  };
+
+  /** Complete the session */
+  const finishSession = async () => {
+    if (!sessionId) return;
+    await completeSession(sessionId, conditioningDone);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setPhase('complete');
+  };
+
+  return {
+    // State
+    program,
+    currentWeek,
+    selectedDay,
+    phase,
+    block,
+    blockColor,
+    trainingDays,
+    selectedTemplate,
+    exercises,
+    conditioningDone,
+    dayNames: DAY_NAMES,
+
+    // Readiness
+    sleep, setSleep,
+    soreness, setSoreness,
+    energy, setEnergy,
+
+    // Warmup
+    warmupRope, toggleWarmupRope: () => setWarmupRope(v => !v),
+    warmupAnkle, toggleWarmupAnkle: () => setWarmupAnkle(v => !v),
+    warmupHipIr, toggleWarmupHipIr: () => setWarmupHipIr(v => !v),
+
+    // Override modal
+    overrideModal,
+    overrideWeight, setOverrideWeight,
+    overrideReps, setOverrideReps,
+
+    // Actions
+    selectDay,
+    startSession,
+    completeSetAction,
+    toggleExpand,
+    openOverride,
+    saveOverride,
+    setRPE,
+    submitReadiness,
+    submitWarmup,
+    finishSession,
+    setConditioningDone,
+    closeOverride: () => setOverrideModal(null),
+  };
+}

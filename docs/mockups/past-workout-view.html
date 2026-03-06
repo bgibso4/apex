@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Past Workout View</title>
+<style>
+  /* === COPIED FROM home-dashboard.html & workout-screen.html === */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons span { font-size: 13px; }
+
+  /* From home-dashboard: header */
+  .header {
+    padding: 8px 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .header h1 {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 3px;
+  }
+  .gear-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6a6a80;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .gear-icon:hover { background: #141420; }
+
+  /* Content */
+  .content {
+    flex: 1;
+    padding: 0 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Program context (from home-dashboard) */
+  .program-context { padding: 4px 0; }
+  .program-name {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .program-week {
+    color: #a0a0b8;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .program-week span {
+    color: #f59e0b;
+    font-weight: 600;
+  }
+
+  /* Block timeline (from home-dashboard) */
+  .block-timeline {
+    margin-top: 16px;
+    display: flex;
+    gap: 3px;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .block-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    position: relative;
+  }
+  .block-segment.active { color: #ffffff; }
+  .block-segment.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: #ffffff;
+    border-radius: 2px;
+  }
+  .block-hyp { background: #6366f130; flex: 4; }
+  .block-hyp.active { background: #6366f1; }
+  .block-dl1 { background: #22c55e30; flex: 1; }
+  .block-str { background: #f59e0b30; flex: 4; }
+  .block-str.active { background: #f59e0b; }
+  .block-dl2 { background: #22c55e30; flex: 1; }
+  .block-peak { background: #ec489930; flex: 2; }
+
+  /* Today card (from home-dashboard) */
+  .today-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .today-card:hover { background: #1a1a2e; border-color: #3a3a4e; }
+  .today-label {
+    color: #6a6a80;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .today-title {
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .today-card.completed-card { border-color: #22c55e30; }
+  .completed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #22c55e18;
+    color: #22c55e;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+
+  /* Week dots (from home-dashboard) */
+  .week-row {
+    display: flex;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 0 4px;
+  }
+  .day-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    cursor: pointer;
+    padding: 8px 0;
+    border-radius: 10px;
+    transition: background 0.15s;
+  }
+  .day-chip:hover { background: #141420; }
+  .day-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .day-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .day-chip.completed .day-dot {
+    background: #22c55e20;
+    color: #22c55e;
+  }
+  .day-chip.completed .day-label { color: #22c55e80; }
+  .day-chip.today .day-dot {
+    background: #6366f1;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+  }
+  .day-chip.today .day-label { color: #6366f1; }
+  .day-chip.upcoming .day-dot {
+    background: #1e1e30;
+    color: #4a4a5e;
+  }
+  .day-chip.rest .day-dot {
+    background: transparent;
+    color: #2a2a3e;
+    font-size: 10px;
+  }
+  .day-chip.rest .day-label { color: #2a2a3e; }
+
+  /* Tab bar (from home-dashboard) */
+  .tab-bar {
+    height: 84px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    padding: 8px 16px 28px;
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #4a4a5e;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .tab.active { color: #6366f1; }
+  .tab:hover { color: #a0a0b8; }
+  .tab-icon { font-size: 22px; }
+  .tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; }
+
+  /* === SESSION DETAIL === */
+  .session-header {
+    padding: 0 24px 20px;
+    border-bottom: 1px solid #1e1e30;
+    flex-shrink: 0;
+  }
+  .session-title {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .session-date {
+    color: #a0a0b8;
+    font-size: 14px;
+  }
+
+  .stats-row {
+    display: flex;
+    margin-top: 16px;
+  }
+  .stat {
+    flex: 1;
+    text-align: center;
+  }
+  .stat + .stat {
+    border-left: 1px solid #1e1e30;
+  }
+  .stat-value {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+  .stat-value.green { color: #22c55e; }
+  .stat-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .session-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .readiness-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .readiness-item {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+  .readiness-val {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+  .readiness-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .protocol-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .protocol-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+  .protocol-chip.done {
+    background: #22c55e18;
+    color: #22c55e;
+  }
+
+  .exercise-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .ex-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .ex-name {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .ex-meta {
+    color: #6a6a80;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .pr-badge {
+    display: inline-block;
+    background: #f59e0b18;
+    color: #f59e0b;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+  }
+  .adhoc-tag {
+    color: #6366f1;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .set-grid-header {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 48px 40px;
+    padding: 0 4px 8px;
+    font-size: 11px;
+    color: #4a4a5e;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .set-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 48px 40px;
+    align-items: center;
+    padding: 10px 4px;
+    border-top: 1px solid #1e1e30;
+  }
+  .set-num {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .set-val {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .set-val.pr-val { color: #f59e0b; }
+  .set-rpe {
+    color: #6a6a80;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .set-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .set-status.done {
+    background: #22c55e15;
+    color: #22c55e;
+  }
+  .set-status.below {
+    background: #f59e0b15;
+    color: #f59e0b;
+  }
+</style>
+</head>
+<body>
+
+<!-- PHONE 1: Home screen — tap a completed day (identical to existing dashboard) -->
+<div class="phone-wrapper">
+  <div class="label">Tap Completed Day</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">11:23</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">⚙</div>
+    </div>
+
+    <div class="content">
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 6 of 12 — <span>Strength Block</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl1">DL</div>
+          <div class="block-segment block-str active">Strength</div>
+          <div class="block-segment block-dl2">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <div class="today-card completed-card">
+        <div class="today-label">Today's Training</div>
+        <div class="today-title">Upper Push & Conditioning</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+          <span class="completed-badge">✓ Completed</span>
+          <span style="color: #6a6a80; font-size: 13px;">52 min · 24 sets</span>
+        </div>
+      </div>
+
+      <!-- Week row — Wed is tapped (navigates to session detail) -->
+      <div class="week-row">
+        <div class="day-chip completed">
+          <span class="day-label">Sun</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip completed">
+          <span class="day-label">Mon</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip completed">
+          <span class="day-label">Tue</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip completed" style="background: #141420;">
+          <span class="day-label" style="color: #6366f1;">Wed</span>
+          <div class="day-dot" style="background: #6366f130; color: #6366f1; box-shadow: 0 0 12px rgba(99,102,241,0.3);">✓</div>
+        </div>
+        <div class="day-chip today">
+          <span class="day-label">Thu</span>
+          <div class="day-dot">5</div>
+        </div>
+        <div class="day-chip upcoming">
+          <span class="day-label">Fri</span>
+          <div class="day-dot">6</div>
+        </div>
+        <div class="day-chip rest">
+          <span class="day-label">Sat</span>
+          <div class="day-dot">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 2: Session Detail (read-only) -->
+<div class="phone-wrapper">
+  <div class="label">Session Detail</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">11:24</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <!-- Back button — same style as progress-screen-v2 lift detail -->
+    <div style="padding: 8px 24px 4px; flex-shrink: 0;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="color: #6a6a80; font-size: 22px; cursor: pointer;">←</span>
+        <span style="color: #ffffff; font-size: 22px; font-weight: 800;">Squat & Conditioning</span>
+      </div>
+    </div>
+
+    <div class="session-header">
+      <div class="session-date">Wednesday, Mar 4 · Week 6 Strength</div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-value">48m</div>
+          <div class="stat-label">Duration</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">18</div>
+          <div class="stat-label">Sets</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">9.2k</div>
+          <div class="stat-label">Tonnage</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value green">1</div>
+          <div class="stat-label">PRs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-content">
+      <div class="readiness-row">
+        <div class="readiness-item">
+          <div class="readiness-val">4</div>
+          <div class="readiness-label">Sleep</div>
+        </div>
+        <div class="readiness-item">
+          <div class="readiness-val">2</div>
+          <div class="readiness-label">Soreness</div>
+        </div>
+        <div class="readiness-item">
+          <div class="readiness-val">4</div>
+          <div class="readiness-label">Energy</div>
+        </div>
+      </div>
+
+      <div class="protocol-row">
+        <span class="protocol-chip done">✓ Jump Rope</span>
+        <span class="protocol-chip done">✓ Ankle</span>
+        <span class="protocol-chip done">✓ Hip IR</span>
+        <span class="protocol-chip done">✓ Conditioning</span>
+      </div>
+
+      <div class="exercise-card">
+        <div class="ex-header">
+          <div>
+            <span class="ex-name">Back Squat</span>
+            <span class="pr-badge">PR</span>
+          </div>
+          <span class="ex-meta">4 × 5</span>
+        </div>
+        <div class="set-grid-header">
+          <span>Set</span><span>Weight</span><span>Reps</span><span>RPE</span><span></span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">1</span>
+          <span class="set-val">225 lbs</span>
+          <span class="set-val">5</span>
+          <span class="set-rpe">7.5</span>
+          <span class="set-status done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">2</span>
+          <span class="set-val">225 lbs</span>
+          <span class="set-val">5</span>
+          <span class="set-rpe">8</span>
+          <span class="set-status done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">3</span>
+          <span class="set-val pr-val">235 lbs</span>
+          <span class="set-val pr-val">5</span>
+          <span class="set-rpe">8.5</span>
+          <span class="set-status done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">4</span>
+          <span class="set-val">225 lbs</span>
+          <span class="set-val">4</span>
+          <span class="set-rpe">9</span>
+          <span class="set-status below">!</span>
+        </div>
+      </div>
+
+      <div class="exercise-card">
+        <div class="ex-header">
+          <span class="ex-name">RDL</span>
+          <span class="ex-meta">3 × 8</span>
+        </div>
+        <div class="set-grid-header">
+          <span>Set</span><span>Weight</span><span>Reps</span><span>RPE</span><span></span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">1</span>
+          <span class="set-val">185 lbs</span>
+          <span class="set-val">8</span>
+          <span class="set-rpe">7</span>
+          <span class="set-status done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">2</span>
+          <span class="set-val">185 lbs</span>
+          <span class="set-val">8</span>
+          <span class="set-rpe">7.5</span>
+          <span class="set-status done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">3</span>
+          <span class="set-val">185 lbs</span>
+          <span class="set-val">8</span>
+          <span class="set-rpe">8</span>
+          <span class="set-status done">✓</span>
+        </div>
+      </div>
+
+      <div class="exercise-card">
+        <div class="ex-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="ex-name">Push-ups</span>
+            <span class="adhoc-tag">Ad-hoc</span>
+          </div>
+          <span class="ex-meta">3 × 15</span>
+        </div>
+        <div class="set-grid-header">
+          <span>Set</span><span>Weight</span><span>Reps</span><span>RPE</span><span></span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">1</span>
+          <span class="set-val">BW</span>
+          <span class="set-val">15</span>
+          <span class="set-rpe">6</span>
+          <span class="set-status done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">2</span>
+          <span class="set-val">BW</span>
+          <span class="set-val">15</span>
+          <span class="set-rpe">7</span>
+          <span class="set-status done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-num">3</span>
+          <span class="set-val">BW</span>
+          <span class="set-val">12</span>
+          <span class="set-rpe">8.5</span>
+          <span class="set-status below">!</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

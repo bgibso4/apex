@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Home Dashboard Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons span { font-size: 13px; }
+
+  /* Dynamic island */
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  /* Header */
+  .header {
+    padding: 8px 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .header h1 {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 3px;
+  }
+  .gear-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6a6a80;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .gear-icon:hover { background: #141420; }
+
+  /* Content */
+  .content {
+    flex: 1;
+    padding: 0 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Program context */
+  .program-context {
+    padding: 4px 0;
+  }
+  .program-name {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .program-week {
+    color: #a0a0b8;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .program-week span {
+    color: #f59e0b;
+    font-weight: 600;
+  }
+
+  /* Block timeline */
+  .block-timeline {
+    margin-top: 16px;
+    display: flex;
+    gap: 3px;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .block-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    position: relative;
+  }
+  .block-segment.active {
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+  }
+  .block-segment.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #ffffff;
+    border-radius: 2px;
+  }
+  .block-hyp { background: #6366f130; flex: 4; }
+  .block-hyp.active { background: #6366f1; }
+  .block-dl1 { background: #22c55e30; flex: 1; }
+  .block-dl1.active { background: #22c55e; }
+  .block-str { background: #f59e0b30; flex: 4; }
+  .block-str.active { background: #f59e0b; }
+  .block-dl2 { background: #22c55e30; flex: 1; }
+  .block-dl2.active { background: #22c55e; }
+  .block-peak { background: #ec489930; flex: 2; }
+  .block-peak.active { background: #ec4899; }
+
+  /* Today's card */
+  .today-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .today-card:hover {
+    background: #1a1a2e;
+    border-color: #3a3a4e;
+  }
+  .today-label {
+    color: #6a6a80;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .today-title {
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .today-subtitle {
+    color: #a0a0b8;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .start-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #6366f1;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  .start-btn:hover { background: #4f46e5; }
+  .start-btn .arrow { font-size: 18px; }
+
+  /* Completed card variant */
+  .today-card.completed {
+    border-color: #22c55e30;
+  }
+  .completed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #22c55e18;
+    color: #22c55e;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+
+  /* Week dots */
+  .week-row {
+    display: flex;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 0 4px;
+  }
+  .day-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    cursor: pointer;
+    padding: 8px 0;
+    border-radius: 10px;
+    transition: background 0.15s;
+  }
+  .day-chip:hover { background: #141420; }
+  .day-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .day-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .day-chip.completed .day-dot {
+    background: #22c55e20;
+    color: #22c55e;
+  }
+  .day-chip.completed .day-label { color: #22c55e80; }
+  .day-chip.today .day-dot {
+    background: #6366f1;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+  }
+  .day-chip.today .day-label { color: #6366f1; }
+  .day-chip.upcoming .day-dot {
+    background: #1e1e30;
+    color: #4a4a5e;
+  }
+  .day-chip.rest .day-dot {
+    background: transparent;
+    color: #2a2a3e;
+    font-size: 10px;
+  }
+  .day-chip.rest .day-label { color: #2a2a3e; }
+
+  /* Tab bar */
+  .tab-bar {
+    height: 84px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    padding: 8px 16px 28px;
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #4a4a5e;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .tab.active { color: #6366f1; }
+  .tab:hover { color: #a0a0b8; }
+  .tab-icon { font-size: 22px; }
+  .tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px;
+  }
+  .empty-icon {
+    font-size: 48px;
+    opacity: 0.3;
+  }
+  .empty-title {
+    color: #a0a0b8;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .empty-sub {
+    color: #6a6a80;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .browse-btn {
+    background: #6366f1;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* Page title */
+  .page-title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    padding: 30px 0 10px;
+    width: 100%;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ACTIVE PROGRAM STATE -->
+<div class="phone-wrapper">
+  <div class="label">Active Program</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">⚙</div>
+    </div>
+
+    <div class="content">
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 6 of 12 — <span>Strength Block</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl1">DL</div>
+          <div class="block-segment block-str active">Strength</div>
+          <div class="block-segment block-dl2">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <div class="today-card">
+        <div class="today-label">Today's Training</div>
+        <div class="today-title">Upper Push & Conditioning</div>
+        <div class="today-subtitle">6 exercises + finisher</div>
+        <button class="start-btn">
+          Start Workout <span class="arrow">→</span>
+        </button>
+      </div>
+
+      <div class="week-row">
+        <div class="day-chip completed">
+          <span class="day-label">Sun</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip completed">
+          <span class="day-label">Mon</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip today">
+          <span class="day-label">Tue</span>
+          <div class="day-dot">3</div>
+        </div>
+        <div class="day-chip upcoming">
+          <span class="day-label">Wed</span>
+          <div class="day-dot">4</div>
+        </div>
+        <div class="day-chip upcoming">
+          <span class="day-label">Thu</span>
+          <div class="day-dot">5</div>
+        </div>
+        <div class="day-chip upcoming">
+          <span class="day-label">Fri</span>
+          <div class="day-dot">6</div>
+        </div>
+        <div class="day-chip rest">
+          <span class="day-label">Sat</span>
+          <div class="day-dot">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active">
+        <span class="tab-icon">⌂</span>
+        <span class="tab-label">Home</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">🏋</span>
+        <span class="tab-label">Workout</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">Progress</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">🏃</span>
+        <span class="tab-label">Running</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETED DAY STATE -->
+<div class="phone-wrapper">
+  <div class="label">After Completing Today</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">11:23</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">⚙</div>
+    </div>
+
+    <div class="content">
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 6 of 12 — <span>Strength Block</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl1">DL</div>
+          <div class="block-segment block-str active">Strength</div>
+          <div class="block-segment block-dl2">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <div class="today-card completed">
+        <div class="today-label">Today's Training</div>
+        <div class="today-title">Upper Push & Conditioning</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+          <span class="completed-badge">✓ Completed</span>
+          <span style="color: #6a6a80; font-size: 13px;">52 min · 24 sets</span>
+        </div>
+      </div>
+
+      <div class="week-row">
+        <div class="day-chip completed">
+          <span class="day-label">Sun</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip completed">
+          <span class="day-label">Mon</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip completed">
+          <span class="day-label">Tue</span>
+          <div class="day-dot">✓</div>
+        </div>
+        <div class="day-chip upcoming">
+          <span class="day-label">Wed</span>
+          <div class="day-dot">4</div>
+        </div>
+        <div class="day-chip upcoming">
+          <span class="day-label">Thu</span>
+          <div class="day-dot">5</div>
+        </div>
+        <div class="day-chip upcoming">
+          <span class="day-label">Fri</span>
+          <div class="day-dot">6</div>
+        </div>
+        <div class="day-chip rest">
+          <span class="day-label">Sat</span>
+          <div class="day-dot">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active">
+        <span class="tab-icon">⌂</span>
+        <span class="tab-label">Home</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">🏋</span>
+        <span class="tab-label">Workout</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">Progress</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">🏃</span>
+        <span class="tab-label">Running</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- EMPTY STATE -->
+<div class="phone-wrapper">
+  <div class="label">No Active Program</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">⚙</div>
+    </div>
+
+    <div class="empty-state">
+      <div class="empty-icon">🏋</div>
+      <div class="empty-title">No Active Program</div>
+      <div class="empty-sub">Choose a training program from the library to get started.</div>
+      <button class="browse-btn">Browse Library</button>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active">
+        <span class="tab-icon">⌂</span>
+        <span class="tab-label">Home</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">🏋</span>
+        <span class="tab-label">Workout</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">Progress</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">🏃</span>
+        <span class="tab-label">Running</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

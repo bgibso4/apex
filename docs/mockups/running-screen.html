@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Running Screen Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* Header */
+  .screen-header {
+    padding: 8px 24px 16px;
+    flex-shrink: 0;
+  }
+  .screen-title {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  /* Sub-tabs */
+  .sub-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 24px 16px;
+    flex-shrink: 0;
+  }
+  .sub-tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a4a5e;
+    background: transparent;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .sub-tab.active {
+    background: #06b6d415;
+    border-color: #06b6d4;
+    color: #ffffff;
+  }
+
+  /* Content */
+  .running-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .section-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  /* ---- LOG FORM ---- */
+  .log-form {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-label {
+    color: #a0a0b8;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-input {
+    background: #1e1e30;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    width: 100%;
+  }
+  .form-input::placeholder {
+    color: #4a4a5e;
+  }
+  .form-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-input-row .form-input {
+    flex: 1;
+  }
+  .form-unit {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 600;
+    width: 50px;
+  }
+
+  /* Pain selector */
+  .pain-selector {
+    display: flex;
+    gap: 4px;
+  }
+  .pain-dot {
+    flex: 1;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    color: #4a4a5e;
+    background: #1e1e30;
+  }
+  .pain-dot:hover {
+    border-color: #3a3a4e;
+  }
+  .pain-dot.selected {
+    color: #ffffff;
+  }
+  /* Color by severity */
+  .pain-dot.p0.selected { background: #22c55e; border-color: #22c55e; }
+  .pain-dot.p1.selected { background: #4ade80; border-color: #4ade80; color: #0a0a0f; }
+  .pain-dot.p2.selected { background: #86efac; border-color: #86efac; color: #0a0a0f; }
+  .pain-dot.p3.selected { background: #fde047; border-color: #fde047; color: #0a0a0f; }
+  .pain-dot.p4.selected { background: #facc15; border-color: #facc15; color: #0a0a0f; }
+  .pain-dot.p5.selected { background: #f59e0b; border-color: #f59e0b; color: #0a0a0f; }
+  .pain-dot.p6.selected { background: #f97316; border-color: #f97316; }
+  .pain-dot.p7.selected { background: #ef4444; border-color: #ef4444; }
+  .pain-dot.p8.selected { background: #dc2626; border-color: #dc2626; }
+  .pain-dot.p9.selected { background: #b91c1c; border-color: #b91c1c; }
+  .pain-dot.p10.selected { background: #7f1d1d; border-color: #991b1b; }
+
+  .pain-description {
+    color: #4a4a5e;
+    font-size: 11px;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .pain-description.active { color: #a0a0b8; }
+
+  /* Toggle row */
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .toggle-label {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .toggle-track {
+    width: 48px;
+    height: 28px;
+    border-radius: 14px;
+    background: #2a2a3e;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-track.on {
+    background: #06b6d4;
+  }
+  .toggle-knob {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: left 0.2s;
+  }
+  .toggle-track.on .toggle-knob {
+    left: 23px;
+  }
+
+  /* Add note */
+  .add-note-btn {
+    color: #4a4a5e;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .add-note-btn:hover { color: #a0a0b8; }
+
+  /* Log button */
+  .log-btn {
+    width: 100%;
+    padding: 14px;
+    background: #06b6d4;
+    color: #0a0a0f;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  .log-btn:hover { background: #0891b2; }
+
+  /* ---- RECENT RUNS ---- */
+  .run-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .run-item {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .run-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .run-date {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .run-details {
+    color: #4a4a5e;
+    font-size: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .run-pickup-badge {
+    color: #06b6d4;
+    font-size: 10px;
+    font-weight: 600;
+    background: #06b6d415;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .run-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pain-badge {
+    width: 32px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .pain-badge.low { background: #22c55e30; color: #22c55e; }
+  .pain-badge.med { background: #f59e0b30; color: #f59e0b; }
+  .pain-badge.high { background: #ef444430; color: #ef4444; }
+
+  /* ---- TRENDS TAB ---- */
+  .trend-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .trend-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .trend-title {
+    color: #a0a0b8;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .trend-current {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .trend-value {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .trend-unit {
+    color: #4a4a5e;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .trend-sub {
+    color: #4a4a5e;
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+  .trend-chart {
+    height: 80px;
+    width: 100%;
+  }
+  .trend-x-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 2px 0;
+  }
+  .trend-x-label {
+    color: #2a2a3e;
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  /* Consistency dots */
+  .consistency-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .week-runs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .run-dots {
+    display: flex;
+    gap: 3px;
+  }
+  .run-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: #1e1e30;
+  }
+  .run-dot.filled { background: #06b6d4; }
+  .run-dot.filled.pain-high { background: #ef4444; }
+  .run-dot.filled.pain-med { background: #f59e0b; }
+  .week-runs-label {
+    color: #2a2a3e;
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .stat-value {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    color: #4a4a5e;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+  }
+  .stat-delta {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .stat-delta.good { color: #22c55e; }
+  .stat-delta.bad { color: #ef4444; }
+  .stat-delta.neutral { color: #4a4a5e; }
+
+  /* Tab bar */
+  .tab-bar {
+    height: 84px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    padding: 8px 16px 28px;
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #4a4a5e;
+    text-decoration: none;
+  }
+  .tab.active { color: #06b6d4; }
+  .tab-icon { font-size: 20px; }
+  .tab-label { font-size: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- LOG TAB -->
+<div class="phone-wrapper">
+  <div class="label">Log Tab</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">7:15 PM</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Running</div>
+    </div>
+
+    <div class="sub-tabs">
+      <div class="sub-tab active">Log</div>
+      <div class="sub-tab">Trends</div>
+    </div>
+
+    <div class="running-content">
+
+      <!-- Log form -->
+      <div class="log-form">
+        <div class="form-row">
+          <span class="form-label">Duration</span>
+          <div class="form-input-row">
+            <input class="form-input" type="text" value="25" style="text-align: center; max-width: 100px;">
+            <span class="form-unit">min</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Pain Level</span>
+          <div class="pain-selector">
+            <div class="pain-dot p0">0</div>
+            <div class="pain-dot p1">1</div>
+            <div class="pain-dot p2 selected">2</div>
+            <div class="pain-dot p3">3</div>
+            <div class="pain-dot p4">4</div>
+            <div class="pain-dot p5">5</div>
+            <div class="pain-dot p6">6</div>
+            <div class="pain-dot p7">7</div>
+            <div class="pain-dot p8">8</div>
+            <div class="pain-dot p9">9</div>
+            <div class="pain-dot p10">10</div>
+          </div>
+          <div class="pain-description active">Minimal — barely noticeable</div>
+        </div>
+
+        <div class="toggle-row">
+          <span class="toggle-label">Included pickups</span>
+          <div class="toggle-track on">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="add-note-btn">+ Add note</div>
+
+        <button class="log-btn">Log Run</button>
+      </div>
+
+      <!-- Recent runs -->
+      <div>
+        <div class="section-label">Recent Runs</div>
+        <div class="run-list">
+          <div class="run-item">
+            <div class="run-left">
+              <span class="run-date">Today · Mar 4</span>
+              <div class="run-details">
+                <span>25 min</span>
+                <span class="run-pickup-badge">Pickups</span>
+              </div>
+            </div>
+            <div class="run-right">
+              <div class="pain-badge low">2</div>
+            </div>
+          </div>
+          <div class="run-item">
+            <div class="run-left">
+              <span class="run-date">Sun · Mar 2</span>
+              <div class="run-details">
+                <span>20 min</span>
+              </div>
+            </div>
+            <div class="run-right">
+              <div class="pain-badge low">1</div>
+            </div>
+          </div>
+          <div class="run-item">
+            <div class="run-left">
+              <span class="run-date">Thu · Feb 27</span>
+              <div class="run-details">
+                <span>22 min</span>
+                <span class="run-pickup-badge">Pickups</span>
+              </div>
+            </div>
+            <div class="run-right">
+              <div class="pain-badge med">4</div>
+            </div>
+          </div>
+          <div class="run-item">
+            <div class="run-left">
+              <span class="run-date">Tue · Feb 25</span>
+              <div class="run-details">
+                <span>18 min</span>
+              </div>
+            </div>
+            <div class="run-right">
+              <div class="pain-badge med">5</div>
+            </div>
+          </div>
+          <div class="run-item">
+            <div class="run-left">
+              <span class="run-date">Sat · Feb 22</span>
+              <div class="run-details">
+                <span>15 min</span>
+              </div>
+            </div>
+            <div class="run-right">
+              <div class="pain-badge high">7</div>
+            </div>
+          </div>
+          <div class="run-item">
+            <div class="run-left">
+              <span class="run-date">Wed · Feb 19</span>
+              <div class="run-details">
+                <span>12 min</span>
+              </div>
+            </div>
+            <div class="run-right">
+              <div class="pain-badge high">8</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">⊞</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">⊡</span><span class="tab-label">Progress</span></a>
+      <a class="tab active"><span class="tab-icon">↗</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- TRENDS TAB -->
+<div class="phone-wrapper">
+  <div class="label">Trends Tab</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">7:15 PM</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Running</div>
+    </div>
+
+    <div class="sub-tabs">
+      <div class="sub-tab">Log</div>
+      <div class="sub-tab active">Trends</div>
+    </div>
+
+    <div class="running-content">
+
+      <!-- Quick stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value">14</div>
+          <div class="stat-label">Total Runs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">2.3</div>
+          <div class="stat-label">Avg Pain</div>
+          <div class="stat-delta good">↓ from 5.8</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">23</div>
+          <div class="stat-label">Avg Min</div>
+          <div class="stat-delta good">↑ from 12</div>
+        </div>
+      </div>
+
+      <!-- Pain trend -->
+      <div class="trend-card">
+        <div class="trend-header">
+          <span class="trend-title">Pain Trend</span>
+          <div class="trend-current">
+            <span class="trend-value">2</span>
+            <span class="trend-unit">/ 10</span>
+          </div>
+        </div>
+        <div class="trend-sub">Last 8 weeks — trending down</div>
+        <div class="trend-chart">
+          <svg viewBox="0 0 300 80" preserveAspectRatio="none" width="100%" height="80">
+            <!-- Grid -->
+            <line x1="0" y1="0" x2="300" y2="0" stroke="#1e1e30" stroke-width="1"/>
+            <line x1="0" y1="26" x2="300" y2="26" stroke="#1e1e30" stroke-width="1"/>
+            <line x1="0" y1="53" x2="300" y2="53" stroke="#1e1e30" stroke-width="1"/>
+            <line x1="0" y1="80" x2="300" y2="80" stroke="#1e1e30" stroke-width="1"/>
+            <!-- Y labels -->
+            <text x="296" y="9" fill="#2a2a3e" font-size="8" text-anchor="end">10</text>
+            <text x="296" y="35" fill="#2a2a3e" font-size="8" text-anchor="end">7</text>
+            <text x="296" y="62" fill="#2a2a3e" font-size="8" text-anchor="end">3</text>
+            <text x="296" y="78" fill="#2a2a3e" font-size="8" text-anchor="end">0</text>
+            <!-- Area fill with gradient feel -->
+            <path d="M0,16 L43,24 L86,32 L129,28 L172,48 L215,56 L258,64 L300,64 L300,80 L0,80 Z" fill="#ef4444" opacity="0.06"/>
+            <!-- Line - gradient from red to green -->
+            <polyline points="0,16 43,24 86,32 129,28 172,48 215,56 258,64 300,64" fill="none" stroke="url(#painGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="painGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#ef4444"/>
+                <stop offset="40%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#22c55e"/>
+              </linearGradient>
+            </defs>
+            <!-- Dots -->
+            <circle cx="0" cy="16" r="4" fill="#ef4444"/>
+            <circle cx="43" cy="24" r="4" fill="#ef4444"/>
+            <circle cx="86" cy="32" r="4" fill="#f97316"/>
+            <circle cx="129" cy="28" r="4" fill="#f97316"/>
+            <circle cx="172" cy="48" r="4" fill="#f59e0b"/>
+            <circle cx="215" cy="56" r="4" fill="#86efac"/>
+            <circle cx="258" cy="64" r="4" fill="#22c55e"/>
+            <circle cx="300" cy="64" r="5.5" fill="#0a0a0f" stroke="#22c55e" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="trend-x-labels">
+          <span class="trend-x-label">Jan 13</span>
+          <span class="trend-x-label">Jan 27</span>
+          <span class="trend-x-label">Feb 10</span>
+          <span class="trend-x-label">Feb 24</span>
+          <span class="trend-x-label" style="color: #4a4a5e;">Mar 4</span>
+        </div>
+      </div>
+
+      <!-- Duration trend -->
+      <div class="trend-card">
+        <div class="trend-header">
+          <span class="trend-title">Duration Trend</span>
+          <div class="trend-current">
+            <span class="trend-value">25</span>
+            <span class="trend-unit">min</span>
+          </div>
+        </div>
+        <div class="trend-sub">Steadily increasing</div>
+        <div class="trend-chart">
+          <svg viewBox="0 0 300 80" preserveAspectRatio="none" width="100%" height="80">
+            <line x1="0" y1="0" x2="300" y2="0" stroke="#1e1e30" stroke-width="1"/>
+            <line x1="0" y1="26" x2="300" y2="26" stroke="#1e1e30" stroke-width="1"/>
+            <line x1="0" y1="53" x2="300" y2="53" stroke="#1e1e30" stroke-width="1"/>
+            <line x1="0" y1="80" x2="300" y2="80" stroke="#1e1e30" stroke-width="1"/>
+            <text x="296" y="9" fill="#2a2a3e" font-size="8" text-anchor="end">30m</text>
+            <text x="296" y="35" fill="#2a2a3e" font-size="8" text-anchor="end">20m</text>
+            <text x="296" y="62" fill="#2a2a3e" font-size="8" text-anchor="end">10m</text>
+            <text x="296" y="78" fill="#2a2a3e" font-size="8" text-anchor="end">0m</text>
+            <path d="M0,64 L43,56 L86,48 L129,42 L172,36 L215,28 L258,20 L300,14 L300,80 L0,80 Z" fill="#06b6d4" opacity="0.08"/>
+            <polyline points="0,64 43,56 86,48 129,42 172,36 215,28 258,20 300,14" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="0" cy="64" r="4" fill="#06b6d4"/>
+            <circle cx="43" cy="56" r="4" fill="#06b6d4"/>
+            <circle cx="86" cy="48" r="4" fill="#06b6d4"/>
+            <circle cx="129" cy="42" r="4" fill="#06b6d4"/>
+            <circle cx="172" cy="36" r="4" fill="#06b6d4"/>
+            <circle cx="215" cy="28" r="4" fill="#06b6d4"/>
+            <circle cx="258" cy="20" r="4" fill="#06b6d4"/>
+            <circle cx="300" cy="14" r="5.5" fill="#0a0a0f" stroke="#06b6d4" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="trend-x-labels">
+          <span class="trend-x-label">Jan 13</span>
+          <span class="trend-x-label">Jan 27</span>
+          <span class="trend-x-label">Feb 10</span>
+          <span class="trend-x-label">Feb 24</span>
+          <span class="trend-x-label" style="color: #4a4a5e;">Mar 4</span>
+        </div>
+      </div>
+
+      <!-- Run frequency -->
+      <div>
+        <div class="section-label">Run Frequency</div>
+        <div class="trend-card">
+          <div class="trend-sub" style="margin-bottom: 14px;">Runs per week</div>
+          <div class="consistency-row">
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled pain-high"></div>
+              </div>
+              <span class="week-runs-label">W1</span>
+            </div>
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled pain-high"></div>
+                <div class="run-dot filled pain-med"></div>
+              </div>
+              <span class="week-runs-label">W2</span>
+            </div>
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled pain-med"></div>
+                <div class="run-dot filled pain-med"></div>
+              </div>
+              <span class="week-runs-label">W3</span>
+            </div>
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled pain-med"></div>
+                <div class="run-dot filled"></div>
+              </div>
+              <span class="week-runs-label">W4</span>
+            </div>
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled"></div>
+                <div class="run-dot filled"></div>
+              </div>
+              <span class="week-runs-label">W5</span>
+            </div>
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled"></div>
+                <div class="run-dot filled"></div>
+                <div class="run-dot filled"></div>
+              </div>
+              <span class="week-runs-label">W6</span>
+            </div>
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled"></div>
+                <div class="run-dot filled"></div>
+              </div>
+              <span class="week-runs-label">W7</span>
+            </div>
+            <div class="week-runs">
+              <div class="run-dots">
+                <div class="run-dot filled"></div>
+                <div class="run-dot filled"></div>
+                <div class="run-dot filled"></div>
+              </div>
+              <span class="week-runs-label">W8</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">⊞</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">⊡</span><span class="tab-label">Progress</span></a>
+      <a class="tab active"><span class="tab-icon">↗</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

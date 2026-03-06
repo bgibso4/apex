@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Add Exercise & Reorder Flow</title>
+<style>
+  /* === COPIED FROM workout-screen.html === */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 700; }
+
+  .workout-header {
+    padding: 8px 24px 12px;
+    flex-shrink: 0;
+  }
+  .workout-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .workout-title {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .workout-timer {
+    color: #6a6a80;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .workout-subtitle {
+    color: #a0a0b8;
+    font-size: 13px;
+  }
+
+  .progress-bar-container {
+    padding: 0 24px 16px;
+    flex-shrink: 0;
+  }
+  .progress-bar-bg {
+    height: 4px;
+    background: #1e1e30;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: #6366f1;
+    border-radius: 2px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #4a4a5e;
+    font-weight: 500;
+  }
+
+  /* Add exercise link — small, near progress bar */
+  .add-exercise-link {
+    padding: 0 24px 12px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .add-exercise-link a {
+    color: #4a4a5e;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s;
+    text-decoration: none;
+  }
+  .add-exercise-link a:hover { color: #6366f1; }
+
+  .workout-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .exercise-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .exercise-collapsed {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  .exercise-collapsed:hover {
+    background: #1a1a2e;
+  }
+  .exercise-collapsed-name {
+    color: #a0a0b8;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .exercise-collapsed-status {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a4a5e;
+  }
+  .exercise-collapsed-status.done {
+    color: #22c55e;
+  }
+
+  .exercise-card.active {
+    border-color: #6366f130;
+  }
+  .exercise-expanded {
+    padding: 20px;
+  }
+  .exercise-name {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .exercise-last {
+    color: #4a4a5e;
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  .exercise-last span {
+    color: #6a6a80;
+  }
+
+  .set-header {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 80px;
+    padding: 0 4px 8px;
+    font-size: 11px;
+    color: #4a4a5e;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .set-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 80px;
+    align-items: center;
+    padding: 10px 4px;
+    border-top: 1px solid #1e1e30;
+  }
+  .set-number {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .set-weight, .set-reps {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .set-action {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .set-btn {
+    width: 56px;
+    height: 36px;
+    border-radius: 8px;
+    border: 2px solid #2a2a3e;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .set-btn .circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #4a4a5e;
+  }
+  .set-row.completed .set-weight,
+  .set-row.completed .set-reps {
+    color: #22c55e;
+  }
+  .set-btn.completed {
+    border-color: #22c55e40;
+    background: #22c55e15;
+  }
+  .set-btn.completed .check {
+    color: #22c55e;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .set-value-chip {
+    color: #22c55e;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .set-row.current {
+    background: #6366f108;
+    border-radius: 8px;
+    border-top-color: transparent;
+  }
+  .set-row.current .set-number { color: #6366f1; }
+  .set-row.current .set-btn {
+    border-color: #6366f1;
+    background: #6366f115;
+  }
+  .set-row.current .set-btn .circle { border-color: #6366f1; }
+
+  .conditioning-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .conditioning-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .conditioning-label {
+    color: #6a6a80;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .conditioning-name {
+    color: #a0a0b8;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .checkbox {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 2px solid #2a2a3e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .checkbox.checked {
+    background: #22c55e20;
+    border-color: #22c55e;
+    color: #22c55e;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .finish-section {
+    padding: 16px;
+    flex-shrink: 0;
+  }
+  .finish-btn {
+    width: 100%;
+    padding: 16px;
+    background: #22c55e;
+    color: #0a0a0f;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .finish-btn.disabled {
+    background: #1e1e30;
+    color: #4a4a5e;
+    cursor: not-allowed;
+  }
+
+  .tab-bar {
+    height: 84px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    padding: 8px 16px 28px;
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #4a4a5e;
+    text-decoration: none;
+  }
+  .tab.active { color: #6366f1; }
+  .tab-icon { font-size: 22px; }
+  .tab-label { font-size: 10px; font-weight: 600; }
+
+  .adhoc-tag {
+    color: #6366f1;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* === Modal === */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: flex-end;
+    z-index: 20;
+  }
+  .modal {
+    background: #0a0a0f;
+    border-radius: 20px 20px 0 0;
+    border-top: 1px solid #2a2a3e;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 12px;
+  }
+  .modal-header h3 {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .modal-cancel {
+    color: #6366f1;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .search-bar {
+    margin: 0 24px 8px;
+    padding: 12px 16px;
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    color: #4a4a5e;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px 24px;
+  }
+  .group-label {
+    color: #6366f1;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 20px 0 8px;
+  }
+  .exercise-list-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid #1e1e30;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .exercise-list-row:last-child { border-bottom: none; }
+  .exercise-list-row .chevron { color: #4a4a5e; font-size: 16px; }
+  .exercise-list-row.custom-entry {
+    color: #6366f1;
+    border-bottom: 1px solid #2a2a3e;
+    padding: 16px 0;
+  }
+
+  .config-section { padding: 20px 24px 24px; }
+  .config-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .config-field { flex: 1; }
+  .config-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .config-input {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .config-input.empty { color: #4a4a5e; }
+  .config-hint {
+    color: #4a4a5e;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .primary-btn {
+    width: 100%;
+    padding: 16px;
+    background: #6366f1;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* === Reorder === */
+  .reorder-banner {
+    background: #141420;
+    border-bottom: 1px solid #2a2a3e;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .reorder-banner-text {
+    color: #a0a0b8;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .reorder-done-btn {
+    color: #6366f1;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .reorder-handle {
+    color: #4a4a5e;
+    font-size: 16px;
+    margin-right: 12px;
+  }
+  .exercise-card.dragging {
+    border-color: #6366f1;
+    background: #1a1a2e;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+  }
+  .exercise-card.dragging .reorder-handle { color: #6366f1; }
+  .drop-line {
+    height: 2px;
+    background: #6366f1;
+    border-radius: 1px;
+    margin: 2px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- PHONE 1: Mid-workout with + Add Exercise link & Finish button -->
+<div class="phone-wrapper">
+  <div class="label">Workout Screen</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">6:38 AM</span>
+    </div>
+
+    <div class="workout-header">
+      <div class="workout-header-top">
+        <div class="workout-title">Upper Push</div>
+        <div class="workout-timer">24:12</div>
+      </div>
+      <div class="workout-subtitle">Week 6 — Strength Block</div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: 35%"></div>
+      </div>
+      <div class="progress-label">
+        <span>2 of 6 exercises</span>
+        <span>8 / 22 sets</span>
+      </div>
+    </div>
+
+    <!-- Small "+ Add exercise" link -->
+    <div class="add-exercise-link">
+      <a>+ Add exercise</a>
+    </div>
+
+    <div class="workout-content">
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Bench Press</span>
+          <span class="exercise-collapsed-status done">4/4 ✓</span>
+        </div>
+      </div>
+
+      <div class="exercise-card active">
+        <div class="exercise-expanded">
+          <div class="exercise-name">Push Press</div>
+          <div class="exercise-last">Last: <span>135 lbs × 5 × 3 sets</span></div>
+          <div class="set-header">
+            <span>Set</span><span>Weight</span><span>Reps</span><span></span>
+          </div>
+          <div class="set-row completed">
+            <span class="set-number">1</span>
+            <span class="set-value-chip">140 lbs</span>
+            <span class="set-value-chip">5</span>
+            <div class="set-action"><div class="set-btn completed"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-number">2</span>
+            <span class="set-weight">140 lbs</span>
+            <span class="set-reps">5</span>
+            <div class="set-action"><div class="set-btn"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-number">3</span>
+            <span class="set-weight" style="color: #6a6a80;">140 lbs</span>
+            <span class="set-reps" style="color: #6a6a80;">5</span>
+            <div class="set-action"><div class="set-btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Incline DB Press</span>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Tricep Dips</span>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Lateral Raises</span>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Face Pulls</span>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+
+      <div class="conditioning-card">
+        <div class="conditioning-left">
+          <span class="conditioning-label">Conditioning Finisher</span>
+          <span class="conditioning-name">Sled Push — 4 × 40 yds</span>
+        </div>
+        <div class="checkbox"></div>
+      </div>
+    </div>
+
+    <div class="finish-section">
+      <button class="finish-btn disabled">Finish Workout</button>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 2: Exercise Picker Modal -->
+<div class="phone-wrapper">
+  <div class="label">Exercise Picker</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">6:38 AM</span>
+    </div>
+
+    <div class="workout-header" style="opacity: 0.15;">
+      <div class="workout-header-top">
+        <div class="workout-title">Upper Push</div>
+        <div class="workout-timer">24:12</div>
+      </div>
+    </div>
+
+    <div class="modal-overlay">
+      <div class="modal" style="max-height: 75%;">
+        <div class="modal-header">
+          <h3>Add Exercise</h3>
+          <span class="modal-cancel">Cancel</span>
+        </div>
+
+        <div class="search-bar">
+          🔍 <span>Search exercises...</span>
+        </div>
+
+        <div class="modal-scroll">
+          <div class="exercise-list-row custom-entry">
+            <span>+ Custom Exercise</span>
+            <span class="chevron">›</span>
+          </div>
+
+          <div class="group-label">Chest</div>
+          <div class="exercise-list-row"><span>Bench Press</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Incline Dumbbell Press</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Push-ups</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Cable Flyes</span><span class="chevron">›</span></div>
+
+          <div class="group-label">Back</div>
+          <div class="exercise-list-row"><span>Pull-ups</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Barbell Row</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Lat Pulldown</span><span class="chevron">›</span></div>
+
+          <div class="group-label">Shoulders</div>
+          <div class="exercise-list-row"><span>Overhead Press</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Lateral Raises</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Face Pulls</span><span class="chevron">›</span></div>
+
+          <div class="group-label">Legs</div>
+          <div class="exercise-list-row"><span>Leg Press</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Leg Curl</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Calf Raises</span><span class="chevron">›</span></div>
+
+          <div class="group-label">Arms</div>
+          <div class="exercise-list-row"><span>Bicep Curls</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Tricep Pushdowns</span><span class="chevron">›</span></div>
+
+          <div class="group-label">Core</div>
+          <div class="exercise-list-row"><span>Hanging Leg Raises</span><span class="chevron">›</span></div>
+          <div class="exercise-list-row"><span>Ab Wheel Rollouts</span><span class="chevron">›</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 3: Configure Sets/Reps -->
+<div class="phone-wrapper">
+  <div class="label">Configure Exercise</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">6:39 AM</span>
+    </div>
+
+    <div class="workout-header" style="opacity: 0.15;">
+      <div class="workout-header-top">
+        <div class="workout-title">Upper Push</div>
+      </div>
+    </div>
+
+    <div class="modal-overlay">
+      <div class="modal" style="max-height: 45%;">
+        <div class="modal-header">
+          <!-- Back arrow matching progress-screen-v2 style -->
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: #6a6a80; font-size: 22px; cursor: pointer;">←</span>
+            <span style="color: #ffffff; font-size: 20px; font-weight: 700;">Push-ups</span>
+          </div>
+          <span style="width: 20px;"></span>
+        </div>
+
+        <div class="config-section">
+          <div class="config-row">
+            <div class="config-field">
+              <div class="config-label">Sets</div>
+              <div class="config-input">3</div>
+            </div>
+            <div class="config-field">
+              <div class="config-label">Reps</div>
+              <div class="config-input">15</div>
+            </div>
+            <div class="config-field">
+              <div class="config-label">Weight</div>
+              <div class="config-input empty">—</div>
+            </div>
+          </div>
+          <div class="config-hint">Sets will be added to your workout. You can adjust weight and reps as you go.</div>
+          <button class="primary-btn">Add to Workout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 4: Ad-hoc exercise added, workout nearly done -->
+<div class="phone-wrapper">
+  <div class="label">Added to Workout</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">7:04 AM</span>
+    </div>
+
+    <div class="workout-header">
+      <div class="workout-header-top">
+        <div class="workout-title">Upper Push</div>
+        <div class="workout-timer">52:18</div>
+      </div>
+      <div class="workout-subtitle">Week 6 — Strength Block</div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: 100%"></div>
+      </div>
+      <div class="progress-label">
+        <span>6 of 6 exercises</span>
+        <span>22 / 22 sets</span>
+      </div>
+    </div>
+
+    <div class="add-exercise-link">
+      <a>+ Add exercise</a>
+    </div>
+
+    <div class="workout-content">
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Bench Press</span>
+          <span class="exercise-collapsed-status done">4/4 ✓</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Push Press</span>
+          <span class="exercise-collapsed-status done">3/3 ✓</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Incline DB Press</span>
+          <span class="exercise-collapsed-status done">3/3 ✓</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Tricep Dips</span>
+          <span class="exercise-collapsed-status done">3/3 ✓</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Lateral Raises</span>
+          <span class="exercise-collapsed-status done">3/3 ✓</span>
+        </div>
+      </div>
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <span class="exercise-collapsed-name">Face Pulls</span>
+          <span class="exercise-collapsed-status done">3/3 ✓</span>
+        </div>
+      </div>
+
+      <div class="conditioning-card">
+        <div class="conditioning-left">
+          <span class="conditioning-label">Conditioning Finisher</span>
+          <span class="conditioning-name">Sled Push — 4 × 40 yds</span>
+        </div>
+        <div class="checkbox checked">✓</div>
+      </div>
+
+      <!-- Ad-hoc exercise -->
+      <div class="exercise-card active" style="border-color: #6366f130;">
+        <div class="exercise-expanded">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div class="exercise-name" style="margin-bottom: 0;">Push-ups</div>
+            <span class="adhoc-tag">Ad-hoc</span>
+          </div>
+          <div class="set-header">
+            <span>Set</span><span>Weight</span><span>Reps</span><span></span>
+          </div>
+          <div class="set-row current">
+            <span class="set-number">1</span>
+            <span class="set-weight">BW</span>
+            <span class="set-reps">15</span>
+            <div class="set-action"><div class="set-btn"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-number">2</span>
+            <span class="set-weight" style="color: #6a6a80;">BW</span>
+            <span class="set-reps" style="color: #6a6a80;">15</span>
+            <div class="set-action"><div class="set-btn"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-number">3</span>
+            <span class="set-weight" style="color: #6a6a80;">BW</span>
+            <span class="set-reps" style="color: #6a6a80;">15</span>
+            <div class="set-action"><div class="set-btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="finish-section">
+      <button class="finish-btn">Finish Workout</button>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 5: Reorder Mode -->
+<div class="phone-wrapper">
+  <div class="label">Reorder (Long Press)</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">6:38 AM</span>
+    </div>
+
+    <div class="workout-header">
+      <div class="workout-header-top">
+        <div class="workout-title">Upper Push</div>
+        <div class="workout-timer">24:12</div>
+      </div>
+      <div class="workout-subtitle">Week 6 — Strength Block</div>
+    </div>
+
+    <div class="reorder-banner">
+      <span class="reorder-banner-text">Reorder exercises</span>
+      <span class="reorder-done-btn">Done</span>
+    </div>
+
+    <div class="workout-content" style="padding-top: 8px;">
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <div style="display: flex; align-items: center;">
+            <span class="reorder-handle">☰</span>
+            <span class="exercise-collapsed-name">Bench Press</span>
+          </div>
+          <span class="exercise-collapsed-status done">4/4 ✓</span>
+        </div>
+      </div>
+
+      <div class="exercise-card dragging">
+        <div class="exercise-collapsed">
+          <div style="display: flex; align-items: center;">
+            <span class="reorder-handle">☰</span>
+            <span class="exercise-collapsed-name" style="color: #ffffff;">Incline DB Press</span>
+          </div>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+
+      <div class="drop-line"></div>
+
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <div style="display: flex; align-items: center;">
+            <span class="reorder-handle">☰</span>
+            <span class="exercise-collapsed-name">Push Press</span>
+          </div>
+          <span class="exercise-collapsed-status">1/3</span>
+        </div>
+      </div>
+
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <div style="display: flex; align-items: center;">
+            <span class="reorder-handle">☰</span>
+            <span class="exercise-collapsed-name">Tricep Dips</span>
+          </div>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <div style="display: flex; align-items: center;">
+            <span class="reorder-handle">☰</span>
+            <span class="exercise-collapsed-name">Lateral Raises</span>
+          </div>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+
+      <div class="exercise-card">
+        <div class="exercise-collapsed">
+          <div style="display: flex; align-items: center;">
+            <span class="reorder-handle">☰</span>
+            <span class="exercise-collapsed-name">Face Pulls</span>
+          </div>
+          <span class="exercise-collapsed-status">0/3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

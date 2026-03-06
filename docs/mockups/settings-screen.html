@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Settings Screen Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8; font-size: 13px; text-align: center;
+    margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .phone {
+    width: 393px; height: 852px; background: #0a0a0f;
+    border-radius: 44px; overflow: hidden; position: relative;
+    border: 3px solid #2a2a3e; display: flex; flex-direction: column;
+  }
+  .dynamic-island {
+    width: 126px; height: 36px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  }
+  .status-bar {
+    height: 54px; padding: 14px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+
+  /* Header */
+  .settings-header {
+    padding: 8px 24px 24px;
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  .back-btn {
+    color: #6a6a80; font-size: 22px; cursor: pointer;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+  }
+  .back-btn:hover { background: #141420; color: #a0a0b8; }
+  .settings-title {
+    color: #ffffff; font-size: 22px; font-weight: 800;
+  }
+
+  .settings-content {
+    flex: 1; overflow-y: auto; padding: 0 24px 24px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+
+  /* Section */
+  .settings-section-label {
+    color: #4a4a5e; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+  }
+
+  .settings-group {
+    background: #141420; border: 1px solid #2a2a3e; border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .settings-row {
+    padding: 16px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #1e1e30;
+  }
+  .settings-row:last-child { border-bottom: none; }
+
+  .settings-row-left {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .settings-row-label {
+    color: #ffffff; font-size: 15px; font-weight: 600;
+  }
+  .settings-row-hint {
+    color: #4a4a5e; font-size: 12px;
+  }
+
+  /* Toggle */
+  .toggle-track {
+    width: 48px; height: 28px; border-radius: 14px; background: #2a2a3e;
+    position: relative; cursor: pointer; flex-shrink: 0;
+  }
+  .toggle-track.on { background: #6366f1; }
+  .toggle-knob {
+    width: 22px; height: 22px; border-radius: 50%; background: #ffffff;
+    position: absolute; top: 3px; left: 3px;
+  }
+  .toggle-track.on .toggle-knob { left: 23px; }
+
+  /* Segmented control */
+  .segment-control {
+    display: flex; background: #1e1e30; border-radius: 8px; overflow: hidden;
+    border: 1px solid #2a2a3e;
+  }
+  .segment-option {
+    padding: 8px 20px; font-size: 14px; font-weight: 600;
+    color: #4a4a5e; cursor: pointer; transition: all 0.15s;
+    text-align: center;
+  }
+  .segment-option.active {
+    background: #6366f1; color: #ffffff; border-radius: 7px;
+  }
+
+  /* Dropdown / selector */
+  .selector-value {
+    display: flex; align-items: center; gap: 8px;
+    color: #a0a0b8; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .selector-chevron { color: #4a4a5e; font-size: 14px; }
+
+  /* Connection button */
+  .connect-btn {
+    padding: 8px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid; display: flex; align-items: center; gap: 6px;
+  }
+  .connect-btn.available {
+    background: #6366f110; border-color: #6366f1; color: #6366f1;
+  }
+  .connect-btn.available:hover { background: #6366f120; }
+  .connect-btn.coming-soon {
+    background: transparent; border-color: #2a2a3e; color: #4a4a5e;
+    cursor: default;
+  }
+  .connect-btn.connected {
+    background: #22c55e10; border-color: #22c55e40; color: #22c55e;
+  }
+
+  /* Pinned goal selector expanded */
+  .goal-options {
+    display: flex; flex-direction: column;
+  }
+  .goal-option {
+    padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #1e1e30; cursor: pointer;
+  }
+  .goal-option:last-child { border-bottom: none; }
+  .goal-option:hover { background: #1a1a2e; }
+  .goal-option-left {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .goal-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .goal-icon.running { background: #06b6d415; color: #06b6d4; }
+  .goal-icon.swimming { background: #6366f115; color: #6366f1; }
+  .goal-icon.biking { background: #f59e0b15; color: #f59e0b; }
+  .goal-icon.mobility { background: #22c55e15; color: #22c55e; }
+  .goal-option-name { color: #ffffff; font-size: 15px; font-weight: 600; }
+  .goal-option-desc { color: #4a4a5e; font-size: 12px; }
+  .goal-radio {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid #2a2a3e; display: flex; align-items: center; justify-content: center;
+  }
+  .goal-radio.selected { border-color: #6366f1; }
+  .goal-radio-inner {
+    width: 12px; height: 12px; border-radius: 50%; background: #6366f1;
+  }
+  .goal-coming-soon {
+    color: #4a4a5e; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* Edit 1RMs */
+  .edit-arrow {
+    color: #4a4a5e; font-size: 18px;
+  }
+
+  /* Version info */
+  .version-info {
+    text-align: center; padding: 20px 0;
+    color: #2a2a3e; font-size: 12px; font-weight: 600;
+  }
+
+  /* Danger zone */
+  .danger-btn {
+    width: 100%; padding: 14px; background: transparent;
+    border: 1px solid #ef444430; color: #ef4444; border-radius: 10px;
+    font-size: 14px; font-weight: 600; cursor: pointer; text-align: center;
+  }
+  .danger-btn:hover { background: #ef444410; }
+
+  /* Tab bar */
+  .tab-bar {
+    height: 84px; background: #141420; border-top: 1px solid #2a2a3e;
+    display: flex; padding: 8px 16px 28px; flex-shrink: 0;
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 4px; cursor: pointer; color: #4a4a5e;
+  }
+  .tab.active { color: #6366f1; }
+  .tab-icon { font-size: 20px; }
+  .tab-label { font-size: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- SETTINGS MAIN -->
+<div class="phone-wrapper">
+  <div class="label">Settings</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar"><span class="time">9:41 AM</span></div>
+
+    <div class="settings-header">
+      <div class="back-btn">←</div>
+      <div class="settings-title">Settings</div>
+    </div>
+
+    <div class="settings-content">
+
+      <!-- Training -->
+      <div>
+        <div class="settings-section-label">Training</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Units</span>
+            </div>
+            <div class="segment-control">
+              <div class="segment-option active">lbs</div>
+              <div class="segment-option">kg</div>
+            </div>
+          </div>
+          <div class="settings-row" style="cursor: pointer;">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Edit Current 1RMs</span>
+              <span class="settings-row-hint">Update your working maxes mid-program</span>
+            </div>
+            <span class="edit-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goals -->
+      <div>
+        <div class="settings-section-label">Supplementary Goals</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Pinned to Nav Bar</span>
+              <span class="settings-row-hint">Shows as a bottom tab for quick access</span>
+            </div>
+            <div class="selector-value">
+              Running <span class="selector-chevron">▾</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integrations -->
+      <div>
+        <div class="settings-section-label">Integrations</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">WHOOP</span>
+              <span class="settings-row-hint">Recovery, sleep, and strain data</span>
+            </div>
+            <div class="connect-btn coming-soon">Coming Soon</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div>
+        <div class="settings-section-label">Data</div>
+        <div class="settings-group">
+          <div class="settings-row" style="cursor: pointer;">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Export Training Data</span>
+              <span class="settings-row-hint">Download all sessions as JSON</span>
+            </div>
+            <span class="edit-arrow">→</span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Clear All Data</span>
+              <span class="settings-row-hint">Delete all sessions, programs, and history</span>
+            </div>
+            <button class="danger-btn" style="width: auto; padding: 8px 16px; font-size: 12px;">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="version-info">APEX v0.1.0</div>
+
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">⊞</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">⊡</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">↗</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- PINNED GOAL SELECTOR (expanded) -->
+<div class="phone-wrapper">
+  <div class="label">Goal Selector (Future)</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar"><span class="time">9:42 AM</span></div>
+
+    <div class="settings-header">
+      <div class="back-btn">←</div>
+      <div class="settings-title">Pinned Goal</div>
+    </div>
+
+    <div class="settings-content">
+      <div>
+        <div class="settings-section-label">Choose which goal appears in your nav bar</div>
+        <div class="settings-group">
+          <div class="goal-options">
+            <div class="goal-option">
+              <div class="goal-option-left">
+                <div class="goal-icon running">↗</div>
+                <div>
+                  <div class="goal-option-name">Running</div>
+                  <div class="goal-option-desc">Duration, distance, pace, pain tracking</div>
+                </div>
+              </div>
+              <div class="goal-radio selected">
+                <div class="goal-radio-inner"></div>
+              </div>
+            </div>
+            <div class="goal-option" style="opacity: 0.5; cursor: default;">
+              <div class="goal-option-left">
+                <div class="goal-icon swimming">≈</div>
+                <div>
+                  <div class="goal-option-name">Swimming</div>
+                  <div class="goal-option-desc">Laps, distance, stroke tracking</div>
+                </div>
+              </div>
+              <span class="goal-coming-soon">Coming Soon</span>
+            </div>
+            <div class="goal-option" style="opacity: 0.5; cursor: default;">
+              <div class="goal-option-left">
+                <div class="goal-icon biking">◎</div>
+                <div>
+                  <div class="goal-option-name">Cycling</div>
+                  <div class="goal-option-desc">Distance, duration, elevation</div>
+                </div>
+              </div>
+              <span class="goal-coming-soon">Coming Soon</span>
+            </div>
+            <div class="goal-option" style="opacity: 0.5; cursor: default;">
+              <div class="goal-option-left">
+                <div class="goal-icon mobility">⟳</div>
+                <div>
+                  <div class="goal-option-name">Mobility</div>
+                  <div class="goal-option-desc">Flexibility, ROM, protocol tracking</div>
+                </div>
+              </div>
+              <span class="goal-coming-soon">Coming Soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">⊞</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">⊡</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">↗</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- WHOOP CONNECTED STATE (future) -->
+<div class="phone-wrapper">
+  <div class="label">WHOOP Connected (Future)</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar"><span class="time">9:41 AM</span></div>
+
+    <div class="settings-header">
+      <div class="back-btn">←</div>
+      <div class="settings-title">Settings</div>
+    </div>
+
+    <div class="settings-content">
+
+      <div>
+        <div class="settings-section-label">Training</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Units</span>
+            </div>
+            <div class="segment-control">
+              <div class="segment-option active">lbs</div>
+              <div class="segment-option">kg</div>
+            </div>
+          </div>
+          <div class="settings-row" style="cursor: pointer;">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Edit Current 1RMs</span>
+              <span class="settings-row-hint">Update your working maxes mid-program</span>
+            </div>
+            <span class="edit-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="settings-section-label">Supplementary Goals</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Pinned to Nav Bar</span>
+              <span class="settings-row-hint">Shows as a bottom tab for quick access</span>
+            </div>
+            <div class="selector-value">
+              Running <span class="selector-chevron">▾</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="settings-section-label">Integrations</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">WHOOP</span>
+              <span class="settings-row-hint">Syncing recovery & sleep data</span>
+            </div>
+            <div class="connect-btn connected">✓ Connected</div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Show Recovery on Dashboard</span>
+              <span class="settings-row-hint">Display WHOOP recovery score on Home</span>
+            </div>
+            <div class="toggle-track on"><div class="toggle-knob"></div></div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Show at Workout Start</span>
+              <span class="settings-row-hint">Display recovery before starting a session</span>
+            </div>
+            <div class="toggle-track on"><div class="toggle-knob"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="settings-section-label">Data</div>
+        <div class="settings-group">
+          <div class="settings-row" style="cursor: pointer;">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Export Training Data</span>
+              <span class="settings-row-hint">Download all sessions as JSON</span>
+            </div>
+            <span class="edit-arrow">→</span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">Clear All Data</span>
+              <span class="settings-row-hint">Delete all sessions, programs, and history</span>
+            </div>
+            <button class="danger-btn" style="width: auto; padding: 8px 16px; font-size: 12px;">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="version-info">APEX v0.1.0</div>
+
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">⊞</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">⊡</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">↗</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

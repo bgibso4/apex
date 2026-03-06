@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Progress Screen Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* Header */
+  .screen-header {
+    padding: 8px 24px 16px;
+    flex-shrink: 0;
+  }
+  .screen-title {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  /* Time range tabs */
+  .time-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 24px 16px;
+    flex-shrink: 0;
+  }
+  .time-tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a4a5e;
+    background: transparent;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .time-tab:hover { color: #a0a0b8; border-color: #3a3a4e; }
+  .time-tab.active {
+    background: #6366f115;
+    border-color: #6366f1;
+    color: #ffffff;
+  }
+
+  /* Scrollable content */
+  .progress-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: 16px;
+  }
+
+  /* Section label */
+  .section-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  /* 1RM cards */
+  .rm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .rm-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .rm-exercise {
+    color: #a0a0b8;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .rm-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .rm-value {
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .rm-unit {
+    color: #4a4a5e;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .rm-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .rm-trend.up {
+    color: #22c55e;
+  }
+  .rm-trend.down {
+    color: #ef4444;
+  }
+  .rm-trend.flat {
+    color: #4a4a5e;
+  }
+  .rm-card.no-data .rm-value {
+    color: #2a2a3e;
+    font-size: 22px;
+  }
+  .rm-card.no-data .rm-trend {
+    color: #2a2a3e;
+    font-size: 11px;
+  }
+
+  /* Volume chart */
+  .volume-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .volume-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .volume-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 28px;
+  }
+  .volume-week {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .volume-bar-bg {
+    flex: 1;
+    height: 16px;
+    background: #1e1e30;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .volume-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+  .volume-bar.hyp { background: #6366f1; }
+  .volume-bar.deload { background: #22c55e; }
+  .volume-bar.strength { background: #f59e0b; }
+  .volume-bar.current {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+  }
+  .volume-count {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    width: 28px;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .volume-row.current .volume-week {
+    color: #ffffff;
+    font-weight: 700;
+  }
+  .volume-row.current .volume-count {
+    color: #ffffff;
+  }
+
+  /* Tonnage section */
+  .tonnage-section {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tonnage-left {}
+  .tonnage-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .tonnage-value {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .tonnage-unit {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .tonnage-right {
+    text-align: right;
+  }
+  .tonnage-sub-value {
+    color: #a0a0b8;
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .tonnage-sub-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    height: 84px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    padding: 8px 16px 28px;
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #4a4a5e;
+    text-decoration: none;
+  }
+  .tab.active { color: #6366f1; }
+  .tab-icon {
+    font-size: 20px;
+    font-weight: 300;
+  }
+  .tab-label { font-size: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- THIS BLOCK view -->
+<div class="phone-wrapper">
+  <div class="label">This Block</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">8:30 PM</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Progress</div>
+    </div>
+
+    <div class="time-tabs">
+      <div class="time-tab active">This Block</div>
+      <div class="time-tab">This Program</div>
+      <div class="time-tab">All Time</div>
+    </div>
+
+    <div class="progress-content">
+      <!-- 1RM Section -->
+      <div>
+        <div class="section-label">Estimated 1RM</div>
+        <div class="rm-grid">
+          <div class="rm-card">
+            <div class="rm-exercise">Back Squat</div>
+            <div class="rm-value-row">
+              <span class="rm-value">315</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +10 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Bench Press</div>
+            <div class="rm-value-row">
+              <span class="rm-value">225</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +5 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Overhead Press</div>
+            <div class="rm-value-row">
+              <span class="rm-value">155</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend flat">→ No change</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Weighted Pullup</div>
+            <div class="rm-value-row">
+              <span class="rm-value">+70</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +5 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Zercher Squat</div>
+            <div class="rm-value-row">
+              <span class="rm-value">245</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +15 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">RDL</div>
+            <div class="rm-value-row">
+              <span class="rm-value">275</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend down">↓ -5 lbs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volume Chart -->
+      <div class="volume-section">
+        <div class="section-label">Weekly Volume (sets)</div>
+        <div class="volume-chart">
+          <div class="volume-row">
+            <span class="volume-week">W1</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 85%"></div></div>
+            <span class="volume-count">98</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W2</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 90%"></div></div>
+            <span class="volume-count">104</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W3</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 95%"></div></div>
+            <span class="volume-count">110</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W4</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 100%"></div></div>
+            <span class="volume-count">116</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W5</span>
+            <div class="volume-bar-bg"><div class="volume-bar deload" style="width: 55%"></div></div>
+            <span class="volume-count">64</span>
+          </div>
+          <div class="volume-row current">
+            <span class="volume-week">W6</span>
+            <div class="volume-bar-bg"><div class="volume-bar strength current" style="width: 40%"></div></div>
+            <span class="volume-count">46</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tonnage -->
+      <div class="tonnage-section">
+        <div class="tonnage-left">
+          <div class="tonnage-label">Total Tonnage</div>
+          <div>
+            <span class="tonnage-value">186,420</span>
+            <span class="tonnage-unit">lbs</span>
+          </div>
+        </div>
+        <div class="tonnage-right">
+          <div class="tonnage-sub-value">538</div>
+          <div class="tonnage-sub-label">Total Sets</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">⊞</span><span class="tab-label">Workout</span></a>
+      <a class="tab active"><span class="tab-icon">⊡</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">↗</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ALL TIME view (showing more data + no-data state) -->
+<div class="phone-wrapper">
+  <div class="label">All Time</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">8:30 PM</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Progress</div>
+    </div>
+
+    <div class="time-tabs">
+      <div class="time-tab">This Block</div>
+      <div class="time-tab">This Program</div>
+      <div class="time-tab active">All Time</div>
+    </div>
+
+    <div class="progress-content">
+      <!-- 1RM Section -->
+      <div>
+        <div class="section-label">Estimated 1RM</div>
+        <div class="rm-grid">
+          <div class="rm-card">
+            <div class="rm-exercise">Back Squat</div>
+            <div class="rm-value-row">
+              <span class="rm-value">315</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +25 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Bench Press</div>
+            <div class="rm-value-row">
+              <span class="rm-value">225</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +15 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Overhead Press</div>
+            <div class="rm-value-row">
+              <span class="rm-value">155</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +10 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Weighted Pullup</div>
+            <div class="rm-value-row">
+              <span class="rm-value">+70</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +15 lbs</div>
+          </div>
+          <div class="rm-card">
+            <div class="rm-exercise">Zercher Squat</div>
+            <div class="rm-value-row">
+              <span class="rm-value">245</span>
+              <span class="rm-unit">lbs</span>
+            </div>
+            <div class="rm-trend up">↑ +30 lbs</div>
+          </div>
+          <div class="rm-card no-data">
+            <div class="rm-exercise">RDL</div>
+            <div class="rm-value-row">
+              <span class="rm-value">—</span>
+            </div>
+            <div class="rm-trend">No data yet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volume Chart - full program -->
+      <div class="volume-section">
+        <div class="section-label">Weekly Volume (sets)</div>
+        <div class="volume-chart">
+          <div class="volume-row">
+            <span class="volume-week">W1</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 85%"></div></div>
+            <span class="volume-count">98</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W2</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 90%"></div></div>
+            <span class="volume-count">104</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W3</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 95%"></div></div>
+            <span class="volume-count">110</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W4</span>
+            <div class="volume-bar-bg"><div class="volume-bar hyp" style="width: 100%"></div></div>
+            <span class="volume-count">116</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week">W5</span>
+            <div class="volume-bar-bg"><div class="volume-bar deload" style="width: 55%"></div></div>
+            <span class="volume-count">64</span>
+          </div>
+          <div class="volume-row current">
+            <span class="volume-week">W6</span>
+            <div class="volume-bar-bg"><div class="volume-bar strength current" style="width: 40%"></div></div>
+            <span class="volume-count">46</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week" style="color:#2a2a3e">W7</span>
+            <div class="volume-bar-bg"></div>
+            <span class="volume-count" style="color:#2a2a3e">—</span>
+          </div>
+          <div class="volume-row">
+            <span class="volume-week" style="color:#2a2a3e">W8</span>
+            <div class="volume-bar-bg"></div>
+            <span class="volume-count" style="color:#2a2a3e">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tonnage -->
+      <div class="tonnage-section">
+        <div class="tonnage-left">
+          <div class="tonnage-label">Total Tonnage</div>
+          <div>
+            <span class="tonnage-value">186,420</span>
+            <span class="tonnage-unit">lbs</span>
+          </div>
+        </div>
+        <div class="tonnage-right">
+          <div class="tonnage-sub-value">538</div>
+          <div class="tonnage-sub-label">Total Sets</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab"><span class="tab-icon">⊞</span><span class="tab-label">Workout</span></a>
+      <a class="tab active"><span class="tab-icon">⊡</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">↗</span><span class="tab-label">Running</span></a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

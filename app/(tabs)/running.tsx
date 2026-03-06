@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { getRunLogs, logRun, getPainTrend } from '../../src/db';
 import type { RunLog } from '../../src/types';
 
@@ -239,7 +239,7 @@ export default function RunningScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: 60, paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+  scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
   title: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700', marginBottom: Spacing.xl },
   card: {
     backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
@@ -252,17 +252,17 @@ const styles = StyleSheet.create({
 
   // Pain chart
   painChart: {
-    flexDirection: 'row', alignItems: 'flex-end', height: 80, gap: 4,
+    flexDirection: 'row', alignItems: 'flex-end', height: ComponentSize.chartHeightSmall, gap: Spacing.xs,
   },
   painBar: { flex: 1, height: '100%', justifyContent: 'flex-end', alignItems: 'center' },
-  painFill: { width: '80%', borderRadius: 3, minHeight: 2 },
-  painValue: { color: Colors.textDim, fontSize: 9, marginTop: 2 },
+  painFill: { width: '80%', borderRadius: BorderRadius.xs, minHeight: 2 },
+  painValue: { color: Colors.textDim, fontSize: FontSize.chartLabel, marginTop: 2 },
 
   // Duration
-  durationRow: { flexDirection: 'row', gap: 4, alignItems: 'flex-end' },
+  durationRow: { flexDirection: 'row', gap: Spacing.xs, alignItems: 'flex-end' },
   durationItem: { flex: 1, alignItems: 'center' },
   durationValue: { color: Colors.cyan, fontSize: FontSize.lg, fontWeight: '700' },
-  durationUnit: { color: Colors.textDim, fontSize: 9 },
+  durationUnit: { color: Colors.textDim, fontSize: FontSize.chartLabel },
 
   // Log button
   logButton: {
@@ -281,9 +281,9 @@ const styles = StyleSheet.create({
     padding: Spacing.md, color: Colors.text, fontSize: FontSize.md,
     marginBottom: Spacing.lg,
   },
-  painSelector: { flexDirection: 'row', gap: 4, marginBottom: Spacing.lg, flexWrap: 'wrap' },
+  painSelector: { flexDirection: 'row', gap: Spacing.xs, marginBottom: Spacing.lg, flexWrap: 'wrap' },
   painButton: {
-    width: 28, height: 28, borderRadius: 14,
+    width: ComponentSize.buttonSmall, height: ComponentSize.buttonSmall, borderRadius: ComponentSize.buttonSmall / 2,
     borderWidth: 1, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   },
   runDate: { color: Colors.text, fontSize: FontSize.md, fontWeight: '600' },
   runDetail: { color: Colors.textDim, fontSize: FontSize.sm, marginTop: 2 },
-  painBadge: { paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: BorderRadius.sm },
+  painBadge: { paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: BorderRadius.sm },
   painBadgeText: { fontSize: FontSize.xs, fontWeight: '600' },
 
   emptyText: { color: Colors.textDim, fontSize: FontSize.md, textAlign: 'center', paddingVertical: Spacing.xl },

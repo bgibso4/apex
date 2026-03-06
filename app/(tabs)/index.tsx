@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, SharedStyles } from '../../src/theme';
 import { getActiveProgram, getSessionsForWeek, getEstimated1RM } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
@@ -223,9 +223,9 @@ const styles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   scrollContent: {
-    paddingTop: 60,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: 20,
+    paddingTop: Spacing.screenTop,
+    paddingHorizontal: Spacing.screenHorizontal,
+    paddingBottom: Spacing.screenBottom,
   },
   header: {
     flexDirection: 'row',
@@ -259,13 +259,13 @@ const styles = StyleSheet.create({
   // Timeline
   timeline: {
     flexDirection: 'row',
-    gap: 3,
+    gap: BorderRadius.xs,
     marginBottom: Spacing.sm,
   },
   timelineBar: {
     flex: 1,
-    height: 8,
-    borderRadius: 4,
+    height: Spacing.sm,
+    borderRadius: BorderRadius.xs,
   },
   timelineLabels: {
     flexDirection: 'row',
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   completedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.xs,
   },
   completedText: {
     color: Colors.green,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     color: Colors.textDim,
     fontSize: FontSize.md,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: Spacing.xs,
   },
   // Empty state
   emptyState: {
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     color: Colors.text,
-    fontSize: 36,
+    fontSize: FontSize.logo,
     fontWeight: '800',
     letterSpacing: 4,
     marginBottom: Spacing.xl,

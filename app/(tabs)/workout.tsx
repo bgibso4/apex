@@ -11,7 +11,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import {
   getActiveProgram, createSession, logSet, updateSet,
   completeSession, updateReadiness, updateWarmup,
@@ -657,9 +657,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
   scrollContent: {
-    paddingTop: 60,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: 40,
+    paddingTop: Spacing.screenTop,
+    paddingHorizontal: Spacing.screenHorizontal,
+    paddingBottom: Spacing.screenBottom,
   },
   emptyState: {
     flex: 1, justifyContent: 'center', alignItems: 'center',
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     marginRight: Spacing.sm,
-    minWidth: 80,
+    minWidth: ComponentSize.chartHeightSmall,
   },
   dayChipText: { color: Colors.textDim, fontSize: FontSize.md, fontWeight: '700' },
   dayChipSubtext: { color: Colors.textMuted, fontSize: FontSize.xs, marginTop: 2 },
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700', marginBottom: Spacing.lg },
   sessionTitle: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700' },
-  exercisePreview: { color: Colors.textSecondary, fontSize: FontSize.md, marginTop: 4, marginBottom: Spacing.xl },
+  exercisePreview: { color: Colors.textSecondary, fontSize: FontSize.md, marginTop: Spacing.xs, marginBottom: Spacing.xl },
 
   bigButton: {
     paddingVertical: Spacing.md,
@@ -761,7 +761,7 @@ const styles = StyleSheet.create({
   rpeLabel: { color: Colors.textDim, fontSize: FontSize.sm, fontWeight: '600' },
   rpeRow: { flexDirection: 'row', gap: Spacing.sm },
   rpeBubble: {
-    width: 36, height: 36, borderRadius: 18,
+    width: ComponentSize.buttonMedium, height: ComponentSize.buttonMedium, borderRadius: ComponentSize.buttonMedium / 2,
     borderWidth: 1, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: Colors.card, borderRadius: BorderRadius.xl,
-    padding: Spacing.xxl, width: 300,
+    padding: Spacing.xxl, width: ComponentSize.modalWidth,
   },
   modalTitle: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700', marginBottom: Spacing.xl, textAlign: 'center' },
   modalLabel: { color: Colors.textSecondary, fontSize: FontSize.sm, marginBottom: Spacing.sm },
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', gap: Spacing.xl, marginBottom: Spacing.xl,
   },
   adjustButton: {
-    width: 44, height: 44, borderRadius: 22,
+    width: ComponentSize.buttonLarge, height: ComponentSize.buttonLarge, borderRadius: ComponentSize.buttonLarge / 2,
     backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },

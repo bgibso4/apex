@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
 import { getAllPrograms, importProgram, getActiveProgram } from '../src/db';
 import { getBlockColor } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
@@ -133,12 +133,12 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: 60, paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+  scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
   header: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: Spacing.xxl,
   },
-  logo: { color: Colors.text, fontSize: 28, fontWeight: '800', letterSpacing: 3 },
+  logo: { color: Colors.text, fontSize: FontSize.xxxl, fontWeight: '800', letterSpacing: 3 },
   sectionLabel: {
     color: Colors.textDim, fontSize: FontSize.xs,
     fontWeight: '700', letterSpacing: 1, marginBottom: Spacing.md,
@@ -152,19 +152,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   programName: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700' },
-  programMeta: { color: Colors.textDim, fontSize: FontSize.sm, marginTop: 4, marginBottom: Spacing.md },
+  programMeta: { color: Colors.textDim, fontSize: FontSize.sm, marginTop: Spacing.xs, marginBottom: Spacing.md },
   activeBadge: {
     backgroundColor: Colors.indigoMuted, paddingHorizontal: Spacing.sm, paddingVertical: 2,
     borderRadius: BorderRadius.sm,
   },
   activeBadgeText: { color: Colors.indigo, fontSize: FontSize.xs, fontWeight: '700' },
 
-  blockViz: { flexDirection: 'row', gap: 3, marginBottom: Spacing.lg },
+  blockViz: { flexDirection: 'row', gap: BorderRadius.xs, marginBottom: Spacing.lg },
   blockBar: {
-    height: 28, borderRadius: 4,
+    height: ComponentSize.buttonSmall, borderRadius: BorderRadius.xs,
     justifyContent: 'center', alignItems: 'center',
   },
-  blockBarText: { fontSize: 9, fontWeight: '700' },
+  blockBarText: { fontSize: FontSize.chartLabel, fontWeight: '700' },
 
   activateButton: {
     backgroundColor: Colors.indigo, paddingVertical: Spacing.md,

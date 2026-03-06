@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { getActiveProgram, getEstimated1RM, getWeeklyVolume } from '../../src/db';
 import type { Estimated1RM } from '../../src/types';
 
@@ -138,7 +138,7 @@ export default function ProgressScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: 60, paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+  scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
   title: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700', marginBottom: Spacing.xl },
 
   rangeRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.xxl },
@@ -163,17 +163,17 @@ const styles = StyleSheet.create({
   liftHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   liftName: { color: Colors.text, fontSize: FontSize.md, fontWeight: '600' },
   liftValue: { color: Colors.indigo, fontSize: FontSize.lg, fontWeight: '700' },
-  liftDetail: { color: Colors.textDim, fontSize: FontSize.xs, marginTop: 4 },
+  liftDetail: { color: Colors.textDim, fontSize: FontSize.xs, marginTop: Spacing.xs },
 
   chart: {
     flexDirection: 'row', alignItems: 'flex-end',
-    height: 120, gap: 4,
+    height: ComponentSize.chartHeight, gap: Spacing.xs,
     backgroundColor: Colors.card, borderRadius: BorderRadius.md,
     padding: Spacing.lg, paddingBottom: Spacing.xxl,
   },
   chartBar: { flex: 1, alignItems: 'center', height: '100%', justifyContent: 'flex-end' },
-  bar: { width: '80%', borderRadius: 3, minHeight: 4 },
-  chartLabel: { color: Colors.textDim, fontSize: 9, marginTop: 4, position: 'absolute', bottom: -16 },
+  bar: { width: '80%', borderRadius: BorderRadius.xs, minHeight: Spacing.xs },
+  chartLabel: { color: Colors.textDim, fontSize: FontSize.chartLabel, marginTop: Spacing.xs, position: 'absolute', bottom: -Spacing.lg },
 
   emptyChart: {
     backgroundColor: Colors.card, borderRadius: BorderRadius.md,

@@ -105,11 +105,11 @@ export default function ActivateScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: 60, paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+  scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
   title: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700' },
   subtitle: {
     color: Colors.textSecondary, fontSize: FontSize.md,
-    marginTop: Spacing.sm, marginBottom: Spacing.xxl, lineHeight: 22,
+    marginTop: Spacing.sm, marginBottom: Spacing.xxl, lineHeight: FontSize.xxl,
   },
 
   inputRow: { marginBottom: Spacing.xl },

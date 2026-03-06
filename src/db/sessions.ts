@@ -80,6 +80,7 @@ export async function logSet(params: {
   actualReps?: number;
   rpe?: number;
   status: SetLog['status'];
+  isAdhoc?: boolean;
 }): Promise<string> {
   const db = await getDatabase();
   const id = generateId();
@@ -87,8 +88,8 @@ export async function logSet(params: {
   await db.runAsync(
     `INSERT INTO set_logs
      (id, session_id, exercise_id, set_number, target_weight, target_reps,
-      actual_weight, actual_reps, rpe, status, timestamp)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      actual_weight, actual_reps, rpe, status, timestamp, is_adhoc)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id, params.sessionId, params.exerciseId, params.setNumber,
       params.targetWeight, params.targetReps,
@@ -96,7 +97,8 @@ export async function logSet(params: {
       params.actualReps ?? params.targetReps,
       params.rpe ?? null,
       params.status,
-      new Date().toISOString()
+      new Date().toISOString(),
+      params.isAdhoc ? 1 : 0,
     ]
   );
 
@@ -156,6 +158,64 @@ export async function getSetLogsForSession(sessionId: string): Promise<SetLog[]>
   return db.getAllAsync<SetLog>(
     "SELECT * FROM set_logs WHERE session_id = ? ORDER BY exercise_id, set_number",
     [sessionId]
+  );
+}
+
+/** Get a single session by ID */
+export async function getSessionById(sessionId: string): Promise<Session | null> {
+  const db = await getDatabase();
+  return db.getFirstAsync<Session>(
+    "SELECT * FROM sessions WHERE id = ?",
+    [sessionId]
+  );
+}
+
+/** Get completed session for a specific program, week, and day */
+export async function getCompletedSessionForDay(
+  programId: string,
+  weekNumber: number,
+  scheduledDay: string
+): Promise<Session | null> {
+  const db = await getDatabase();
+  return db.getFirstAsync<Session>(
+    `SELECT * FROM sessions
+     WHERE program_id = ? AND week_number = ? AND scheduled_day = ?
+     AND completed_at IS NOT NULL
+     ORDER BY date DESC LIMIT 1`,
+    [programId, weekNumber, scheduledDay]
+  );
+}
+
+/** Get exercise names for a list of exercise IDs */
+export async function getExerciseNames(
+  exerciseIds: string[]
+): Promise<Record<string, string>> {
+  if (exerciseIds.length === 0) return {};
+  const db = await getDatabase();
+  const placeholders = exerciseIds.map(() => '?').join(',');
+  const rows = await db.getAllAsync<{ id: string; name: string }>(
+    `SELECT id, name FROM exercises WHERE id IN (${placeholders})`,
+    exerciseIds
+  );
+  const map: Record<string, string> = {};
+  for (const row of rows) {
+    map[row.id] = row.name;
+  }
+  return map;
+}
+
+/** Ensure an exercise exists in the exercises table (for ad-hoc additions) */
+export async function ensureExerciseExists(exercise: {
+  id: string;
+  name: string;
+  type: string;
+  muscleGroups: string[];
+}): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives)
+     VALUES (?, ?, ?, ?, '[]')`,
+    [exercise.id, exercise.name, exercise.type, JSON.stringify(exercise.muscleGroups)]
   );
 }
 

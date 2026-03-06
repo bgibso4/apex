@@ -55,6 +55,7 @@ export interface SetLog {
   rpe?: number;
   status: 'pending' | 'completed' | 'completed_below' | 'skipped';
   timestamp?: string;
+  is_adhoc?: boolean;
 }
 
 export interface RunLog {

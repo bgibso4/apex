@@ -29,6 +29,19 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       "INSERT INTO schema_info (key, value) VALUES ('schema_version', ?)",
       [String(SCHEMA_VERSION)]
     );
+  } else {
+    const currentVersion = parseInt(versionResult.value);
+    if (currentVersion < 2) {
+      try {
+        await db.execAsync('ALTER TABLE set_logs ADD COLUMN is_adhoc INTEGER DEFAULT 0');
+      } catch {
+        // Column already exists
+      }
+      await db.runAsync(
+        "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",
+        [String(SCHEMA_VERSION)]
+      );
+    }
   }
 
   return db;

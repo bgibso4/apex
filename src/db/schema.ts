@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS set_logs (
   rpe REAL,
   status TEXT NOT NULL DEFAULT 'pending',
   timestamp TEXT,
+  is_adhoc INTEGER DEFAULT 0,
   FOREIGN KEY (session_id) REFERENCES sessions(id),
   FOREIGN KEY (exercise_id) REFERENCES exercises(id)
 );

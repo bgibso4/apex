@@ -4,13 +4,14 @@ import { TodayCard } from '../../src/components/TodayCard';
 
 const mockTemplate = {
   name: 'Upper Body Strength',
+  warmup: 'jump_rope,ankle_circles,hip_ir',
   exercises: [
-    { name: 'Bench Press' },
-    { name: 'Overhead Press' },
-    { name: 'Barbell Row' },
+    { exercise_id: 'bench_press', name: 'Bench Press', category: 'main', targets: [] },
+    { exercise_id: 'overhead_press', name: 'Overhead Press', category: 'main', targets: [] },
+    { exercise_id: 'barbell_row', name: 'Barbell Row', category: 'compound_accessory', targets: [] },
   ],
   conditioning_finisher: false,
-};
+} as any as import('../../src/types').DayTemplate;
 
 describe('TodayCard', () => {
   const defaultProps = {

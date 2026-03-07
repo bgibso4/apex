@@ -64,7 +64,7 @@ export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress, com
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.todayLabel}>Today's Training</Text>
+      <Text style={styles.todayLabel}>{"Today's Training"}</Text>
       <Text style={styles.todayTitle}>{todayTemplate.name}</Text>
 
       {isCompleted ? (

@@ -17,13 +17,13 @@ const mockedGetBlockColor = getBlockColor as jest.MockedFunction<
 
 describe('ProgramTimeline', () => {
   const defaultBlocks = [
-    { name: 'Hypertrophy', weeks: [1, 2, 3, 4] },
-    { name: 'Strength', weeks: [5, 6, 7, 8] },
-  ];
+    { name: 'Hypertrophy', weeks: [1, 2, 3, 4], main_lift_scheme: {} },
+    { name: 'Strength', weeks: [5, 6, 7, 8], main_lift_scheme: {} },
+  ] as any as import('../../src/types').Block[];
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedGetBlockForWeek.mockImplementation((week: number) => {
+    mockedGetBlockForWeek.mockImplementation((_blocks, week) => {
       if (week <= 4) return defaultBlocks[0];
       return defaultBlocks[1];
     });
@@ -45,11 +45,11 @@ describe('ProgramTimeline', () => {
 
   it('renders full label for short block names (<=5 chars)', () => {
     const shortBlocks = [
-      { name: 'Power', weeks: [1, 2, 3, 4] },
-      { name: 'Hypertrophy', weeks: [5, 6, 7, 8] },
-    ];
+      { name: 'Power', weeks: [1, 2, 3, 4], main_lift_scheme: {} },
+      { name: 'Hypertrophy', weeks: [5, 6, 7, 8], main_lift_scheme: {} },
+    ] as any as import('../../src/types').Block[];
 
-    mockedGetBlockForWeek.mockImplementation((week: number) => {
+    mockedGetBlockForWeek.mockImplementation((_blocks, week) => {
       if (week <= 4) return shortBlocks[0];
       return shortBlocks[1];
     });

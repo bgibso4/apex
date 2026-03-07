@@ -12,6 +12,14 @@
     "test:watch": "jest --watch"
   },
   "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/theme/index.ts",
+      "!src/db/database.ts",
+      "!src/**/types.ts",
+      "!src/types/**",
+      "!src/db/index.ts"
+    ],
     "projects": [
       {
         "displayName": "unit",
@@ -35,7 +43,8 @@
         "displayName": "components",
         "preset": "react-native",
         "testMatch": [
-          "**/__tests__/components/**"
+          "**/__tests__/components/**",
+          "**/__tests__/hooks/**"
         ],
         "transform": {
           "^.+\\.(js|ts|tsx)$": [
@@ -71,6 +80,7 @@
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-svg": "^15.12.1",
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {

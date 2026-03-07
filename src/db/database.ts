@@ -37,6 +37,16 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       } catch {
         // Column already exists
       }
+    }
+    if (currentVersion < 3) {
+      try {
+        await db.execAsync('ALTER TABLE run_logs ADD COLUMN pain_level_24h INTEGER');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE run_logs ADD COLUMN distance REAL');
+      } catch { /* already exists */ }
+    }
+    if (currentVersion < SCHEMA_VERSION) {
       await db.runAsync(
         "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",
         [String(SCHEMA_VERSION)]

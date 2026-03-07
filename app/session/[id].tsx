@@ -146,25 +146,25 @@ export default function SessionDetailScreen() {
 
         {/* Protocol chips */}
         <View style={styles.chipRow}>
-          {session.warmup_rope && (
+          {!!session.warmup_rope && (
             <View style={styles.chip}>
               <Ionicons name="checkmark" size={12} color={Colors.green} />
               <Text style={styles.chipText}>Jump Rope</Text>
             </View>
           )}
-          {session.warmup_ankle && (
+          {!!session.warmup_ankle && (
             <View style={styles.chip}>
               <Ionicons name="checkmark" size={12} color={Colors.green} />
               <Text style={styles.chipText}>Ankle</Text>
             </View>
           )}
-          {session.warmup_hip_ir && (
+          {!!session.warmup_hip_ir && (
             <View style={styles.chip}>
               <Ionicons name="checkmark" size={12} color={Colors.green} />
               <Text style={styles.chipText}>Hip IR</Text>
             </View>
           )}
-          {session.conditioning_done && (
+          {!!session.conditioning_done && (
             <View style={styles.chip}>
               <Ionicons name="checkmark" size={12} color={Colors.green} />
               <Text style={styles.chipText}>Conditioning</Text>
@@ -177,7 +177,7 @@ export default function SessionDetailScreen() {
           <View key={group.exerciseId} style={styles.exerciseCard}>
             <View style={styles.exerciseHeader}>
               <Text style={styles.exerciseName}>{group.exerciseName}</Text>
-              {group.isAdhoc && (
+              {!!group.isAdhoc && (
                 <View style={styles.adhocTag}>
                   <Text style={styles.adhocTagText}>Ad-hoc</Text>
                 </View>

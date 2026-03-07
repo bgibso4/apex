@@ -1,41 +1,60 @@
 /**
  * APEX — Progress Screen
- * Estimated 1RMs, volume trends, time range selector.
+ * Estimated 1RMs with SVG trend charts, volume, time range selector.
+ * Matches progress-screen-v2.html mockup.
  */
 
 import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getEstimated1RM, getWeeklyVolume } from '../../src/db';
+import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume } from '../../src/db';
+import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
 
-const MAIN_LIFTS = [
+const TOP_LIFTS = [
   { id: 'back_squat', name: 'Back Squat' },
-  { id: 'weighted_pullup', name: 'Weighted Pull-up' },
   { id: 'bench_press', name: 'Bench Press' },
+];
+
+const COMPACT_LIFTS = [
   { id: 'overhead_press', name: 'Overhead Press' },
+  { id: 'weighted_pullup', name: 'Weighted Pull-up' },
   { id: 'zercher_squat', name: 'Zercher Squat' },
   { id: 'romanian_deadlift', name: 'RDL' },
 ];
 
+const ALL_LIFTS = [...TOP_LIFTS, ...COMPACT_LIFTS];
+
 type TimeRange = 'program' | 'all';
 
+interface LiftData {
+  e1rm: Estimated1RM | null;
+  history: { date: string; e1rm: number }[];
+}
+
 export default function ProgressScreen() {
+  const router = useRouter();
   const [timeRange, setTimeRange] = useState<TimeRange>('program');
-  const [e1rms, setE1rms] = useState<(Estimated1RM | null)[]>([]);
+  const [liftData, setLiftData] = useState<Map<string, LiftData>>(new Map());
   const [volumeData, setVolumeData] = useState<{ week: number; totalSets: number }[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
     const program = await getActiveProgram();
 
-    // Load 1RMs
-    const results = await Promise.all(
-      MAIN_LIFTS.map(l => getEstimated1RM(l.id))
+    // Load 1RMs and history for all lifts
+    const entries = await Promise.all(
+      ALL_LIFTS.map(async (lift) => {
+        const [e1rm, history] = await Promise.all([
+          getEstimated1RM(lift.id),
+          get1RMHistory(lift.id, 12),
+        ]);
+        return [lift.id, { e1rm, history }] as [string, LiftData];
+      })
     );
-    setE1rms(results);
+    setLiftData(new Map(entries));
 
     // Load volume
     if (program) {
@@ -50,6 +69,11 @@ export default function ProgressScreen() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
+  };
+
+  const getDelta = (history: { e1rm: number }[]): number | null => {
+    if (history.length < 2) return null;
+    return history[history.length - 1].e1rm - history[0].e1rm;
   };
 
   const maxVolume = Math.max(...volumeData.map(v => v.totalSets), 1);
@@ -83,33 +107,109 @@ export default function ProgressScreen() {
           ))}
         </View>
 
-        {/* Estimated 1RMs */}
+        {/* Estimated 1RMs — Top lifts with full charts */}
         <Text style={styles.sectionLabel}>Estimated 1RM</Text>
-        <View style={styles.liftCards}>
-          {MAIN_LIFTS.map((lift, i) => {
-            const e1rm = e1rms[i];
+        <View style={styles.rmTrends}>
+          {TOP_LIFTS.map((lift) => {
+            const data = liftData.get(lift.id);
+            const e1rm = data?.e1rm;
+            const history = data?.history ?? [];
+            const delta = getDelta(history);
+
             return (
-              <View key={lift.id} style={styles.liftCard}>
-                <View style={styles.liftHeader}>
-                  <Text style={styles.liftName}>{lift.name}</Text>
-                  <View style={styles.liftValueRow}>
-                    <Text style={styles.liftValue}>
+              <TouchableOpacity
+                key={lift.id}
+                style={styles.rmTrendCard}
+                activeOpacity={0.7}
+                onPress={() => router.push(`/exercise/${lift.id}`)}
+              >
+                <View style={styles.rmTrendHeader}>
+                  <Text style={styles.rmTrendName}>{lift.name}</Text>
+                  <View style={styles.rmTrendCurrent}>
+                    <Text style={styles.rmTrendValue}>
                       {e1rm ? `${e1rm.value}` : '\u2014'}
                     </Text>
-                    {e1rm && <Text style={styles.liftUnit}>lbs</Text>}
+                    {e1rm && <Text style={styles.rmTrendUnit}>lbs</Text>}
+                    {delta != null && delta !== 0 && (
+                      <Text style={[styles.rmTrendDelta, delta > 0 && styles.rmTrendDeltaUp]}>
+                        {delta > 0 ? '\u2191' : '\u2193'} {delta > 0 ? '+' : ''}{delta}
+                      </Text>
+                    )}
                   </View>
                 </View>
-                {e1rm && (
-                  <Text style={styles.liftDetail}>
-                    from {e1rm.from_weight}{'\u00D7'}{e1rm.from_reps} on {e1rm.date}
-                  </Text>
+                {history.length >= 2 ? (
+                  <TrendLineChart
+                    lines={[{
+                      data: history.map(h => ({ value: h.e1rm })),
+                      color: Colors.indigo,
+                    }]}
+                    height={60}
+                    viewBoxHeight={60}
+                    areaOpacity={0.1}
+                    xLabels={history.length > 0
+                      ? history.map((_, i) => i === history.length - 1 ? `W${history.length}` : (i === 0 ? 'W1' : ''))
+                        .filter(l => l !== '')
+                      : []
+                    }
+                  />
+                ) : (
+                  <Text style={styles.noDataText}>Not enough data for chart</Text>
                 )}
-                {!e1rm && (
-                  <Text style={styles.liftDetail}>No data yet</Text>
-                )}
-              </View>
+              </TouchableOpacity>
             );
           })}
+
+          {/* Compact grid for remaining lifts */}
+          <View style={styles.rmCompactGrid}>
+            {COMPACT_LIFTS.map((lift) => {
+              const data = liftData.get(lift.id);
+              const e1rm = data?.e1rm;
+              const history = data?.history ?? [];
+              const delta = getDelta(history);
+
+              return (
+                <TouchableOpacity
+                  key={lift.id}
+                  style={styles.rmCompactCard}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(`/exercise/${lift.id}`)}
+                >
+                  <Text style={styles.rmCompactName}>{lift.name}</Text>
+                  <View style={styles.rmCompactRow}>
+                    <Text style={styles.rmCompactValue}>
+                      {e1rm ? `${e1rm.value}` : '\u2014'}
+                    </Text>
+                    {e1rm && <Text style={styles.rmCompactUnit}>lbs</Text>}
+                    {delta != null && delta !== 0 && (
+                      <Text style={[styles.rmCompactDelta, delta > 0 && styles.rmCompactDeltaUp]}>
+                        {delta > 0 ? '\u2191' : ''}{delta > 0 ? '+' : ''}{delta}
+                      </Text>
+                    )}
+                  </View>
+                  {history.length >= 2 && (
+                    <View style={styles.rmCompactMiniChart}>
+                      <SparkLine
+                        data={history.map(h => h.e1rm)}
+                        color={Colors.indigo}
+                        height={24}
+                        opacity={0.25}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* All Exercises link */}
+          <TouchableOpacity
+            style={styles.allExercisesLink}
+            activeOpacity={0.7}
+            onPress={() => router.push('/library')}
+          >
+            <Text style={styles.allExercisesText}>All Exercises</Text>
+            <Ionicons name="arrow-forward" size={14} color={Colors.indigo} />
+          </TouchableOpacity>
         </View>
 
         {/* Volume Trend */}
@@ -117,7 +217,7 @@ export default function ProgressScreen() {
         {volumeData.length > 0 ? (
           <View style={styles.chart}>
             {volumeData.map((v, i) => (
-              <View key={i} style={styles.chartBar}>
+              <View key={i} style={styles.chartBarCol}>
                 <View style={[styles.bar, {
                   height: `${(v.totalSets / maxVolume) * 100}%`,
                   backgroundColor: Colors.indigo,
@@ -149,7 +249,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Colors.text,
-    fontSize: FontSize.xxxl,
+    fontSize: FontSize.screenTitle,
     fontWeight: '800',
     marginBottom: Spacing.lg,
   },
@@ -162,7 +262,7 @@ const styles = StyleSheet.create({
   },
   rangeButton: {
     flex: 1,
-    paddingVertical: Spacing.md - 2, // 10px
+    paddingVertical: Spacing.md - 2,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -189,52 +289,123 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: Spacing.md - 2, // 10px
+    marginBottom: Spacing.md - 2,
   },
 
-  // Lift cards
-  liftCards: {
+  // 1RM trend cards
+  rmTrends: {
     gap: Spacing.sm,
   },
-  liftCard: {
+  rmTrendCard: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
     padding: Spacing.lg,
   },
-  liftHeader: {
+  rmTrendHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
+    marginBottom: Spacing.md,
   },
-  liftName: {
+  rmTrendName: {
     color: Colors.textSecondary,
     fontSize: FontSize.body,
     fontWeight: '600',
   },
-  liftValueRow: {
+  rmTrendCurrent: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: Spacing.xs,
   },
-  liftValue: {
+  rmTrendValue: {
     color: Colors.text,
     fontSize: FontSize.xxl,
     fontWeight: '800',
   },
-  liftUnit: {
+  rmTrendUnit: {
     color: Colors.textMuted,
     fontSize: FontSize.sm,
     fontWeight: '600',
   },
-  liftDetail: {
-    color: Colors.textDim,
-    fontSize: FontSize.xs,
-    marginTop: Spacing.xs,
+  rmTrendDelta: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    marginLeft: Spacing.sm,
+  },
+  rmTrendDeltaUp: {
+    color: Colors.green,
   },
 
-  // Volume chart
+  // Compact 1RM grid (2x2)
+  rmCompactGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  rmCompactCard: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    padding: Spacing.md + 2,
+    width: '48.5%',
+  },
+  rmCompactName: {
+    color: Colors.textDim,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+  },
+  rmCompactRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.xs,
+  },
+  rmCompactValue: {
+    color: Colors.text,
+    fontSize: FontSize.subtitle,
+    fontWeight: '800',
+  },
+  rmCompactUnit: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+  },
+  rmCompactDelta: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '700',
+    marginLeft: Spacing.xs,
+  },
+  rmCompactDeltaUp: {
+    color: Colors.green,
+  },
+  rmCompactMiniChart: {
+    marginTop: Spacing.sm - 2,
+  },
+
+  // All exercises link
+  allExercisesLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm - 2,
+    paddingVertical: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.card,
+  },
+  allExercisesText: {
+    color: Colors.indigo,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+
+  // Volume chart (bar chart — volume is best shown as bars)
   chart: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -247,7 +418,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
-  chartBar: {
+  chartBarCol: {
     flex: 1,
     alignItems: 'center',
     height: '100%',
@@ -264,6 +435,13 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
     position: 'absolute',
     bottom: -Spacing.lg,
+  },
+
+  // No data
+  noDataText: {
+    color: Colors.textDim,
+    fontSize: FontSize.sm,
+    marginTop: Spacing.sm,
   },
 
   // Empty chart

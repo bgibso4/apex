@@ -5,7 +5,8 @@ import {
   getActiveProgram, createSession, logSet, updateSet, deleteSet,
   completeSession, updateReadiness, updateWarmup, updateSessionNotes,
   getLastSessionForExercise, calculateTargetWeight,
-  ensureExerciseExists,
+  ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
+  getExerciseNames,
 } from '../db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
@@ -80,7 +81,44 @@ export function useWorkoutSession() {
     if (active?.activated_date) {
       const week = getCurrentWeek(active.activated_date);
       setCurrentWeek(week);
-      setSelectedDay(getTodayKey());
+      const todayKey = getTodayKey();
+      setSelectedDay(todayKey);
+
+      // Check if today's session is already completed
+      const completed = await getCompletedSessionForDay(active.id, week, todayKey);
+      if (completed) {
+        setSessionId(completed.id);
+        // Load set logs to show in summary
+        const setLogs = await getSetLogsForSession(completed.id);
+        const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
+        const names = await getExerciseNames(exerciseIds);
+
+        // Build exercise states from completed set logs
+        const exerciseMap = new Map<string, ExerciseState>();
+        for (const log of setLogs) {
+          if (!exerciseMap.has(log.exercise_id)) {
+            exerciseMap.set(log.exercise_id, {
+              slot: { exercise_id: log.exercise_id, category: 'main', targets: [] },
+              exerciseName: names[log.exercise_id] ?? log.exercise_id.replace(/_/g, ' '),
+              sets: [],
+              expanded: false,
+              isAdhoc: !!log.is_adhoc,
+            });
+          }
+          exerciseMap.get(log.exercise_id)!.sets.push({
+            setNumber: log.set_number,
+            targetWeight: log.target_weight,
+            targetReps: log.target_reps,
+            actualWeight: log.actual_weight ?? log.target_weight,
+            actualReps: log.actual_reps ?? log.target_reps,
+            status: log.status as SetState['status'],
+            id: log.id,
+          });
+        }
+        setExercises(Array.from(exerciseMap.values()));
+        setSessionNotes(completed.notes ?? '');
+        setPhase('complete');
+      }
     }
   }, []);
 
@@ -463,6 +501,7 @@ export function useWorkoutSession() {
     setRPE,
     submitReadiness,
     submitWarmup,
+    goBackToWarmup: () => setPhase('warmup'),
     finishSession,
     setConditioningDone,
     closeOverride: () => setOverrideModal(null),

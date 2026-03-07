@@ -6,17 +6,19 @@
 import { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  Modal, Pressable, StyleSheet,
+  Modal, Pressable, StyleSheet, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
 import { getTargetForWeek } from '../../src/utils/program';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
+import { DaySelector } from '../../src/components/DaySelector';
 import { WarmupChecklist } from '../../src/components/WarmupChecklist';
 import { ExerciseCard } from '../../src/components/ExerciseCard';
 import { AdjustModal } from '../../src/components/AdjustModal';
 import { SessionSummary } from '../../src/components/SessionSummary';
+import type { SummaryExercise } from '../../src/components/SessionSummary';
 
 export default function WorkoutScreen() {
   const w = useWorkoutSession();
@@ -46,11 +48,31 @@ export default function WorkoutScreen() {
   const doneExerciseCount = w.exercises.filter(e =>
     e.sets.every(s => s.status !== 'pending')
   ).length;
+  const hasAnyCompleted = setCount > 0;
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Phase: Select */}
+        {/* Phase: Select — Day selector + session preview */}
+        {w.phase === 'select' && (
+          <DaySelector
+            currentWeek={w.currentWeek}
+            blockName={w.block?.name}
+            blockColor={w.blockColor}
+            selectedDay={w.selectedDay}
+            trainingDays={w.trainingDays}
+            dayNames={w.dayNames}
+            onSelectDay={w.selectDay}
+          />
+        )}
+
+        {w.phase === 'select' && !w.selectedTemplate && (
+          <View style={styles.restDay}>
+            <Text style={styles.restDayText}>Rest Day</Text>
+            <Text style={styles.restDaySubtext}>No workout scheduled for this day</Text>
+          </View>
+        )}
+
         {w.phase === 'select' && w.selectedTemplate && (
           <View style={styles.sessionPreview}>
             <Text style={styles.previewTitle}>{w.selectedTemplate.name}</Text>
@@ -85,6 +107,8 @@ export default function WorkoutScreen() {
 
         {/* Phase: Warmup */}
         {w.phase === 'warmup' && (
+          <>
+          <Text style={styles.phaseTitle}>Warm Up</Text>
           <WarmupChecklist
             warmupRope={w.warmupRope}
             warmupAnkle={w.warmupAnkle}
@@ -95,11 +119,19 @@ export default function WorkoutScreen() {
             onToggleHipIr={w.toggleWarmupHipIr}
             onContinue={w.submitWarmup}
           />
+          </>
         )}
 
         {/* Phase: Logging */}
         {w.phase === 'logging' && (
           <>
+            <View style={styles.loggingHeader}>
+              <Text style={[styles.phaseTitle, { marginBottom: 0 }]}>{w.selectedTemplate?.name ?? 'Workout'}</Text>
+              <TouchableOpacity onPress={w.goBackToWarmup} style={styles.warmupBackBtn}>
+                <Text style={styles.warmupBackText}>Edit Warmup</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Progress bar */}
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarBg}>
@@ -207,15 +239,29 @@ export default function WorkoutScreen() {
                 <TouchableOpacity
                   style={[
                     styles.finishButton,
-                    !allProgrammedDone && styles.finishButtonDisabled,
+                    !hasAnyCompleted && styles.finishButtonDisabled,
                   ]}
-                  onPress={w.finishSession}
-                  disabled={!allProgrammedDone}
+                  onPress={() => {
+                    if (!allProgrammedDone) {
+                      const remaining = totalSets - setCount;
+                      Alert.alert(
+                        'Finish Early?',
+                        `You have ${remaining} set${remaining !== 1 ? 's' : ''} remaining. Are you sure you want to finish?`,
+                        [
+                          { text: 'Keep Going', style: 'cancel' },
+                          { text: 'Finish', style: 'destructive', onPress: w.finishSession },
+                        ]
+                      );
+                    } else {
+                      w.finishSession();
+                    }
+                  }}
+                  disabled={!hasAnyCompleted}
                   activeOpacity={0.8}
                 >
                   <Text style={[
                     styles.finishButtonText,
-                    !allProgrammedDone && styles.finishButtonTextDisabled,
+                    !hasAnyCompleted && styles.finishButtonTextDisabled,
                   ]}>Finish Workout</Text>
                 </TouchableOpacity>
               </>
@@ -231,6 +277,14 @@ export default function WorkoutScreen() {
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}
+            exercises={w.exercises.map((ex): SummaryExercise => ({
+              name: ex.exerciseName,
+              sets: ex.sets
+                .filter(s => s.status !== 'pending')
+                .map(s => ({ weight: s.actualWeight, reps: s.actualReps, status: s.status, rpe: s.rpe })),
+              rpe: ex.rpe,
+              isAdhoc: ex.isAdhoc,
+            }))}
           />
         )}
       </ScrollView>
@@ -407,8 +461,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenHorizontal,
     paddingBottom: Spacing.screenBottom,
   },
+  phaseTitle: {
+    color: Colors.text,
+    fontSize: FontSize.sectionTitle,
+    fontWeight: '800',
+    marginBottom: Spacing.xl,
+  },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg },
+
+  // Logging header
+  loggingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  warmupBackBtn: {
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+  },
+  warmupBackText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+
+  // Rest day
+  restDay: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xxxl,
+  },
+  restDayText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xl,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+  },
+  restDaySubtext: {
+    color: Colors.textDim,
+    fontSize: FontSize.md,
+  },
 
   // Session preview (select phase)
   sessionPreview: {
@@ -417,7 +510,7 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     color: Colors.text,
-    fontSize: FontSize.xxxl,
+    fontSize: FontSize.screenTitle,
     fontWeight: '800',
     marginBottom: Spacing.xs,
   },

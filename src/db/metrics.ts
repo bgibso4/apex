@@ -127,3 +127,51 @@ export function calculateTargetWeight(oneRm: number, percentage: number): number
   const raw = oneRm * (percentage / 100);
   return Math.round(raw / 5) * 5; // Round to nearest 5 lbs
 }
+
+/** Get recent set history for an exercise (for exercise detail page) */
+export async function getExerciseSetHistory(
+  exerciseId: string,
+  limit: number = 30
+): Promise<{
+  date: string;
+  sets: { setNumber: number; weight: number; reps: number; rpe: number | null }[];
+}[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{
+    date: string;
+    session_id: string;
+    set_number: number;
+    actual_weight: number;
+    actual_reps: number;
+    rpe: number | null;
+  }>(
+    `SELECT s.date, sl.session_id, sl.set_number, sl.actual_weight, sl.actual_reps, sl.rpe
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND sl.actual_weight > 0
+       AND s.completed_at IS NOT NULL
+     ORDER BY s.date DESC, sl.set_number ASC
+     LIMIT ?`,
+    [exerciseId, limit * 5]
+  );
+
+  // Group by date
+  const grouped = new Map<string, { date: string; sets: { setNumber: number; weight: number; reps: number; rpe: number | null }[] }>();
+  for (const row of rows) {
+    const key = row.date;
+    if (!grouped.has(key)) {
+      grouped.set(key, { date: key, sets: [] });
+    }
+    grouped.get(key)!.sets.push({
+      setNumber: row.set_number,
+      weight: row.actual_weight,
+      reps: row.actual_reps,
+      rpe: row.rpe,
+    });
+  }
+
+  return Array.from(grouped.values()).slice(0, limit);
+}

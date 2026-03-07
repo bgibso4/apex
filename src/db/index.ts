@@ -6,5 +6,6 @@ export {
   getSessionsForWeek, getSessionsForDateRange, getSetLogsForSession, getLastSessionForExercise,
   getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists
 } from './sessions';
-export { calculateEpley, getEstimated1RM, get1RMHistory, getWeeklyVolume, calculateTargetWeight } from './metrics';
-export { logRun, getRunLogs, getPainTrend } from './runs';
+export { calculateEpley, getEstimated1RM, get1RMHistory, getWeeklyVolume, calculateTargetWeight, getExerciseSetHistory } from './metrics';
+export { logRun, getRunLogs, getPainTrend, getRunStats, updateRunPain24h, getPendingPainFollowUp } from './runs';
+export { seedRunLogs, seedWorkoutSessions } from './seed';

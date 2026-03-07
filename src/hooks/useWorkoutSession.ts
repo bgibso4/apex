@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -6,7 +6,12 @@ import {
   completeSession, updateReadiness, updateWarmup, updateSessionNotes,
   getLastSessionForExercise, calculateTargetWeight,
   ensureExerciseExists,
+  saveExerciseNote, getExerciseNotesForSession,
+  detectPRs, getPRsForSession,
+  getSetLogsForSession,
+  getInProgressSession, deleteSession,
 } from '../db';
+import type { PRRecord } from '../db/personal-records';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
@@ -15,6 +20,7 @@ import { Colors } from '../theme';
 import type { Program, ProgramDefinition, ExerciseSlot, SetLog } from '../types';
 import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
+import { useSessionTimer } from './useSessionTimer';
 
 export type WorkoutPhase = 'select' | 'readiness' | 'warmup' | 'logging' | 'complete';
 
@@ -74,6 +80,19 @@ export function useWorkoutSession() {
   const [sessionNotes, setSessionNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
 
+  // Timer
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const { seconds: timerSeconds, display: timer } = useSessionTimer(startedAt);
+
+  // Exercise notes
+  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
+
+  // PRs
+  const [prs, setPRs] = useState<PRRecord[]>([]);
+
+  // Edit mode
+  const [editMode, setEditMode] = useState(false);
+
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
     setProgram(active);
@@ -94,6 +113,22 @@ export function useWorkoutSession() {
   const blockColor = block ? getBlockColor(block) : Colors.indigo;
   const trainingDays = def ? getTrainingDays(def.weekly_template) : [];
   const selectedTemplate = trainingDays.find(d => d.day === selectedDay)?.template;
+
+  // Conditioning finisher from template
+  const conditioningFinisher = selectedTemplate?.conditioning_finisher ?? null;
+
+  // Total volume (sum of weight × reps for completed sets)
+  const totalVolume = useMemo(() => {
+    let vol = 0;
+    for (const ex of exercises) {
+      for (const set of ex.sets) {
+        if (set.status === 'completed' || set.status === 'completed_below') {
+          vol += set.actualWeight * set.actualReps;
+        }
+      }
+    }
+    return vol;
+  }, [exercises]);
 
   const oneRmValues: Record<string, number> = program?.one_rm_values
     ? (typeof program.one_rm_values === 'string'
@@ -121,6 +156,7 @@ export function useWorkoutSession() {
       date: new Date().toISOString().split('T')[0],
     });
     setSessionId(id);
+    setStartedAt(new Date().toISOString());
 
     const exStates: ExerciseState[] = [];
     for (const slot of selectedTemplate.exercises) {
@@ -401,10 +437,48 @@ export function useWorkoutSession() {
     }
   };
 
+  /** Save an exercise note */
+  const saveExerciseNoteAction = async (exerciseId: string, note: string) => {
+    setExerciseNotes(prev => ({ ...prev, [exerciseId]: note }));
+    if (sessionId) {
+      await saveExerciseNote(sessionId, exerciseId, note);
+    }
+  };
+
+  /** Delete the current session and reset state */
+  const deleteSessionAction = async () => {
+    if (!sessionId) return;
+    await deleteSession(sessionId);
+    setSessionId(null);
+    setPhase('select');
+    setExercises([]);
+    setStartedAt(null);
+    setPRs([]);
+    setExerciseNotes({});
+    setSessionNotes('');
+    setEditMode(false);
+    setConditioningDone(false);
+  };
+
   /** Complete the session */
   const finishSession = async () => {
     if (!sessionId) return;
     await completeSession(sessionId, conditioningDone);
+
+    // Detect PRs
+    const setLogs = await getSetLogsForSession(sessionId);
+    const detectedPRs = await detectPRs(
+      sessionId,
+      new Date().toISOString().split('T')[0],
+      setLogs.map(s => ({
+        exercise_id: s.exercise_id,
+        actual_weight: s.actual_weight,
+        actual_reps: s.actual_reps,
+        status: s.status,
+      }))
+    );
+    setPRs(detectedPRs);
+
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setPhase('complete');
   };
@@ -453,6 +527,24 @@ export function useWorkoutSession() {
     // Session notes
     sessionNotes, notesSaved, saveNotes,
 
+    // Timer
+    timer, timerSeconds, startedAt,
+
+    // Exercise notes
+    exerciseNotes, saveExerciseNoteAction,
+
+    // PRs
+    prs,
+
+    // Total volume
+    totalVolume,
+
+    // Conditioning
+    conditioningFinisher,
+
+    // Edit mode
+    editMode, setEditMode,
+
     // Actions
     selectDay,
     startSession,
@@ -469,5 +561,6 @@ export function useWorkoutSession() {
     addAdhocExercise,
     moveExercise,
     enterReorderMode,
+    deleteSessionAction,
   };
 }

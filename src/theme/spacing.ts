@@ -14,29 +14,44 @@ export const Spacing = {
   // Layout tokens (semantic names for repeated screen patterns)
   screenTop: 60,
   screenBottom: 40,
-  screenHorizontal: 16,
+  screenHorizontal: 24,
+
+  // Content gap patterns from mockups
+  contentGap: 24,
+  cardPadding: 24,
+  cardPaddingCompact: 20,
+  sectionGap: 20,
 } as const;
 
 export const FontSize = {
   xs: 10,
   sm: 12,
+  body: 13,
   md: 14,
+  base: 15,
   lg: 16,
   xl: 18,
+  title: 19,
+  subtitle: 20,
   xxl: 22,
+  sectionTitle: 24,
   xxxl: 28,
 
   chartLabel: 9,
-  tabLabel: 11,
+  tabLabel: 10,
+  sectionLabel: 11,
   logo: 36,
 } as const;
 
 export const BorderRadius = {
   xs: 3,
   sm: 6,
+  button: 8,
   md: 10,
+  cardInner: 12,
   lg: 14,
   xl: 18,
+  modal: 20,
   pill: 99,
 } as const;
 
@@ -45,10 +60,18 @@ export const ComponentSize = {
   buttonSmall: 28,
   buttonMedium: 36,
   buttonLarge: 44,
+  setButtonWidth: 56,
+  setButtonHeight: 36,
+  dayDotSize: 28,
+  warmupCheckSize: 24,
+  conditioningCheckSize: 28,
   modalWidth: 300,
+  progressBarHeight: 4,
+  timelineHeight: 32,
+  timelineHeightSmall: 24,
   chartHeight: 120,
   chartHeightSmall: 80,
-  tabBarHeight: 85,
-  tabBarPaddingBottom: 30,
+  tabBarHeight: 84,
+  tabBarPaddingBottom: 28,
   tabBarPaddingTop: 8,
 } as const;

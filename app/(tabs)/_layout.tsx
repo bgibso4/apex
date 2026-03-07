@@ -5,7 +5,7 @@
 
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, FontSize, ComponentSize } from '../../src/theme';
+import { Colors, FontSize, ComponentSize, Spacing } from '../../src/theme';
 
 export default function TabLayout() {
   return (
@@ -15,16 +15,18 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Colors.card,
           borderTopColor: Colors.border,
-          borderTopWidth: 0.5,
+          borderTopWidth: 1,
           height: ComponentSize.tabBarHeight,
           paddingBottom: ComponentSize.tabBarPaddingBottom,
           paddingTop: ComponentSize.tabBarPaddingTop,
+          paddingHorizontal: Spacing.lg,
         },
         tabBarActiveTintColor: Colors.indigo,
-        tabBarInactiveTintColor: Colors.textDim,
+        tabBarInactiveTintColor: Colors.textMuted,
         tabBarLabelStyle: {
           fontSize: FontSize.tabLabel,
           fontWeight: '600',
+          letterSpacing: 0.3,
         },
       }}
     >
@@ -32,8 +34,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home" size={22} color={color} />
           ),
         }}
       />
@@ -41,8 +43,8 @@ export default function TabLayout() {
         name="workout"
         options={{
           title: 'Workout',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="barbell" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="barbell" size={22} color={color} />
           ),
         }}
       />
@@ -50,8 +52,8 @@ export default function TabLayout() {
         name="progress"
         options={{
           title: 'Progress',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trending-up" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="trending-up" size={22} color={color} />
           ),
         }}
       />
@@ -59,8 +61,8 @@ export default function TabLayout() {
         name="running"
         options={{
           title: 'Running',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="footsteps" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="footsteps" size={22} color={color} />
           ),
         }}
       />

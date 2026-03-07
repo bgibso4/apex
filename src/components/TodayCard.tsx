@@ -1,5 +1,4 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 import type { DayTemplate } from '../types';
 
@@ -20,36 +19,40 @@ export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress }: T
     );
   }
 
+  const exerciseCount = todayTemplate.exercises.length;
+  const subtitle = `${exerciseCount} exercises${todayTemplate.conditioning_finisher ? ' + finisher' : ''}`;
+
   return (
     <TouchableOpacity
-      style={[styles.card, styles.sessionCard]}
+      style={[
+        styles.card,
+        styles.sessionCard,
+        isCompleted && styles.sessionCardCompleted,
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.sessionCardHeader}>
-        <Text style={styles.sessionName}>{todayTemplate.name}</Text>
-        {isCompleted ? (
+      <Text style={styles.todayLabel}>Today's Training</Text>
+      <Text style={styles.todayTitle}>{todayTemplate.name}</Text>
+
+      {isCompleted ? (
+        <View style={styles.completedRow}>
           <View style={styles.completedBadge}>
-            <Ionicons name="checkmark-circle" size={16} color={Colors.green} />
-            <Text style={styles.completedText}>Done</Text>
+            <Text style={styles.completedBadgeText}>{'\u2713'} Completed</Text>
           </View>
-        ) : (
-          <Ionicons name="chevron-forward" size={20} color={Colors.textDim} />
-        )}
-      </View>
-      <Text style={styles.sessionExercises}>
-        {todayTemplate.exercises
-          .slice(0, 4)
-          .map(e => e.exercise_id.replace(/_/g, ' '))
-          .join(' · ')}
-        {todayTemplate.exercises.length > 4
-          ? ` +${todayTemplate.exercises.length - 4} more`
-          : ''}
-      </Text>
-      {!isCompleted && (
-        <View style={[styles.startButton, { backgroundColor: blockColor }]}>
-          <Text style={styles.startButtonText}>Start Workout</Text>
         </View>
+      ) : (
+        <>
+          <Text style={styles.todaySubtitle}>{subtitle}</Text>
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={onPress}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.startButtonText}>Start Workout</Text>
+            <Text style={styles.startButtonArrow}>{'\u2192'}</Text>
+          </TouchableOpacity>
+        </>
       )}
     </TouchableOpacity>
   );
@@ -57,33 +60,87 @@ export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress }: T
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
-    padding: Spacing.lg, marginBottom: Spacing.lg,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.cardPadding,
+    marginBottom: Spacing.xxl,
   },
-  sessionCard: { borderWidth: 1, borderColor: Colors.border },
-  sessionCardHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: Spacing.sm,
+  sessionCard: {
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  sessionName: {
-    color: Colors.text, fontSize: FontSize.lg, fontWeight: '600', flex: 1,
+  sessionCardCompleted: {
+    borderColor: Colors.greenBorderFaint,
   },
-  sessionExercises: {
-    color: Colors.textSecondary, fontSize: FontSize.sm,
-    textTransform: 'capitalize', marginBottom: Spacing.lg,
+  todayLabel: {
+    color: Colors.textDim,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: Spacing.md,
+  },
+  todayTitle: {
+    color: Colors.text,
+    fontSize: FontSize.title,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
+  },
+  todaySubtitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    marginBottom: Spacing.xl,
   },
   startButton: {
-    paddingVertical: Spacing.md, borderRadius: BorderRadius.md, alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.indigo,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xxl,
   },
-  startButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
-  completedBadge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
-  completedText: { color: Colors.green, fontSize: FontSize.sm, fontWeight: '600' },
+  startButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  startButtonArrow: {
+    color: Colors.text,
+    fontSize: FontSize.xl,
+  },
+  completedRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.greenFaint,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.button,
+  },
+  completedBadgeText: {
+    color: Colors.green,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
   restDayText: {
-    color: Colors.text, fontSize: FontSize.xl,
-    fontWeight: '600', textAlign: 'center',
+    color: Colors.text,
+    fontSize: FontSize.xl,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   restDaySubtext: {
-    color: Colors.textDim, fontSize: FontSize.md,
-    textAlign: 'center', marginTop: Spacing.xs,
+    color: Colors.textDim,
+    fontSize: FontSize.md,
+    textAlign: 'center',
+    marginTop: Spacing.xs,
   },
 });

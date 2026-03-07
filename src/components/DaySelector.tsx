@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 
 export interface DaySelectorProps {
   currentWeek: number;
@@ -17,10 +17,14 @@ export function DaySelector({
 }: DaySelectorProps) {
   return (
     <View style={styles.daySelector}>
-      <Text style={styles.daySelectorLabel}>
-        Week {currentWeek} · {blockName}
+      <Text style={styles.daySelectorTitle}>
+        Week {currentWeek} — {blockName}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dayRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.dayRow}
+      >
         {trainingDays.map(({ day, template }) => {
           const isSelected = day === selectedDay;
           return (
@@ -28,21 +32,15 @@ export function DaySelector({
               key={day}
               style={[
                 styles.dayChip,
-                isSelected && { backgroundColor: blockColor, borderColor: blockColor },
+                isSelected && styles.dayChipSelected,
               ]}
               onPress={() => onSelectDay(day)}
             >
               <Text style={[
                 styles.dayChipText,
-                isSelected && { color: Colors.text },
+                isSelected && styles.dayChipTextSelected,
               ]}>
-                {dayNames[day]}
-              </Text>
-              <Text style={[
-                styles.dayChipSubtext,
-                isSelected && { color: `${Colors.text}cc` },
-              ]} numberOfLines={1}>
-                {template.name.split('—')[0].trim()}
+                {dayNames[day]} {'\u00B7'} {template.name.split('—')[0].trim()}
               </Text>
             </TouchableOpacity>
           );
@@ -53,21 +51,38 @@ export function DaySelector({
 }
 
 const styles = StyleSheet.create({
-  daySelector: { marginBottom: Spacing.xl },
-  daySelectorLabel: {
-    color: Colors.textSecondary, fontSize: FontSize.md,
-    fontWeight: '600', marginBottom: Spacing.sm,
+  daySelector: {
+    marginBottom: Spacing.sm,
   },
-  dayRow: { flexDirection: 'row' },
+  daySelectorTitle: {
+    color: Colors.text,
+    fontSize: FontSize.subtitle,
+    fontWeight: '700',
+    marginBottom: Spacing.md,
+  },
+  dayRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    paddingBottom: Spacing.sm,
+  },
   dayChip: {
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginRight: Spacing.sm,
-    minWidth: ComponentSize.chartHeightSmall,
+    backgroundColor: Colors.card,
   },
-  dayChipText: { color: Colors.textDim, fontSize: FontSize.md, fontWeight: '700' },
-  dayChipSubtext: { color: Colors.textMuted, fontSize: FontSize.xs, marginTop: 2 },
+  dayChipSelected: {
+    backgroundColor: `${Colors.indigo}15`,
+    borderColor: Colors.indigo,
+  },
+  dayChipText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  dayChipTextSelected: {
+    color: Colors.text,
+  },
 });

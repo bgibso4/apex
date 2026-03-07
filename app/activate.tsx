@@ -14,7 +14,7 @@ import { activateProgram } from '../src/db';
 
 const MAIN_LIFTS_FOR_1RM = [
   { id: 'back_squat', label: 'Back Squat' },
-  { id: 'weighted_pullup', label: 'Weighted Pull-up (added weight)' },
+  { id: 'weighted_pullup', label: 'Weighted Pull-up' },
   { id: 'bench_press', label: 'Bench Press' },
   { id: 'overhead_press', label: 'Overhead Press' },
   { id: 'zercher_squat', label: 'Zercher Squat' },
@@ -58,33 +58,45 @@ export default function ActivateScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backArrow}>{'\u2190'}</Text>
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+
         <Text style={styles.title}>Enter Your 1RMs</Text>
-        <Text style={styles.subtitle}>
+        <Text style={styles.description}>
           These are used to calculate your working weights for every session.
-          Leave blank if you don't know — the app will learn from your logs.
+          Leave blank if you don&apos;t know {'\u2014'} the app will learn from your logs.
         </Text>
 
-        {MAIN_LIFTS_FOR_1RM.map(lift => (
-          <View key={lift.id} style={styles.inputRow}>
-            <Text style={styles.inputLabel}>{lift.label}</Text>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={styles.input}
-                value={values[lift.id] || ''}
-                onChangeText={val => updateValue(lift.id, val)}
-                keyboardType="numeric"
-                placeholder="lbs"
-                placeholderTextColor={Colors.textMuted}
-              />
-              <Text style={styles.inputUnit}>lbs</Text>
+        {/* 1RM input rows */}
+        <View style={styles.inputList}>
+          {MAIN_LIFTS_FOR_1RM.map(lift => (
+            <View key={lift.id} style={styles.inputRow}>
+              <Text style={styles.inputLabel}>{lift.label}</Text>
+              <View style={styles.inputRight}>
+                <TextInput
+                  style={styles.input}
+                  value={values[lift.id] || ''}
+                  onChangeText={val => updateValue(lift.id, val)}
+                  keyboardType="numeric"
+                  placeholder="\u2014"
+                  placeholderTextColor={Colors.textMuted}
+                />
+                <Text style={styles.inputUnit}>lbs</Text>
+              </View>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
 
         <TouchableOpacity
           style={[styles.activateButton, loading && { opacity: 0.6 }]}
           onPress={handleActivate}
           disabled={loading}
+          activeOpacity={0.8}
         >
           <Text style={styles.activateText}>
             {loading ? 'Activating...' : `Activate Program (${filledCount}/${MAIN_LIFTS_FOR_1RM.length} lifts)`}
@@ -95,7 +107,7 @@ export default function ActivateScreen() {
           style={styles.skipButton}
           onPress={handleActivate}
         >
-          <Text style={styles.skipText}>Skip — I'll enter these later</Text>
+          <Text style={styles.skipText}>Skip {'\u2014'} I&apos;ll enter these later</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -105,38 +117,108 @@ export default function ActivateScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
-  title: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700' },
-  subtitle: {
-    color: Colors.textSecondary, fontSize: FontSize.md,
-    marginTop: Spacing.sm, marginBottom: Spacing.xxl, lineHeight: FontSize.xxl,
+  scrollContent: {
+    paddingTop: Spacing.screenTop,
+    paddingHorizontal: Spacing.screenHorizontal,
+    paddingBottom: Spacing.screenBottom,
   },
 
-  inputRow: { marginBottom: Spacing.xl },
-  inputLabel: { color: Colors.textSecondary, fontSize: FontSize.md, marginBottom: Spacing.sm },
-  inputWrapper: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.card, borderRadius: BorderRadius.md,
-    borderWidth: 1, borderColor: Colors.border,
+  // Header with back button
+  header: {
+    marginBottom: Spacing.xl,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  backArrow: {
+    color: Colors.textDim,
+    fontSize: FontSize.xl,
+  },
+  backText: {
+    color: Colors.textDim,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+
+  // Content
+  title: {
+    color: Colors.text,
+    fontSize: FontSize.xxl,
+    fontWeight: '800',
+  },
+  description: {
+    color: Colors.textDim,
+    fontSize: FontSize.md,
+    lineHeight: FontSize.md * 1.5,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xxl,
+  },
+
+  // Input rows
+  inputList: {
+    gap: Spacing.md - 2, // 10px
+  },
+  inputRow: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    paddingVertical: Spacing.md + 2, // 14px
+    paddingHorizontal: Spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  inputLabel: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+  inputRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm - 2, // 6px
   },
   input: {
-    flex: 1, padding: Spacing.lg,
-    color: Colors.text, fontSize: FontSize.xl, fontWeight: '600',
+    width: 80,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.button,
+    paddingVertical: Spacing.md - 2, // 10px
+    paddingHorizontal: Spacing.md,
+    color: Colors.text,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   inputUnit: {
-    color: Colors.textDim, fontSize: FontSize.md,
-    paddingRight: Spacing.lg,
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+    fontWeight: '600',
   },
 
+  // Buttons
   activateButton: {
-    backgroundColor: Colors.indigo, paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.md, alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.indigo,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
     marginTop: Spacing.xl,
   },
-  activateText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
-
-  skipButton: {
-    paddingVertical: Spacing.lg, alignItems: 'center',
+  activateText: {
+    color: Colors.text,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
   },
-  skipText: { color: Colors.textDim, fontSize: FontSize.md },
+  skipButton: {
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+  },
+  skipText: {
+    color: Colors.textDim,
+    fontSize: FontSize.md,
+  },
 });

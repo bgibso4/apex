@@ -20,7 +20,7 @@ const MAIN_LIFTS = [
   { id: 'romanian_deadlift', name: 'RDL' },
 ];
 
-type TimeRange = 'block' | 'program' | 'all';
+type TimeRange = 'program' | 'all';
 
 export default function ProgressScreen() {
   const [timeRange, setTimeRange] = useState<TimeRange>('program');
@@ -68,7 +68,6 @@ export default function ProgressScreen() {
         {/* Time Range Selector */}
         <View style={styles.rangeRow}>
           {([
-            ['block', 'This Block'],
             ['program', 'This Program'],
             ['all', 'All Time'],
           ] as [TimeRange, string][]).map(([key, label]) => (
@@ -85,31 +84,36 @@ export default function ProgressScreen() {
         </View>
 
         {/* Estimated 1RMs */}
-        <Text style={styles.sectionLabel}>ESTIMATED 1RM</Text>
-        {MAIN_LIFTS.map((lift, i) => {
-          const e1rm = e1rms[i];
-          return (
-            <View key={lift.id} style={styles.liftCard}>
-              <View style={styles.liftHeader}>
-                <Text style={styles.liftName}>{lift.name}</Text>
-                <Text style={styles.liftValue}>
-                  {e1rm ? `${e1rm.value} lbs` : '—'}
-                </Text>
+        <Text style={styles.sectionLabel}>Estimated 1RM</Text>
+        <View style={styles.liftCards}>
+          {MAIN_LIFTS.map((lift, i) => {
+            const e1rm = e1rms[i];
+            return (
+              <View key={lift.id} style={styles.liftCard}>
+                <View style={styles.liftHeader}>
+                  <Text style={styles.liftName}>{lift.name}</Text>
+                  <View style={styles.liftValueRow}>
+                    <Text style={styles.liftValue}>
+                      {e1rm ? `${e1rm.value}` : '\u2014'}
+                    </Text>
+                    {e1rm && <Text style={styles.liftUnit}>lbs</Text>}
+                  </View>
+                </View>
+                {e1rm && (
+                  <Text style={styles.liftDetail}>
+                    from {e1rm.from_weight}{'\u00D7'}{e1rm.from_reps} on {e1rm.date}
+                  </Text>
+                )}
+                {!e1rm && (
+                  <Text style={styles.liftDetail}>No data yet</Text>
+                )}
               </View>
-              {e1rm && (
-                <Text style={styles.liftDetail}>
-                  from {e1rm.from_weight}×{e1rm.from_reps} on {e1rm.date}
-                </Text>
-              )}
-              {!e1rm && (
-                <Text style={styles.liftDetail}>No data yet</Text>
-              )}
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
 
         {/* Volume Trend */}
-        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>WEEKLY VOLUME</Text>
+        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Weekly Volume</Text>
         {volumeData.length > 0 ? (
           <View style={styles.chart}>
             {volumeData.map((v, i) => (
@@ -138,46 +142,143 @@ export default function ProgressScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
-  title: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700', marginBottom: Spacing.xl },
+  scrollContent: {
+    paddingTop: Spacing.screenTop,
+    paddingHorizontal: Spacing.screenHorizontal,
+    paddingBottom: Spacing.screenBottom,
+  },
+  title: {
+    color: Colors.text,
+    fontSize: FontSize.xxxl,
+    fontWeight: '800',
+    marginBottom: Spacing.lg,
+  },
 
-  rangeRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.xxl },
+  // Time range tabs
+  rangeRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginBottom: Spacing.lg,
+  },
   rangeButton: {
-    flex: 1, paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm, backgroundColor: Colors.surface,
+    flex: 1,
+    paddingVertical: Spacing.md - 2, // 10px
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: 'transparent',
     alignItems: 'center',
   },
-  rangeButtonActive: { backgroundColor: Colors.indigo },
-  rangeText: { color: Colors.textDim, fontSize: FontSize.sm, fontWeight: '600' },
-  rangeTextActive: { color: Colors.text },
+  rangeButtonActive: {
+    backgroundColor: `${Colors.indigo}15`,
+    borderColor: Colors.indigo,
+  },
+  rangeText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  rangeTextActive: {
+    color: Colors.text,
+  },
 
+  // Section labels
   sectionLabel: {
-    color: Colors.textDim, fontSize: FontSize.xs,
-    fontWeight: '700', letterSpacing: 1, marginBottom: Spacing.md,
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: Spacing.md - 2, // 10px
   },
 
+  // Lift cards
+  liftCards: {
+    gap: Spacing.sm,
+  },
   liftCard: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.md,
-    padding: Spacing.lg, marginBottom: Spacing.sm,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    padding: Spacing.lg,
   },
-  liftHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  liftName: { color: Colors.text, fontSize: FontSize.md, fontWeight: '600' },
-  liftValue: { color: Colors.indigo, fontSize: FontSize.lg, fontWeight: '700' },
-  liftDetail: { color: Colors.textDim, fontSize: FontSize.xs, marginTop: Spacing.xs },
+  liftHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  liftName: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  liftValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.xs,
+  },
+  liftValue: {
+    color: Colors.text,
+    fontSize: FontSize.xxl,
+    fontWeight: '800',
+  },
+  liftUnit: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  liftDetail: {
+    color: Colors.textDim,
+    fontSize: FontSize.xs,
+    marginTop: Spacing.xs,
+  },
 
+  // Volume chart
   chart: {
-    flexDirection: 'row', alignItems: 'flex-end',
-    height: ComponentSize.chartHeight, gap: Spacing.xs,
-    backgroundColor: Colors.card, borderRadius: BorderRadius.md,
-    padding: Spacing.lg, paddingBottom: Spacing.xxl,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    height: ComponentSize.chartHeight,
+    gap: Spacing.xs,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
   },
-  chartBar: { flex: 1, alignItems: 'center', height: '100%', justifyContent: 'flex-end' },
-  bar: { width: '80%', borderRadius: BorderRadius.xs, minHeight: Spacing.xs },
-  chartLabel: { color: Colors.textDim, fontSize: FontSize.chartLabel, marginTop: Spacing.xs, position: 'absolute', bottom: -Spacing.lg },
+  chartBar: {
+    flex: 1,
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  bar: {
+    width: '80%',
+    borderRadius: BorderRadius.xs,
+    minHeight: Spacing.xs,
+  },
+  chartLabel: {
+    color: Colors.textDim,
+    fontSize: FontSize.chartLabel,
+    marginTop: Spacing.xs,
+    position: 'absolute',
+    bottom: -Spacing.lg,
+  },
 
+  // Empty chart
   emptyChart: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.md,
-    padding: Spacing.xxxl, alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    padding: Spacing.xxxl,
+    alignItems: 'center',
   },
-  emptyChartText: { color: Colors.textDim, fontSize: FontSize.sm, marginTop: Spacing.md, textAlign: 'center' },
+  emptyChartText: {
+    color: Colors.textDim,
+    fontSize: FontSize.sm,
+    marginTop: Spacing.md,
+    textAlign: 'center',
+  },
 });

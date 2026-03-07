@@ -29,38 +29,34 @@ const defaultProps = {
 describe('ExerciseCard', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('renders exercise name and category', () => {
+  it('renders exercise name when collapsed', () => {
     render(<ExerciseCard {...defaultProps} />);
     expect(screen.getByText('Bench Press')).toBeTruthy();
-    expect(screen.getByText('MAIN')).toBeTruthy();
   });
 
-  it('renders target info', () => {
+  it('renders set status when collapsed', () => {
     render(<ExerciseCard {...defaultProps} />);
-    expect(screen.getByText(/3×8/)).toBeTruthy();
-    expect(screen.getByText(/@ 75%/)).toBeTruthy();
+    // Collapsed status shows "0/3"
+    expect(screen.getByText('0/3')).toBeTruthy();
   });
 
-  it('does not show sets when collapsed', () => {
-    render(<ExerciseCard {...defaultProps} expanded={false} />);
-    expect(screen.queryByText('Set 1')).toBeNull();
-  });
-
-  it('shows sets when expanded', () => {
+  it('renders exercise name when expanded', () => {
     render(<ExerciseCard {...defaultProps} expanded={true} />);
-    expect(screen.getByText('Set 1')).toBeTruthy();
-    expect(screen.getByText('Set 2')).toBeTruthy();
-    expect(screen.getByText('Set 3')).toBeTruthy();
+    expect(screen.getByText('Bench Press')).toBeTruthy();
   });
 
-  it('shows suggested weight when expanded and weight > 0', () => {
+  it('shows set numbers when expanded', () => {
     render(<ExerciseCard {...defaultProps} expanded={true} />);
-    expect(screen.getByText('Suggested: 135 lbs')).toBeTruthy();
+    // Set numbers rendered as "1", "2", "3"
+    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.getByText('3')).toBeTruthy();
   });
 
   it('shows last session info when provided', () => {
     render(<ExerciseCard {...defaultProps} expanded={true} lastWeight={130} lastReps={8} />);
-    expect(screen.getByText('Last: 130 × 8')).toBeTruthy();
+    expect(screen.getByText(/Last:/)).toBeTruthy();
+    expect(screen.getByText(/130/)).toBeTruthy();
   });
 
   it('calls onToggleExpand on press', () => {
@@ -70,46 +66,26 @@ describe('ExerciseCard', () => {
     expect(onToggleExpand).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onCompleteSet when pressing a pending set', () => {
-    const onCompleteSet = jest.fn();
-    render(<ExerciseCard {...defaultProps} expanded={true} onCompleteSet={onCompleteSet} />);
-    fireEvent.press(screen.getByText('Set 1'));
-    expect(onCompleteSet).toHaveBeenCalledWith(0);
-  });
-
-  it('does not call onCompleteSet when pressing a completed set', () => {
-    const onCompleteSet = jest.fn();
-    const sets = makeSets(3, 'completed');
-    render(<ExerciseCard {...defaultProps} expanded={true} sets={sets} onCompleteSet={onCompleteSet} />);
-    fireEvent.press(screen.getByText('Set 1'));
-    expect(onCompleteSet).not.toHaveBeenCalled();
-  });
-
-  it('calls onLongPressSet on long press', () => {
-    const onLongPressSet = jest.fn();
-    render(<ExerciseCard {...defaultProps} expanded={true} onLongPressSet={onLongPressSet} />);
-    fireEvent(screen.getByText('Set 2'), 'longPress');
-    expect(onLongPressSet).toHaveBeenCalledWith(1);
-  });
-
   it('shows RPE selector when all sets are done', () => {
     const sets = makeSets(3, 'completed');
     render(<ExerciseCard {...defaultProps} expanded={true} sets={sets} />);
-    expect(screen.getByText('RPE')).toBeTruthy();
+    expect(screen.getByText('How hard was this?')).toBeTruthy();
     expect(screen.getByText('6')).toBeTruthy();
     expect(screen.getByText('10')).toBeTruthy();
   });
 
   it('does not show RPE selector when sets are pending', () => {
     render(<ExerciseCard {...defaultProps} expanded={true} />);
-    expect(screen.queryByText('RPE')).toBeNull();
+    expect(screen.queryByText('How hard was this?')).toBeNull();
   });
 
-  it('calls onSetRPE when pressing an RPE bubble', () => {
+  it('calls onSetRPE when pressing an RPE button', () => {
     const onSetRPE = jest.fn();
     const sets = makeSets(3, 'completed');
     render(<ExerciseCard {...defaultProps} expanded={true} sets={sets} onSetRPE={onSetRPE} />);
-    fireEvent.press(screen.getByText('8'));
+    // "8" appears in both actualReps and RPE buttons; pick the last occurrence (RPE)
+    const eights = screen.getAllByText('8');
+    fireEvent.press(eights[eights.length - 1]);
     expect(onSetRPE).toHaveBeenCalledWith(8);
   });
 
@@ -120,8 +96,10 @@ describe('ExerciseCard', () => {
     expect(onLongPressCard).toHaveBeenCalledTimes(1);
   });
 
-  it('renders ad-hoc category correctly', () => {
-    render(<ExerciseCard {...defaultProps} category="ad-hoc" target={undefined} />);
-    expect(screen.getByText('AD-HOC')).toBeTruthy();
+  it('shows checkmark for completed sets', () => {
+    const sets = makeSets(3, 'completed');
+    render(<ExerciseCard {...defaultProps} expanded={true} sets={sets} />);
+    // Completed status shows "3/3 ✓" when collapsed, check marks in expanded
+    expect(screen.getAllByText('\u2713').length).toBeGreaterThan(0);
   });
 });

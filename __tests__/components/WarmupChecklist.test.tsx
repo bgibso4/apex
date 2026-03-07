@@ -16,44 +16,43 @@ const defaultProps = {
 describe('WarmupChecklist', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('renders title and all warmup items', () => {
+  it('renders all warmup items', () => {
     render(<WarmupChecklist {...defaultProps} />);
-    expect(screen.getByText('Warmup')).toBeTruthy();
-    expect(screen.getByText('Jump Rope (5-7 min)')).toBeTruthy();
-    expect(screen.getByText('Ankle Protocol')).toBeTruthy();
-    expect(screen.getByText('Hip IR Work')).toBeTruthy();
+    expect(screen.getByText(/Jump Rope/)).toBeTruthy();
+    expect(screen.getByText(/Ankle Dorsiflexion/)).toBeTruthy();
+    expect(screen.getByText(/Hip IR/)).toBeTruthy();
   });
 
-  it('renders Start Logging button', () => {
+  it('renders continue button', () => {
     render(<WarmupChecklist {...defaultProps} />);
-    expect(screen.getByText('Start Logging')).toBeTruthy();
+    expect(screen.getByText(/Continue to Exercises/)).toBeTruthy();
   });
 
   it('calls onToggleRope when Jump Rope is pressed', () => {
     const onToggleRope = jest.fn();
     render(<WarmupChecklist {...defaultProps} onToggleRope={onToggleRope} />);
-    fireEvent.press(screen.getByText('Jump Rope (5-7 min)'));
+    fireEvent.press(screen.getByText(/Jump Rope/));
     expect(onToggleRope).toHaveBeenCalledTimes(1);
   });
 
   it('calls onToggleAnkle when Ankle Protocol is pressed', () => {
     const onToggleAnkle = jest.fn();
     render(<WarmupChecklist {...defaultProps} onToggleAnkle={onToggleAnkle} />);
-    fireEvent.press(screen.getByText('Ankle Protocol'));
+    fireEvent.press(screen.getByText(/Ankle Dorsiflexion/));
     expect(onToggleAnkle).toHaveBeenCalledTimes(1);
   });
 
   it('calls onToggleHipIr when Hip IR Work is pressed', () => {
     const onToggleHipIr = jest.fn();
     render(<WarmupChecklist {...defaultProps} onToggleHipIr={onToggleHipIr} />);
-    fireEvent.press(screen.getByText('Hip IR Work'));
+    fireEvent.press(screen.getByText(/Hip IR/));
     expect(onToggleHipIr).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onContinue when Start Logging is pressed', () => {
+  it('calls onContinue when continue button is pressed', () => {
     const onContinue = jest.fn();
     render(<WarmupChecklist {...defaultProps} onContinue={onContinue} />);
-    fireEvent.press(screen.getByText('Start Logging'));
+    fireEvent.press(screen.getByText(/Continue to Exercises/));
     expect(onContinue).toHaveBeenCalledTimes(1);
   });
 });

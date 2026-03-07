@@ -1,5 +1,4 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
 import type { SetLog, ExerciseTarget } from '../types';
 
@@ -31,15 +30,6 @@ export interface ExerciseCardProps {
   onLongPressCard?: () => void;
 }
 
-function getSetColor(status: SetLog['status']) {
-  switch (status) {
-    case 'completed': return { bg: Colors.greenMuted, border: `${Colors.green}40`, text: Colors.green };
-    case 'completed_below': return { bg: Colors.amberMuted, border: `${Colors.amber}40`, text: Colors.amber };
-    case 'skipped': return { bg: Colors.redMuted, border: `${Colors.red}40`, text: Colors.red };
-    default: return { bg: Colors.surface, border: Colors.border, text: Colors.textDim };
-  }
-}
-
 export function ExerciseCard({
   exerciseName, category, target, sets, rpe, expanded,
   lastWeight, lastReps, blockColor,
@@ -47,148 +37,340 @@ export function ExerciseCard({
   onLongPressCard,
 }: ExerciseCardProps) {
   const allDone = sets.every(s => s.status !== 'pending');
+  const completedCount = sets.filter(s => s.status !== 'pending').length;
 
-  return (
-    <TouchableOpacity
-      style={styles.exerciseCard}
-      onPress={onToggleExpand}
-      onLongPress={onLongPressCard}
-      activeOpacity={0.8}
-    >
-      {/* Exercise Header */}
-      <View style={styles.exerciseHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.exerciseName}>{exerciseName}</Text>
-          <Text style={styles.exerciseTarget}>
-            {target ? `${target.sets}×${target.reps}` : ''}
-            {target?.percent ? ` @ ${target.percent}%` : ''}
-            {target?.rpe_target ? ` · RPE ${target.rpe_target}` : ''}
+  // Collapsed view
+  if (!expanded) {
+    return (
+      <TouchableOpacity
+        style={styles.exerciseCard}
+        onPress={onToggleExpand}
+        onLongPress={onLongPressCard}
+        activeOpacity={0.8}
+      >
+        <View style={styles.collapsedRow}>
+          <Text style={styles.collapsedName}>{exerciseName}</Text>
+          <Text style={[
+            styles.collapsedStatus,
+            allDone && styles.collapsedStatusDone,
+          ]}>
+            {completedCount}/{sets.length}{allDone ? ' \u2713' : ''}
           </Text>
         </View>
-        <Text style={[styles.categoryBadge, { color: blockColor }]}>
-          {category.toUpperCase()}
-        </Text>
-      </View>
+      </TouchableOpacity>
+    );
+  }
 
-      {expanded && (
-        <>
-          {/* Suggested weight + last session */}
-          <View style={styles.weightInfo}>
-            {sets[0]?.targetWeight > 0 && (
-              <Text style={styles.suggestedWeight}>
-                Suggested: {sets[0].targetWeight} lbs
-              </Text>
-            )}
-            {lastWeight != null && (
-              <Text style={styles.lastSession}>
-                Last: {lastWeight} × {lastReps}
-              </Text>
-            )}
-          </View>
+  // Expanded view
+  return (
+    <TouchableOpacity
+      style={[styles.exerciseCard, styles.exerciseCardActive]}
+      onPress={onToggleExpand}
+      onLongPress={onLongPressCard}
+      activeOpacity={0.9}
+    >
+      <View style={styles.expandedContent}>
+        <Text style={styles.exerciseName}>{exerciseName}</Text>
+        {lastWeight != null && (
+          <Text style={styles.lastSession}>
+            Last: <Text style={styles.lastSessionValue}>
+              {lastWeight} lbs {'\u00D7'} {lastReps} {'\u00D7'} {sets.length} sets
+            </Text>
+          </Text>
+        )}
 
-          {/* Set Buttons */}
-          <View style={styles.setsRow}>
-            {sets.map((set, setIdx) => {
-              const color = getSetColor(set.status);
-              return (
+        {/* Set header */}
+        <View style={styles.setHeader}>
+          <Text style={styles.setHeaderText}>Set</Text>
+          <Text style={styles.setHeaderText}>Weight</Text>
+          <Text style={styles.setHeaderText}>Reps</Text>
+          <Text style={styles.setHeaderText}>{''}</Text>
+        </View>
+
+        {/* Set rows */}
+        {sets.map((set, setIdx) => {
+          const isCompleted = set.status === 'completed' || set.status === 'completed_below';
+          const isPending = set.status === 'pending';
+          const isCurrent = isPending && setIdx === completedCount;
+          const isFuture = isPending && setIdx > completedCount;
+
+          return (
+            <View
+              key={setIdx}
+              style={[
+                styles.setRow,
+                isCurrent && styles.setRowCurrent,
+              ]}
+            >
+              <Text style={[
+                styles.setNumber,
+                isCurrent && styles.setNumberCurrent,
+              ]}>
+                {set.setNumber}
+              </Text>
+              <Text
+                style={[
+                  styles.setWeight,
+                  isCompleted && styles.setValueCompleted,
+                  isFuture && styles.setValueFuture,
+                ]}
+                onPress={() => isCompleted && onLongPressSet(setIdx)}
+              >
+                {set.actualWeight} lbs
+              </Text>
+              <Text
+                style={[
+                  styles.setReps,
+                  isCompleted && styles.setValueCompleted,
+                  isFuture && styles.setValueFuture,
+                ]}
+                onPress={() => isCompleted && onLongPressSet(setIdx)}
+              >
+                {set.actualReps}
+              </Text>
+              <View style={styles.setAction}>
                 <TouchableOpacity
-                  key={setIdx}
-                  style={[styles.setButton, {
-                    backgroundColor: color.bg,
-                    borderColor: color.border,
-                  }]}
-                  onPress={() => {
-                    if (set.status === 'pending') onCompleteSet(setIdx);
-                  }}
+                  style={[
+                    styles.setBtn,
+                    isCompleted && styles.setBtnCompleted,
+                    isCurrent && styles.setBtnCurrent,
+                  ]}
+                  onPress={() => isPending && onCompleteSet(setIdx)}
                   onLongPress={() => onLongPressSet(setIdx)}
                 >
-                  <Text style={[styles.setLabel, { color: color.text }]}>
-                    Set {set.setNumber}
-                  </Text>
-                  <Text style={[styles.setWeight, { color: color.text }]}>
-                    {set.actualWeight}
-                  </Text>
-                  <Text style={[styles.setReps, { color: color.text }]}>
-                    ×{set.actualReps}
-                  </Text>
-                  {set.status === 'completed' && (
-                    <Ionicons name="checkmark" size={16} color={Colors.green} style={{ marginTop: 2 }} />
-                  )}
-                  {set.status === 'completed_below' && (
-                    <Ionicons name="arrow-down" size={14} color={Colors.amber} style={{ marginTop: 2 }} />
+                  {isCompleted ? (
+                    <Text style={styles.setBtnCheck}>{'\u2713'}</Text>
+                  ) : (
+                    <View style={[
+                      styles.setBtnCircle,
+                      isCurrent && styles.setBtnCircleCurrent,
+                    ]} />
                   )}
                 </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* RPE selector (after all sets done) */}
-          {allDone && (
-            <View style={styles.rpeSection}>
-              <Text style={styles.rpeLabel}>RPE</Text>
-              <View style={styles.rpeRow}>
-                {[6, 7, 8, 9, 10].map(n => (
-                  <TouchableOpacity
-                    key={n}
-                    style={[
-                      styles.rpeBubble,
-                      rpe === n && {
-                        backgroundColor: n >= 9 ? Colors.redMuted : `${blockColor}30`,
-                        borderColor: n >= 9 ? Colors.red : blockColor,
-                      },
-                    ]}
-                    onPress={() => onSetRPE(n)}
-                  >
-                    <Text style={[
-                      styles.rpeBubbleText,
-                      rpe === n && { color: n >= 9 ? Colors.red : blockColor },
-                    ]}>{n}</Text>
-                  </TouchableOpacity>
-                ))}
               </View>
             </View>
-          )}
-        </>
-      )}
+          );
+        })}
+
+        {/* RPE selector (after all sets done) */}
+        {allDone && (
+          <View style={styles.rpeSection}>
+            <View style={styles.rpeLabelRow}>
+              <Text style={styles.rpeLabel}>How hard was this?</Text>
+            </View>
+            <View style={styles.rpeRow}>
+              {[6, 7, 8, 9, 10].map(n => (
+                <TouchableOpacity
+                  key={n}
+                  style={[
+                    styles.rpeBtn,
+                    rpe === n && styles.rpeBtnSelected,
+                  ]}
+                  onPress={() => onSetRPE(n)}
+                >
+                  <Text style={[
+                    styles.rpeBtnText,
+                    rpe === n && styles.rpeBtnTextSelected,
+                  ]}>{n}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   exerciseCard: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
-    padding: Spacing.lg, marginBottom: Spacing.md,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: Spacing.sm,
   },
-  exerciseHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+  exerciseCardActive: {
+    borderColor: Colors.indigoBorderFaint,
   },
-  exerciseName: { color: Colors.text, fontSize: FontSize.lg, fontWeight: '600' },
-  exerciseTarget: { color: Colors.textSecondary, fontSize: FontSize.sm, marginTop: 2 },
-  categoryBadge: { fontSize: FontSize.xs, fontWeight: '700', letterSpacing: 0.5 },
-  weightInfo: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    marginTop: Spacing.md, marginBottom: Spacing.md,
+
+  // Collapsed
+  collapsedRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
   },
-  suggestedWeight: { color: Colors.text, fontSize: FontSize.md, fontWeight: '600' },
-  lastSession: { color: Colors.textDim, fontSize: FontSize.sm },
-  setsRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.sm },
-  setButton: {
-    flex: 1, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.xs,
-    borderRadius: BorderRadius.sm, borderWidth: 1, alignItems: 'center',
+  collapsedName: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.base,
+    fontWeight: '600',
   },
-  setLabel: { fontSize: FontSize.xs, fontWeight: '600' },
-  setWeight: { fontSize: FontSize.lg, fontWeight: '700', marginTop: 2 },
-  setReps: { fontSize: FontSize.sm },
+  collapsedStatus: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  collapsedStatusDone: {
+    color: Colors.green,
+  },
+
+  // Expanded
+  expandedContent: {
+    padding: Spacing.xl,
+  },
+  exerciseName: {
+    color: Colors.text,
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
+  },
+  lastSession: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    marginBottom: Spacing.lg,
+  },
+  lastSessionValue: {
+    color: Colors.textDim,
+  },
+
+  // Set grid
+  setHeader: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.xs,
+    paddingBottom: Spacing.sm,
+  },
+  setHeaderText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+  setRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surface,
+  },
+  setRowCurrent: {
+    backgroundColor: `${Colors.indigo}08`,
+    borderRadius: BorderRadius.button,
+    borderTopColor: 'transparent',
+  },
+  setNumber: {
+    color: Colors.textMuted,
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    flex: 1,
+  },
+  setNumberCurrent: {
+    color: Colors.indigo,
+  },
+  setWeight: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+    flex: 1,
+  },
+  setReps: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+    flex: 1,
+  },
+  setValueCompleted: {
+    color: Colors.green,
+  },
+  setValueFuture: {
+    color: Colors.textDim,
+  },
+  setAction: {
+    alignItems: 'flex-end',
+    width: ComponentSize.setButtonWidth + Spacing.xs,
+  },
+  setBtn: {
+    width: ComponentSize.setButtonWidth,
+    height: ComponentSize.setButtonHeight,
+    borderRadius: BorderRadius.button,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  setBtnCompleted: {
+    borderColor: `${Colors.green}40`,
+    backgroundColor: `${Colors.green}15`,
+  },
+  setBtnCurrent: {
+    borderColor: Colors.indigo,
+    backgroundColor: `${Colors.indigo}15`,
+  },
+  setBtnCheck: {
+    color: Colors.green,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+  },
+  setBtnCircle: {
+    width: Spacing.md,
+    height: Spacing.md,
+    borderRadius: Spacing.md / 2,
+    borderWidth: 2,
+    borderColor: Colors.textMuted,
+  },
+  setBtnCircleCurrent: {
+    borderColor: Colors.indigo,
+  },
+
+  // RPE
   rpeSection: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: Spacing.md,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surface,
   },
-  rpeLabel: { color: Colors.textDim, fontSize: FontSize.sm, fontWeight: '600' },
-  rpeRow: { flexDirection: 'row', gap: Spacing.sm },
-  rpeBubble: {
-    width: ComponentSize.buttonMedium, height: ComponentSize.buttonMedium,
-    borderRadius: ComponentSize.buttonMedium / 2,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
+  rpeLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
   },
-  rpeBubbleText: { color: Colors.textDim, fontSize: FontSize.sm, fontWeight: '700' },
+  rpeLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  rpeRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  rpeBtn: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.button,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+  },
+  rpeBtnSelected: {
+    backgroundColor: Colors.indigo,
+    borderColor: Colors.indigo,
+  },
+  rpeBtnText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+  rpeBtnTextSelected: {
+    color: Colors.text,
+  },
 });

@@ -23,8 +23,10 @@ export function ReadinessForm({
   ];
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Readiness Check</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Readiness Check</Text>
+      <Text style={styles.subtitle}>How are you feeling today?</Text>
+
       {rows.map(({ label, value, setter }) => (
         <View key={label} style={styles.readinessRow}>
           <Text style={styles.readinessLabel}>{label}</Text>
@@ -34,47 +36,85 @@ export function ReadinessForm({
                 key={n}
                 style={[
                   styles.readinessButton,
-                  value === n && { backgroundColor: blockColor },
+                  value === n && { backgroundColor: blockColor, borderColor: blockColor },
                 ]}
                 onPress={() => setter(n)}
               >
                 <Text style={[
                   styles.readinessButtonText,
-                  value === n && { color: Colors.text },
+                  value === n && styles.readinessButtonTextSelected,
                 ]}>{n}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
       ))}
+
       <TouchableOpacity
-        style={[styles.bigButton, { backgroundColor: blockColor }]}
+        style={[styles.continueButton, { backgroundColor: blockColor }]}
         onPress={onContinue}
+        activeOpacity={0.8}
       >
-        <Text style={styles.bigButtonText}>Continue</Text>
+        <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
-    padding: Spacing.lg, marginBottom: Spacing.lg,
+  container: {
+    paddingVertical: Spacing.xs,
   },
-  cardTitle: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700', marginBottom: Spacing.lg },
-  readinessRow: { marginBottom: Spacing.lg },
-  readinessLabel: { color: Colors.textSecondary, fontSize: FontSize.md, marginBottom: Spacing.sm },
-  readinessButtons: { flexDirection: 'row', gap: Spacing.sm },
+  title: {
+    color: Colors.text,
+    fontSize: FontSize.subtitle,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
+  },
+  subtitle: {
+    color: Colors.textDim,
+    fontSize: FontSize.body,
+    marginBottom: Spacing.xxl,
+  },
+  readinessRow: {
+    marginBottom: Spacing.xl,
+  },
+  readinessLabel: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+  },
+  readinessButtons: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
   readinessButton: {
-    flex: 1, paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm, backgroundColor: Colors.surface,
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.button,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
     alignItems: 'center',
   },
-  readinessButtonText: { color: Colors.textDim, fontSize: FontSize.md, fontWeight: '600' },
-  bigButton: {
-    paddingVertical: Spacing.md, borderRadius: BorderRadius.md,
-    alignItems: 'center', marginBottom: Spacing.lg,
+  readinessButtonText: {
+    color: Colors.textDim,
+    fontSize: FontSize.md,
+    fontWeight: '600',
   },
-  bigButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
+  readinessButtonTextSelected: {
+    color: Colors.text,
+  },
+  continueButton: {
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  continueButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+  },
 });

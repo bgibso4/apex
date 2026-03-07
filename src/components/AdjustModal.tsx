@@ -18,41 +18,50 @@ export function AdjustModal({
 }: AdjustModalProps) {
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-          <Text style={styles.modalTitle}>Adjust Set</Text>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <View style={styles.content} onStartShouldSetResponder={() => true}>
+          <Text style={styles.title}>Adjust Set</Text>
 
-          <Text style={styles.modalLabel}>Weight (lbs)</Text>
+          <Text style={styles.label}>Weight (lbs)</Text>
           <View style={styles.adjustRow}>
-            <TouchableOpacity style={styles.adjustButton}
-              onPress={() => onWeightChange(Math.max(0, weight - 5))}>
+            <TouchableOpacity
+              style={styles.adjustButton}
+              onPress={() => onWeightChange(Math.max(0, weight - 5))}
+            >
               <Text style={styles.adjustButtonText}>-5</Text>
             </TouchableOpacity>
             <Text style={styles.adjustValue}>{weight}</Text>
-            <TouchableOpacity style={styles.adjustButton}
-              onPress={() => onWeightChange(weight + 5)}>
+            <TouchableOpacity
+              style={styles.adjustButton}
+              onPress={() => onWeightChange(weight + 5)}
+            >
               <Text style={styles.adjustButtonText}>+5</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.modalLabel}>Reps</Text>
+          <Text style={styles.label}>Reps</Text>
           <View style={styles.adjustRow}>
-            <TouchableOpacity style={styles.adjustButton}
-              onPress={() => onRepsChange(Math.max(0, reps - 1))}>
+            <TouchableOpacity
+              style={styles.adjustButton}
+              onPress={() => onRepsChange(Math.max(0, reps - 1))}
+            >
               <Text style={styles.adjustButtonText}>-1</Text>
             </TouchableOpacity>
             <Text style={styles.adjustValue}>{reps}</Text>
-            <TouchableOpacity style={styles.adjustButton}
-              onPress={() => onRepsChange(reps + 1)}>
+            <TouchableOpacity
+              style={styles.adjustButton}
+              onPress={() => onRepsChange(reps + 1)}
+            >
               <Text style={styles.adjustButtonText}>+1</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            style={[styles.bigButton, { backgroundColor: blockColor, marginTop: Spacing.lg }]}
+            style={[styles.saveButton, { backgroundColor: blockColor }]}
             onPress={onSave}
+            activeOpacity={0.8}
           >
-            <Text style={styles.bigButtonText}>Save</Text>
+            <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </Pressable>
@@ -61,37 +70,69 @@ export function AdjustModal({
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center', alignItems: 'center',
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalContent: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.xl,
-    padding: Spacing.xxl, width: ComponentSize.modalWidth,
+  content: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.modal,
+    padding: Spacing.xxl,
+    width: ComponentSize.modalWidth,
   },
-  modalTitle: {
-    color: Colors.text, fontSize: FontSize.xl, fontWeight: '700',
-    marginBottom: Spacing.xl, textAlign: 'center',
+  title: {
+    color: Colors.text,
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
   },
-  modalLabel: { color: Colors.textSecondary, fontSize: FontSize.sm, marginBottom: Spacing.sm },
+  label: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+  },
   adjustRow: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: Spacing.xl, marginBottom: Spacing.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xl,
+    marginBottom: Spacing.xl,
   },
   adjustButton: {
-    width: ComponentSize.buttonLarge, height: ComponentSize.buttonLarge,
+    width: ComponentSize.buttonLarge,
+    height: ComponentSize.buttonLarge,
     borderRadius: ComponentSize.buttonLarge / 2,
-    backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  adjustButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
+  adjustButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.md,
+    fontWeight: '700',
+  },
   adjustValue: {
-    color: Colors.text, fontSize: FontSize.xxxl, fontWeight: '700',
-    minWidth: ComponentSize.chartHeightSmall, textAlign: 'center',
+    color: Colors.text,
+    fontSize: FontSize.xxxl,
+    fontWeight: '700',
+    minWidth: 60,
+    textAlign: 'center',
   },
-  bigButton: {
-    paddingVertical: Spacing.md, borderRadius: BorderRadius.md,
-    alignItems: 'center', marginBottom: Spacing.lg,
+  saveButton: {
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
+    marginTop: Spacing.sm,
   },
-  bigButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
+  saveButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+  },
 });

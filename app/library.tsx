@@ -42,16 +42,18 @@ export default function LibraryScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>APEX</Text>
+          <Text style={styles.headerTitle}>Programs</Text>
           {hasActive && (
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="close" size={28} color={Colors.textSecondary} />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="close" size={16} color={Colors.textDim} />
             </TouchableOpacity>
           )}
         </View>
 
-        <Text style={styles.sectionLabel}>YOUR PROGRAMS</Text>
-
+        {/* Program cards */}
         {programs.map(p => {
           const isActive = p.status === 'active';
           const isCompleted = p.status === 'completed';
@@ -59,7 +61,14 @@ export default function LibraryScreen() {
           try { def = JSON.parse(p.definition_json); } catch {}
 
           return (
-            <View key={p.id} style={styles.programCard}>
+            <View
+              key={p.id}
+              style={[
+                styles.programCard,
+                isActive && styles.programCardActive,
+                isCompleted && styles.programCardCompleted,
+              ]}
+            >
               <View style={styles.programHeader}>
                 <Text style={styles.programName}>{p.name}</Text>
                 {isActive && (
@@ -68,27 +77,48 @@ export default function LibraryScreen() {
                   </View>
                 )}
                 {isCompleted && (
-                  <Ionicons name="checkmark-circle" size={20} color={Colors.green} />
+                  <View style={styles.completedBadge}>
+                    <Text style={styles.completedBadgeText}>COMPLETED</Text>
+                  </View>
                 )}
               </View>
 
-              <Text style={styles.programMeta}>
-                {p.duration_weeks} weeks · Created {p.created_date}
+              <Text style={styles.programDuration}>
+                {p.duration_weeks} weeks
               </Text>
 
-              {/* Block visualization */}
+              {/* Block timeline */}
               {def && (
-                <View style={styles.blockViz}>
+                <View style={styles.blockTimeline}>
                   {def.program.blocks.map((block, i) => (
                     <View
                       key={i}
-                      style={[styles.blockBar, {
+                      style={[styles.blockSegment, {
                         flex: block.weeks.length,
-                        backgroundColor: `${getBlockColor(block)}60`,
+                        backgroundColor: `${getBlockColor(block)}30`,
                       }]}
                     >
-                      <Text style={[styles.blockBarText, { color: getBlockColor(block) }]}>
-                        {block.name}
+                      <Text style={[styles.blockSegmentText, {
+                        color: 'rgba(255,255,255,0.5)',
+                      }]}>
+                        {block.name.toUpperCase()}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Block detail list */}
+              {def && (
+                <View style={styles.blockDetailList}>
+                  {def.program.blocks.map((block, i) => (
+                    <View key={i} style={styles.blockDetailRow}>
+                      <View style={[styles.blockDot, {
+                        backgroundColor: getBlockColor(block),
+                      }]} />
+                      <Text style={styles.blockDetailName}>{block.name}</Text>
+                      <Text style={styles.blockDetailWeeks}>
+                        {block.weeks.length} weeks
                       </Text>
                     </View>
                   ))}
@@ -100,20 +130,17 @@ export default function LibraryScreen() {
                 <TouchableOpacity
                   style={styles.activateButton}
                   onPress={() => router.push({ pathname: '/activate', params: { programId: p.id } })}
+                  activeOpacity={0.8}
                 >
                   <Text style={styles.activateButtonText}>Activate</Text>
                 </TouchableOpacity>
               )}
 
               {isActive && (
-                <TouchableOpacity
-                  style={[styles.activateButton, { backgroundColor: Colors.surface }]}
-                  onPress={() => router.back()}
-                >
-                  <Text style={[styles.activateButtonText, { color: Colors.textSecondary }]}>
-                    Return to Dashboard
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.activeIndicator}>
+                  <Ionicons name="checkmark-circle" size={18} color={Colors.green} />
+                  <Text style={styles.activeIndicatorText}>Currently Active</Text>
+                </View>
               )}
             </View>
           );
@@ -133,45 +160,179 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: Spacing.xxl,
-  },
-  logo: { color: Colors.text, fontSize: FontSize.xxxl, fontWeight: '800', letterSpacing: 3 },
-  sectionLabel: {
-    color: Colors.textDim, fontSize: FontSize.xs,
-    fontWeight: '700', letterSpacing: 1, marginBottom: Spacing.md,
+  scrollContent: {
+    paddingTop: Spacing.screenTop,
+    paddingHorizontal: Spacing.screenHorizontal,
+    paddingBottom: Spacing.screenBottom,
   },
 
+  // Header
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  headerTitle: {
+    color: Colors.text,
+    fontSize: FontSize.xxl,
+    fontWeight: '800',
+  },
+  closeButton: {
+    width: Spacing.xxxl,
+    height: Spacing.xxxl,
+    borderRadius: Spacing.xxxl / 2,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Program cards
   programCard: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
-    padding: Spacing.lg, marginBottom: Spacing.lg,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.cardPaddingCompact,
+    marginBottom: Spacing.md,
+  },
+  programCardActive: {
+    borderColor: Colors.greenBorderFaint,
+  },
+  programCardCompleted: {
+    opacity: 0.7,
   },
   programHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
   },
-  programName: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700' },
-  programMeta: { color: Colors.textDim, fontSize: FontSize.sm, marginTop: Spacing.xs, marginBottom: Spacing.md },
+  programName: {
+    color: Colors.text,
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    flex: 1,
+  },
+  programDuration: {
+    color: Colors.textDim,
+    fontSize: FontSize.body,
+    marginBottom: Spacing.md + 2, // 14px
+  },
   activeBadge: {
-    backgroundColor: Colors.indigoMuted, paddingHorizontal: Spacing.sm, paddingVertical: 2,
+    backgroundColor: Colors.greenFaint,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.sm,
   },
-  activeBadgeText: { color: Colors.indigo, fontSize: FontSize.xs, fontWeight: '700' },
-
-  blockViz: { flexDirection: 'row', gap: BorderRadius.xs, marginBottom: Spacing.lg },
-  blockBar: {
-    height: ComponentSize.buttonSmall, borderRadius: BorderRadius.xs,
-    justifyContent: 'center', alignItems: 'center',
+  activeBadgeText: {
+    color: Colors.green,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  blockBarText: { fontSize: FontSize.chartLabel, fontWeight: '700' },
+  completedBadge: {
+    backgroundColor: `${Colors.textMuted}18`,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  completedBadgeText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
 
+  // Block timeline
+  blockTimeline: {
+    flexDirection: 'row',
+    gap: 2,
+    height: ComponentSize.timelineHeightSmall,
+    borderRadius: BorderRadius.sm,
+    overflow: 'hidden',
+    marginBottom: Spacing.md,
+  },
+  blockSegment: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  blockSegmentText: {
+    fontSize: 8,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+
+  // Block detail list
+  blockDetailList: {
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  blockDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md - 2, // 10px
+    paddingVertical: Spacing.sm - 2, // 6px
+  },
+  blockDot: {
+    width: Spacing.md - 2, // 10px
+    height: Spacing.md - 2,
+    borderRadius: BorderRadius.xs,
+    flexShrink: 0,
+  },
+  blockDetailName: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    flex: 1,
+  },
+  blockDetailWeeks: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+
+  // Activate button
   activateButton: {
-    backgroundColor: Colors.indigo, paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md, alignItems: 'center',
+    paddingVertical: Spacing.md + 2, // 14px
+    backgroundColor: Colors.indigo,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginTop: Spacing.xs,
   },
-  activateButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
+  activateButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '700',
+  },
 
-  emptyState: { alignItems: 'center', paddingVertical: Spacing.xxxl },
-  emptyText: { color: Colors.textDim, fontSize: FontSize.md, marginTop: Spacing.md },
+  // Active indicator
+  activeIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md + 2, // 14px
+    backgroundColor: `${Colors.green}10`,
+    borderWidth: 1,
+    borderColor: Colors.greenBorderFaint,
+    borderRadius: BorderRadius.md,
+  },
+  activeIndicatorText: {
+    color: Colors.green,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+
+  // Empty state
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xxxl,
+  },
+  emptyText: {
+    color: Colors.textDim,
+    fontSize: FontSize.md,
+    marginTop: Spacing.md,
+  },
 });

@@ -1,6 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
 
 export interface WeekRowProps {
   trainingDays: { day: string; template: { name: string } }[];
@@ -15,59 +14,108 @@ export function WeekRow({
   trainingDays, todayKey, completedDays, blockColor, dayNames, onDayPress,
 }: WeekRowProps) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardLabel}>THIS WEEK</Text>
-      <View style={styles.weekRow}>
-        {trainingDays.map(({ day }) => {
-          const isToday = day === todayKey;
-          const isCompleted = completedDays.includes(day);
-          return (
-            <TouchableOpacity
-              key={day}
-              style={[
-                styles.dayPill,
-                isToday && styles.dayPillToday,
-                isCompleted && styles.dayPillDone,
-              ]}
-              onPress={() => onDayPress(day)}
-            >
+    <View style={styles.weekRow}>
+      {trainingDays.map(({ day }, index) => {
+        const isToday = day === todayKey;
+        const isCompleted = completedDays.includes(day);
+        const isRest = false; // training days are never rest
+        const isUpcoming = !isToday && !isCompleted;
+
+        return (
+          <TouchableOpacity
+            key={day}
+            style={styles.dayChip}
+            onPress={() => onDayPress(day)}
+          >
+            <Text style={[
+              styles.dayLabel,
+              isCompleted && styles.dayLabelCompleted,
+              isToday && styles.dayLabelToday,
+            ]}>
+              {dayNames[day]}
+            </Text>
+            <View style={[
+              styles.dayDot,
+              isCompleted && styles.dayDotCompleted,
+              isToday && !isCompleted && styles.dayDotToday,
+              isUpcoming && styles.dayDotUpcoming,
+            ]}>
               <Text style={[
-                styles.dayPillText,
-                isToday && { color: Colors.text },
-                isCompleted && { color: Colors.green },
+                styles.dayDotText,
+                isCompleted && styles.dayDotTextCompleted,
+                isToday && !isCompleted && styles.dayDotTextToday,
+                isUpcoming && styles.dayDotTextUpcoming,
               ]}>
-                {dayNames[day]}
+                {isCompleted ? '\u2713' : `${index + 1}`}
               </Text>
-              {isCompleted && (
-                <Ionicons name="checkmark" size={14} color={Colors.green} />
-              )}
-              {isToday && !isCompleted && (
-                <View style={[styles.todayDot, { backgroundColor: blockColor }]} />
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+            </View>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
-    padding: Spacing.lg, marginBottom: Spacing.lg,
+  weekRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
-  cardLabel: {
-    color: Colors.textDim, fontSize: FontSize.xs,
-    fontWeight: '700', letterSpacing: 1, marginBottom: Spacing.md,
+  dayChip: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
-  weekRow: { flexDirection: 'row', gap: Spacing.sm },
-  dayPill: {
-    flex: 1, alignItems: 'center', paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm, backgroundColor: Colors.surface,
+  dayLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
-  dayPillToday: { borderWidth: 1, borderColor: Colors.indigo },
-  dayPillDone: { backgroundColor: Colors.greenMuted },
-  dayPillText: { color: Colors.textDim, fontSize: FontSize.sm, fontWeight: '600' },
-  todayDot: { width: 5, height: 5, borderRadius: 2.5, marginTop: 3 },
+  dayLabelCompleted: {
+    color: '#22c55e80',
+  },
+  dayLabelToday: {
+    color: Colors.indigo,
+  },
+  dayDot: {
+    width: ComponentSize.dayDotSize,
+    height: ComponentSize.dayDotSize,
+    borderRadius: ComponentSize.dayDotSize / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayDotCompleted: {
+    backgroundColor: Colors.greenMuted,
+  },
+  dayDotToday: {
+    backgroundColor: Colors.indigo,
+    shadowColor: Colors.indigo,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  dayDotUpcoming: {
+    backgroundColor: Colors.surface,
+  },
+  dayDotText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  dayDotTextCompleted: {
+    color: Colors.green,
+  },
+  dayDotTextToday: {
+    color: Colors.text,
+  },
+  dayDotTextUpcoming: {
+    color: Colors.textMuted,
+  },
 });

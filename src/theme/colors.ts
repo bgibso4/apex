@@ -43,6 +43,19 @@ export const Colors = {
   // Special
   cyan: '#06b6d4',    // mobility/running
   cyanMuted: '#06b6d420',
+
+  // Completed states
+  greenFaint: '#22c55e18',
+  greenBorderFaint: '#22c55e30',
+
+  // Active card border
+  indigoBorderFaint: '#6366f130',
+
+  // Block segment backgrounds (inactive / semi-transparent)
+  hypertrophyMuted: '#6366f130',
+  strengthMuted: '#f59e0b30',
+  realizationMuted: '#ec489930',
+  deloadMuted: '#22c55e30',
 } as const;
 
 export type ColorKey = keyof typeof Colors;

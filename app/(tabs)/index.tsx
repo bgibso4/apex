@@ -55,13 +55,16 @@ export default function HomeScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.emptyState}>
-          <Text style={styles.logo}>APEX</Text>
-          <Text style={styles.emptyText}>No active program</Text>
+          <Text style={styles.emptyIcon}>{'🏋'}</Text>
+          <Text style={styles.emptyTitle}>No Active Program</Text>
+          <Text style={styles.emptySub}>
+            Choose a training program from the library to get started.
+          </Text>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={styles.browseButton}
             onPress={() => router.push('/library')}
           >
-            <Text style={styles.primaryButtonText}>Open Program Library</Text>
+            <Text style={styles.browseButtonText}>Browse Library</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -85,23 +88,37 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.indigo} />
         }
       >
-        {/* Header */}
+        {/* Header: APEX title + gear */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.programName}>{def.name}</Text>
-            <Text style={[styles.blockLabel, { color: blockColor }]}>
-              Week {currentWeek} · {block?.name ?? 'Unknown Block'}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => router.push('/library')}>
-            <Ionicons name="menu" size={24} color={Colors.textSecondary} />
+          <Text style={styles.apexTitle}>APEX</Text>
+          <TouchableOpacity
+            style={styles.gearIcon}
+            onPress={() => router.push('/library')}
+          >
+            <Ionicons name="settings-outline" size={22} color={Colors.textDim} />
           </TouchableOpacity>
+        </View>
+
+        {/* Program context */}
+        <View style={styles.programContext}>
+          <Text style={styles.programName}>{def.name}</Text>
+          <Text style={styles.programWeek}>
+            Week {currentWeek} of {def.duration_weeks} — {' '}
+            <Text style={styles.programWeekAccent}>{block?.name ?? 'Unknown Block'}</Text>
+          </Text>
         </View>
 
         <ProgramTimeline
           durationWeeks={def.duration_weeks}
           blocks={def.blocks}
           currentWeek={currentWeek}
+        />
+
+        <TodayCard
+          todayTemplate={todayTemplate}
+          isCompleted={completedDays.includes(todayKey)}
+          blockColor={blockColor}
+          onPress={() => router.push('/workout')}
         />
 
         <WeekRow
@@ -121,13 +138,6 @@ export default function HomeScreen() {
             router.push('/workout');
           }}
         />
-
-        <TodayCard
-          todayTemplate={todayTemplate}
-          isCompleted={completedDays.includes(todayKey)}
-          blockColor={blockColor}
-          onPress={() => router.push('/workout')}
-        />
       </ScrollView>
     </View>
   );
@@ -142,23 +152,78 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.screenBottom,
   },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'flex-start', marginBottom: Spacing.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
-  programName: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700' },
-  blockLabel: { fontSize: FontSize.md, fontWeight: '600', marginTop: 2 },
+  apexTitle: {
+    color: Colors.text,
+    fontSize: FontSize.xxxl,
+    fontWeight: '800',
+    letterSpacing: 3,
+  },
+  gearIcon: {
+    width: Spacing.xxxl,
+    height: Spacing.xxxl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.button,
+  },
+  programContext: {
+    paddingVertical: Spacing.xs,
+    marginBottom: Spacing.lg,
+  },
+  programName: {
+    color: Colors.text,
+    fontSize: FontSize.subtitle,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
+  },
+  programWeek: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.base,
+    fontWeight: '500',
+  },
+  programWeekAccent: {
+    color: Colors.amber,
+    fontWeight: '600',
+  },
+
+  // Empty state
   emptyState: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.xl,
+    paddingHorizontal: Spacing.screenHorizontal,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    opacity: 0.3,
+  },
+  emptyTitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xl,
+    fontWeight: '600',
+  },
+  emptySub: {
+    color: Colors.textDim,
+    fontSize: FontSize.md,
+    textAlign: 'center',
+    lineHeight: 21,
+  },
+  browseButton: {
+    backgroundColor: Colors.indigo,
+    paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.xxxl,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
   },
-  logo: {
-    color: Colors.text, fontSize: FontSize.logo, fontWeight: '800',
-    letterSpacing: 4, marginBottom: Spacing.xl,
+  browseButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '700',
   },
-  emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg, marginBottom: Spacing.xxl },
-  primaryButton: {
-    backgroundColor: Colors.indigo, paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xxxl, borderRadius: BorderRadius.md,
-  },
-  primaryButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
 });

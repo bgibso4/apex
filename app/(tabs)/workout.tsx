@@ -39,11 +39,15 @@ export default function WorkoutScreen() {
   const setCount = w.exercises.reduce((acc, e) =>
     acc + e.sets.filter(s => s.status === 'completed' || s.status === 'completed_below').length, 0
   );
+  const totalSets = w.exercises.reduce((acc, e) => acc + e.sets.length, 0);
 
   const programmedExercises = w.exercises.filter(e => !e.isAdhoc);
   const allProgrammedDone = programmedExercises.every(e =>
     e.sets.every(s => s.status !== 'pending')
   );
+  const doneExerciseCount = w.exercises.filter(e =>
+    e.sets.every(s => s.status !== 'pending')
+  ).length;
 
   return (
     <View style={styles.container}>
@@ -60,17 +64,33 @@ export default function WorkoutScreen() {
 
         {/* Phase: Select */}
         {w.phase === 'select' && w.selectedTemplate && (
-          <View style={styles.card}>
-            <Text style={styles.sessionTitle}>{w.selectedTemplate.name}</Text>
-            <Text style={styles.exercisePreview}>
+          <View style={styles.sessionPreview}>
+            <Text style={styles.previewTitle}>{w.selectedTemplate.name}</Text>
+            <Text style={styles.previewSubtitle}>
               {w.selectedTemplate.exercises.length} exercises
               {w.selectedTemplate.conditioning_finisher ? ' + conditioning finisher' : ''}
             </Text>
+
+            <View style={styles.previewExercises}>
+              {w.selectedTemplate.exercises.map((ex, i) => {
+                const target = getTargetForWeek(ex, w.currentWeek);
+                return (
+                  <View key={i} style={styles.previewExerciseRow}>
+                    <Text style={styles.previewExerciseName}>{ex.exercise_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+                    <Text style={styles.previewExerciseDetail}>
+                      {target ? `${target.sets} \u00D7 ${target.reps}` : ''}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+
             <TouchableOpacity
-              style={[styles.bigButton, { backgroundColor: w.blockColor }]}
+              style={styles.startButton}
               onPress={w.startSession}
+              activeOpacity={0.8}
             >
-              <Text style={styles.bigButtonText}>Start Session</Text>
+              <Text style={styles.startButtonText}>Start Session {'\u2192'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -106,16 +126,24 @@ export default function WorkoutScreen() {
         {/* Phase: Logging */}
         {w.phase === 'logging' && (
           <>
-            {/* Progress bar + Add exercise */}
-            <View style={styles.progressRow}>
-              <Text style={styles.progressText}>
-                {w.exercises.filter(e => e.sets.every(s => s.status !== 'pending')).length} of {w.exercises.length} exercises
-              </Text>
-              {!w.reorderMode && (
-                <TouchableOpacity onPress={() => w.setShowExercisePicker(true)}>
-                  <Text style={styles.addExerciseLink}>+ Add exercise</Text>
-                </TouchableOpacity>
-              )}
+            {/* Progress bar */}
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressBarBg}>
+                <View style={[
+                  styles.progressBarFill,
+                  { width: `${totalSets > 0 ? (setCount / totalSets) * 100 : 0}%` },
+                ]} />
+              </View>
+              <View style={styles.progressLabel}>
+                <Text style={styles.progressLabelText}>
+                  {doneExerciseCount} of {w.exercises.length} exercises
+                </Text>
+                {!w.reorderMode && (
+                  <TouchableOpacity onPress={() => w.setShowExercisePicker(true)}>
+                    <Text style={styles.addExerciseLink}>+ Add exercise</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             {/* Reorder banner */}
@@ -184,30 +212,37 @@ export default function WorkoutScreen() {
             {!w.reorderMode && (
               <>
                 <TouchableOpacity
-                  style={styles.conditioningRow}
+                  style={styles.conditioningCard}
                   onPress={() => w.setConditioningDone(!w.conditioningDone)}
+                  activeOpacity={0.7}
                 >
-                  <Ionicons
-                    name={w.conditioningDone ? 'checkmark-circle' : 'ellipse-outline'}
-                    size={24}
-                    color={w.conditioningDone ? Colors.green : Colors.textDim}
-                  />
-                  <Text style={[
-                    styles.conditioningLabel,
-                    w.conditioningDone && { color: Colors.green },
-                  ]}>Conditioning Finisher</Text>
+                  <View style={styles.conditioningLeft}>
+                    <Text style={styles.conditioningLabel}>Conditioning Finisher</Text>
+                    <Text style={styles.conditioningName}>Sled Push</Text>
+                  </View>
+                  <View style={[
+                    styles.conditioningCheckbox,
+                    w.conditioningDone && styles.conditioningCheckboxChecked,
+                  ]}>
+                    {w.conditioningDone && (
+                      <Text style={styles.conditioningCheckmark}>{'\u2713'}</Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.bigButton, {
-                    backgroundColor: allProgrammedDone ? Colors.green : Colors.surface,
-                  }]}
+                  style={[
+                    styles.finishButton,
+                    !allProgrammedDone && styles.finishButtonDisabled,
+                  ]}
                   onPress={w.finishSession}
                   disabled={!allProgrammedDone}
+                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.bigButtonText, {
-                    color: allProgrammedDone ? Colors.text : Colors.textDim,
-                  }]}>Finish Workout</Text>
+                  <Text style={[
+                    styles.finishButtonText,
+                    !allProgrammedDone && styles.finishButtonTextDisabled,
+                  ]}>Finish Workout</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -318,7 +353,7 @@ export default function WorkoutScreen() {
                 {/* Configure step */}
                 <View style={styles.pickerHeader}>
                   <TouchableOpacity onPress={() => w.setPickerStep('pick')}>
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={styles.backArrow}>{'\u2190'}</Text>
                   </TouchableOpacity>
                   <Text style={[styles.pickerTitle, { flex: 1, marginLeft: Spacing.md }]}>
                     {w.selectedLibraryExercise?.name}
@@ -330,7 +365,7 @@ export default function WorkoutScreen() {
                   <View style={styles.adjustRow}>
                     <TouchableOpacity style={styles.adjustButton}
                       onPress={() => w.setAdhocSets(Math.max(1, w.adhocSets - 1))}>
-                      <Text style={styles.adjustButtonText}>−</Text>
+                      <Text style={styles.adjustButtonText}>{'\u2212'}</Text>
                     </TouchableOpacity>
                     <Text style={styles.adjustValue}>{w.adhocSets}</Text>
                     <TouchableOpacity style={styles.adjustButton}
@@ -343,7 +378,7 @@ export default function WorkoutScreen() {
                   <View style={styles.adjustRow}>
                     <TouchableOpacity style={styles.adjustButton}
                       onPress={() => w.setAdhocReps(Math.max(1, w.adhocReps - 1))}>
-                      <Text style={styles.adjustButtonText}>−</Text>
+                      <Text style={styles.adjustButtonText}>{'\u2212'}</Text>
                     </TouchableOpacity>
                     <Text style={styles.adjustValue}>{w.adhocReps}</Text>
                     <TouchableOpacity style={styles.adjustButton}
@@ -352,11 +387,11 @@ export default function WorkoutScreen() {
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.configLabel}>Weight (lbs) — 0 = bodyweight</Text>
+                  <Text style={styles.configLabel}>Weight (lbs) {'\u2014'} 0 = bodyweight</Text>
                   <View style={styles.adjustRow}>
                     <TouchableOpacity style={styles.adjustButton}
                       onPress={() => w.setAdhocWeight(Math.max(0, w.adhocWeight - 5))}>
-                      <Text style={styles.adjustButtonText}>−5</Text>
+                      <Text style={styles.adjustButtonText}>-5</Text>
                     </TouchableOpacity>
                     <Text style={styles.adjustValue}>
                       {w.adhocWeight === 0 ? 'BW' : w.adhocWeight}
@@ -369,10 +404,11 @@ export default function WorkoutScreen() {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.bigButton, { backgroundColor: Colors.indigo, marginTop: Spacing.lg }]}
+                  style={[styles.addToWorkoutButton]}
                   onPress={w.addAdhocExercise}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.bigButtonText}>Add to Workout</Text>
+                  <Text style={styles.addToWorkoutText}>Add to Workout</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -394,104 +430,302 @@ const styles = StyleSheet.create({
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg },
 
-  card: {
-    backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
-    padding: Spacing.lg, marginBottom: Spacing.lg,
+  // Session preview (select phase)
+  sessionPreview: {
+    flex: 1,
+    paddingVertical: Spacing.xs,
   },
-  sessionTitle: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700' },
-  exercisePreview: {
-    color: Colors.textSecondary, fontSize: FontSize.md,
-    marginTop: Spacing.xs, marginBottom: Spacing.xl,
+  previewTitle: {
+    color: Colors.text,
+    fontSize: FontSize.xxl,
+    fontWeight: '700',
+    marginBottom: Spacing.xs,
   },
-  bigButton: {
-    paddingVertical: Spacing.md, borderRadius: BorderRadius.md,
-    alignItems: 'center', marginBottom: Spacing.lg,
+  previewSubtitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    marginBottom: Spacing.xxl,
   },
-  bigButtonText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '700' },
-
-  conditioningRow: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+  previewExercises: {
+    gap: 2,
+    flex: 1,
+  },
+  previewExerciseRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.md + 2, // 14px
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+  },
+  previewExerciseName: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+  previewExerciseDetail: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+  },
+  startButton: {
+    marginTop: Spacing.xxl,
     paddingVertical: Spacing.lg,
+    backgroundColor: Colors.indigo,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
   },
-  conditioningLabel: { color: Colors.textSecondary, fontSize: FontSize.lg },
+  startButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+  },
 
   // Progress bar
-  progressRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  progressBarContainer: {
     marginBottom: Spacing.lg,
   },
-  progressText: { color: Colors.textSecondary, fontSize: FontSize.sm },
-  addExerciseLink: { color: Colors.indigo, fontSize: FontSize.sm, fontWeight: '600' },
+  progressBarBg: {
+    height: ComponentSize.progressBarHeight,
+    backgroundColor: Colors.surface,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: Colors.indigo,
+    borderRadius: 2,
+  },
+  progressLabel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.sm - 2, // 6px
+  },
+  progressLabelText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '500',
+  },
+  addExerciseLink: {
+    color: Colors.indigo,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+  },
 
   // Reorder
   reorderBanner: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: Colors.surface, borderRadius: BorderRadius.md,
-    padding: Spacing.md, marginBottom: Spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
   },
-  reorderBannerText: { color: Colors.text, fontSize: FontSize.md, fontWeight: '600' },
-  reorderDoneText: { color: Colors.indigo, fontSize: FontSize.md, fontWeight: '700' },
+  reorderBannerText: {
+    color: Colors.text,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+  reorderDoneText: {
+    color: Colors.indigo,
+    fontSize: FontSize.md,
+    fontWeight: '700',
+  },
   reorderControls: {
-    flexDirection: 'row', justifyContent: 'center', gap: Spacing.lg,
-    marginTop: -Spacing.sm, marginBottom: Spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.lg,
+    marginTop: -Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   reorderButton: {
-    width: ComponentSize.buttonLarge, height: ComponentSize.buttonLarge,
+    width: ComponentSize.buttonLarge,
+    height: ComponentSize.buttonLarge,
     borderRadius: ComponentSize.buttonLarge / 2,
-    backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   reorderButtonDisabled: { opacity: 0.3 },
 
+  // Conditioning card
+  conditioningCard: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.cardPaddingCompact,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  conditioningLeft: {
+    gap: 2,
+  },
+  conditioningLabel: {
+    color: Colors.textDim,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  conditioningName: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+  conditioningCheckbox: {
+    width: ComponentSize.conditioningCheckSize,
+    height: ComponentSize.conditioningCheckSize,
+    borderRadius: BorderRadius.button,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  conditioningCheckboxChecked: {
+    backgroundColor: Colors.greenMuted,
+    borderColor: Colors.green,
+  },
+  conditioningCheckmark: {
+    color: Colors.green,
+    fontSize: FontSize.md,
+    fontWeight: '700',
+  },
+
+  // Finish button
+  finishButton: {
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.green,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  finishButtonDisabled: {
+    backgroundColor: Colors.surface,
+  },
+  finishButtonText: {
+    color: Colors.bg,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  finishButtonTextDisabled: {
+    color: Colors.textMuted,
+  },
+
   // Picker modal
   pickerOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
   },
   pickerSheet: {
-    backgroundColor: Colors.card, borderTopLeftRadius: BorderRadius.xl,
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
-    padding: Spacing.xl, maxHeight: '80%',
+    padding: Spacing.cardPaddingCompact,
+    maxHeight: '80%',
   },
   pickerHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: Spacing.lg,
   },
-  pickerTitle: { color: Colors.text, fontSize: FontSize.xl, fontWeight: '700' },
+  pickerTitle: {
+    color: Colors.text,
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+  },
   pickerSearch: {
-    backgroundColor: Colors.surface, borderRadius: BorderRadius.md,
-    padding: Spacing.md, color: Colors.text, fontSize: FontSize.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    color: Colors.text,
+    fontSize: FontSize.md,
     marginBottom: Spacing.lg,
   },
   pickerList: { maxHeight: 400 },
   pickerGroupLabel: {
-    color: Colors.textDim, fontSize: FontSize.xs, fontWeight: '700',
-    letterSpacing: 1, marginTop: Spacing.lg, marginBottom: Spacing.sm,
+    color: Colors.textDim,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   pickerItem: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
     paddingVertical: Spacing.md,
-    borderBottomWidth: 0.5, borderBottomColor: `${Colors.border}40`,
+    borderBottomWidth: 0.5,
+    borderBottomColor: `${Colors.border}40`,
   },
-  pickerItemText: { color: Colors.text, fontSize: FontSize.md },
-  backArrow: { color: Colors.textDim, fontSize: FontSize.xxl },
+  pickerItemText: {
+    color: Colors.text,
+    fontSize: FontSize.md,
+  },
+  backArrow: {
+    color: Colors.textDim,
+    fontSize: FontSize.xxl,
+  },
 
   // Configure
   configSection: { marginTop: Spacing.lg },
   configLabel: {
-    color: Colors.textSecondary, fontSize: FontSize.sm,
-    marginBottom: Spacing.sm, marginTop: Spacing.md,
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.md,
   },
   adjustRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.xl,
   },
   adjustButton: {
-    width: ComponentSize.buttonLarge, height: ComponentSize.buttonLarge,
+    width: ComponentSize.buttonLarge,
+    height: ComponentSize.buttonLarge,
     borderRadius: ComponentSize.buttonLarge / 2,
-    backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  adjustButtonText: { color: Colors.text, fontSize: FontSize.lg, fontWeight: '700' },
-  adjustValue: { color: Colors.text, fontSize: FontSize.xxl, fontWeight: '700', minWidth: 60, textAlign: 'center' },
+  adjustButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+  },
+  adjustValue: {
+    color: Colors.text,
+    fontSize: FontSize.xxl,
+    fontWeight: '700',
+    minWidth: 60,
+    textAlign: 'center',
+  },
+  addToWorkoutButton: {
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.indigo,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
+  },
+  addToWorkoutText: {
+    color: Colors.text,
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+  },
 });

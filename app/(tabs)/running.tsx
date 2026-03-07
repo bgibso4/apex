@@ -221,7 +221,7 @@ export default function RunningScreen() {
                   <Text style={styles.runDate}>{run.date}</Text>
                   <View style={styles.runDetails}>
                     <Text style={styles.runDetailText}>{run.duration_min} min</Text>
-                    {run.included_pickups && (
+                    {!!run.included_pickups && (
                       <View style={styles.runPickupBadge}>
                         <Text style={styles.runPickupText}>Pickups</Text>
                       </View>

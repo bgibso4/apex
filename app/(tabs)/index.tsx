@@ -70,30 +70,10 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  if (!program) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>{'🏋'}</Text>
-          <Text style={styles.emptyTitle}>No Active Program</Text>
-          <Text style={styles.emptySub}>
-            Choose a training program from the library to get started.
-          </Text>
-          <TouchableOpacity
-            style={styles.browseButton}
-            onPress={() => router.push('/library')}
-          >
-            <Text style={styles.browseButtonText}>Browse Library</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  const def = program.definition.program;
-  const block = getBlockForWeek(def.blocks, currentWeek);
+  const def = program?.definition.program ?? null;
+  const block = def ? getBlockForWeek(def.blocks, currentWeek) : null;
   const blockColor = block ? getBlockColor(block) : Colors.indigo;
-  const trainingDays = getTrainingDays(def.weekly_template);
+  const trainingDays = def ? getTrainingDays(def.weekly_template) : [];
   const todayKey = getTodayKey();
   const completedDays = weekSessions.filter(s => s.completed_at).map(s => s.scheduled_day);
   const todayTemplate = trainingDays.find(d => d.day === todayKey)?.template;
@@ -113,9 +93,7 @@ export default function HomeScreen() {
     const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
     const sessionsByDate = new Map<string, Session>();
     for (const s of monthSessions) {
-      // Use the date field (ISO string) - take just the YYYY-MM-DD part
       const dateKey = s.date.slice(0, 10);
-      // If multiple sessions on same date, prefer completed one
       const existing = sessionsByDate.get(dateKey);
       if (!existing || (s.completed_at && !existing.completed_at)) {
         sessionsByDate.set(dateKey, s);
@@ -140,6 +118,26 @@ export default function HomeScreen() {
     }
     return days;
   }, [displayYear, displayMonth, monthSessions, trainingDayIndices]);
+
+  if (!program || !def) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>{'🏋'}</Text>
+          <Text style={styles.emptyTitle}>No Active Program</Text>
+          <Text style={styles.emptySub}>
+            Choose a training program from the library to get started.
+          </Text>
+          <TouchableOpacity
+            style={styles.browseButton}
+            onPress={() => router.push('/library')}
+          >
+            <Text style={styles.browseButtonText}>Browse Library</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

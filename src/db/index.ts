@@ -4,7 +4,8 @@ export {
   createSession, updateReadiness, updateWarmup,
   logSet, updateSet, deleteSet, completeSession, updateSessionNotes,
   getSessionsForWeek, getSessionsForDateRange, getSetLogsForSession, getLastSessionForExercise,
-  getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists
+  getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists,
+  deleteSession, getInProgressSession
 } from './sessions';
 export { calculateEpley, getEstimated1RM, get1RMHistory, getWeeklyVolume, calculateTargetWeight } from './metrics';
 export { logRun, getRunLogs, getPainTrend } from './runs';

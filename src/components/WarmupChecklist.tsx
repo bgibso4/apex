@@ -25,6 +25,7 @@ export function WarmupChecklist({
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Warm Up</Text>
       <View style={styles.items}>
         {items.map(({ label, value, toggle }) => (
           <TouchableOpacity
@@ -67,6 +68,12 @@ export function WarmupChecklist({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  title: {
+    color: Colors.text,
+    fontSize: FontSize.screenTitle,
+    fontWeight: '800',
+    marginBottom: Spacing.xl,
   },
   items: {
     gap: Spacing.sm,

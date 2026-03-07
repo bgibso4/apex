@@ -82,7 +82,9 @@ export function useWorkoutSession() {
 
   // Timer
   const [startedAt, setStartedAt] = useState<string | null>(null);
-  const { seconds: timerSeconds, display: timer } = useSessionTimer(startedAt);
+  const [finalDuration, setFinalDuration] = useState<string | null>(null);
+  const { seconds: timerSeconds, display: timerDisplay } = useSessionTimer(startedAt);
+  const timer = finalDuration ?? timerDisplay;
 
   // Exercise notes
   const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
@@ -485,6 +487,7 @@ export function useWorkoutSession() {
     setPhase('select');
     setExercises([]);
     setStartedAt(null);
+    setFinalDuration(null);
     setPRs([]);
     setExerciseNotes({});
     setSessionNotes('');
@@ -510,6 +513,10 @@ export function useWorkoutSession() {
       }))
     );
     setPRs(detectedPRs);
+
+    // Freeze timer before stopping it
+    setFinalDuration(timerDisplay);
+    setStartedAt(null);
 
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setPhase('complete');

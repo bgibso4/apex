@@ -1,4 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 import type { PRRecord } from '../db/personal-records';
 
@@ -32,12 +33,17 @@ export interface SessionSummaryProps {
   onUpdateSet?: (exerciseIdx: number, setIdx: number, weight: number, reps: number) => void;
 }
 
-function formatPRDescription(pr: PRRecord): string {
+function humanizeId(id: string): string {
+  return id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatPRDescription(pr: PRRecord): { name: string; detail: string } {
+  const name = pr.exercise_name ?? humanizeId(pr.exercise_id);
   if (pr.record_type === 'e1rm') {
     const diff = pr.previous_value != null ? ` (+${Math.round(pr.value - pr.previous_value)} lbs)` : '';
-    return `${pr.exercise_name ?? pr.exercise_id} — New est. 1RM: ${Math.round(pr.value)} lbs${diff}`;
+    return { name, detail: `New est. 1RM: ${Math.round(pr.value)} lbs${diff}` };
   }
-  return `${pr.exercise_name ?? pr.exercise_id} — ${Math.round(pr.value)} lbs × ${pr.rep_count} (best at ${pr.rep_count} reps)`;
+  return { name, detail: `${Math.round(pr.value)} lbs \u00D7 ${pr.rep_count} (best at ${pr.rep_count} reps)` };
 }
 
 export function SessionSummary({
@@ -53,8 +59,12 @@ export function SessionSummary({
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }} />
         {onEdit && (
-          <TouchableOpacity onPress={onEdit}>
-            <Text style={styles.editBtn}>{editMode ? 'Save' : 'Edit'}</Text>
+          <TouchableOpacity onPress={onEdit} testID="edit-button">
+            <Ionicons
+              name={editMode ? 'checkmark-circle' : 'pencil'}
+              size={22}
+              color={Colors.indigo}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -93,11 +103,15 @@ export function SessionSummary({
       {/* PR detail cards */}
       {prs && prs.length > 0 && (
         <View style={styles.prSection}>
-          {prs.map(pr => (
-            <View key={pr.id} style={styles.prCard}>
-              <Text style={styles.prText}>{formatPRDescription(pr)}</Text>
-            </View>
-          ))}
+          {prs.map(pr => {
+            const { name, detail } = formatPRDescription(pr);
+            return (
+              <View key={pr.id} style={styles.prCard}>
+                <Text style={styles.prName}>{name}</Text>
+                <Text style={styles.prDetail}>{detail}</Text>
+              </View>
+            );
+          })}
         </View>
       )}
 
@@ -267,11 +281,17 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.cardInner,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
+    gap: 2,
   },
-  prText: {
+  prName: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '700',
+  },
+  prDetail: {
     color: Colors.amber,
     fontSize: FontSize.body,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   deleteBtn: {
     marginTop: Spacing.xxl,

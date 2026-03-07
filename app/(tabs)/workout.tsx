@@ -17,6 +17,7 @@ import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../sr
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
 import { getTargetForWeek } from '../../src/utils/program';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
+import { DaySelector } from '../../src/components/DaySelector';
 import { WarmupChecklist } from '../../src/components/WarmupChecklist';
 import { ExerciseCard } from '../../src/components/ExerciseCard';
 import { AdjustModal } from '../../src/components/AdjustModal';
@@ -25,16 +26,7 @@ import { SessionSummary } from '../../src/components/SessionSummary';
 export default function WorkoutScreen() {
   const w = useWorkoutSession();
 
-  if (!w.program) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No active program</Text>
-        </View>
-      </View>
-    );
-  }
-
+  // Hooks must be called unconditionally (before any early returns)
   const exerciseCount = w.exercises.filter(e =>
     e.sets.some(s => s.status !== 'pending')
   ).length;
@@ -53,6 +45,16 @@ export default function WorkoutScreen() {
     width: `${progressWidth.value}%`,
   }));
 
+  if (!w.program) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>No active program</Text>
+        </View>
+      </View>
+    );
+  }
+
   const programmedExercises = w.exercises.filter(e => !e.isAdhoc);
   const allProgrammedDone = programmedExercises.every(e =>
     e.sets.every(s => s.status !== 'pending')
@@ -63,7 +65,27 @@ export default function WorkoutScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          // Make scroll content fill screen for centering rest day
+          w.phase === 'select' && !w.selectedTemplate && styles.scrollContentFill,
+        ]}
+      >
+        {/* Day Selector (select phase only) */}
+        {w.phase === 'select' && (
+          <DaySelector
+            currentWeek={w.currentWeek}
+            blockName={w.block?.name}
+            blockColor={w.blockColor}
+            selectedDay={w.selectedDay}
+            trainingDays={w.trainingDays}
+            dayNames={w.dayNames}
+            onSelectDay={w.selectDay}
+          />
+        )}
+
         {/* Rest Day */}
         {w.phase === 'select' && !w.selectedTemplate && (
           <Animated.View entering={FadeIn.duration(200)} style={styles.restDay}>
@@ -73,7 +95,7 @@ export default function WorkoutScreen() {
           </Animated.View>
         )}
 
-        {/* Phase: Select */}
+        {/* Phase: Select — Session preview */}
         {w.phase === 'select' && w.selectedTemplate && (
           <View style={styles.sessionPreview}>
             <Text style={styles.previewTitle}>{w.selectedTemplate.name}</Text>
@@ -301,7 +323,7 @@ export default function WorkoutScreen() {
       {/* Pinned finish button (outside scroll) */}
       {w.phase === 'logging' && !w.reorderMode && totalSets > 0 && setCount / totalSets >= 0.5 && (
         <Animated.View
-          entering={SlideInDown.springify().damping(15)}
+          entering={SlideInDown.duration(300)}
           style={styles.pinnedFinishContainer}
         >
           <TouchableOpacity
@@ -486,6 +508,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenHorizontal,
     paddingBottom: Spacing.screenBottom,
   },
+  scrollContentFill: {
+    flexGrow: 1,
+  },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg },
 
@@ -618,7 +643,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   editWarmupText: {
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     fontSize: FontSize.sectionLabel,
     fontWeight: '500',
   },

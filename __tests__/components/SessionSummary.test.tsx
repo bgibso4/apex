@@ -57,7 +57,7 @@ describe('SessionSummary', () => {
   it('shows Edit button and calls onEdit on press', () => {
     const onEdit = jest.fn();
     render(<SessionSummary {...defaultProps} onEdit={onEdit} />);
-    const editBtn = screen.getByText('Edit');
+    const editBtn = screen.getByTestId('edit-button');
     fireEvent.press(editBtn);
     expect(onEdit).toHaveBeenCalled();
   });

@@ -130,4 +130,29 @@ describe('TodayCard', () => {
     expect(screen.getByText(/completed/i)).toBeTruthy();
     expect(screen.queryByText(/min/)).toBeNull();
   });
+
+  it('shows a quote on rest day', () => {
+    render(<TodayCard {...defaultProps} todayTemplate={undefined} />);
+    const tree = JSON.stringify(screen.toJSON());
+    // Quotes contain recovery/rest-related words
+    expect(tree).toMatch(/grow|recover|stronger|rest|sleep|repair|adapt|earned|patience|progress|process|conquer|overtrain/i);
+  });
+
+  it('shows up-next preview when nextSessionName provided on rest day', () => {
+    render(
+      <TodayCard
+        {...defaultProps}
+        todayTemplate={undefined}
+        nextSessionName="Upper Push & Conditioning"
+        nextSessionLabel="Tomorrow"
+      />,
+    );
+    expect(screen.getByText(/tomorrow/i)).toBeTruthy();
+    expect(screen.getByText(/upper push/i)).toBeTruthy();
+  });
+
+  it('does not show up-next when nextSessionName not provided on rest day', () => {
+    render(<TodayCard {...defaultProps} todayTemplate={undefined} />);
+    expect(screen.queryByText(/tomorrow/i)).toBeNull();
+  });
 });

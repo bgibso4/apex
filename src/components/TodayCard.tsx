@@ -2,20 +2,51 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 import type { DayTemplate } from '../types';
 
+const REST_DAY_QUOTES = [
+  'The body grows stronger during rest, not during the workout.',
+  'Recovery is not the absence of training \u2014 it is part of it.',
+  'Sleep is the greatest legal performance-enhancing drug.',
+  'Muscles are torn in the gym, fed in the kitchen, built in bed.',
+  'Rest today. Come back sharper tomorrow.',
+  'Adaptation happens when you stop, not when you push.',
+  'The patience to rest is the patience to grow.',
+  'You earned this day off. Use it well.',
+  'Progress is built on the days between sessions.',
+  'Trust the process. Trust the rest.',
+  'Overtraining is underpreparing for the next session.',
+  'Today you recover. Tomorrow you conquer.',
+];
+
+function getDayOfYear(): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
 export interface TodayCardProps {
   todayTemplate: DayTemplate | undefined;
   isCompleted: boolean;
   blockColor: string;
   onPress: () => void;
   completedStats?: { durationMin: number; setCount: number };
+  nextSessionName?: string;
+  nextSessionLabel?: string;
 }
 
-export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress, completedStats }: TodayCardProps) {
+export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress, completedStats, nextSessionName, nextSessionLabel }: TodayCardProps) {
   if (!todayTemplate) {
+    const quote = REST_DAY_QUOTES[getDayOfYear() % REST_DAY_QUOTES.length];
     return (
-      <View style={styles.card}>
-        <Text style={styles.restDayText}>Rest Day</Text>
-        <Text style={styles.restDaySubtext}>Recovery is training too.</Text>
+      <View style={[styles.card, styles.sessionCard]}>
+        <Text style={styles.todayLabel}>Rest Day</Text>
+        <Text style={styles.quoteText}>{quote}</Text>
+        {nextSessionName && (
+          <View style={styles.upNextRow}>
+            <Text style={styles.upNextLabel}>{nextSessionLabel ?? 'Next'}:</Text>
+            <Text style={styles.upNextName}> {nextSessionName}</Text>
+          </View>
+        )}
       </View>
     );
   }
@@ -140,16 +171,27 @@ const styles = StyleSheet.create({
     color: Colors.textDim,
     fontSize: FontSize.body,
   },
-  restDayText: {
-    color: Colors.text,
-    fontSize: FontSize.xl,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  restDaySubtext: {
-    color: Colors.textDim,
+  quoteText: {
+    color: Colors.textSecondary,
     fontSize: FontSize.md,
-    textAlign: 'center',
-    marginTop: Spacing.xs,
+    fontStyle: 'italic',
+    lineHeight: 20,
+    marginBottom: Spacing.sm,
+  },
+  upNextRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingTop: Spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  upNextLabel: {
+    color: Colors.textDim,
+    fontSize: FontSize.body,
+    fontWeight: '600' as const,
+  },
+  upNextName: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
   },
 });

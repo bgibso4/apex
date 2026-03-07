@@ -101,6 +101,22 @@ export default function HomeScreen() {
   const completedDays = weekSessions.filter(s => s.completed_at).map(s => s.scheduled_day);
   const todayTemplate = trainingDays.find(d => d.day === todayKey)?.template;
 
+  // Compute next training day for rest day up-next preview
+  const nextTraining = useMemo(() => {
+    if (todayTemplate || !def) return null;
+    const todayIdx = DAY_ORDER.indexOf(todayKey as typeof DAY_ORDER[number]);
+    for (let offset = 1; offset <= 7; offset++) {
+      const idx = (todayIdx + offset) % 7;
+      const dayKey = DAY_ORDER[idx];
+      const t = trainingDays.find(d => d.day === dayKey);
+      if (t) {
+        const label = offset === 1 ? 'Tomorrow' : DAY_NAMES[dayKey];
+        return { name: t.template.name, label };
+      }
+    }
+    return null;
+  }, [todayTemplate, def, todayKey, trainingDays]);
+
   // Build the set of training day-of-week indices (0=Sun, 6=Sat)
   const trainingDayIndices = useMemo(() => {
     const indices = new Set<number>();
@@ -217,6 +233,8 @@ export default function HomeScreen() {
           isCompleted={completedDays.includes(todayKey)}
           blockColor={blockColor}
           completedStats={completedStats ?? undefined}
+          nextSessionName={nextTraining?.name}
+          nextSessionLabel={nextTraining?.label}
           onPress={() => {
             if (completedDays.includes(todayKey) && todaySessionId) {
               router.push(`/session/${todaySessionId}`);

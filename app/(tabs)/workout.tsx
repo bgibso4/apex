@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  Modal, Pressable, StyleSheet,
+  Modal, Pressable, Alert, StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
@@ -100,6 +100,17 @@ export default function WorkoutScreen() {
         {/* Phase: Logging */}
         {w.phase === 'logging' && (
           <>
+            {/* Header with timer */}
+            <View style={styles.loggingHeader}>
+              <View style={styles.loggingHeaderLeft}>
+                <Text style={styles.loggingTitle}>{w.selectedTemplate?.name ?? 'Workout'}</Text>
+                <Text style={styles.loggingSubtitle}>
+                  Week {w.currentWeek} — {w.block?.name ?? ''}
+                </Text>
+              </View>
+              <Text style={styles.timerDisplay}>{w.timer}</Text>
+            </View>
+
             {/* Progress bar */}
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarBg}>
@@ -112,12 +123,18 @@ export default function WorkoutScreen() {
                 <Text style={styles.progressLabelText}>
                   {doneExerciseCount} of {w.exercises.length} exercises
                 </Text>
-                {!w.reorderMode && (
-                  <TouchableOpacity onPress={() => w.setShowExercisePicker(true)}>
-                    <Text style={styles.addExerciseLink}>+ Add exercise</Text>
-                  </TouchableOpacity>
-                )}
+                <Text style={styles.progressLabelText}>
+                  {setCount} / {totalSets} sets
+                </Text>
               </View>
+              {!w.reorderMode && (
+                <TouchableOpacity
+                  style={styles.editWarmupLink}
+                  onPress={() => w.submitReadiness && w.phase === 'logging' && (w as any).setPhase?.('warmup')}
+                >
+                  <Text style={styles.editWarmupText}>Edit Warmup</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Reorder banner */}
@@ -143,6 +160,8 @@ export default function WorkoutScreen() {
                   lastWeight={ex.lastWeight}
                   lastReps={ex.lastReps}
                   blockColor={w.blockColor}
+                  note={w.exerciseNotes[ex.slot.exercise_id]}
+                  onNoteChange={(note) => w.saveExerciseNoteAction(ex.slot.exercise_id, note)}
                   onToggleExpand={() => {
                     if (w.reorderMode) return;
                     w.toggleExpand(exIdx);
@@ -182,44 +201,42 @@ export default function WorkoutScreen() {
               </View>
             ))}
 
-            {/* Conditioning + Finish (hidden in reorder mode) */}
+            {/* Conditioning + Add Exercise (hidden in reorder mode) */}
             {!w.reorderMode && (
               <>
-                <TouchableOpacity
-                  style={styles.conditioningCard}
-                  onPress={() => w.setConditioningDone(!w.conditioningDone)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.conditioningLeft}>
-                    <Text style={styles.conditioningLabel}>Conditioning Finisher</Text>
-                    <Text style={styles.conditioningName}>Sled Push</Text>
-                  </View>
-                  <View style={[
-                    styles.conditioningCheckbox,
-                    w.conditioningDone && styles.conditioningCheckboxChecked,
-                  ]}>
-                    {w.conditioningDone && (
-                      <Text style={styles.conditioningCheckmark}>{'\u2713'}</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
+                {w.conditioningFinisher && (
+                  <TouchableOpacity
+                    style={styles.conditioningCard}
+                    onPress={() => w.setConditioningDone(!w.conditioningDone)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.conditioningLeft}>
+                      <Text style={styles.conditioningLabel}>Conditioning Finisher</Text>
+                      <Text style={styles.conditioningName}>{w.conditioningFinisher}</Text>
+                    </View>
+                    <View style={[
+                      styles.conditioningCheckbox,
+                      w.conditioningDone && styles.conditioningCheckboxChecked,
+                    ]}>
+                      {w.conditioningDone && (
+                        <Text style={styles.conditioningCheckmark}>{'\u2713'}</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
 
+                {/* Add exercise link — below conditioning */}
                 <TouchableOpacity
-                  style={[
-                    styles.finishButton,
-                    !allProgrammedDone && styles.finishButtonDisabled,
-                  ]}
-                  onPress={w.finishSession}
-                  disabled={!allProgrammedDone}
-                  activeOpacity={0.8}
+                  style={styles.addExerciseLinkContainer}
+                  onPress={() => w.setShowExercisePicker(true)}
                 >
-                  <Text style={[
-                    styles.finishButtonText,
-                    !allProgrammedDone && styles.finishButtonTextDisabled,
-                  ]}>Finish Workout</Text>
+                  <Text style={styles.addExerciseLink}>+ Add exercise</Text>
                 </TouchableOpacity>
               </>
             )}
+
+            {/* Bottom padding when finish button is pinned */}
+            {setCount / totalSets >= 0.5 && <View style={{ height: 80 }} />}
           </>
         )}
 
@@ -228,12 +245,42 @@ export default function WorkoutScreen() {
           <SessionSummary
             exerciseCount={exerciseCount}
             setCount={setCount}
+            duration={w.timer}
+            totalVolume={w.totalVolume}
+            sessionName={w.selectedTemplate?.name}
+            weekLabel={`Week ${w.currentWeek}`}
+            prs={w.prs}
+            editMode={w.editMode}
+            onEdit={() => w.setEditMode(!w.editMode)}
+            onDelete={() => {
+              Alert.alert(
+                'Delete Workout',
+                'Are you sure you want to delete this workout? This cannot be undone.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: w.deleteSessionAction },
+                ]
+              );
+            }}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}
           />
         )}
       </ScrollView>
+
+      {/* Pinned finish button (outside scroll) */}
+      {w.phase === 'logging' && !w.reorderMode && totalSets > 0 && setCount / totalSets >= 0.5 && (
+        <View style={styles.pinnedFinishContainer}>
+          <TouchableOpacity
+            style={styles.finishButton}
+            onPress={w.finishSession}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.finishButtonText}>Finish Workout</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <AdjustModal
         visible={w.overrideModal !== null}
@@ -461,6 +508,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
+  // Logging header
+  loggingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
+  },
+  loggingHeaderLeft: {
+    flex: 1,
+  },
+  loggingTitle: {
+    color: Colors.text,
+    fontSize: FontSize.screenTitle,
+    fontWeight: '800',
+    marginBottom: Spacing.xs,
+  },
+  loggingSubtitle: {
+    color: Colors.textMuted,
+    fontSize: FontSize.md,
+  },
+  timerDisplay: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xl,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+
   // Progress bar
   progressBarContainer: {
     marginBottom: Spacing.lg,
@@ -487,9 +561,22 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sectionLabel,
     fontWeight: '500',
   },
+  editWarmupLink: {
+    marginTop: Spacing.sm,
+  },
+  editWarmupText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '500',
+  },
+  addExerciseLinkContainer: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
   addExerciseLink: {
     color: Colors.indigo,
-    fontSize: FontSize.sectionLabel,
+    fontSize: FontSize.body,
     fontWeight: '600',
   },
 
@@ -579,25 +666,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Finish button
+  // Pinned finish button
+  pinnedFinishContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.screenHorizontal,
+    paddingBottom: Spacing.screenBottom,
+    paddingTop: Spacing.md,
+    backgroundColor: Colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
   finishButton: {
     paddingVertical: Spacing.lg,
     backgroundColor: Colors.green,
     borderRadius: BorderRadius.cardInner,
     alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  finishButtonDisabled: {
-    backgroundColor: Colors.surface,
   },
   finishButtonText: {
     color: Colors.bg,
     fontSize: FontSize.lg,
     fontWeight: '700',
     letterSpacing: 0.3,
-  },
-  finishButtonTextDisabled: {
-    color: Colors.textMuted,
   },
 
   // Picker modal

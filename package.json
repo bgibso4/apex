@@ -35,7 +35,8 @@
         "displayName": "components",
         "preset": "react-native",
         "testMatch": [
-          "**/__tests__/components/**"
+          "**/__tests__/components/**",
+          "**/__tests__/hooks/**"
         ],
         "transform": {
           "^.+\\.(js|ts|tsx)$": [

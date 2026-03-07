@@ -502,12 +502,14 @@ export function useWorkoutSession() {
     const detectedPRs = await detectPRs(
       sessionId,
       new Date().toISOString().split('T')[0],
-      setLogs.map(s => ({
-        exercise_id: s.exercise_id,
-        actual_weight: s.actual_weight,
-        actual_reps: s.actual_reps,
-        status: s.status,
-      }))
+      setLogs
+        .filter(s => s.actual_weight != null && s.actual_reps != null)
+        .map(s => ({
+          exercise_id: s.exercise_id,
+          actual_weight: s.actual_weight!,
+          actual_reps: s.actual_reps!,
+          status: s.status,
+        }))
     );
     setPRs(detectedPRs);
   };

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Home Dashboard Mockup (2026-03-07)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons span { font-size: 13px; }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .header {
+    padding: 8px 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .header h1 {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 3px;
+  }
+  .gear-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6a6a80;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .gear-icon:hover { background: #141420; }
+
+  .content {
+    flex: 1;
+    padding: 0 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Program context */
+  .program-context { padding: 4px 0; }
+  .program-name {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .program-week {
+    color: #a0a0b8;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .program-week span {
+    color: #f59e0b;
+    font-weight: 600;
+  }
+
+  /* Block timeline */
+  .block-timeline {
+    margin-top: 16px;
+    display: flex;
+    gap: 3px;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .block-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    position: relative;
+  }
+  .block-segment.active {
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+  }
+  .block-segment.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: #ffffff;
+    border-radius: 2px;
+  }
+  .block-hyp { background: #6366f130; flex: 4; }
+  .block-hyp.active { background: #6366f1; }
+  .block-dl1 { background: #22c55e30; flex: 1; }
+  .block-dl1.active { background: #22c55e; }
+  .block-str { background: #f59e0b30; flex: 4; }
+  .block-str.active { background: #f59e0b; }
+  .block-dl2 { background: #22c55e30; flex: 1; }
+  .block-dl2.active { background: #22c55e; }
+  .block-peak { background: #ec489930; flex: 2; }
+  .block-peak.active { background: #ec4899; }
+
+  /* Today card */
+  .today-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .today-card:hover {
+    background: #1a1a2e;
+    border-color: #3a3a4e;
+  }
+  .today-label {
+    color: #6a6a80;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .today-title {
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .today-subtitle {
+    color: #a0a0b8;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .start-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #6366f1;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  .start-btn:hover { background: #4f46e5; }
+  .start-btn .arrow { font-size: 18px; }
+
+  /* Completed card variant */
+  .today-card.completed { border-color: #22c55e30; }
+  .completed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #22c55e18;
+    color: #22c55e;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+
+  /* Rest day card */
+  .rest-quote {
+    color: #a0a0b8;
+    font-size: 14px;
+    font-style: italic;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .rest-separator {
+    height: 1px;
+    background: #2a2a3e;
+    margin-bottom: 14px;
+  }
+  .up-next-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .up-next-label {
+    color: #6a6a80;
+    font-size: 13px;
+  }
+  .up-next-title {
+    color: #a0a0b8;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ===== Month Calendar ===== */
+  .month-calendar { padding: 0; }
+  .month-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .month-header-label {
+    color: #6a6a80;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .month-nav {
+    color: #4a4a5e;
+    font-size: 18px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    line-height: 1;
+    transition: color 0.15s;
+    font-family: inherit;
+  }
+  .month-nav:hover { color: #a0a0b8; }
+
+  .cal-weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+  }
+  .cal-weekday {
+    text-align: center;
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 0;
+  }
+
+  .cal-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-radius: 8px;
+    margin-bottom: 2px;
+    padding: 1px 0;
+  }
+  .cal-week.current-week {
+    background: #1e1e30;
+  }
+
+  .cal-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    position: relative;
+  }
+  .cal-day-num {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 50%;
+  }
+
+  /* Default: rest day in non-current weeks (very dim) */
+  .cal-day .cal-day-num { color: #2a2a3e; }
+
+  /* Empty cell */
+  .cal-day.empty .cal-day-num { visibility: hidden; }
+
+  /* Past missed training day (dim) */
+  .cal-day.missed .cal-day-num { color: #4a4a5e; }
+
+  /* Future training day (dim) */
+  .cal-day.future-training .cal-day-num { color: #4a4a5e; }
+
+  /* Current week upcoming training day (brighter) */
+  .cal-day.current-upcoming .cal-day-num { color: #a0a0b8; }
+
+  /* Rest day (very dim) — default above handles this */
+
+  /* Completed day (green filled circle) */
+  .cal-day.completed .cal-day-num {
+    background: #22c55e;
+    color: #0a0a0f;
+    font-weight: 700;
+  }
+
+  /* Today (indigo border + dot below) */
+  .cal-day.today .cal-day-num {
+    border: 2px solid #6366f1;
+    color: #ffffff;
+    font-weight: 700;
+  }
+  .cal-day.today::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: #6366f1;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0px;
+  }
+
+  /* Today AND completed */
+  .cal-day.today.completed .cal-day-num {
+    background: #22c55e;
+    border: 2px solid #6366f1;
+    color: #0a0a0f;
+    font-weight: 700;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    height: 84px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    padding: 8px 16px 28px;
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #4a4a5e;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .tab.active { color: #6366f1; }
+  .tab:hover { color: #a0a0b8; }
+  .tab-icon { font-size: 22px; }
+  .tab-label { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+
+<!--
+  March 2026 Calendar Layout (starts on Sunday):
+  Week 1: Sun 1, Mon 2, Tue 3, Wed 4, Thu 5, Fri 6, Sat 7
+  Week 2: Sun 8, Mon 9, Tue 10, Wed 11, Thu 12, Fri 13, Sat 14
+  Week 3: Sun 15, Mon 16, Tue 17, Wed 18, Thu 19, Fri 20, Sat 21
+  Week 4: Sun 22, Mon 23, Tue 24, Wed 25, Thu 26, Fri 27, Sat 28
+  Week 5: Sun 29, Mon 30, Tue 31
+
+  Training days: Mon, Wed, Fri, Sat
+  Rest days: Sun, Tue, Thu
+  Today: Saturday March 7
+-->
+
+<!-- ============================================================ -->
+<!-- PHONE 1: Training Day — Not Yet Started                       -->
+<!-- ============================================================ -->
+<div class="phone-wrapper">
+  <div class="label">Active Program (Training Day)</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">&#9881;</div>
+    </div>
+
+    <div class="content">
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 6 of 12 &mdash; <span>Strength Block</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl1">DL</div>
+          <div class="block-segment block-str active">Strength</div>
+          <div class="block-segment block-dl2">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <div class="today-card">
+        <div class="today-label">Today's Training</div>
+        <div class="today-title">Upper Push & Conditioning</div>
+        <div class="today-subtitle">6 exercises + finisher</div>
+        <button class="start-btn">
+          Start Workout <span class="arrow">&rarr;</span>
+        </button>
+      </div>
+
+      <!-- Month Calendar — today is Sat Mar 7, not yet completed -->
+      <!-- Completed this week: Mon 2, Wed 4, Fri 6 -->
+      <div class="month-calendar">
+        <div class="month-header">
+          <button class="month-nav">&lsaquo;</button>
+          <span class="month-header-label">March 2026</span>
+          <button class="month-nav">&rsaquo;</button>
+        </div>
+        <div class="cal-weekday-row">
+          <div class="cal-weekday">S</div>
+          <div class="cal-weekday">M</div>
+          <div class="cal-weekday">T</div>
+          <div class="cal-weekday">W</div>
+          <div class="cal-weekday">T</div>
+          <div class="cal-weekday">F</div>
+          <div class="cal-weekday">S</div>
+        </div>
+        <!-- Week 1 (current week — contains today Mar 7) -->
+        <div class="cal-week current-week">
+          <div class="cal-day">         <span class="cal-day-num">1</span></div>  <!-- Sun rest -->
+          <div class="cal-day completed"><span class="cal-day-num">2</span></div>  <!-- Mon training done -->
+          <div class="cal-day">         <span class="cal-day-num">3</span></div>  <!-- Tue rest -->
+          <div class="cal-day completed"><span class="cal-day-num">4</span></div>  <!-- Wed training done -->
+          <div class="cal-day">         <span class="cal-day-num">5</span></div>  <!-- Thu rest -->
+          <div class="cal-day completed"><span class="cal-day-num">6</span></div>  <!-- Fri training done -->
+          <div class="cal-day today">   <span class="cal-day-num">7</span></div>  <!-- Sat today, not yet done -->
+        </div>
+        <!-- Week 2 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">8</span></div>   <!-- Sun rest -->
+          <div class="cal-day future-training"> <span class="cal-day-num">9</span></div>   <!-- Mon -->
+          <div class="cal-day">                 <span class="cal-day-num">10</span></div>  <!-- Tue rest -->
+          <div class="cal-day future-training"> <span class="cal-day-num">11</span></div>  <!-- Wed -->
+          <div class="cal-day">                 <span class="cal-day-num">12</span></div>  <!-- Thu rest -->
+          <div class="cal-day future-training"> <span class="cal-day-num">13</span></div>  <!-- Fri -->
+          <div class="cal-day future-training"> <span class="cal-day-num">14</span></div>  <!-- Sat -->
+        </div>
+        <!-- Week 3 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">15</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">16</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">17</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">18</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">19</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">20</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">21</span></div>
+        </div>
+        <!-- Week 4 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">22</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">23</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">24</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">25</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">26</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">27</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">28</span></div>
+        </div>
+        <!-- Week 5 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">29</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">30</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">31</span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active">
+        <span class="tab-icon">&#8962;</span>
+        <span class="tab-label">Home</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#127947;</span>
+        <span class="tab-label">Workout</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#128202;</span>
+        <span class="tab-label">Progress</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#127939;</span>
+        <span class="tab-label">Running</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PHONE 2: Completed Session                                    -->
+<!-- ============================================================ -->
+<div class="phone-wrapper">
+  <div class="label">After Completing Today</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">11:23</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">&#9881;</div>
+    </div>
+
+    <div class="content">
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 6 of 12 &mdash; <span>Strength Block</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl1">DL</div>
+          <div class="block-segment block-str active">Strength</div>
+          <div class="block-segment block-dl2">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <div class="today-card completed">
+        <div class="today-label">Today's Training</div>
+        <div class="today-title" style="margin-bottom: 0;">Upper Push & Conditioning</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+          <span class="completed-badge">&#10003; Completed</span>
+          <span style="color: #6a6a80; font-size: 13px;">52 min &middot; 24 sets</span>
+        </div>
+      </div>
+
+      <!-- Month Calendar — today Mar 7 now completed -->
+      <div class="month-calendar">
+        <div class="month-header">
+          <button class="month-nav">&lsaquo;</button>
+          <span class="month-header-label">March 2026</span>
+          <button class="month-nav">&rsaquo;</button>
+        </div>
+        <div class="cal-weekday-row">
+          <div class="cal-weekday">S</div>
+          <div class="cal-weekday">M</div>
+          <div class="cal-weekday">T</div>
+          <div class="cal-weekday">W</div>
+          <div class="cal-weekday">T</div>
+          <div class="cal-weekday">F</div>
+          <div class="cal-weekday">S</div>
+        </div>
+        <!-- Week 1 (current week) -->
+        <div class="cal-week current-week">
+          <div class="cal-day">                  <span class="cal-day-num">1</span></div>
+          <div class="cal-day completed">        <span class="cal-day-num">2</span></div>
+          <div class="cal-day">                  <span class="cal-day-num">3</span></div>
+          <div class="cal-day completed">        <span class="cal-day-num">4</span></div>
+          <div class="cal-day">                  <span class="cal-day-num">5</span></div>
+          <div class="cal-day completed">        <span class="cal-day-num">6</span></div>
+          <div class="cal-day today completed">  <span class="cal-day-num">7</span></div>  <!-- Today, completed -->
+        </div>
+        <!-- Week 2 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">8</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">9</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">10</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">11</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">12</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">13</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">14</span></div>
+        </div>
+        <!-- Week 3 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">15</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">16</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">17</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">18</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">19</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">20</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">21</span></div>
+        </div>
+        <!-- Week 4 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">22</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">23</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">24</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">25</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">26</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">27</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">28</span></div>
+        </div>
+        <!-- Week 5 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">29</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">30</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">31</span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active">
+        <span class="tab-icon">&#8962;</span>
+        <span class="tab-label">Home</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#127947;</span>
+        <span class="tab-label">Workout</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#128202;</span>
+        <span class="tab-label">Progress</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#127939;</span>
+        <span class="tab-label">Running</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PHONE 3: Rest Day                                             -->
+<!-- ============================================================ -->
+<!-- Scenario: Today is Sunday March 8 (rest day). Training days completed: Mon-Sat of week 1. -->
+<!-- Current week is week 2 (Mar 8-14). Today Sun 8 = rest day. -->
+<!-- Tomorrow Mon 9 = training day. -->
+<div class="phone-wrapper">
+  <div class="label">Rest Day</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">10:15</span>
+      <div class="status-icons">
+        <span>&#9679;&#9679;&#9679;&#9679;&#9675;</span>
+        <span>&#128267;</span>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">&#9881;</div>
+    </div>
+
+    <div class="content">
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 6 of 12 &mdash; <span>Strength Block</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl1">DL</div>
+          <div class="block-segment block-str active">Strength</div>
+          <div class="block-segment block-dl2">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <div class="today-card">
+        <div class="today-label">Rest Day</div>
+        <div class="rest-quote">"The body grows stronger during rest, not during the workout."</div>
+        <div class="rest-separator"></div>
+        <div class="up-next-row">
+          <span class="up-next-label">Tomorrow:</span>
+          <span class="up-next-title">Upper Push & Conditioning</span>
+        </div>
+      </div>
+
+      <!-- Month Calendar — today is Sun Mar 8 (rest day) -->
+      <!-- Week 1 all completed (Mon 2, Wed 4, Fri 6, Sat 7). Week 2 is current. -->
+      <div class="month-calendar">
+        <div class="month-header">
+          <button class="month-nav">&lsaquo;</button>
+          <span class="month-header-label">March 2026</span>
+          <button class="month-nav">&rsaquo;</button>
+        </div>
+        <div class="cal-weekday-row">
+          <div class="cal-weekday">S</div>
+          <div class="cal-weekday">M</div>
+          <div class="cal-weekday">T</div>
+          <div class="cal-weekday">W</div>
+          <div class="cal-weekday">T</div>
+          <div class="cal-weekday">F</div>
+          <div class="cal-weekday">S</div>
+        </div>
+        <!-- Week 1 (past week — all training days completed) -->
+        <div class="cal-week">
+          <div class="cal-day">           <span class="cal-day-num">1</span></div>  <!-- Sun rest -->
+          <div class="cal-day completed"> <span class="cal-day-num">2</span></div>  <!-- Mon -->
+          <div class="cal-day">           <span class="cal-day-num">3</span></div>  <!-- Tue rest -->
+          <div class="cal-day completed"> <span class="cal-day-num">4</span></div>  <!-- Wed -->
+          <div class="cal-day">           <span class="cal-day-num">5</span></div>  <!-- Thu rest -->
+          <div class="cal-day completed"> <span class="cal-day-num">6</span></div>  <!-- Fri -->
+          <div class="cal-day completed"> <span class="cal-day-num">7</span></div>  <!-- Sat -->
+        </div>
+        <!-- Week 2 (current week — today is Sun 8, rest day) -->
+        <div class="cal-week current-week">
+          <div class="cal-day today">            <span class="cal-day-num">8</span></div>   <!-- Today: Sun rest -->
+          <div class="cal-day current-upcoming"> <span class="cal-day-num">9</span></div>   <!-- Mon training -->
+          <div class="cal-day">                  <span class="cal-day-num">10</span></div>  <!-- Tue rest -->
+          <div class="cal-day current-upcoming"> <span class="cal-day-num">11</span></div>  <!-- Wed training -->
+          <div class="cal-day">                  <span class="cal-day-num">12</span></div>  <!-- Thu rest -->
+          <div class="cal-day current-upcoming"> <span class="cal-day-num">13</span></div>  <!-- Fri training -->
+          <div class="cal-day current-upcoming"> <span class="cal-day-num">14</span></div>  <!-- Sat training -->
+        </div>
+        <!-- Week 3 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">15</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">16</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">17</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">18</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">19</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">20</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">21</span></div>
+        </div>
+        <!-- Week 4 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">22</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">23</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">24</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">25</span></div>
+          <div class="cal-day">                 <span class="cal-day-num">26</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">27</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">28</span></div>
+        </div>
+        <!-- Week 5 -->
+        <div class="cal-week">
+          <div class="cal-day">                 <span class="cal-day-num">29</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">30</span></div>
+          <div class="cal-day future-training"> <span class="cal-day-num">31</span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+          <div class="cal-day empty"><span class="cal-day-num"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <a class="tab active">
+        <span class="tab-icon">&#8962;</span>
+        <span class="tab-label">Home</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#127947;</span>
+        <span class="tab-label">Workout</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#128202;</span>
+        <span class="tab-label">Progress</span>
+      </a>
+      <a class="tab">
+        <span class="tab-icon">&#127939;</span>
+        <span class="tab-label">Running</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

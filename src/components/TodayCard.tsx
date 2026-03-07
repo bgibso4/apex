@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     padding: Spacing.cardPadding,
-    marginBottom: Spacing.xxl,
   },
   sessionCard: {
     borderWidth: 1,

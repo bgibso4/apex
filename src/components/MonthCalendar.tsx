@@ -4,8 +4,8 @@
  * Replaces WeekRow for a richer overview of training history.
  */
 
-import { useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useMemo, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, PanResponder } from 'react-native';
 import {
   Colors, Spacing, FontSize, BorderRadius, ComponentSize,
 } from '../theme';
@@ -34,6 +34,10 @@ export interface MonthCalendarProps {
   blockColor: string;
   /** Called when a day is pressed. Receives the day data. */
   onDayPress: (day: MonthCalendarDay) => void;
+  /** Called when user navigates to previous month */
+  onPrevMonth?: () => void;
+  /** Called when user navigates to next month */
+  onNextMonth?: () => void;
 }
 
 const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
@@ -44,11 +48,30 @@ export function MonthCalendar({
   days,
   blockColor,
   onDayPress,
+  onPrevMonth,
+  onNextMonth,
 }: MonthCalendarProps) {
   const today = useMemo(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   }, []);
+
+  const swipeHandled = useRef(false);
+  const panResponder = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) =>
+      Math.abs(gestureState.dx) > 20 && Math.abs(gestureState.dy) < Math.abs(gestureState.dx),
+    onPanResponderGrant: () => { swipeHandled.current = false; },
+    onPanResponderMove: (_, gestureState) => {
+      if (swipeHandled.current) return;
+      if (gestureState.dx > 50 && onPrevMonth) {
+        swipeHandled.current = true;
+        onPrevMonth();
+      } else if (gestureState.dx < -50 && onNextMonth) {
+        swipeHandled.current = true;
+        onNextMonth();
+      }
+    },
+  }), [onPrevMonth, onNextMonth]);
 
   const grid = useMemo(() => buildGrid(year, month, days), [year, month, days]);
 
@@ -58,10 +81,22 @@ export function MonthCalendar({
   }, [year, month]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.monthLabel}>
-        {monthName.toUpperCase()} {year}
-      </Text>
+    <View style={styles.container} {...panResponder.panHandlers}>
+      <View style={styles.monthHeader}>
+        {onPrevMonth ? (
+          <TouchableOpacity onPress={onPrevMonth} style={styles.monthNavButton}>
+            <Text style={styles.monthNavText}>{'\u2039'}</Text>
+          </TouchableOpacity>
+        ) : <View style={styles.monthNavButton} />}
+        <Text style={styles.monthLabel}>
+          {monthName.toUpperCase()} {year}
+        </Text>
+        {onNextMonth ? (
+          <TouchableOpacity onPress={onNextMonth} style={styles.monthNavButton}>
+            <Text style={styles.monthNavText}>{'\u203A'}</Text>
+          </TouchableOpacity>
+        ) : <View style={styles.monthNavButton} />}
+      </View>
 
       {/* Weekday header row */}
       <View style={styles.weekdayRow}>
@@ -89,38 +124,32 @@ export function MonthCalendar({
                 key={cellIndex}
                 style={styles.dayCell}
                 onPress={() => onDayPress(cell)}
-                disabled={!cell.isCompleted && !cell.isTrainingDay}
+                disabled={!cell.isCompleted}
                 activeOpacity={0.6}
               >
                 <View
                   style={[
                     styles.dayCircle,
-                    isToday && styles.dayCircleToday,
-                    isToday && { borderColor: blockColor },
+                    cell.isCompleted && styles.dayCircleCompleted,
+                    isToday && !cell.isCompleted && styles.dayCircleToday,
+                    isToday && !cell.isCompleted && { borderColor: blockColor },
                   ]}
                 >
                   <Text
                     style={[
                       styles.dayNumber,
-                      isToday && styles.dayNumberToday,
-                      !cell.isTrainingDay && !isToday && styles.dayNumberRest,
+                      cell.isCompleted && styles.dayNumberCompleted,
+                      isToday && !cell.isCompleted && styles.dayNumberToday,
+                      !cell.isTrainingDay && !isToday && !cell.isCompleted && styles.dayNumberRest,
                       cell.isTrainingDay && !cell.isCompleted && isPast && styles.dayNumberMissed,
-                      cell.isTrainingDay && isFuture && styles.dayNumberUpcoming,
+                      cell.isTrainingDay && isFuture && !cell.isCompleted && styles.dayNumberUpcoming,
                     ]}
                   >
                     {cell.dayNumber}
                   </Text>
                 </View>
-                {cell.isCompleted && (
-                  <View
-                    style={[
-                      styles.completedDot,
-                      { backgroundColor: blockColor },
-                    ]}
-                  />
-                )}
-                {cell.isTrainingDay && !cell.isCompleted && (
-                  <View style={styles.trainingDot} />
+                {isToday && !cell.isCompleted && (
+                  <View style={[styles.todayDot, { backgroundColor: blockColor }]} />
                 )}
               </TouchableOpacity>
             );
@@ -185,15 +214,30 @@ const DAY_CELL_SIZE = ComponentSize.dayDotSize + Spacing.sm;
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.lg,
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.xs,
+  },
+  monthNavButton: {
+    width: Spacing.xxxl,
+    height: Spacing.xxxl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthNavText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xxl,
+    fontWeight: '600',
   },
   monthLabel: {
     color: Colors.textDim,
     fontSize: FontSize.xs,
     fontWeight: '700',
     letterSpacing: 1,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.xs,
   },
   weekdayRow: {
     flexDirection: 'row',
@@ -228,6 +272,9 @@ const styles = StyleSheet.create({
   dayCircleToday: {
     borderWidth: 1.5,
   },
+  dayCircleCompleted: {
+    backgroundColor: Colors.green,
+  },
   dayNumber: {
     fontSize: FontSize.sm,
     fontWeight: '500',
@@ -235,6 +282,10 @@ const styles = StyleSheet.create({
   },
   dayNumberToday: {
     color: Colors.text,
+    fontWeight: '700',
+  },
+  dayNumberCompleted: {
+    color: Colors.bg,
     fontWeight: '700',
   },
   dayNumberRest: {
@@ -246,17 +297,10 @@ const styles = StyleSheet.create({
   dayNumberUpcoming: {
     color: Colors.textSecondary,
   },
-  completedDot: {
+  todayDot: {
     width: Spacing.xs,
     height: Spacing.xs,
     borderRadius: Spacing.xs / 2,
-    marginTop: BorderRadius.xs,
-  },
-  trainingDot: {
-    width: BorderRadius.xs,
-    height: BorderRadius.xs,
-    borderRadius: BorderRadius.xs / 2,
-    backgroundColor: Colors.textMuted,
     marginTop: BorderRadius.xs,
   },
 });

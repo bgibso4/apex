@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
+import { BorderRadius, ComponentSize } from '../theme';
 import { getBlockForWeek, getBlockColor } from '../utils/program';
 import type { Block } from '../types';
 
@@ -29,13 +29,13 @@ export function ProgramTimeline({ durationWeeks, blocks, currentWeek }: ProgramT
               styles.segment,
               {
                 flex: weeksInBlock,
-                backgroundColor: isActive ? color : `${color}30`,
+                backgroundColor: isActive ? `${color}B3` : `${color}22`,
               },
             ]}
           >
             <Text style={[
               styles.segmentLabel,
-              { color: isActive ? Colors.text : `rgba(255,255,255,0.5)` },
+              { color: isActive ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)' },
             ]}>
               {label}
             </Text>
@@ -51,10 +51,9 @@ const styles = StyleSheet.create({
   timeline: {
     flexDirection: 'row',
     gap: BorderRadius.xs,
-    height: ComponentSize.timelineHeight,
+    height: ComponentSize.timelineHeightSmall,
     borderRadius: BorderRadius.button,
     overflow: 'hidden',
-    marginBottom: Spacing.xxl,
   },
   segment: {
     alignItems: 'center',
@@ -62,7 +61,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   segmentLabel: {
-    fontSize: FontSize.chartLabel,
+    fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -72,8 +71,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 3,
-    backgroundColor: Colors.text,
+    height: 2,
+    backgroundColor: 'rgba(255,255,255,0.5)',
     borderRadius: 2,
   },
 });

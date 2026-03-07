@@ -12,7 +12,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
-import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay } from '../../src/db';
+import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
@@ -21,7 +21,8 @@ import { ProgramTimeline } from '../../src/components/ProgramTimeline';
 import { MonthCalendar } from '../../src/components/MonthCalendar';
 import type { MonthCalendarDay } from '../../src/components/MonthCalendar';
 import { TodayCard } from '../../src/components/TodayCard';
-import type { Program, ProgramDefinition, Session } from '../../src/types';
+import { PainFollowUp } from '../../src/components/PainFollowUp';
+import type { Program, ProgramDefinition, Session, RunLog } from '../../src/types';
 
 /** Get the first and last day of a month as YYYY-MM-DD strings */
 function getMonthDateRange(year: number, month: number): { startDate: string; endDate: string } {
@@ -38,10 +39,12 @@ export default function HomeScreen() {
   const [monthSessions, setMonthSessions] = useState<Session[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(1);
+  const [todaySessionId, setTodaySessionId] = useState<string | null>(null);
+  const [pendingFollowUp, setPendingFollowUp] = useState<RunLog | null>(null);
 
   const now = useMemo(() => new Date(), []);
-  const displayYear = now.getFullYear();
-  const displayMonth = now.getMonth();
+  const [displayYear, setDisplayYear] = useState(now.getFullYear());
+  const [displayMonth, setDisplayMonth] = useState(now.getMonth());
 
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
@@ -57,7 +60,15 @@ export default function HomeScreen() {
       const { startDate, endDate } = getMonthDateRange(displayYear, displayMonth);
       const mSessions = await getSessionsForDateRange(active.id, startDate, endDate);
       setMonthSessions(mSessions);
+
+      // Check if today's session is completed (for TodayCard navigation)
+      const todayCompleted = await getCompletedSessionForDay(active.id, week, getTodayKey());
+      setTodaySessionId(todayCompleted?.id ?? null);
     }
+
+    // Check for pending pain follow-up (independent of program)
+    const followUp = await getPendingPainFollowUp();
+    setPendingFollowUp(followUp);
   }, [displayYear, displayMonth]);
 
   useFocusEffect(useCallback(() => {
@@ -144,6 +155,7 @@ export default function HomeScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
+        directionalLockEnabled={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.indigo} />
         }
@@ -174,11 +186,31 @@ export default function HomeScreen() {
           currentWeek={currentWeek}
         />
 
+        {/* Pain follow-up prompt (24h after a run) */}
+        {pendingFollowUp && (
+          <PainFollowUp
+            runDate={pendingFollowUp.date}
+            durationMin={pendingFollowUp.duration_min}
+            distance={pendingFollowUp.distance}
+            onSave={async (painLevel) => {
+              await updateRunPain24h(pendingFollowUp.id, painLevel);
+              setPendingFollowUp(null);
+            }}
+            onDismiss={() => setPendingFollowUp(null)}
+          />
+        )}
+
         <TodayCard
           todayTemplate={todayTemplate}
           isCompleted={completedDays.includes(todayKey)}
           blockColor={blockColor}
-          onPress={() => router.push('/workout')}
+          onPress={() => {
+            if (completedDays.includes(todayKey) && todaySessionId) {
+              router.push(`/session/${todaySessionId}`);
+            } else {
+              router.push('/workout');
+            }
+          }}
         />
 
         <MonthCalendar
@@ -189,10 +221,28 @@ export default function HomeScreen() {
           onDayPress={(day) => {
             if (day.isCompleted && day.sessionId) {
               router.push(`/session/${day.sessionId}`);
-            } else if (day.isTrainingDay) {
-              router.push('/workout');
             }
           }}
+          onPrevMonth={() => {
+            if (displayMonth === 0) {
+              setDisplayMonth(11);
+              setDisplayYear(y => y - 1);
+            } else {
+              setDisplayMonth(m => m - 1);
+            }
+          }}
+          onNextMonth={
+            displayYear < now.getFullYear() || displayMonth < now.getMonth()
+              ? () => {
+                  if (displayMonth === 11) {
+                    setDisplayMonth(0);
+                    setDisplayYear(y => y + 1);
+                  } else {
+                    setDisplayMonth(m => m + 1);
+                  }
+                }
+              : undefined
+          }
         />
       </ScrollView>
     </View>
@@ -206,6 +256,7 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.screenTop,
     paddingHorizontal: Spacing.screenHorizontal,
     paddingBottom: Spacing.screenBottom,
+    gap: Spacing.contentGap,
   },
   header: {
     flexDirection: 'row',
@@ -216,7 +267,7 @@ const styles = StyleSheet.create({
   },
   apexTitle: {
     color: Colors.text,
-    fontSize: FontSize.xxxl,
+    fontSize: FontSize.screenTitle,
     fontWeight: '800',
     letterSpacing: 3,
   },
@@ -229,7 +280,6 @@ const styles = StyleSheet.create({
   },
   programContext: {
     paddingVertical: Spacing.xs,
-    marginBottom: Spacing.lg,
   },
   programName: {
     color: Colors.text,

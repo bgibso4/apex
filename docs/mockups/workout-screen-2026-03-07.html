@@ -605,27 +605,21 @@
   .rest-subtitle {
     color: #6a6a80;
     font-size: 14px;
-    margin-bottom: 40px;
   }
-  .next-workout-card {
-    width: 100%;
-    background: #141420;
-    border: 1px solid #2a2a3e;
-    border-radius: 14px;
-    padding: 16px 20px;
-  }
-  .next-workout-label {
+
+  /* Edit warmup link */
+  .edit-warmup-link {
     color: #4a4a5e;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    cursor: pointer;
+    transition: color 0.15s;
   }
-  .next-workout-text {
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 600;
+  .edit-warmup-link:hover { color: #6a6a80; }
+  .workout-subtitle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   /* ---- WARMUP ---- */
@@ -990,11 +984,6 @@
       <div class="rest-icon">&#9790;</div>
       <div class="rest-title">Rest Day</div>
       <div class="rest-subtitle">No workout scheduled for today</div>
-
-      <div class="next-workout-card">
-        <div class="next-workout-label">Next Workout</div>
-        <div class="next-workout-text">Thu — Squat & Conditioning</div>
-      </div>
     </div>
 
     <div class="tab-bar">
@@ -1065,7 +1054,10 @@
         <div class="workout-title">Upper Push</div>
         <div class="workout-timer">24:12</div>
       </div>
-      <div class="workout-subtitle">Week 6 — Strength Block</div>
+      <div class="workout-subtitle-row">
+        <div class="workout-subtitle">Week 6 — Strength Block</div>
+        <span class="edit-warmup-link">Edit Warmup</span>
+      </div>
     </div>
 
     <div class="progress-bar-container">
@@ -1208,7 +1200,10 @@
         <div class="workout-title">Upper Push</div>
         <div class="workout-timer">28:36</div>
       </div>
-      <div class="workout-subtitle">Week 6 — Strength Block</div>
+      <div class="workout-subtitle-row">
+        <div class="workout-subtitle">Week 6 — Strength Block</div>
+        <span class="edit-warmup-link">Edit Warmup</span>
+      </div>
     </div>
 
     <div class="progress-bar-container">

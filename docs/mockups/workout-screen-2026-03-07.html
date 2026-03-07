@@ -136,6 +136,17 @@
   }
   .add-exercise-link:hover { color: #818cf8; }
 
+  /* Add exercise link in content area */
+  .add-exercise-inline {
+    color: #6366f1;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 12px 4px;
+    transition: color 0.15s;
+  }
+  .add-exercise-inline:hover { color: #818cf8; }
+
   /* Scrollable content */
   .workout-content {
     flex: 1;
@@ -590,6 +601,7 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
+    padding-bottom: 100px;
   }
   .rest-icon {
     font-size: 48px;
@@ -1068,9 +1080,6 @@
         <span>2 of 6 exercises</span>
         <span>8 / 22 sets</span>
       </div>
-      <div class="progress-add-row">
-        <span class="add-exercise-link">+ Add exercise</span>
-      </div>
     </div>
 
     <div class="workout-content">
@@ -1160,6 +1169,8 @@
         </div>
       </div>
 
+      <div class="add-exercise-inline">+ Add Exercise</div>
+
       <!-- Conditioning -->
       <div class="conditioning-card">
         <div class="conditioning-left">
@@ -1213,9 +1224,6 @@
       <div class="progress-label">
         <span>3 of 6 exercises</span>
         <span>10 / 22 sets</span>
-      </div>
-      <div class="progress-add-row">
-        <span class="add-exercise-link">+ Add exercise</span>
       </div>
     </div>
 
@@ -1303,6 +1311,8 @@
           <span class="exercise-collapsed-status">0/3</span>
         </div>
       </div>
+
+      <div class="add-exercise-inline">+ Add Exercise</div>
 
       <div class="conditioning-card">
         <div class="conditioning-left">

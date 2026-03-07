@@ -99,9 +99,12 @@ export function useWorkoutSession() {
     if (active?.activated_date) {
       const week = getCurrentWeek(active.activated_date);
       setCurrentWeek(week);
-      setSelectedDay(getTodayKey());
+      // Don't reset selectedDay if we're mid-session (preserves title/state on tab switch)
+      if (phase === 'select') {
+        setSelectedDay(getTodayKey());
+      }
     }
-  }, []);
+  }, [phase]);
 
   useFocusEffect(useCallback(() => {
     loadData();
@@ -247,15 +250,6 @@ export function useWorkoutSession() {
           i === setIdx ? { ...s, status: 'completed' as const, id: setId } : s
         ),
       };
-
-      const allDone = next[exIdx].sets.every((s, i) =>
-        i === setIdx ? true : s.status !== 'pending'
-      );
-      if (allDone && exIdx < next.length - 1) {
-        next[exIdx] = { ...next[exIdx], expanded: false };
-        next[exIdx + 1] = { ...next[exIdx + 1], expanded: true };
-      }
-
       return next;
     });
   };
@@ -330,7 +324,7 @@ export function useWorkoutSession() {
     setOverrideModal(null);
   };
 
-  /** Set RPE for an exercise (persists to all completed sets) */
+  /** Set RPE for an exercise (persists to all completed sets), then auto-advance */
   const setRPE = async (exIdx: number, rpe: number) => {
     const ex = exercises[exIdx];
 
@@ -344,6 +338,19 @@ export function useWorkoutSession() {
     setExercises(prev => {
       const next = [...prev];
       next[exIdx] = { ...next[exIdx], rpe };
+
+      // Auto-advance: collapse this exercise, expand the next incomplete one
+      if (exIdx < next.length - 1) {
+        next[exIdx] = { ...next[exIdx], rpe, expanded: false };
+        // Find next incomplete exercise
+        for (let i = exIdx + 1; i < next.length; i++) {
+          if (next[i].sets.some(s => s.status === 'pending')) {
+            next[i] = { ...next[i], expanded: true };
+            break;
+          }
+        }
+      }
+
       return next;
     });
   };
@@ -443,6 +450,31 @@ export function useWorkoutSession() {
     if (sessionId) {
       await saveExerciseNote(sessionId, exerciseId, note);
     }
+  };
+
+  /** Update a set's weight/reps from the summary edit mode */
+  const updateSetInSummary = async (exIdx: number, completedSetIdx: number, weight: number, reps: number) => {
+    const ex = exercises[exIdx];
+    if (!ex) return;
+    // completedSetIdx refers to the index among completed sets only
+    const completedSets = ex.sets
+      .map((s, i) => ({ ...s, originalIdx: i }))
+      .filter(s => s.status !== 'pending');
+    const target = completedSets[completedSetIdx];
+    if (!target?.id) return;
+
+    await updateSet(target.id, { actualWeight: weight, actualReps: reps });
+
+    setExercises(prev => {
+      const next = [...prev];
+      next[exIdx] = {
+        ...next[exIdx],
+        sets: next[exIdx].sets.map((s, i) =>
+          i === target.originalIdx ? { ...s, actualWeight: weight, actualReps: reps } : s
+        ),
+      };
+      return next;
+    });
   };
 
   /** Delete the current session and reset state */
@@ -545,6 +577,9 @@ export function useWorkoutSession() {
     // Edit mode
     editMode, setEditMode,
 
+    // Phase control (for Edit Warmup)
+    setPhase,
+
     // Actions
     selectDay,
     startSession,
@@ -562,5 +597,6 @@ export function useWorkoutSession() {
     moveExercise,
     enterReorderMode,
     deleteSessionAction,
+    updateSetInSummary,
   };
 }

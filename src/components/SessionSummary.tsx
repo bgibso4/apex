@@ -2,6 +2,18 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 import type { PRRecord } from '../db/personal-records';
 
+export interface ExerciseBreakdown {
+  exerciseName: string;
+  sets: Array<{
+    setNumber: number;
+    actualWeight: number;
+    actualReps: number;
+    status: string;
+  }>;
+  rpe?: number;
+  note?: string;
+}
+
 export interface SessionSummaryProps {
   exerciseCount: number;
   setCount: number;
@@ -16,6 +28,8 @@ export interface SessionSummaryProps {
   editMode?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  exercises?: ExerciseBreakdown[];
+  onUpdateSet?: (exerciseIdx: number, setIdx: number, weight: number, reps: number) => void;
 }
 
 function formatPRDescription(pr: PRRecord): string {
@@ -29,7 +43,7 @@ function formatPRDescription(pr: PRRecord): string {
 export function SessionSummary({
   exerciseCount, setCount, duration, totalVolume,
   sessionName, weekLabel, notes, notesSaved, onNotesChange,
-  prs, editMode, onEdit, onDelete,
+  prs, editMode, onEdit, onDelete, exercises, onUpdateSet,
 }: SessionSummaryProps) {
   const prCount = prs?.length ?? 0;
 
@@ -82,6 +96,58 @@ export function SessionSummary({
           {prs.map(pr => (
             <View key={pr.id} style={styles.prCard}>
               <Text style={styles.prText}>{formatPRDescription(pr)}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Exercise breakdown */}
+      {exercises && exercises.length > 0 && (
+        <View style={styles.exerciseBreakdown}>
+          <Text style={styles.breakdownTitle}>EXERCISES</Text>
+          {exercises.map((ex, exIdx) => (
+            <View key={exIdx} style={styles.breakdownCard}>
+              <View style={styles.breakdownHeader}>
+                <Text style={styles.breakdownName}>{ex.exerciseName}</Text>
+                {ex.rpe != null && (
+                  <Text style={styles.breakdownRpe}>RPE {ex.rpe}</Text>
+                )}
+              </View>
+              {ex.sets.map((set, setIdx) => (
+                <View key={setIdx} style={styles.breakdownSetRow}>
+                  <Text style={styles.breakdownSetNum}>Set {set.setNumber}</Text>
+                  {editMode ? (
+                    <View style={styles.breakdownEditRow}>
+                      <TextInput
+                        style={styles.breakdownEditInput}
+                        defaultValue={String(set.actualWeight)}
+                        keyboardType="numeric"
+                        onEndEditing={(e) => {
+                          const newWeight = parseFloat(e.nativeEvent.text) || set.actualWeight;
+                          onUpdateSet?.(exIdx, setIdx, newWeight, set.actualReps);
+                        }}
+                      />
+                      <Text style={styles.breakdownSetDetail}> lbs × </Text>
+                      <TextInput
+                        style={styles.breakdownEditInput}
+                        defaultValue={String(set.actualReps)}
+                        keyboardType="numeric"
+                        onEndEditing={(e) => {
+                          const newReps = parseInt(e.nativeEvent.text) || set.actualReps;
+                          onUpdateSet?.(exIdx, setIdx, set.actualWeight, newReps);
+                        }}
+                      />
+                    </View>
+                  ) : (
+                    <Text style={styles.breakdownSetDetail}>
+                      {set.actualWeight} lbs × {set.actualReps}
+                    </Text>
+                  )}
+                </View>
+              ))}
+              {ex.note ? (
+                <Text style={styles.breakdownNote}>{ex.note}</Text>
+              ) : null}
             </View>
           ))}
         </View>
@@ -215,6 +281,81 @@ const styles = StyleSheet.create({
     color: Colors.red,
     fontSize: FontSize.md,
     fontWeight: '600',
+  },
+  exerciseBreakdown: {
+    width: '100%',
+    marginTop: Spacing.xl,
+  },
+  breakdownTitle: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: Spacing.md,
+  },
+  breakdownCard: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    padding: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  breakdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  breakdownName: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+  breakdownRpe: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  breakdownSetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+  },
+  breakdownSetNum: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+  },
+  breakdownSetDetail: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  breakdownEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  breakdownEditInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.button,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    color: Colors.text,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    minWidth: 50,
+    textAlign: 'center',
+  },
+  breakdownNote: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontStyle: 'italic',
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surface,
   },
   noteSection: {
     width: '100%',

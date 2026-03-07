@@ -148,12 +148,14 @@ export default function WorkoutScreen() {
                 </Text>
               </View>
               {!w.reorderMode && (
-                <TouchableOpacity
-                  style={styles.editWarmupLink}
-                  onPress={() => w.submitReadiness && w.phase === 'logging' && (w as any).setPhase?.('warmup')}
-                >
-                  <Text style={styles.editWarmupText}>Edit Warmup</Text>
-                </TouchableOpacity>
+                <View style={styles.progressActions}>
+                  <TouchableOpacity onPress={() => w.setPhase('warmup')}>
+                    <Text style={styles.editWarmupText}>Edit Warmup</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => w.setShowExercisePicker(true)}>
+                    <Text style={styles.addExerciseLink}>+ Add Exercise</Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
 
@@ -245,13 +247,6 @@ export default function WorkoutScreen() {
                   </TouchableOpacity>
                 )}
 
-                {/* Add exercise link — below conditioning */}
-                <TouchableOpacity
-                  style={styles.addExerciseLinkContainer}
-                  onPress={() => w.setShowExercisePicker(true)}
-                >
-                  <Text style={styles.addExerciseLink}>+ Add exercise</Text>
-                </TouchableOpacity>
               </>
             )}
 
@@ -281,6 +276,20 @@ export default function WorkoutScreen() {
                   { text: 'Delete', style: 'destructive', onPress: w.deleteSessionAction },
                 ]
               );
+            }}
+            exercises={w.exercises.map(ex => ({
+              exerciseName: ex.exerciseName,
+              sets: ex.sets.filter(s => s.status !== 'pending').map(s => ({
+                setNumber: s.setNumber,
+                actualWeight: s.actualWeight,
+                actualReps: s.actualReps,
+                status: s.status,
+              })),
+              rpe: ex.rpe,
+              note: w.exerciseNotes[ex.slot.exercise_id],
+            }))}
+            onUpdateSet={(exIdx, setIdx, weight, reps) => {
+              w.updateSetInSummary(exIdx, setIdx, weight, reps);
             }}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
@@ -602,7 +611,10 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sectionLabel,
     fontWeight: '500',
   },
-  editWarmupLink: {
+  progressActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: Spacing.sm,
   },
   editWarmupText: {
@@ -610,14 +622,9 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sectionLabel,
     fontWeight: '500',
   },
-  addExerciseLinkContainer: {
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
   addExerciseLink: {
     color: Colors.indigo,
-    fontSize: FontSize.body,
+    fontSize: FontSize.sectionLabel,
     fontWeight: '600',
   },
 

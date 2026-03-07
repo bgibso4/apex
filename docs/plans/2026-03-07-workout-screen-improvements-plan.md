@@ -10,7 +10,45 @@
 
 ---
 
-### Task 1: Schema — Add exercise_notes and personal_records tables
+### Task 1: Updated Mockup
+
+**Files:**
+- Create: `docs/mockups/workout-screen-2026-03-07.html`
+
+**Step 1: Create updated mockup**
+
+Copy `docs/mockups/workout-screen.html` as a starting point and update it to reflect all the design changes. The mockup should show these states:
+
+1. **Day Selection** — same as current but ensure title sizing matches the design
+2. **Rest Day** — moon icon, "Rest Day" message, "Next workout: [Day] — [Template Name]" card below
+3. **Warmup** — same as current but with timer in header
+4. **Exercise Logging (mid-workout)** — updated header with screen-title-sized workout name, "Week X — Block" subtitle, right-aligned timer. Progress bar shows both "2 of 6 exercises" (left) and "8 / 22 sets" (right). "+ Add exercise" link below. Exercise cards include "+ Add note" link. Show the pinned finish button at the bottom (outside scroll area).
+5. **Exercise Logging (with note open)** — show an exercise card with the note text field expanded and some text entered
+6. **Summary** — stat grid with Duration, Sets, Total Volume, PRs (amber). PR detail cards below. Exercise breakdown with notes shown. Session notes at bottom. Edit button top right.
+7. **Summary (edit mode)** — values shown as editable, "Save" replaces "Edit", red "Delete Workout" link at very bottom.
+
+Each state is a separate phone mockup. Use the same phone frame, dynamic island, status bar, and tab bar styling from the existing mockup. Match the design tokens (colors, spacing, font sizes) from `src/theme/colors.ts` and `src/theme/spacing.ts`.
+
+Note: Animations can't be shown in static HTML but document them in HTML comments.
+
+**Step 2: Open for review**
+
+```bash
+open docs/mockups/workout-screen-2026-03-07.html
+```
+
+**IMPORTANT:** Wait for explicit user approval before proceeding to any implementation tasks. Do not continue until the mockup is approved.
+
+**Step 3: Commit**
+
+```bash
+git add docs/mockups/workout-screen-2026-03-07.html
+git commit -m "Add updated workout screen mockup reflecting all improvements"
+```
+
+---
+
+### Task 2: Schema — Add exercise_notes and personal_records tables
 
 **Files:**
 - Modify: `src/db/schema.ts`
@@ -101,7 +139,7 @@ git commit -m "Add exercise_notes and personal_records tables (schema v4)"
 
 ---
 
-### Task 2: DB Layer — Exercise notes CRUD
+### Task 3: DB Layer — Exercise notes CRUD
 
 **Files:**
 - Create: `src/db/notes.ts`
@@ -259,7 +297,7 @@ git commit -m "Add exercise notes CRUD (per-exercise per-session)"
 
 ---
 
-### Task 3: DB Layer — PR detection and storage
+### Task 4: DB Layer — PR detection and storage
 
 **Files:**
 - Create: `src/db/personal-records.ts`
@@ -563,7 +601,7 @@ git commit -m "Add PR detection and storage (e1RM + rep bests)"
 
 ---
 
-### Task 4: DB Layer — Session delete + in-progress session query
+### Task 5: DB Layer — Session delete + in-progress session query
 
 **Files:**
 - Modify: `src/db/sessions.ts`
@@ -656,7 +694,7 @@ git commit -m "Add session delete and in-progress session query"
 
 ---
 
-### Task 5: Session Timer Hook
+### Task 6: Session Timer Hook
 
 **Files:**
 - Create: `src/hooks/useSessionTimer.ts`
@@ -784,7 +822,7 @@ git commit -m "Add useSessionTimer hook with formatted display"
 
 ---
 
-### Task 6: ExerciseCard — Add per-exercise note and note animation
+### Task 7: ExerciseCard — Add per-exercise note and note animation
 
 **Files:**
 - Modify: `src/components/ExerciseCard.tsx`
@@ -917,7 +955,7 @@ git commit -m "Add per-exercise note field to ExerciseCard"
 
 ---
 
-### Task 7: Enhanced SessionSummary — Stats, PRs, Edit Mode, Delete
+### Task 8: Enhanced SessionSummary — Stats, PRs, Edit Mode, Delete
 
 **Files:**
 - Modify: `src/components/SessionSummary.tsx`
@@ -1018,7 +1056,7 @@ git commit -m "Enhance SessionSummary with duration, volume, PRs, edit mode, del
 
 ---
 
-### Task 8: useWorkoutSession — Timer, Notes, PRs, Session Restore, Edit/Delete
+### Task 9: useWorkoutSession — Timer, Notes, PRs, Session Restore, Edit/Delete
 
 **Files:**
 - Modify: `src/hooks/useWorkoutSession.ts`
@@ -1089,7 +1127,7 @@ git commit -m "Wire timer, notes, PRs, session restore, edit/delete into workout
 
 ---
 
-### Task 9: Workout Screen — Header, Progress Bar, Finish Button
+### Task 10: Workout Screen — Header, Progress Bar, Finish Button
 
 **Files:**
 - Modify: `app/(tabs)/workout.tsx`
@@ -1143,7 +1181,7 @@ git commit -m "Update workout screen: header, progress bar, pinned finish, notes
 
 ---
 
-### Task 10: Rest Day State Enhancement
+### Task 11: Rest Day State Enhancement
 
 **Files:**
 - Modify: `app/(tabs)/workout.tsx`
@@ -1227,7 +1265,7 @@ git commit -m "Enhance rest day state with icon and next workout preview"
 
 ---
 
-### Task 11: Session Restore — Integration Test
+### Task 12: Session Restore — Integration Test
 
 **Files:**
 - Create: `__tests__/hooks/useWorkoutSession.restore.test.ts` (or add to existing)
@@ -1254,7 +1292,7 @@ git commit -m "Add integration test for session restore flow"
 
 ---
 
-### Task 12: Animations
+### Task 13: Animations
 
 **Files:**
 - Modify: `app/(tabs)/workout.tsx`
@@ -1322,38 +1360,6 @@ Run: `npx expo start` — verify all 5 animations look smooth and don't interfer
 ```bash
 git add app/(tabs)/workout.tsx src/components/ExerciseCard.tsx
 git commit -m "Add workout animations: phase fade, set pulse, progress fill, finish slide, card layout"
-```
-
----
-
-### Task 13: Update Mockup
-
-**Files:**
-- Create: `docs/mockups/workout-screen-2026-03-07.html`
-
-**Step 1: Create updated mockup**
-
-Copy `docs/mockups/workout-screen.html` and update it to reflect all the changes:
-- Timer in header
-- Updated progress bar with set count
-- Per-exercise notes
-- Enhanced summary with PRs, duration, volume, edit/delete
-- Rest day with next workout card
-- Note: animations can't be shown in static HTML but document them in comments
-
-**Step 2: Open for review**
-
-```bash
-open docs/mockups/workout-screen-2026-03-07.html
-```
-
-Wait for user approval before proceeding.
-
-**Step 3: Commit**
-
-```bash
-git add docs/mockups/workout-screen-2026-03-07.html
-git commit -m "Add updated workout screen mockup reflecting all improvements"
 ```
 
 ---

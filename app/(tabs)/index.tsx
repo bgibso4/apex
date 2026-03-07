@@ -315,7 +315,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
-    marginBottom: Spacing.lg,
   },
   apexTitle: {
     color: Colors.text,

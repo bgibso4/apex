@@ -39,7 +39,7 @@ export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress, com
     const quote = REST_DAY_QUOTES[getDayOfYear() % REST_DAY_QUOTES.length];
     return (
       <View style={[styles.card, styles.sessionCard]}>
-        <Text style={styles.todayLabel}>Rest Day</Text>
+        <Text style={styles.restDayTitle}>Rest Day</Text>
         <Text style={styles.quoteText}>{quote}</Text>
         {nextSessionName && (
           <View style={styles.upNextRow}>
@@ -170,6 +170,12 @@ const styles = StyleSheet.create({
   completedStats: {
     color: Colors.textDim,
     fontSize: FontSize.body,
+  },
+  restDayTitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.title,
+    fontWeight: '700',
+    marginBottom: Spacing.md,
   },
   quoteText: {
     color: Colors.textSecondary,

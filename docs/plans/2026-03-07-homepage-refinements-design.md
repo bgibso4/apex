@@ -32,22 +32,42 @@ Give the rest day state a proper card treatment (border, same card styling as th
 
 **Data:** HomeScreen needs to resolve the next scheduled training day from the weekly template relative to today.
 
-### 4. Uniform Section Spacing
+### 4. Tone Down Block Timeline
+
+The block timeline is too visually prominent and competes with the TodayCard (the actual action item). Reduce its presence:
+
+- Reduce height from `ComponentSize.timelineHeight` (32px) to `ComponentSize.timelineHeightSmall` (24px)
+- Active segments: ~70% opacity backgrounds instead of full saturation, remove box-shadow
+- Inactive segments: lower opacity backgrounds (`22` suffix instead of `30`)
+- Smaller font, subtler active indicator bar
+
+The timeline should feel like a quiet, glanceable context strip — not a hero element.
+
+### 5. Uniform Section Spacing
 
 Remove per-component `marginBottom` from ProgramTimeline, TodayCard, and MonthCalendar. Apply `gap: Spacing.contentGap` (24px) on the ScrollView's `contentContainerStyle` so all top-level sections are evenly spaced by the parent.
 
-### 5. First-Launch Staggered Fade-In
+### 6. Directional Lock on ScrollView
+
+Add `directionalLockEnabled={true}` to the homepage ScrollView. This prevents vertical scroll interference when swiping horizontally on the MonthCalendar. Standard iOS pattern.
+
+### 7. Pain Follow-Up Positioning
+
+Move the PainFollowUp card from between the header and program context to between the block timeline and TodayCard. The program identity should always be the first thing visible.
+
+### 8. First-Launch Staggered Fade-In
 
 On the first time the home screen mounts after app launch, sections fade in with a quick stagger (~80ms apart, ~300ms duration each) using `react-native-reanimated`. On subsequent tab switches, everything renders instantly.
 
 Track "has animated" with a module-level variable (survives re-renders, resets on app restart). Each section wraps in an `Animated.View` with a `FadeInDown` or opacity animation that only fires when `!hasAnimated`.
 
-### 6. Mockup First
+### 9. Mockup First
 
-Per design tenets, build an updated HTML mockup (`docs/mockups/home-2026-03-07.html`) before writing any implementation code. The mockup should show:
+Per design tenets, build an updated HTML mockup (`docs/mockups/home-2026-03-07.html`) before writing any implementation code. The mockup shows:
 - Active program state with current-week highlight in the calendar
 - Completed session state with stats
 - Rest day state with quote and "up next"
+- Pain follow-up state (card positioned below timeline)
 
 ## Out of Scope (Future Rounds)
 

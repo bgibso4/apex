@@ -1,16 +1,15 @@
 /** Mock for react-native-svg — renders SVG elements as plain Views for testing */
 import React from 'react';
-import { View } from 'react-native';
 
 const createMockComponent = (name: string) => {
   const Component = (props: any) =>
-    React.createElement(View, { ...props, testID: props.testID || name }, props.children);
+    React.createElement('View', { ...props, testID: props.testID || name }, props.children);
   Component.displayName = name;
   return Component;
 };
 
 const Svg = (props: any) =>
-  React.createElement(View, { ...props, testID: props.testID || 'svg' }, props.children);
+  React.createElement('View', { ...props, testID: props.testID || 'svg' }, props.children);
 Svg.displayName = 'Svg';
 
 export default Svg;

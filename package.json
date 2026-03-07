@@ -26,6 +26,8 @@
       {
         "displayName": "unit",
         "testEnvironment": "node",
+        "testPathIgnorePatterns": ["/node_modules/", "/.worktrees/"],
+        "modulePathIgnorePatterns": ["<rootDir>/.worktrees/"],
         "testMatch": [
           "**/__tests__/utils/**",
           "**/__tests__/db/**"
@@ -44,6 +46,11 @@
       {
         "displayName": "components",
         "preset": "react-native",
+        "testPathIgnorePatterns": ["/node_modules/", "/.worktrees/"],
+        "modulePathIgnorePatterns": ["<rootDir>/.worktrees/"],
+        "moduleNameMapper": {
+          "^react-native-svg$": "<rootDir>/__mocks__/react-native-svg.ts"
+        },
         "testMatch": [
           "**/__tests__/components/**",
           "**/__tests__/hooks/**"

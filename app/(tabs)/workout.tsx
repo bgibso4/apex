@@ -770,7 +770,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: Spacing.screenHorizontal,
     paddingBottom: Spacing.screenBottom,
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.xl,
     backgroundColor: Colors.bg,
     borderTopWidth: 1,
     borderTopColor: Colors.border,

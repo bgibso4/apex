@@ -7,9 +7,10 @@ export interface TodayCardProps {
   isCompleted: boolean;
   blockColor: string;
   onPress: () => void;
+  completedStats?: { durationMin: number; setCount: number };
 }
 
-export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress }: TodayCardProps) {
+export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress, completedStats }: TodayCardProps) {
   if (!todayTemplate) {
     return (
       <View style={styles.card}>
@@ -40,6 +41,11 @@ export function TodayCard({ todayTemplate, isCompleted, blockColor, onPress }: T
           <View style={styles.completedBadge}>
             <Text style={styles.completedBadgeText}>{'\u2713'} Completed</Text>
           </View>
+          {completedStats && (
+            <Text style={styles.completedStats}>
+              {completedStats.durationMin} min {'\u00B7'} {completedStats.setCount} sets
+            </Text>
+          )}
         </View>
       ) : (
         <>
@@ -129,6 +135,10 @@ const styles = StyleSheet.create({
     color: Colors.green,
     fontSize: FontSize.body,
     fontWeight: '600',
+  },
+  completedStats: {
+    color: Colors.textDim,
+    fontSize: FontSize.body,
   },
   restDayText: {
     color: Colors.text,

@@ -41,6 +41,7 @@ export default function HomeScreen() {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [todaySessionId, setTodaySessionId] = useState<string | null>(null);
   const [pendingFollowUp, setPendingFollowUp] = useState<RunLog | null>(null);
+  const [completedStats, setCompletedStats] = useState<{ durationMin: number; setCount: number } | null>(null);
 
   const now = useMemo(() => new Date(), []);
   const [displayYear, setDisplayYear] = useState(now.getFullYear());
@@ -63,7 +64,18 @@ export default function HomeScreen() {
 
       // Check if today's session is completed (for TodayCard navigation)
       const todayCompleted = await getCompletedSessionForDay(active.id, week, getTodayKey());
-      setTodaySessionId(todayCompleted?.id ?? null);
+      if (todayCompleted?.completed_at) {
+        setTodaySessionId(todayCompleted.id);
+        const setLogs = await getSetLogsForSession(todayCompleted.id);
+        const completedSets = setLogs.filter(s => s.status === 'completed' || s.status === 'completed_below');
+        const startedAt = new Date(todayCompleted.started_at).getTime();
+        const completedAt = new Date(todayCompleted.completed_at).getTime();
+        const durationMin = Math.round((completedAt - startedAt) / 60000);
+        setCompletedStats({ durationMin, setCount: completedSets.length });
+      } else {
+        setTodaySessionId(todayCompleted?.id ?? null);
+        setCompletedStats(null);
+      }
     }
 
     // Check for pending pain follow-up (independent of program)
@@ -204,6 +216,7 @@ export default function HomeScreen() {
           todayTemplate={todayTemplate}
           isCompleted={completedDays.includes(todayKey)}
           blockColor={blockColor}
+          completedStats={completedStats ?? undefined}
           onPress={() => {
             if (completedDays.includes(todayKey) && todaySessionId) {
               router.push(`/session/${todaySessionId}`);

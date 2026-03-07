@@ -3,11 +3,15 @@
  * Thin render layer — all state logic lives in useWorkoutSession.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   Modal, Pressable, Alert, StyleSheet,
 } from 'react-native';
+import Animated, {
+  FadeIn, FadeOut, SlideInDown,
+  useSharedValue, useAnimatedStyle, withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
@@ -39,6 +43,16 @@ export default function WorkoutScreen() {
   );
   const totalSets = w.exercises.reduce((acc, e) => acc + e.sets.length, 0);
 
+  // Animated progress bar
+  const progressWidth = useSharedValue(0);
+  const progressPercent = totalSets > 0 ? (setCount / totalSets) * 100 : 0;
+  useEffect(() => {
+    progressWidth.value = withTiming(progressPercent, { duration: 300 });
+  }, [progressPercent]);
+  const progressAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
+
   const programmedExercises = w.exercises.filter(e => !e.isAdhoc);
   const allProgrammedDone = programmedExercises.every(e =>
     e.sets.every(s => s.status !== 'pending')
@@ -52,11 +66,11 @@ export default function WorkoutScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Rest Day */}
         {w.phase === 'select' && !w.selectedTemplate && (
-          <View style={styles.restDay}>
+          <Animated.View entering={FadeIn.duration(200)} style={styles.restDay}>
             <Ionicons name="moon-outline" size={48} color={Colors.textMuted} style={{ marginBottom: Spacing.lg }} />
             <Text style={styles.restDayText}>Rest Day</Text>
             <Text style={styles.restDaySubtext}>No workout scheduled for today</Text>
-          </View>
+          </Animated.View>
         )}
 
         {/* Phase: Select */}
@@ -123,10 +137,7 @@ export default function WorkoutScreen() {
             {/* Progress bar */}
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarBg}>
-                <View style={[
-                  styles.progressBarFill,
-                  { width: `${totalSets > 0 ? (setCount / totalSets) * 100 : 0}%` },
-                ]} />
+                <Animated.View style={[styles.progressBarFill, progressAnimatedStyle]} />
               </View>
               <View style={styles.progressLabel}>
                 <Text style={styles.progressLabelText}>
@@ -280,7 +291,10 @@ export default function WorkoutScreen() {
 
       {/* Pinned finish button (outside scroll) */}
       {w.phase === 'logging' && !w.reorderMode && totalSets > 0 && setCount / totalSets >= 0.5 && (
-        <View style={styles.pinnedFinishContainer}>
+        <Animated.View
+          entering={SlideInDown.springify().damping(15)}
+          style={styles.pinnedFinishContainer}
+        >
           <TouchableOpacity
             style={styles.finishButton}
             onPress={w.finishSession}
@@ -288,7 +302,7 @@ export default function WorkoutScreen() {
           >
             <Text style={styles.finishButtonText}>Finish Workout</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       )}
 
       <AdjustModal

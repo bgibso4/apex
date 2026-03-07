@@ -39,6 +39,7 @@ export interface Session {
   warmup_ankle: boolean;
   warmup_hip_ir: boolean;
   conditioning_done: boolean;
+  notes?: string;
   started_at: string;
   completed_at?: string;
 }
@@ -63,7 +64,9 @@ export interface RunLog {
   session_id: string;
   date: string;
   duration_min: number;
-  pain_level: number;    // 0-10
+  distance?: number;     // miles
+  pain_level: number;    // 0-10 (acute, during/right after)
+  pain_level_24h?: number; // 0-10 (delayed, next day)
   notes?: string;
   included_pickups: boolean;
 }

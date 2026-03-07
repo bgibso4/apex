@@ -12,7 +12,7 @@ export const Spacing = {
   xxxl: 32,
 
   // Layout tokens (semantic names for repeated screen patterns)
-  screenTop: 60,
+  screenTop: 72,
   screenBottom: 40,
   screenHorizontal: 24,
 
@@ -36,6 +36,7 @@ export const FontSize = {
   xxl: 22,
   sectionTitle: 24,
   xxxl: 28,
+  screenTitle: 32,
 
   chartLabel: 9,
   tabLabel: 10,

@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
+import { seedRunLogs, seedWorkoutSessions, getActiveProgram } from '../src/db';
 
 type WeightUnit = 'lbs' | 'kg';
 
@@ -20,6 +21,24 @@ export default function SettingsScreen() {
 
   const handleExportData = () => {
     Alert.alert('Export Data', 'Training data export is not yet available.');
+  };
+
+  const handleSeedData = async () => {
+    try {
+      const runCount = await seedRunLogs();
+      const program = await getActiveProgram();
+      let sessionCount = 0;
+      if (program) {
+        sessionCount = await seedWorkoutSessions(program.id);
+      }
+      if (runCount === 0 && sessionCount === 0) {
+        Alert.alert('Sample Data', 'Sample data already loaded.');
+      } else {
+        Alert.alert('Sample Data Loaded', `Added ${runCount} runs and ${sessionCount} workout sessions.`);
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message ?? 'Failed to load sample data');
+    }
   };
 
   const handleClearData = () => {
@@ -152,6 +171,23 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>DATA</Text>
           <View style={styles.group}>
+            {/* Seed Data */}
+            <TouchableOpacity
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={handleSeedData}
+            >
+              <View style={styles.rowLeft}>
+                <Text style={styles.rowLabel}>Load Sample Data</Text>
+                <Text style={styles.rowHint}>
+                  Pre-populate runs and sessions for testing
+                </Text>
+              </View>
+              <Ionicons name="flask-outline" size={18} color={Colors.cyan} />
+            </TouchableOpacity>
+
+            <View style={styles.rowDivider} />
+
             {/* Export */}
             <TouchableOpacity
               style={styles.row}
@@ -221,7 +257,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: Colors.text,
-    fontSize: FontSize.xxl,
+    fontSize: FontSize.screenTitle,
     fontWeight: '800',
   },
 

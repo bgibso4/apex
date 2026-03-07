@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS run_logs (
   date TEXT NOT NULL,
   duration_min REAL NOT NULL,
   pain_level INTEGER DEFAULT 0,
+  pain_level_24h INTEGER,
+  distance REAL,
   notes TEXT,
   included_pickups INTEGER DEFAULT 0,
   FOREIGN KEY (session_id) REFERENCES sessions(id)

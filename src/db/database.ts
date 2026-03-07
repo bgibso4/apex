@@ -38,6 +38,14 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         // Column already exists
       }
     }
+    if (currentVersion < 3) {
+      try {
+        await db.execAsync('ALTER TABLE run_logs ADD COLUMN pain_level_24h INTEGER');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE run_logs ADD COLUMN distance REAL');
+      } catch { /* already exists */ }
+    }
     if (currentVersion < 4) {
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS exercise_notes (

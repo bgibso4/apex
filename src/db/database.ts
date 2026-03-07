@@ -37,6 +37,36 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       } catch {
         // Column already exists
       }
+    }
+    if (currentVersion < 4) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS exercise_notes (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL,
+          exercise_id TEXT NOT NULL,
+          note TEXT NOT NULL DEFAULT '',
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+          UNIQUE(session_id, exercise_id)
+        );
+        CREATE TABLE IF NOT EXISTS personal_records (
+          id TEXT PRIMARY KEY,
+          exercise_id TEXT NOT NULL,
+          record_type TEXT NOT NULL,
+          rep_count INTEGER,
+          value REAL NOT NULL,
+          previous_value REAL,
+          session_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          FOREIGN KEY (exercise_id) REFERENCES exercises(id),
+          FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_exercise_notes_session ON exercise_notes(session_id);
+        CREATE INDEX IF NOT EXISTS idx_personal_records_exercise ON personal_records(exercise_id, record_type, rep_count);
+        CREATE INDEX IF NOT EXISTS idx_personal_records_session ON personal_records(session_id);
+      `);
+    }
+    if (currentVersion < SCHEMA_VERSION) {
       await db.runAsync(
         "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",
         [String(SCHEMA_VERSION)]

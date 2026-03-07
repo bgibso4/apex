@@ -38,6 +38,8 @@ export interface MonthCalendarProps {
   onPrevMonth?: () => void;
   /** Called when user navigates to next month */
   onNextMonth?: () => void;
+  /** Override today's date for testing (YYYY-MM-DD). Defaults to actual today. */
+  today?: string;
 }
 
 const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
@@ -50,11 +52,13 @@ export function MonthCalendar({
   onDayPress,
   onPrevMonth,
   onNextMonth,
+  today: todayProp,
 }: MonthCalendarProps) {
-  const today = useMemo(() => {
+  const computedToday = useMemo(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   }, []);
+  const today = todayProp ?? computedToday;
 
   const swipeHandled = useRef(false);
   const panResponder = useMemo(() => PanResponder.create({
@@ -74,6 +78,13 @@ export function MonthCalendar({
   }), [onPrevMonth, onNextMonth]);
 
   const grid = useMemo(() => buildGrid(year, month, days), [year, month, days]);
+
+  const currentWeekRowIndex = useMemo(() => {
+    for (let i = 0; i < grid.length; i++) {
+      if (grid[i].some(cell => cell?.date === today)) return i;
+    }
+    return -1;
+  }, [grid, today]);
 
   const monthName = useMemo(() => {
     const d = new Date(year, month, 1);
@@ -109,7 +120,14 @@ export function MonthCalendar({
 
       {/* Day grid */}
       {grid.map((week, weekIndex) => (
-        <View key={weekIndex} style={styles.weekRow}>
+        <View
+          key={weekIndex}
+          style={[
+            styles.weekRow,
+            weekIndex === currentWeekRowIndex && styles.currentWeekRow,
+          ]}
+          testID={weekIndex === currentWeekRowIndex ? 'current-week-row' : undefined}
+        >
           {week.map((cell, cellIndex) => {
             if (!cell) {
               return <View key={cellIndex} style={styles.dayCell} />;
@@ -118,6 +136,7 @@ export function MonthCalendar({
             const isToday = cell.date === today;
             const isPast = cell.date < today;
             const isFuture = cell.date > today;
+            const isCurrentWeek = weekIndex === currentWeekRowIndex;
 
             return (
               <TouchableOpacity
@@ -143,6 +162,7 @@ export function MonthCalendar({
                       !cell.isTrainingDay && !isToday && !cell.isCompleted && styles.dayNumberRest,
                       cell.isTrainingDay && !cell.isCompleted && isPast && styles.dayNumberMissed,
                       cell.isTrainingDay && isFuture && !cell.isCompleted && styles.dayNumberUpcoming,
+                      cell.isTrainingDay && isFuture && !cell.isCompleted && isCurrentWeek && styles.dayNumberCurrentWeekUpcoming,
                     ]}
                   >
                     {cell.dayNumber}
@@ -256,6 +276,12 @@ const styles = StyleSheet.create({
   weekRow: {
     flexDirection: 'row',
   },
+  currentWeekRow: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.button,
+    marginHorizontal: -Spacing.xs,
+    paddingHorizontal: Spacing.xs,
+  },
   dayCell: {
     flex: 1,
     alignItems: 'center',
@@ -296,6 +322,10 @@ const styles = StyleSheet.create({
   },
   dayNumberUpcoming: {
     color: Colors.textSecondary,
+  },
+  dayNumberCurrentWeekUpcoming: {
+    color: Colors.text,
+    fontWeight: '600',
   },
   todayDot: {
     width: Spacing.xs,

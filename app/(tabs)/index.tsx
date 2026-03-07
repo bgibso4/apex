@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { APEX_FONT_FAMILY } from '../../src/theme/fonts';
 import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
@@ -201,7 +202,10 @@ export default function HomeScreen() {
       >
         {/* Header: APEX title + gear */}
         <View style={styles.header}>
-          <Text style={styles.apexTitle}>APEX</Text>
+          <Text style={[
+            styles.apexTitle,
+            APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
+          ]}>APEX</Text>
           <TouchableOpacity
             style={styles.gearIcon}
             onPress={() => router.push('/settings')}

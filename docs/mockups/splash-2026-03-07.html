@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Splash Screen Mockup (2026-03-07)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Splash content — centered vertically */
+  .splash-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .splash-wordmark {
+    color: #ffffff;
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: 4px;
+  }
+
+  .splash-quote {
+    color: #6a6a80;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.5;
+    margin-top: 20px;
+  }
+
+  /* Mid-transition state */
+  .splash-wordmark.fading {
+    font-size: 40px;
+    opacity: 0.5;
+  }
+
+  .splash-quote.fading {
+    opacity: 0.3;
+  }
+
+  /* Ghost homepage content behind splash */
+  .ghost-homepage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.2;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+  }
+
+  .ghost-status-bar {
+    height: 54px;
+    flex-shrink: 0;
+  }
+
+  .ghost-header {
+    padding: 8px 24px 16px;
+    flex-shrink: 0;
+  }
+
+  .ghost-header h1 {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 3px;
+  }
+
+  .ghost-program {
+    padding: 0 24px;
+  }
+
+  .ghost-program-name {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .ghost-program-week {
+    color: #a0a0b8;
+    font-size: 15px;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PHONE 1: Splash Screen                                        -->
+<!-- ============================================================ -->
+<div class="phone-wrapper">
+  <div class="label">Splash Screen</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="splash-content">
+      <div class="splash-wordmark">APEX</div>
+      <div class="splash-quote">Mastery is a process, not a destination. I am committed to the journey, knowing the path itself is the reward.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PHONE 2: Mid-Transition (scale-fade)                          -->
+<!-- ============================================================ -->
+<div class="phone-wrapper">
+  <div class="label">Mid-Transition</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+
+    <!-- Ghost homepage content fading in behind -->
+    <div class="ghost-homepage">
+      <div class="ghost-status-bar"></div>
+      <div class="ghost-header">
+        <h1>APEX</h1>
+      </div>
+      <div class="ghost-program">
+        <div class="ghost-program-name">Functional Athlete v2</div>
+        <div class="ghost-program-week">Week 6 of 12</div>
+      </div>
+    </div>
+
+    <!-- Splash content fading out -->
+    <div class="splash-content">
+      <div class="splash-wordmark fading">APEX</div>
+      <div class="splash-quote fading">Mastery is a process, not a destination. I am committed to the journey, knowing the path itself is the reward.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

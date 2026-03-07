@@ -1,13 +1,17 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
   getActiveProgram, createSession, logSet, updateSet, deleteSet,
   completeSession, updateReadiness, updateWarmup, updateSessionNotes,
   getLastSessionForExercise, calculateTargetWeight,
-  ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
-  getExerciseNames,
+  ensureExerciseExists,
+  saveExerciseNote, getExerciseNotesForSession,
+  detectPRs, getPRsForSession,
+  getSetLogsForSession,
+  getInProgressSession, deleteSession,
 } from '../db';
+import type { PRRecord } from '../db/personal-records';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
@@ -16,6 +20,7 @@ import { Colors } from '../theme';
 import type { Program, ProgramDefinition, ExerciseSlot, SetLog } from '../types';
 import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
+import { useSessionTimer } from './useSessionTimer';
 
 export type WorkoutPhase = 'select' | 'readiness' | 'warmup' | 'logging' | 'complete';
 
@@ -75,52 +80,33 @@ export function useWorkoutSession() {
   const [sessionNotes, setSessionNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
 
+  // Timer
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [finalDuration, setFinalDuration] = useState<string | null>(null);
+  const { seconds: timerSeconds, display: timerDisplay } = useSessionTimer(startedAt);
+  const timer = finalDuration ?? timerDisplay;
+
+  // Exercise notes
+  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
+
+  // PRs
+  const [prs, setPRs] = useState<PRRecord[]>([]);
+
+  // Edit mode
+  const [editMode, setEditMode] = useState(false);
+
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
     setProgram(active);
     if (active?.activated_date) {
       const week = getCurrentWeek(active.activated_date);
       setCurrentWeek(week);
-      const todayKey = getTodayKey();
-      setSelectedDay(todayKey);
-
-      // Check if today's session is already completed
-      const completed = await getCompletedSessionForDay(active.id, week, todayKey);
-      if (completed) {
-        setSessionId(completed.id);
-        // Load set logs to show in summary
-        const setLogs = await getSetLogsForSession(completed.id);
-        const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
-        const names = await getExerciseNames(exerciseIds);
-
-        // Build exercise states from completed set logs
-        const exerciseMap = new Map<string, ExerciseState>();
-        for (const log of setLogs) {
-          if (!exerciseMap.has(log.exercise_id)) {
-            exerciseMap.set(log.exercise_id, {
-              slot: { exercise_id: log.exercise_id, category: 'main', targets: [] },
-              exerciseName: names[log.exercise_id] ?? log.exercise_id.replace(/_/g, ' '),
-              sets: [],
-              expanded: false,
-              isAdhoc: !!log.is_adhoc,
-            });
-          }
-          exerciseMap.get(log.exercise_id)!.sets.push({
-            setNumber: log.set_number,
-            targetWeight: log.target_weight,
-            targetReps: log.target_reps,
-            actualWeight: log.actual_weight ?? log.target_weight,
-            actualReps: log.actual_reps ?? log.target_reps,
-            status: log.status as SetState['status'],
-            id: log.id,
-          });
-        }
-        setExercises(Array.from(exerciseMap.values()));
-        setSessionNotes(completed.notes ?? '');
-        setPhase('complete');
+      // Don't reset selectedDay if we're mid-session (preserves title/state on tab switch)
+      if (phase === 'select') {
+        setSelectedDay(getTodayKey());
       }
     }
-  }, []);
+  }, [phase]);
 
   useFocusEffect(useCallback(() => {
     loadData();
@@ -132,6 +118,22 @@ export function useWorkoutSession() {
   const blockColor = block ? getBlockColor(block) : Colors.indigo;
   const trainingDays = def ? getTrainingDays(def.weekly_template) : [];
   const selectedTemplate = trainingDays.find(d => d.day === selectedDay)?.template;
+
+  // Conditioning finisher from template
+  const conditioningFinisher = selectedTemplate?.conditioning_finisher ?? null;
+
+  // Total volume (sum of weight × reps for completed sets)
+  const totalVolume = useMemo(() => {
+    let vol = 0;
+    for (const ex of exercises) {
+      for (const set of ex.sets) {
+        if (set.status === 'completed' || set.status === 'completed_below') {
+          vol += set.actualWeight * set.actualReps;
+        }
+      }
+    }
+    return vol;
+  }, [exercises]);
 
   const oneRmValues: Record<string, number> = program?.one_rm_values
     ? (typeof program.one_rm_values === 'string'
@@ -159,6 +161,7 @@ export function useWorkoutSession() {
       date: new Date().toISOString().split('T')[0],
     });
     setSessionId(id);
+    setStartedAt(new Date().toISOString());
 
     const exStates: ExerciseState[] = [];
     for (const slot of selectedTemplate.exercises) {
@@ -249,15 +252,6 @@ export function useWorkoutSession() {
           i === setIdx ? { ...s, status: 'completed' as const, id: setId } : s
         ),
       };
-
-      const allDone = next[exIdx].sets.every((s, i) =>
-        i === setIdx ? true : s.status !== 'pending'
-      );
-      if (allDone && exIdx < next.length - 1) {
-        next[exIdx] = { ...next[exIdx], expanded: false };
-        next[exIdx + 1] = { ...next[exIdx + 1], expanded: true };
-      }
-
       return next;
     });
   };
@@ -332,7 +326,7 @@ export function useWorkoutSession() {
     setOverrideModal(null);
   };
 
-  /** Set RPE for an exercise (persists to all completed sets) */
+  /** Set RPE for an exercise (persists to all completed sets), then auto-advance */
   const setRPE = async (exIdx: number, rpe: number) => {
     const ex = exercises[exIdx];
 
@@ -346,6 +340,19 @@ export function useWorkoutSession() {
     setExercises(prev => {
       const next = [...prev];
       next[exIdx] = { ...next[exIdx], rpe };
+
+      // Auto-advance: collapse this exercise, expand the next incomplete one
+      if (exIdx < next.length - 1) {
+        next[exIdx] = { ...next[exIdx], rpe, expanded: false };
+        // Find next incomplete exercise
+        for (let i = exIdx + 1; i < next.length; i++) {
+          if (next[i].sets.some(s => s.status === 'pending')) {
+            next[i] = { ...next[i], expanded: true };
+            break;
+          }
+        }
+      }
+
       return next;
     });
   };
@@ -439,10 +446,85 @@ export function useWorkoutSession() {
     }
   };
 
+  /** Save an exercise note */
+  const saveExerciseNoteAction = async (exerciseId: string, note: string) => {
+    setExerciseNotes(prev => ({ ...prev, [exerciseId]: note }));
+    if (sessionId) {
+      await saveExerciseNote(sessionId, exerciseId, note);
+    }
+  };
+
+  /** Update a set's weight/reps from the summary edit mode */
+  const updateSetInSummary = async (exIdx: number, completedSetIdx: number, weight: number, reps: number) => {
+    const ex = exercises[exIdx];
+    if (!ex) return;
+    // completedSetIdx refers to the index among completed sets only
+    const completedSets = ex.sets
+      .map((s, i) => ({ ...s, originalIdx: i }))
+      .filter(s => s.status !== 'pending');
+    const target = completedSets[completedSetIdx];
+    if (!target?.id) return;
+
+    await updateSet(target.id, { actualWeight: weight, actualReps: reps });
+
+    setExercises(prev => {
+      const next = [...prev];
+      next[exIdx] = {
+        ...next[exIdx],
+        sets: next[exIdx].sets.map((s, i) =>
+          i === target.originalIdx ? { ...s, actualWeight: weight, actualReps: reps } : s
+        ),
+      };
+      return next;
+    });
+  };
+
+  /** Delete the current session and reset state */
+  const deleteSessionAction = async () => {
+    if (!sessionId) return;
+    await deleteSession(sessionId);
+    setSessionId(null);
+    setPhase('select');
+    setExercises([]);
+    setStartedAt(null);
+    setFinalDuration(null);
+    setPRs([]);
+    setExerciseNotes({});
+    setSessionNotes('');
+    setEditMode(false);
+    setConditioningDone(false);
+  };
+
+  /** Re-detect PRs from current set logs */
+  const recalculatePRs = async () => {
+    if (!sessionId) return;
+    const setLogs = await getSetLogsForSession(sessionId);
+    const detectedPRs = await detectPRs(
+      sessionId,
+      new Date().toISOString().split('T')[0],
+      setLogs
+        .filter(s => s.actual_weight != null && s.actual_reps != null)
+        .map(s => ({
+          exercise_id: s.exercise_id,
+          actual_weight: s.actual_weight!,
+          actual_reps: s.actual_reps!,
+          status: s.status,
+        }))
+    );
+    setPRs(detectedPRs);
+  };
+
   /** Complete the session */
   const finishSession = async () => {
     if (!sessionId) return;
     await completeSession(sessionId, conditioningDone);
+
+    await recalculatePRs();
+
+    // Freeze timer before stopping it
+    setFinalDuration(timerDisplay);
+    setStartedAt(null);
+
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setPhase('complete');
   };
@@ -491,6 +573,27 @@ export function useWorkoutSession() {
     // Session notes
     sessionNotes, notesSaved, saveNotes,
 
+    // Timer
+    timer, timerSeconds, startedAt,
+
+    // Exercise notes
+    exerciseNotes, saveExerciseNoteAction,
+
+    // PRs
+    prs,
+
+    // Total volume
+    totalVolume,
+
+    // Conditioning
+    conditioningFinisher,
+
+    // Edit mode
+    editMode, setEditMode, recalculatePRs,
+
+    // Phase control (for Edit Warmup)
+    setPhase,
+
     // Actions
     selectDay,
     startSession,
@@ -501,12 +604,13 @@ export function useWorkoutSession() {
     setRPE,
     submitReadiness,
     submitWarmup,
-    goBackToWarmup: () => setPhase('warmup'),
     finishSession,
     setConditioningDone,
     closeOverride: () => setOverrideModal(null),
     addAdhocExercise,
     moveExercise,
     enterReorderMode,
+    deleteSessionAction,
+    updateSetInSummary,
   };
 }

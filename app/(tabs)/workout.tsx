@@ -3,11 +3,15 @@
  * Thin render layer — all state logic lives in useWorkoutSession.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  Modal, Pressable, StyleSheet, Alert,
+  Modal, Pressable, Alert, StyleSheet,
 } from 'react-native';
+import Animated, {
+  FadeIn, FadeOut, SlideInDown,
+  useSharedValue, useAnimatedStyle, withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
@@ -18,10 +22,28 @@ import { WarmupChecklist } from '../../src/components/WarmupChecklist';
 import { ExerciseCard } from '../../src/components/ExerciseCard';
 import { AdjustModal } from '../../src/components/AdjustModal';
 import { SessionSummary } from '../../src/components/SessionSummary';
-import type { SummaryExercise } from '../../src/components/SessionSummary';
 
 export default function WorkoutScreen() {
   const w = useWorkoutSession();
+
+  // Hooks must be called unconditionally (before any early returns)
+  const exerciseCount = w.exercises.filter(e =>
+    e.sets.some(s => s.status !== 'pending')
+  ).length;
+  const setCount = w.exercises.reduce((acc, e) =>
+    acc + e.sets.filter(s => s.status === 'completed' || s.status === 'completed_below').length, 0
+  );
+  const totalSets = w.exercises.reduce((acc, e) => acc + e.sets.length, 0);
+
+  // Animated progress bar
+  const progressWidth = useSharedValue(0);
+  const progressPercent = totalSets > 0 ? (setCount / totalSets) * 100 : 0;
+  useEffect(() => {
+    progressWidth.value = withTiming(progressPercent, { duration: 300 });
+  }, [progressPercent]);
+  const progressAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
 
   if (!w.program) {
     return (
@@ -33,14 +55,6 @@ export default function WorkoutScreen() {
     );
   }
 
-  const exerciseCount = w.exercises.filter(e =>
-    e.sets.some(s => s.status !== 'pending')
-  ).length;
-  const setCount = w.exercises.reduce((acc, e) =>
-    acc + e.sets.filter(s => s.status === 'completed' || s.status === 'completed_below').length, 0
-  );
-  const totalSets = w.exercises.reduce((acc, e) => acc + e.sets.length, 0);
-
   const programmedExercises = w.exercises.filter(e => !e.isAdhoc);
   const allProgrammedDone = programmedExercises.every(e =>
     e.sets.every(s => s.status !== 'pending')
@@ -48,12 +62,18 @@ export default function WorkoutScreen() {
   const doneExerciseCount = w.exercises.filter(e =>
     e.sets.every(s => s.status !== 'pending')
   ).length;
-  const hasAnyCompleted = setCount > 0;
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Phase: Select — Day selector + session preview */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          // Make scroll content fill screen for centering rest day
+          w.phase === 'select' && !w.selectedTemplate && styles.scrollContentFill,
+        ]}
+      >
+        {/* Day Selector (select phase only) */}
         {w.phase === 'select' && (
           <DaySelector
             currentWeek={w.currentWeek}
@@ -66,13 +86,16 @@ export default function WorkoutScreen() {
           />
         )}
 
+        {/* Rest Day */}
         {w.phase === 'select' && !w.selectedTemplate && (
-          <View style={styles.restDay}>
+          <Animated.View entering={FadeIn.duration(200)} style={styles.restDay}>
+            <Ionicons name="moon-outline" size={48} color={Colors.textMuted} style={{ marginBottom: Spacing.lg }} />
             <Text style={styles.restDayText}>Rest Day</Text>
-            <Text style={styles.restDaySubtext}>No workout scheduled for this day</Text>
-          </View>
+            <Text style={styles.restDaySubtext}>No workout scheduled for today</Text>
+          </Animated.View>
         )}
 
+        {/* Phase: Select — Session preview */}
         {w.phase === 'select' && w.selectedTemplate && (
           <View style={styles.sessionPreview}>
             <Text style={styles.previewTitle}>{w.selectedTemplate.name}</Text>
@@ -107,8 +130,6 @@ export default function WorkoutScreen() {
 
         {/* Phase: Warmup */}
         {w.phase === 'warmup' && (
-          <>
-          <Text style={styles.phaseTitle}>Warm Up</Text>
           <WarmupChecklist
             warmupRope={w.warmupRope}
             warmupAnkle={w.warmupAnkle}
@@ -119,37 +140,45 @@ export default function WorkoutScreen() {
             onToggleHipIr={w.toggleWarmupHipIr}
             onContinue={w.submitWarmup}
           />
-          </>
         )}
 
         {/* Phase: Logging */}
         {w.phase === 'logging' && (
           <>
+            {/* Header with timer */}
             <View style={styles.loggingHeader}>
-              <Text style={[styles.phaseTitle, { marginBottom: 0 }]}>{w.selectedTemplate?.name ?? 'Workout'}</Text>
-              <TouchableOpacity onPress={w.goBackToWarmup} style={styles.warmupBackBtn}>
-                <Text style={styles.warmupBackText}>Edit Warmup</Text>
-              </TouchableOpacity>
+              <View style={styles.loggingHeaderLeft}>
+                <Text style={styles.loggingTitle}>{w.selectedTemplate?.name ?? 'Workout'}</Text>
+                <Text style={styles.loggingSubtitle}>
+                  Week {w.currentWeek} — {w.block?.name ?? ''}
+                </Text>
+              </View>
+              <Text style={styles.timerDisplay}>{w.timer}</Text>
             </View>
 
             {/* Progress bar */}
             <View style={styles.progressBarContainer}>
               <View style={styles.progressBarBg}>
-                <View style={[
-                  styles.progressBarFill,
-                  { width: `${totalSets > 0 ? (setCount / totalSets) * 100 : 0}%` },
-                ]} />
+                <Animated.View style={[styles.progressBarFill, progressAnimatedStyle]} />
               </View>
               <View style={styles.progressLabel}>
                 <Text style={styles.progressLabelText}>
                   {doneExerciseCount} of {w.exercises.length} exercises
                 </Text>
-                {!w.reorderMode && (
-                  <TouchableOpacity onPress={() => w.setShowExercisePicker(true)}>
-                    <Text style={styles.addExerciseLink}>+ Add exercise</Text>
-                  </TouchableOpacity>
-                )}
+                <Text style={styles.progressLabelText}>
+                  {setCount} / {totalSets} sets
+                </Text>
               </View>
+              {!w.reorderMode && (
+                <View style={styles.progressActions}>
+                  <TouchableOpacity onPress={() => w.setPhase('warmup')}>
+                    <Text style={styles.editWarmupText}>Edit Warmup</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => w.setShowExercisePicker(true)}>
+                    <Text style={styles.addExerciseLink}>+ Add Exercise</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
 
             {/* Reorder banner */}
@@ -175,6 +204,8 @@ export default function WorkoutScreen() {
                   lastWeight={ex.lastWeight}
                   lastReps={ex.lastReps}
                   blockColor={w.blockColor}
+                  note={w.exerciseNotes[ex.slot.exercise_id]}
+                  onNoteChange={(note) => w.saveExerciseNoteAction(ex.slot.exercise_id, note)}
                   onToggleExpand={() => {
                     if (w.reorderMode) return;
                     w.toggleExpand(exIdx);
@@ -214,58 +245,35 @@ export default function WorkoutScreen() {
               </View>
             ))}
 
-            {/* Conditioning + Finish (hidden in reorder mode) */}
+            {/* Conditioning + Add Exercise (hidden in reorder mode) */}
             {!w.reorderMode && (
               <>
-                <TouchableOpacity
-                  style={styles.conditioningCard}
-                  onPress={() => w.setConditioningDone(!w.conditioningDone)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.conditioningLeft}>
-                    <Text style={styles.conditioningLabel}>Conditioning Finisher</Text>
-                    <Text style={styles.conditioningName}>Sled Push</Text>
-                  </View>
-                  <View style={[
-                    styles.conditioningCheckbox,
-                    w.conditioningDone && styles.conditioningCheckboxChecked,
-                  ]}>
-                    {w.conditioningDone && (
-                      <Text style={styles.conditioningCheckmark}>{'\u2713'}</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
+                {w.conditioningFinisher && (
+                  <TouchableOpacity
+                    style={styles.conditioningCard}
+                    onPress={() => w.setConditioningDone(!w.conditioningDone)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.conditioningLeft}>
+                      <Text style={styles.conditioningLabel}>Conditioning Finisher</Text>
+                      <Text style={styles.conditioningName}>{w.conditioningFinisher}</Text>
+                    </View>
+                    <View style={[
+                      styles.conditioningCheckbox,
+                      w.conditioningDone && styles.conditioningCheckboxChecked,
+                    ]}>
+                      {w.conditioningDone && (
+                        <Text style={styles.conditioningCheckmark}>{'\u2713'}</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
 
-                <TouchableOpacity
-                  style={[
-                    styles.finishButton,
-                    !hasAnyCompleted && styles.finishButtonDisabled,
-                  ]}
-                  onPress={() => {
-                    if (!allProgrammedDone) {
-                      const remaining = totalSets - setCount;
-                      Alert.alert(
-                        'Finish Early?',
-                        `You have ${remaining} set${remaining !== 1 ? 's' : ''} remaining. Are you sure you want to finish?`,
-                        [
-                          { text: 'Keep Going', style: 'cancel' },
-                          { text: 'Finish', style: 'destructive', onPress: w.finishSession },
-                        ]
-                      );
-                    } else {
-                      w.finishSession();
-                    }
-                  }}
-                  disabled={!hasAnyCompleted}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[
-                    styles.finishButtonText,
-                    !hasAnyCompleted && styles.finishButtonTextDisabled,
-                  ]}>Finish Workout</Text>
-                </TouchableOpacity>
               </>
             )}
+
+            {/* Bottom padding when finish button is pinned */}
+            {setCount / totalSets >= 0.5 && <View style={{ height: 80 }} />}
           </>
         )}
 
@@ -274,20 +282,82 @@ export default function WorkoutScreen() {
           <SessionSummary
             exerciseCount={exerciseCount}
             setCount={setCount}
+            duration={w.timer}
+            totalVolume={w.totalVolume}
+            sessionName={w.selectedTemplate?.name}
+            weekLabel={`Week ${w.currentWeek}`}
+            prs={w.prs}
+            editMode={w.editMode}
+            onEdit={() => {
+              if (w.editMode) {
+                // Exiting edit mode — recalculate PRs with updated values
+                w.recalculatePRs();
+              }
+              w.setEditMode(!w.editMode);
+            }}
+            onDelete={() => {
+              Alert.alert(
+                'Delete Workout',
+                'Are you sure you want to delete this workout? This cannot be undone.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: w.deleteSessionAction },
+                ]
+              );
+            }}
+            exercises={w.exercises.map(ex => ({
+              exerciseName: ex.exerciseName,
+              sets: ex.sets.map(s => ({
+                setNumber: s.setNumber,
+                actualWeight: s.actualWeight,
+                actualReps: s.actualReps,
+                status: s.status,
+              })),
+              rpe: ex.rpe,
+              note: w.exerciseNotes[ex.slot.exercise_id],
+            }))}
+            onUpdateSet={(exIdx, setIdx, weight, reps) => {
+              w.updateSetInSummary(exIdx, setIdx, weight, reps);
+            }}
+            warmup={{ rope: w.warmupRope, ankle: w.warmupAnkle, hipIr: w.warmupHipIr }}
+            conditioningFinisher={w.conditioningFinisher}
+            conditioningDone={w.conditioningDone}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}
-            exercises={w.exercises.map((ex): SummaryExercise => ({
-              name: ex.exerciseName,
-              sets: ex.sets
-                .filter(s => s.status !== 'pending')
-                .map(s => ({ weight: s.actualWeight, reps: s.actualReps, status: s.status, rpe: s.rpe })),
-              rpe: ex.rpe,
-              isAdhoc: ex.isAdhoc,
-            }))}
           />
         )}
       </ScrollView>
+
+      {/* Pinned finish button (outside scroll) */}
+      {w.phase === 'logging' && !w.reorderMode && totalSets > 0 && setCount / totalSets >= 0.5 && (
+        <Animated.View
+          entering={SlideInDown.duration(300)}
+          style={styles.pinnedFinishContainer}
+        >
+          <TouchableOpacity
+            style={styles.finishButton}
+            onPress={() => {
+              const pendingSets = totalSets - setCount;
+              if (pendingSets > 0) {
+                Alert.alert(
+                  'Finish Early?',
+                  `You have ${pendingSets} set${pendingSets > 1 ? 's' : ''} remaining. Finish anyway?`,
+                  [
+                    { text: 'Keep Going', style: 'cancel' },
+                    { text: 'Finish', onPress: w.finishSession },
+                  ]
+                );
+              } else {
+                w.finishSession();
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.finishButtonText}>Finish Workout</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
 
       <AdjustModal
         visible={w.overrideModal !== null}
@@ -461,45 +531,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.screenHorizontal,
     paddingBottom: Spacing.screenBottom,
   },
-  phaseTitle: {
-    color: Colors.text,
-    fontSize: FontSize.sectionTitle,
-    fontWeight: '800',
-    marginBottom: Spacing.xl,
+  scrollContentFill: {
+    flexGrow: 1,
   },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg },
 
-  // Logging header
-  loggingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  warmupBackBtn: {
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.md,
-  },
-  warmupBackText: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-
   // Rest day
   restDay: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: Spacing.xxxl,
+    paddingBottom: 80,
   },
   restDayText: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.xl,
-    fontWeight: '600',
+    color: Colors.text,
+    fontSize: FontSize.sectionTitle,
+    fontWeight: '700',
     marginBottom: Spacing.sm,
   },
   restDaySubtext: {
-    color: Colors.textDim,
+    color: Colors.textMuted,
     fontSize: FontSize.md,
   },
 
@@ -510,7 +562,7 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     color: Colors.text,
-    fontSize: FontSize.screenTitle,
+    fontSize: FontSize.xxxl,
     fontWeight: '800',
     marginBottom: Spacing.xs,
   },
@@ -554,6 +606,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
+  // Logging header
+  loggingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
+  },
+  loggingHeaderLeft: {
+    flex: 1,
+  },
+  loggingTitle: {
+    color: Colors.text,
+    fontSize: FontSize.screenTitle,
+    fontWeight: '800',
+    marginBottom: Spacing.xs,
+  },
+  loggingSubtitle: {
+    color: Colors.textMuted,
+    fontSize: FontSize.md,
+  },
+  timerDisplay: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xl,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+
   // Progress bar
   progressBarContainer: {
     marginBottom: Spacing.lg,
@@ -577,6 +656,17 @@ const styles = StyleSheet.create({
   },
   progressLabelText: {
     color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '500',
+  },
+  progressActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  editWarmupText: {
+    color: Colors.textSecondary,
     fontSize: FontSize.sectionLabel,
     fontWeight: '500',
   },
@@ -672,25 +762,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Finish button
+  // Pinned finish button
+  pinnedFinishContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.screenHorizontal,
+    paddingBottom: Spacing.md,
+    paddingTop: Spacing.md,
+    backgroundColor: Colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
   finishButton: {
     paddingVertical: Spacing.lg,
     backgroundColor: Colors.green,
     borderRadius: BorderRadius.cardInner,
     alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  finishButtonDisabled: {
-    backgroundColor: Colors.surface,
   },
   finishButtonText: {
     color: Colors.bg,
     fontSize: FontSize.lg,
     fontWeight: '700',
     letterSpacing: 0.3,
-  },
-  finishButtonTextDisabled: {
-    color: Colors.textMuted,
   },
 
   // Picker modal

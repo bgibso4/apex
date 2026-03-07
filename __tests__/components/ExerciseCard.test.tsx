@@ -96,6 +96,37 @@ describe('ExerciseCard', () => {
     expect(onLongPressCard).toHaveBeenCalledTimes(1);
   });
 
+  it('shows "+ Add note" link when expanded and no note exists', () => {
+    render(<ExerciseCard {...defaultProps} expanded={true} />);
+    expect(screen.getByText('+ Add note')).toBeTruthy();
+  });
+
+  it('calls onNoteChange when note text is entered', () => {
+    const onNoteChange = jest.fn();
+    render(
+      <ExerciseCard
+        {...defaultProps}
+        expanded={true}
+        onNoteChange={onNoteChange}
+      />
+    );
+    fireEvent.press(screen.getByText('+ Add note'));
+    const input = screen.getByPlaceholderText('Add a note for this exercise...');
+    fireEvent.changeText(input, 'Left shoulder tight');
+    expect(onNoteChange).toHaveBeenCalledWith('Left shoulder tight');
+  });
+
+  it('shows existing note text when note prop is provided', () => {
+    render(
+      <ExerciseCard
+        {...defaultProps}
+        expanded={true}
+        note="Grip failed on last set"
+      />
+    );
+    expect(screen.getByDisplayValue('Grip failed on last set')).toBeTruthy();
+  });
+
   it('shows checkmark for completed sets', () => {
     const sets = makeSets(3, 'completed');
     render(<ExerciseCard {...defaultProps} expanded={true} sets={sets} />);

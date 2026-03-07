@@ -244,6 +244,28 @@ export async function ensureExerciseExists(exercise: {
   );
 }
 
+/** Delete a session and all related data */
+export async function deleteSession(sessionId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync('DELETE FROM set_logs WHERE session_id = ?', [sessionId]);
+  await db.runAsync('DELETE FROM exercise_notes WHERE session_id = ?', [sessionId]);
+  await db.runAsync('DELETE FROM personal_records WHERE session_id = ?', [sessionId]);
+  await db.runAsync('DELETE FROM sessions WHERE id = ?', [sessionId]);
+}
+
+/** Get an in-progress session (started but not completed) for a program */
+export async function getInProgressSession(
+  programId: string
+): Promise<Session | null> {
+  const db = await getDatabase();
+  return db.getFirstAsync<Session>(
+    `SELECT * FROM sessions
+     WHERE program_id = ? AND started_at IS NOT NULL AND completed_at IS NULL
+     ORDER BY started_at DESC LIMIT 1`,
+    [programId]
+  );
+}
+
 /** Get the most recent sets for an exercise (for pre-fill) */
 export async function getLastSessionForExercise(
   exerciseId: string,

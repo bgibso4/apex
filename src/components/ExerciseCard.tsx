@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
 import type { SetLog, ExerciseTarget } from '../types';
 
@@ -28,16 +29,19 @@ export interface ExerciseCardProps {
   onLongPressSet: (setIdx: number) => void;
   onSetRPE: (rpe: number) => void;
   onLongPressCard?: () => void;
+  note?: string;
+  onNoteChange?: (note: string) => void;
 }
 
 export function ExerciseCard({
   exerciseName, category, target, sets, rpe, expanded,
   lastWeight, lastReps, blockColor,
   onToggleExpand, onCompleteSet, onLongPressSet, onSetRPE,
-  onLongPressCard,
+  onLongPressCard, note, onNoteChange,
 }: ExerciseCardProps) {
   const allDone = sets.every(s => s.status !== 'pending');
   const completedCount = sets.filter(s => s.status !== 'pending').length;
+  const [noteVisible, setNoteVisible] = useState(!!note);
 
   // Collapsed view
   if (!expanded) {
@@ -176,6 +180,27 @@ export function ExerciseCard({
               ))}
             </View>
           </View>
+        )}
+
+        {/* Per-exercise note */}
+        {noteVisible || note ? (
+          <View style={styles.noteSection}>
+            <TextInput
+              style={styles.noteInput}
+              placeholder="Add a note for this exercise..."
+              placeholderTextColor={Colors.textMuted}
+              value={note ?? ''}
+              onChangeText={onNoteChange}
+              multiline
+            />
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.addNoteBtn}
+            onPress={() => setNoteVisible(true)}
+          >
+            <Text style={styles.addNoteText}>+ Add note</Text>
+          </TouchableOpacity>
         )}
       </View>
     </TouchableOpacity>
@@ -372,5 +397,32 @@ const styles = StyleSheet.create({
   },
   rpeBtnTextSelected: {
     color: Colors.text,
+  },
+
+  // Note
+  addNoteBtn: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surface,
+  },
+  addNoteText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+  },
+  noteSection: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surface,
+  },
+  noteInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.button,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    minHeight: 36,
   },
 });

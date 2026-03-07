@@ -1,12 +1,18 @@
-import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
+import type { PRRecord } from '../db/personal-records';
 
-export interface SummaryExercise {
-  name: string;
-  sets: { weight: number; reps: number; status: string; rpe?: number }[];
+export interface ExerciseBreakdown {
+  exerciseName: string;
+  sets: Array<{
+    setNumber: number;
+    actualWeight: number;
+    actualReps: number;
+    status: string;
+  }>;
   rpe?: number;
-  isAdhoc?: boolean;
+  note?: string;
 }
 
 export interface SessionSummaryProps {
@@ -19,16 +25,54 @@ export interface SessionSummaryProps {
   notes?: string;
   notesSaved?: boolean;
   onNotesChange?: (text: string) => void;
-  exercises?: SummaryExercise[];
+  prs?: PRRecord[];
+  editMode?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  exercises?: ExerciseBreakdown[];
+  onUpdateSet?: (exerciseIdx: number, setIdx: number, weight: number, reps: number) => void;
+  warmup?: { rope: boolean; ankle: boolean; hipIr: boolean };
+  conditioningFinisher?: string | null;
+  conditioningDone?: boolean;
+}
+
+function humanizeId(id: string): string {
+  return id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatPRDescription(pr: PRRecord): { name: string; detail: string } {
+  const name = pr.exercise_name ?? humanizeId(pr.exercise_id);
+  if (pr.record_type === 'e1rm') {
+    const diff = pr.previous_value != null ? ` (+${Math.round(pr.value - pr.previous_value)} lbs)` : '';
+    return { name, detail: `New est. 1RM: ${Math.round(pr.value)} lbs${diff}` };
+  }
+  return { name, detail: `${Math.round(pr.value)} lbs \u00D7 ${pr.rep_count} (best at ${pr.rep_count} reps)` };
 }
 
 export function SessionSummary({
   exerciseCount, setCount, duration, totalVolume,
   sessionName, weekLabel, notes, notesSaved, onNotesChange,
-  exercises,
+  prs, editMode, onEdit, onDelete, exercises, onUpdateSet,
+  warmup, conditioningFinisher, conditioningDone,
 }: SessionSummaryProps) {
+  const prCount = prs?.length ?? 0;
+
   return (
     <View style={styles.container}>
+      {/* Header with edit button */}
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }} />
+        {onEdit && (
+          <TouchableOpacity onPress={onEdit} testID="edit-button">
+            <Ionicons
+              name={editMode ? 'checkmark-circle' : 'pencil'}
+              size={22}
+              color={editMode ? Colors.green : Colors.indigo}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <Text style={styles.icon}>{'\uD83D\uDCAA'}</Text>
       <Text style={styles.title}>Workout Complete</Text>
       {sessionName && (
@@ -54,19 +98,116 @@ export function SessionSummary({
             {totalVolume != null ? 'Total lbs' : 'Exercises'}
           </Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{exerciseCount}</Text>
-          <Text style={styles.statLabel}>Exercises</Text>
+        <View style={[styles.statCard, prCount > 0 && styles.statCardPR]}>
+          <Text style={[styles.statValue, prCount > 0 && styles.statValuePR]}>{prCount}</Text>
+          <Text style={[styles.statLabel, prCount > 0 && styles.statLabelPR]}>PRs</Text>
         </View>
       </View>
 
-      {/* Exercise breakdown — tap to expand set details */}
+      {/* PR detail cards */}
+      {prs && prs.length > 0 && (
+        <View style={styles.prSection}>
+          {prs.map(pr => {
+            const { name, detail } = formatPRDescription(pr);
+            return (
+              <View key={pr.id} style={styles.prCard}>
+                <Text style={styles.prName}>{name}</Text>
+                <Text style={styles.prDetail}>{detail}</Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
+      {/* Exercise breakdown */}
       {exercises && exercises.length > 0 && (
-        <View style={styles.exerciseSection}>
-          <Text style={styles.exerciseSectionLabel}>EXERCISES</Text>
-          {exercises.map((ex, i) => (
-            <ExerciseRow key={i} exercise={ex} />
+        <View style={styles.exerciseBreakdown}>
+          <Text style={styles.breakdownTitle}>EXERCISES</Text>
+          {exercises.map((ex, exIdx) => (
+            <View key={exIdx} style={styles.breakdownCard}>
+              <View style={styles.breakdownHeader}>
+                <Text style={styles.breakdownName}>{ex.exerciseName}</Text>
+                {ex.rpe != null && (
+                  <Text style={styles.breakdownRpe}>RPE {ex.rpe}</Text>
+                )}
+              </View>
+              {ex.sets.map((set, setIdx) => (
+                <View key={setIdx} style={styles.breakdownSetRow}>
+                  <Text style={styles.breakdownSetNum}>Set {set.setNumber}</Text>
+                  {set.status === 'pending' ? (
+                    <Text style={styles.breakdownSkipped}>Skipped</Text>
+                  ) : editMode ? (
+                    <View style={styles.breakdownEditRow}>
+                      <TextInput
+                        style={styles.breakdownEditInput}
+                        defaultValue={String(set.actualWeight)}
+                        keyboardType="numeric"
+                        onEndEditing={(e) => {
+                          const newWeight = parseFloat(e.nativeEvent.text) || set.actualWeight;
+                          onUpdateSet?.(exIdx, setIdx, newWeight, set.actualReps);
+                        }}
+                      />
+                      <Text style={styles.breakdownSetDetail}> lbs × </Text>
+                      <TextInput
+                        style={styles.breakdownEditInput}
+                        defaultValue={String(set.actualReps)}
+                        keyboardType="numeric"
+                        onEndEditing={(e) => {
+                          const newReps = parseInt(e.nativeEvent.text) || set.actualReps;
+                          onUpdateSet?.(exIdx, setIdx, set.actualWeight, newReps);
+                        }}
+                      />
+                    </View>
+                  ) : (
+                    <Text style={styles.breakdownSetDetail}>
+                      {set.actualWeight} lbs × {set.actualReps}
+                    </Text>
+                  )}
+                </View>
+              ))}
+              {ex.note ? (
+                <Text style={styles.breakdownNote}>{ex.note}</Text>
+              ) : null}
+            </View>
           ))}
+        </View>
+      )}
+
+      {/* Warmup & Conditioning summary */}
+      {(warmup || conditioningFinisher) && (
+        <View style={styles.checklistSection}>
+          {warmup && (
+            <>
+              <Text style={styles.checklistTitle}>WARM UP</Text>
+              <View style={styles.checklistRow}>
+                <Ionicons name={warmup.rope ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={warmup.rope ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !warmup.rope && styles.checklistSkipped]}>Jump Rope</Text>
+              </View>
+              <View style={styles.checklistRow}>
+                <Ionicons name={warmup.ankle ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={warmup.ankle ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !warmup.ankle && styles.checklistSkipped]}>Ankle Dorsiflexion</Text>
+              </View>
+              <View style={styles.checklistRow}>
+                <Ionicons name={warmup.hipIr ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={warmup.hipIr ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !warmup.hipIr && styles.checklistSkipped]}>Hip IR Mobility</Text>
+              </View>
+            </>
+          )}
+          {conditioningFinisher && (
+            <>
+              <Text style={[styles.checklistTitle, warmup && { marginTop: Spacing.lg }]}>CONDITIONING</Text>
+              <View style={styles.checklistRow}>
+                <Ionicons name={conditioningDone ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={conditioningDone ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !conditioningDone && styles.checklistSkipped]}>
+                  {conditioningFinisher}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
       )}
 
@@ -87,59 +228,14 @@ export function SessionSummary({
           textAlignVertical="top"
         />
       </View>
-    </View>
-  );
-}
 
-function ExerciseRow({ exercise }: { exercise: SummaryExercise }) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <TouchableOpacity
-      style={styles.exerciseRow}
-      onPress={() => setExpanded(!expanded)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.exerciseNameRow}>
-        <Text style={styles.exerciseName}>{exercise.name}</Text>
-        <View style={styles.exerciseRightRow}>
-          {exercise.rpe != null && (
-            <Text style={styles.exerciseRpe}>RPE {exercise.rpe}</Text>
-          )}
-          <Text style={styles.expandArrow}>{expanded ? '\u25B2' : '\u25BC'}</Text>
-        </View>
-      </View>
-      <Text style={styles.exerciseSets}>
-        {exercise.sets.length} {exercise.sets.length === 1 ? 'set' : 'sets'}
-        {exercise.sets[0]?.weight > 0 ? ` \u00B7 ${exercise.sets[0].weight} lbs` : ''}
-        {exercise.isAdhoc ? ' \u00B7 Ad-hoc' : ''}
-      </Text>
-
-      {expanded && (
-        <View style={styles.setTable}>
-          {/* Header */}
-          <View style={styles.setGridHeader}>
-            <Text style={[styles.setGridHeaderText, { width: 32 }]}>Set</Text>
-            <Text style={[styles.setGridHeaderText, { flex: 1 }]}>Weight</Text>
-            <Text style={[styles.setGridHeaderText, { flex: 1 }]}>Reps</Text>
-            <Text style={[styles.setGridHeaderText, { width: 40 }]}>RPE</Text>
-          </View>
-          {/* Rows */}
-          {exercise.sets.map((set, si) => (
-            <View key={si} style={styles.setGridRow}>
-              <Text style={[styles.setGridValue, { width: 32 }]}>{si + 1}</Text>
-              <Text style={[styles.setGridValue, { flex: 1 }]}>
-                {set.weight > 0 ? set.weight : '\u2014'}
-              </Text>
-              <Text style={[styles.setGridValue, { flex: 1 }]}>{set.reps}</Text>
-              <Text style={[styles.setGridValue, { width: 40 }]}>
-                {set.rpe ?? '\u2014'}
-              </Text>
-            </View>
-          ))}
-        </View>
+      {/* Delete button (edit mode only) */}
+      {editMode && onDelete && (
+        <TouchableOpacity style={styles.deleteBtn} onPress={onDelete}>
+          <Text style={styles.deleteText}>Delete Workout</Text>
+        </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -148,6 +244,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: Spacing.xs,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    width: '100%',
+    marginBottom: Spacing.sm,
+  },
+  editBtn: {
+    color: Colors.indigo,
+    fontSize: FontSize.md,
+    fontWeight: '600',
   },
   icon: {
     fontSize: 48,
@@ -196,86 +303,155 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  exerciseSection: {
+  statCardPR: {
+    borderColor: `${Colors.amber}40`,
+    backgroundColor: `${Colors.amber}10`,
+  },
+  statValuePR: {
+    color: Colors.amber,
+  },
+  statLabelPR: {
+    color: Colors.amber,
+  },
+  prSection: {
+    width: '100%',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
+  },
+  prCard: {
+    backgroundColor: `${Colors.amber}10`,
+    borderWidth: 1,
+    borderColor: `${Colors.amber}30`,
+    borderRadius: BorderRadius.cardInner,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    gap: 2,
+  },
+  prName: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '700',
+  },
+  prDetail: {
+    color: Colors.amber,
+    fontSize: FontSize.body,
+    fontWeight: '500',
+  },
+  deleteBtn: {
+    marginTop: Spacing.xxl,
+    paddingVertical: Spacing.md,
+  },
+  deleteText: {
+    color: Colors.red,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+  exerciseBreakdown: {
     width: '100%',
     marginTop: Spacing.xl,
   },
-  exerciseSectionLabel: {
+  breakdownTitle: {
     color: Colors.textMuted,
     fontSize: FontSize.sectionLabel,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: Spacing.md,
   },
-  exerciseRow: {
+  breakdownCard: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.cardInner,
     padding: Spacing.lg,
     marginBottom: Spacing.sm,
   },
-  exerciseNameRow: {
+  breakdownHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: Spacing.sm,
   },
-  exerciseName: {
+  breakdownName: {
     color: Colors.text,
     fontSize: FontSize.base,
     fontWeight: '600',
-    flex: 1,
   },
-  exerciseRightRow: {
+  breakdownRpe: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  breakdownSetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+  },
+  breakdownSetNum: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+  },
+  breakdownSetDetail: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  breakdownSkipped: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+    fontStyle: 'italic',
+  },
+  breakdownEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  breakdownEditInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.button,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    color: Colors.text,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    minWidth: 50,
+    textAlign: 'center',
+  },
+  breakdownNote: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontStyle: 'italic',
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surface,
+  },
+  checklistSection: {
+    width: '100%',
+    marginTop: Spacing.xl,
+  },
+  checklistTitle: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: Spacing.sm,
+  },
+  checklistRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    paddingVertical: 3,
   },
-  exerciseRpe: {
+  checklistLabel: {
     color: Colors.textSecondary,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
+    fontSize: FontSize.body,
+    fontWeight: '500',
   },
-  expandArrow: {
-    color: Colors.textDim,
-    fontSize: 8,
-  },
-  exerciseSets: {
+  checklistSkipped: {
     color: Colors.textMuted,
-    fontSize: FontSize.sm,
   },
-
-  // Set table (expanded)
-  setTable: {
-    marginTop: Spacing.md,
-    borderTopWidth: 0.5,
-    borderTopColor: Colors.border,
-    paddingTop: Spacing.sm,
-  },
-  setGridHeader: {
-    flexDirection: 'row',
-    paddingBottom: Spacing.sm,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.border,
-  },
-  setGridHeaderText: {
-    color: Colors.textDim,
-    fontSize: FontSize.xs,
-    fontWeight: '600',
-  },
-  setGridRow: {
-    flexDirection: 'row',
-    paddingVertical: Spacing.sm,
-    alignItems: 'center',
-    borderBottomWidth: 0.5,
-    borderBottomColor: `${Colors.border}40`,
-  },
-  setGridValue: {
-    color: Colors.text,
-    fontSize: FontSize.md,
-  },
-
   noteSection: {
     width: '100%',
     marginTop: Spacing.xl,
@@ -304,7 +480,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md + 2,
+    paddingVertical: Spacing.md + 2, // 14px
     paddingHorizontal: Spacing.lg,
     color: Colors.textSecondary,
     fontSize: FontSize.md,

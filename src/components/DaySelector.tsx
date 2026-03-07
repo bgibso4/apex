@@ -56,8 +56,8 @@ const styles = StyleSheet.create({
   },
   daySelectorTitle: {
     color: Colors.text,
-    fontSize: FontSize.subtitle,
-    fontWeight: '700',
+    fontSize: FontSize.screenTitle,
+    fontWeight: '800',
     marginBottom: Spacing.md,
   },
   dayRow: {

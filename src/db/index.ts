@@ -8,3 +8,4 @@ export {
 } from './sessions';
 export { calculateEpley, getEstimated1RM, get1RMHistory, getWeeklyVolume, calculateTargetWeight } from './metrics';
 export { logRun, getRunLogs, getPainTrend } from './runs';
+export { saveExerciseNote, getExerciseNotesForSession, deleteExerciseNote } from './notes';

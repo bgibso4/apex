@@ -50,6 +50,15 @@ export default function WorkoutScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        {/* Rest Day */}
+        {w.phase === 'select' && !w.selectedTemplate && (
+          <View style={styles.restDay}>
+            <Ionicons name="moon-outline" size={48} color={Colors.textMuted} style={{ marginBottom: Spacing.lg }} />
+            <Text style={styles.restDayText}>Rest Day</Text>
+            <Text style={styles.restDaySubtext}>No workout scheduled for today</Text>
+          </View>
+        )}
+
         {/* Phase: Select */}
         {w.phase === 'select' && w.selectedTemplate && (
           <View style={styles.sessionPreview}>
@@ -456,6 +465,24 @@ const styles = StyleSheet.create({
   },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg },
+
+  // Rest day
+  restDay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 80,
+  },
+  restDayText: {
+    color: Colors.text,
+    fontSize: FontSize.sectionTitle,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
+  },
+  restDaySubtext: {
+    color: Colors.textMuted,
+    fontSize: FontSize.md,
+  },
 
   // Session preview (select phase)
   sessionPreview: {

@@ -3,7 +3,7 @@ export { getActiveProgram, getAllPrograms, importProgram, activateProgram, getOn
 export {
   createSession, updateReadiness, updateWarmup,
   logSet, updateSet, deleteSet, completeSession, updateSessionNotes,
-  getSessionsForWeek, getSetLogsForSession, getLastSessionForExercise,
+  getSessionsForWeek, getSessionsForDateRange, getSetLogsForSession, getLastSessionForExercise,
   getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists
 } from './sessions';
 export { calculateEpley, getEstimated1RM, get1RMHistory, getWeeklyVolume, calculateTargetWeight } from './metrics';

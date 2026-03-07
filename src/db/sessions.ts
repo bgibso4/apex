@@ -164,6 +164,19 @@ export async function getSessionsForWeek(
   );
 }
 
+/** Get all sessions for a program within a date range (inclusive) */
+export async function getSessionsForDateRange(
+  programId: string,
+  startDate: string,
+  endDate: string
+): Promise<Session[]> {
+  const db = await getDatabase();
+  return db.getAllAsync<Session>(
+    "SELECT * FROM sessions WHERE program_id = ? AND date >= ? AND date <= ? ORDER BY date",
+    [programId, startDate, endDate]
+  );
+}
+
 /** Get set logs for a session */
 export async function getSetLogsForSession(sessionId: string): Promise<SetLog[]> {
   const db = await getDatabase();

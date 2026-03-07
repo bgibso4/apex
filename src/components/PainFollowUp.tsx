@@ -33,7 +33,7 @@ export function PainFollowUp({ runDate, durationMin, distance, onSave, onDismiss
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>How's the pain today?</Text>
+          <Text style={styles.title}>{"How's the pain today?"}</Text>
           <Text style={styles.sub}>
             After your run on {dateLabel} {'\u00B7'} {durationMin} min
             {distance ? ` \u00B7 ${distance} mi` : ''}

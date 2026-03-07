@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   backButton: { padding: Spacing.xs },
   backArrow: { color: Colors.textDim, fontSize: FontSize.xxl },
   headerTitle: {
-    color: Colors.text, fontSize: FontSize.xl, fontWeight: '700', textTransform: 'capitalize',
+    color: Colors.text, fontSize: FontSize.xxxl, fontWeight: '800', textTransform: 'capitalize',
   },
 
   dateLine: { color: Colors.textSecondary, fontSize: FontSize.md, marginBottom: Spacing.xl },

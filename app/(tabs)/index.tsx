@@ -104,7 +104,7 @@ export default function HomeScreen() {
           <Text style={styles.programName}>{def.name}</Text>
           <Text style={styles.programWeek}>
             Week {currentWeek} of {def.duration_weeks} — {' '}
-            <Text style={styles.programWeekAccent}>{block?.name ?? 'Unknown Block'}</Text>
+            <Text style={{ color: blockColor, fontWeight: '600' }}>{block?.name ?? 'Unknown Block'}</Text>
           </Text>
         </View>
 
@@ -186,11 +186,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     fontWeight: '500',
   },
-  programWeekAccent: {
-    color: Colors.amber,
-    fontWeight: '600',
-  },
-
   // Empty state
   emptyState: {
     flex: 1,

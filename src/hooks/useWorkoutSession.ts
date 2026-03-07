@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
-  getActiveProgram, createSession, logSet, updateSet,
-  completeSession, updateReadiness, updateWarmup,
+  getActiveProgram, createSession, logSet, updateSet, deleteSet,
+  completeSession, updateReadiness, updateWarmup, updateSessionNotes,
   getLastSessionForExercise, calculateTargetWeight,
   ensureExerciseExists,
 } from '../db';
@@ -69,6 +69,10 @@ export function useWorkoutSession() {
 
   // Reorder mode
   const [reorderMode, setReorderMode] = useState(false);
+
+  // Session notes
+  const [sessionNotes, setSessionNotes] = useState('');
+  const [notesSaved, setNotesSaved] = useState(false);
 
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
@@ -157,15 +161,33 @@ export function useWorkoutSession() {
     }
 
     setExercises(exStates);
-    setPhase('readiness');
+    setPhase('warmup');
   };
 
-  /** Complete a set (1 tap) */
+  /** Complete or uncomplete a set (1 tap toggles) */
   const completeSetAction = async (exIdx: number, setIdx: number) => {
     if (!sessionId) return;
 
     const ex = exercises[exIdx];
     const set = ex.sets[setIdx];
+
+    // Toggle: if already completed, revert to pending
+    if (set.status === 'completed' || set.status === 'completed_below') {
+      if (set.id) await deleteSet(set.id);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+      setExercises(prev => {
+        const next = [...prev];
+        next[exIdx] = {
+          ...next[exIdx],
+          sets: next[exIdx].sets.map((s, i) =>
+            i === setIdx ? { ...s, status: 'pending' as const, id: undefined } : s
+          ),
+        };
+        return next;
+      });
+      return;
+    }
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
@@ -272,8 +294,17 @@ export function useWorkoutSession() {
     setOverrideModal(null);
   };
 
-  /** Set RPE for an exercise */
-  const setRPE = (exIdx: number, rpe: number) => {
+  /** Set RPE for an exercise (persists to all completed sets) */
+  const setRPE = async (exIdx: number, rpe: number) => {
+    const ex = exercises[exIdx];
+
+    // Update all completed sets in DB with this RPE
+    for (const set of ex.sets) {
+      if (set.id && (set.status === 'completed' || set.status === 'completed_below')) {
+        await updateSet(set.id, { rpe });
+      }
+    }
+
     setExercises(prev => {
       const next = [...prev];
       next[exIdx] = { ...next[exIdx], rpe };
@@ -360,6 +391,16 @@ export function useWorkoutSession() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   };
 
+  /** Save session notes */
+  const saveNotes = async (text: string) => {
+    setSessionNotes(text);
+    setNotesSaved(false);
+    if (sessionId) {
+      await updateSessionNotes(sessionId, text);
+      setNotesSaved(true);
+    }
+  };
+
   /** Complete the session */
   const finishSession = async () => {
     if (!sessionId) return;
@@ -408,6 +449,9 @@ export function useWorkoutSession() {
 
     // Reorder
     reorderMode, setReorderMode,
+
+    // Session notes
+    sessionNotes, notesSaved, saveNotes,
 
     // Actions
     selectDay,

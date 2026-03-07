@@ -128,6 +128,12 @@ export async function updateSet(
   );
 }
 
+/** Delete a set log (for uncompleting a set) */
+export async function deleteSet(setId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync('DELETE FROM set_logs WHERE id = ?', [setId]);
+}
+
 /** Complete a session */
 export async function completeSession(
   sessionId: string,
@@ -138,6 +144,12 @@ export async function completeSession(
     "UPDATE sessions SET completed_at = ?, conditioning_done = ? WHERE id = ?",
     [new Date().toISOString(), conditioningDone ? 1 : 0, sessionId]
   );
+}
+
+/** Update session notes */
+export async function updateSessionNotes(sessionId: string, notes: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync("UPDATE sessions SET notes = ? WHERE id = ?", [notes, sessionId]);
 }
 
 /** Get all sessions for a given week */

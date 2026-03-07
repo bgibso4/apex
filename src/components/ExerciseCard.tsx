@@ -135,7 +135,7 @@ export function ExerciseCard({
                     isCompleted && styles.setBtnCompleted,
                     isCurrent && styles.setBtnCurrent,
                   ]}
-                  onPress={() => isPending && onCompleteSet(setIdx)}
+                  onPress={() => onCompleteSet(setIdx)}
                   onLongPress={() => onLongPressSet(setIdx)}
                 >
                   {isCompleted ? (

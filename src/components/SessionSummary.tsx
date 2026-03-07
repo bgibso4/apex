@@ -9,12 +9,13 @@ export interface SessionSummaryProps {
   sessionName?: string;
   weekLabel?: string;
   notes?: string;
+  notesSaved?: boolean;
   onNotesChange?: (text: string) => void;
 }
 
 export function SessionSummary({
   exerciseCount, setCount, duration, totalVolume,
-  sessionName, weekLabel, notes, onNotesChange,
+  sessionName, weekLabel, notes, notesSaved, onNotesChange,
 }: SessionSummaryProps) {
   return (
     <View style={styles.container}>
@@ -50,7 +51,12 @@ export function SessionSummary({
       </View>
 
       <View style={styles.noteSection}>
-        <Text style={styles.noteLabel}>Session Notes (optional)</Text>
+        <View style={styles.noteLabelRow}>
+          <Text style={styles.noteLabel}>Session Notes (optional)</Text>
+          {notesSaved && notes && notes.length > 0 && (
+            <Text style={styles.noteSaved}>{'\u2713'} Saved</Text>
+          )}
+        </View>
         <TextInput
           style={styles.noteInput}
           placeholder="How did the session feel overall?"
@@ -80,7 +86,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSize.sectionTitle,
     fontWeight: '800',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   subtitle: {
     color: Colors.textSecondary,
@@ -92,6 +98,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.md,
     width: '100%',
+    marginTop: Spacing.xl,
     marginBottom: Spacing.xxl,
   },
   statCard: {
@@ -119,7 +126,18 @@ const styles = StyleSheet.create({
   },
   noteSection: {
     width: '100%',
-    marginTop: 'auto' as any,
+    marginTop: Spacing.xl,
+  },
+  noteLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  noteSaved: {
+    color: Colors.green,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
   },
   noteLabel: {
     color: Colors.textMuted,
@@ -127,7 +145,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: Spacing.sm,
   },
   noteInput: {
     width: '100%',

@@ -13,8 +13,6 @@ import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../sr
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
 import { getTargetForWeek } from '../../src/utils/program';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
-import { DaySelector } from '../../src/components/DaySelector';
-import { ReadinessForm } from '../../src/components/ReadinessForm';
 import { WarmupChecklist } from '../../src/components/WarmupChecklist';
 import { ExerciseCard } from '../../src/components/ExerciseCard';
 import { AdjustModal } from '../../src/components/AdjustModal';
@@ -52,16 +50,6 @@ export default function WorkoutScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <DaySelector
-          currentWeek={w.currentWeek}
-          blockName={w.block?.name}
-          blockColor={w.blockColor}
-          selectedDay={w.selectedDay}
-          trainingDays={w.trainingDays}
-          dayNames={w.dayNames}
-          onSelectDay={w.selectDay}
-        />
-
         {/* Phase: Select */}
         {w.phase === 'select' && w.selectedTemplate && (
           <View style={styles.sessionPreview}>
@@ -93,20 +81,6 @@ export default function WorkoutScreen() {
               <Text style={styles.startButtonText}>Start Session {'\u2192'}</Text>
             </TouchableOpacity>
           </View>
-        )}
-
-        {/* Phase: Readiness */}
-        {w.phase === 'readiness' && (
-          <ReadinessForm
-            sleep={w.sleep}
-            soreness={w.soreness}
-            energy={w.energy}
-            blockColor={w.blockColor}
-            onSleepChange={w.setSleep}
-            onSorenessChange={w.setSoreness}
-            onEnergyChange={w.setEnergy}
-            onContinue={w.submitReadiness}
-          />
         )}
 
         {/* Phase: Warmup */}
@@ -251,7 +225,13 @@ export default function WorkoutScreen() {
 
         {/* Phase: Complete */}
         {w.phase === 'complete' && (
-          <SessionSummary exerciseCount={exerciseCount} setCount={setCount} />
+          <SessionSummary
+            exerciseCount={exerciseCount}
+            setCount={setCount}
+            notes={w.sessionNotes}
+            notesSaved={w.notesSaved}
+            onNotesChange={w.saveNotes}
+          />
         )}
       </ScrollView>
 
@@ -437,8 +417,8 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     color: Colors.text,
-    fontSize: FontSize.xxl,
-    fontWeight: '700',
+    fontSize: FontSize.xxxl,
+    fontWeight: '800',
     marginBottom: Spacing.xs,
   },
   previewSubtitle: {

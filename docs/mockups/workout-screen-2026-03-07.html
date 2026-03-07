@@ -142,7 +142,8 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    padding: 12px 4px;
+    padding: 12px 0;
+    text-align: center;
     transition: color 0.15s;
   }
   .add-exercise-inline:hover { color: #818cf8; }
@@ -213,7 +214,7 @@
   /* Set rows */
   .set-header {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr 80px;
+    grid-template-columns: 36px 1fr 1fr 64px;
     padding: 0 4px 8px;
     font-size: 11px;
     color: #4a4a5e;
@@ -223,7 +224,7 @@
   }
   .set-row {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr 80px;
+    grid-template-columns: 36px 1fr 1fr 64px;
     align-items: center;
     padding: 10px 4px;
     border-top: 1px solid #1e1e30;
@@ -601,7 +602,8 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    padding-bottom: 100px;
+    padding-bottom: 80px;
+    margin-top: -40px;
   }
   .rest-icon {
     font-size: 48px;
@@ -619,20 +621,16 @@
     font-size: 14px;
   }
 
-  /* Edit warmup link */
+  /* Edit warmup link — below progress bar */
   .edit-warmup-link {
     color: #4a4a5e;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: color 0.15s;
+    margin-top: 4px;
   }
   .edit-warmup-link:hover { color: #6a6a80; }
-  .workout-subtitle-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
 
   /* ---- WARMUP ---- */
   .warmup-content {
@@ -962,10 +960,10 @@
     </div>
 
     <div class="tab-bar">
-      <a class="tab"><span class="tab-icon">&#8962;</span><span class="tab-label">Home</span></a>
-      <a class="tab active"><span class="tab-icon">&#127947;</span><span class="tab-label">Workout</span></a>
-      <a class="tab"><span class="tab-icon">&#128202;</span><span class="tab-label">Progress</span></a>
-      <a class="tab"><span class="tab-icon">&#127939;</span><span class="tab-label">Running</span></a>
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
     </div>
   </div>
 </div>
@@ -999,10 +997,10 @@
     </div>
 
     <div class="tab-bar">
-      <a class="tab"><span class="tab-icon">&#8962;</span><span class="tab-label">Home</span></a>
-      <a class="tab active"><span class="tab-icon">&#127947;</span><span class="tab-label">Workout</span></a>
-      <a class="tab"><span class="tab-icon">&#128202;</span><span class="tab-label">Progress</span></a>
-      <a class="tab"><span class="tab-icon">&#127939;</span><span class="tab-label">Running</span></a>
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
     </div>
   </div>
 </div>
@@ -1044,10 +1042,10 @@
     </div>
 
     <div class="tab-bar">
-      <a class="tab"><span class="tab-icon">&#8962;</span><span class="tab-label">Home</span></a>
-      <a class="tab active"><span class="tab-icon">&#127947;</span><span class="tab-label">Workout</span></a>
-      <a class="tab"><span class="tab-icon">&#128202;</span><span class="tab-label">Progress</span></a>
-      <a class="tab"><span class="tab-icon">&#127939;</span><span class="tab-label">Running</span></a>
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
     </div>
   </div>
 </div>
@@ -1066,10 +1064,7 @@
         <div class="workout-title">Upper Push</div>
         <div class="workout-timer">24:12</div>
       </div>
-      <div class="workout-subtitle-row">
-        <div class="workout-subtitle">Week 6 — Strength Block</div>
-        <span class="edit-warmup-link">Edit Warmup</span>
-      </div>
+      <div class="workout-subtitle">Week 6 — Strength Block</div>
     </div>
 
     <div class="progress-bar-container">
@@ -1080,6 +1075,7 @@
         <span>2 of 6 exercises</span>
         <span>8 / 22 sets</span>
       </div>
+      <span class="edit-warmup-link">Edit Warmup</span>
     </div>
 
     <div class="workout-content">
@@ -1169,8 +1165,6 @@
         </div>
       </div>
 
-      <div class="add-exercise-inline">+ Add Exercise</div>
-
       <!-- Conditioning -->
       <div class="conditioning-card">
         <div class="conditioning-left">
@@ -1179,6 +1173,8 @@
         </div>
         <div class="checkbox"></div>
       </div>
+
+      <div class="add-exercise-inline">+ Add Exercise</div>
 
       <!-- spacer for pinned finish button -->
       <div style="height: 8px; flex-shrink: 0;"></div>
@@ -1189,10 +1185,10 @@
     </div>
 
     <div class="tab-bar">
-      <a class="tab"><span class="tab-icon">&#8962;</span><span class="tab-label">Home</span></a>
-      <a class="tab active"><span class="tab-icon">&#127947;</span><span class="tab-label">Workout</span></a>
-      <a class="tab"><span class="tab-icon">&#128202;</span><span class="tab-label">Progress</span></a>
-      <a class="tab"><span class="tab-icon">&#127939;</span><span class="tab-label">Running</span></a>
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
     </div>
   </div>
 </div>
@@ -1211,10 +1207,7 @@
         <div class="workout-title">Upper Push</div>
         <div class="workout-timer">28:36</div>
       </div>
-      <div class="workout-subtitle-row">
-        <div class="workout-subtitle">Week 6 — Strength Block</div>
-        <span class="edit-warmup-link">Edit Warmup</span>
-      </div>
+      <div class="workout-subtitle">Week 6 — Strength Block</div>
     </div>
 
     <div class="progress-bar-container">
@@ -1225,6 +1218,7 @@
         <span>3 of 6 exercises</span>
         <span>10 / 22 sets</span>
       </div>
+      <span class="edit-warmup-link">Edit Warmup</span>
     </div>
 
     <div class="workout-content">
@@ -1312,8 +1306,6 @@
         </div>
       </div>
 
-      <div class="add-exercise-inline">+ Add Exercise</div>
-
       <div class="conditioning-card">
         <div class="conditioning-left">
           <span class="conditioning-label">Conditioning Finisher</span>
@@ -1321,6 +1313,8 @@
         </div>
         <div class="checkbox"></div>
       </div>
+
+      <div class="add-exercise-inline">+ Add Exercise</div>
 
       <div style="height: 8px; flex-shrink: 0;"></div>
     </div>
@@ -1330,10 +1324,10 @@
     </div>
 
     <div class="tab-bar">
-      <a class="tab"><span class="tab-icon">&#8962;</span><span class="tab-label">Home</span></a>
-      <a class="tab active"><span class="tab-icon">&#127947;</span><span class="tab-label">Workout</span></a>
-      <a class="tab"><span class="tab-icon">&#128202;</span><span class="tab-label">Progress</span></a>
-      <a class="tab"><span class="tab-icon">&#127939;</span><span class="tab-label">Running</span></a>
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
     </div>
   </div>
 </div>
@@ -1428,10 +1422,10 @@
     </div>
 
     <div class="tab-bar">
-      <a class="tab"><span class="tab-icon">&#8962;</span><span class="tab-label">Home</span></a>
-      <a class="tab active"><span class="tab-icon">&#127947;</span><span class="tab-label">Workout</span></a>
-      <a class="tab"><span class="tab-icon">&#128202;</span><span class="tab-label">Progress</span></a>
-      <a class="tab"><span class="tab-icon">&#127939;</span><span class="tab-label">Running</span></a>
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
     </div>
   </div>
 </div>
@@ -1559,10 +1553,10 @@
     </div>
 
     <div class="tab-bar">
-      <a class="tab"><span class="tab-icon">&#8962;</span><span class="tab-label">Home</span></a>
-      <a class="tab active"><span class="tab-icon">&#127947;</span><span class="tab-label">Workout</span></a>
-      <a class="tab"><span class="tab-icon">&#128202;</span><span class="tab-label">Progress</span></a>
-      <a class="tab"><span class="tab-icon">&#127939;</span><span class="tab-label">Running</span></a>
+      <a class="tab"><span class="tab-icon">⌂</span><span class="tab-label">Home</span></a>
+      <a class="tab active"><span class="tab-icon">🏋</span><span class="tab-label">Workout</span></a>
+      <a class="tab"><span class="tab-icon">📊</span><span class="tab-label">Progress</span></a>
+      <a class="tab"><span class="tab-icon">🏃</span><span class="tab-label">Running</span></a>
     </div>
   </div>
 </div>

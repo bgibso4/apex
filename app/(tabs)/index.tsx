@@ -4,13 +4,14 @@
  * today's session card, and quick stats.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, RefreshControl
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h } from '../../src/db';
 import {
@@ -23,6 +24,8 @@ import type { MonthCalendarDay } from '../../src/components/MonthCalendar';
 import { TodayCard } from '../../src/components/TodayCard';
 import { PainFollowUp } from '../../src/components/PainFollowUp';
 import type { Program, ProgramDefinition, Session, RunLog } from '../../src/types';
+
+let hasAnimatedOnce = false;
 
 /** Get the first and last day of a month as YYYY-MM-DD strings */
 function getMonthDateRange(year: number, month: number): { startDate: string; endDate: string } {
@@ -158,6 +161,14 @@ export default function HomeScreen() {
     return days;
   }, [displayYear, displayMonth, monthSessions, trainingDayIndices]);
 
+  const shouldAnimate = !hasAnimatedOnce;
+
+  useEffect(() => {
+    if (!hasAnimatedOnce) {
+      hasAnimatedOnce = true;
+    }
+  }, []);
+
   if (!program || !def) {
     return (
       <View style={styles.container}>
@@ -200,81 +211,91 @@ export default function HomeScreen() {
         </View>
 
         {/* Program context */}
-        <View style={styles.programContext}>
-          <Text style={styles.programName}>{def.name}</Text>
-          <Text style={styles.programWeek}>
-            Week {currentWeek} of {def.duration_weeks} — {' '}
-            <Text style={{ color: blockColor, fontWeight: '600' }}>{block?.name ?? 'Unknown Block'}</Text>
-          </Text>
-        </View>
+        <Animated.View entering={shouldAnimate ? FadeInDown.delay(0).duration(300) : undefined}>
+          <View style={styles.programContext}>
+            <Text style={styles.programName}>{def.name}</Text>
+            <Text style={styles.programWeek}>
+              Week {currentWeek} of {def.duration_weeks} — {' '}
+              <Text style={{ color: blockColor, fontWeight: '600' }}>{block?.name ?? 'Unknown Block'}</Text>
+            </Text>
+          </View>
+        </Animated.View>
 
-        <ProgramTimeline
-          durationWeeks={def.duration_weeks}
-          blocks={def.blocks}
-          currentWeek={currentWeek}
-        />
+        <Animated.View entering={shouldAnimate ? FadeInDown.delay(80).duration(300) : undefined}>
+          <ProgramTimeline
+            durationWeeks={def.duration_weeks}
+            blocks={def.blocks}
+            currentWeek={currentWeek}
+          />
+        </Animated.View>
 
         {/* Pain follow-up prompt (24h after a run) */}
         {pendingFollowUp && (
-          <PainFollowUp
-            runDate={pendingFollowUp.date}
-            durationMin={pendingFollowUp.duration_min}
-            distance={pendingFollowUp.distance}
-            onSave={async (painLevel) => {
-              await updateRunPain24h(pendingFollowUp.id, painLevel);
-              setPendingFollowUp(null);
-            }}
-            onDismiss={() => setPendingFollowUp(null)}
-          />
+          <Animated.View entering={shouldAnimate ? FadeInDown.delay(160).duration(300) : undefined}>
+            <PainFollowUp
+              runDate={pendingFollowUp.date}
+              durationMin={pendingFollowUp.duration_min}
+              distance={pendingFollowUp.distance}
+              onSave={async (painLevel) => {
+                await updateRunPain24h(pendingFollowUp.id, painLevel);
+                setPendingFollowUp(null);
+              }}
+              onDismiss={() => setPendingFollowUp(null)}
+            />
+          </Animated.View>
         )}
 
-        <TodayCard
-          todayTemplate={todayTemplate}
-          isCompleted={completedDays.includes(todayKey)}
-          blockColor={blockColor}
-          completedStats={completedStats ?? undefined}
-          nextSessionName={nextTraining?.name}
-          nextSessionLabel={nextTraining?.label}
-          onPress={() => {
-            if (completedDays.includes(todayKey) && todaySessionId) {
-              router.push(`/session/${todaySessionId}`);
-            } else {
-              router.push('/workout');
-            }
-          }}
-        />
+        <Animated.View entering={shouldAnimate ? FadeInDown.delay(240).duration(300) : undefined}>
+          <TodayCard
+            todayTemplate={todayTemplate}
+            isCompleted={completedDays.includes(todayKey)}
+            blockColor={blockColor}
+            completedStats={completedStats ?? undefined}
+            nextSessionName={nextTraining?.name}
+            nextSessionLabel={nextTraining?.label}
+            onPress={() => {
+              if (completedDays.includes(todayKey) && todaySessionId) {
+                router.push(`/session/${todaySessionId}`);
+              } else {
+                router.push('/workout');
+              }
+            }}
+          />
+        </Animated.View>
 
-        <MonthCalendar
-          year={displayYear}
-          month={displayMonth}
-          days={calendarDays}
-          blockColor={blockColor}
-          onDayPress={(day) => {
-            if (day.isCompleted && day.sessionId) {
-              router.push(`/session/${day.sessionId}`);
-            }
-          }}
-          onPrevMonth={() => {
-            if (displayMonth === 0) {
-              setDisplayMonth(11);
-              setDisplayYear(y => y - 1);
-            } else {
-              setDisplayMonth(m => m - 1);
-            }
-          }}
-          onNextMonth={
-            displayYear < now.getFullYear() || displayMonth < now.getMonth()
-              ? () => {
-                  if (displayMonth === 11) {
-                    setDisplayMonth(0);
-                    setDisplayYear(y => y + 1);
-                  } else {
-                    setDisplayMonth(m => m + 1);
+        <Animated.View entering={shouldAnimate ? FadeInDown.delay(320).duration(300) : undefined}>
+          <MonthCalendar
+            year={displayYear}
+            month={displayMonth}
+            days={calendarDays}
+            blockColor={blockColor}
+            onDayPress={(day) => {
+              if (day.isCompleted && day.sessionId) {
+                router.push(`/session/${day.sessionId}`);
+              }
+            }}
+            onPrevMonth={() => {
+              if (displayMonth === 0) {
+                setDisplayMonth(11);
+                setDisplayYear(y => y - 1);
+              } else {
+                setDisplayMonth(m => m - 1);
+              }
+            }}
+            onNextMonth={
+              displayYear < now.getFullYear() || displayMonth < now.getMonth()
+                ? () => {
+                    if (displayMonth === 11) {
+                      setDisplayMonth(0);
+                      setDisplayYear(y => y + 1);
+                    } else {
+                      setDisplayMonth(m => m + 1);
+                    }
                   }
-                }
-              : undefined
-          }
-        />
+                : undefined
+            }
+          />
+        </Animated.View>
       </ScrollView>
     </View>
   );

@@ -31,6 +31,9 @@ export interface SessionSummaryProps {
   onDelete?: () => void;
   exercises?: ExerciseBreakdown[];
   onUpdateSet?: (exerciseIdx: number, setIdx: number, weight: number, reps: number) => void;
+  warmup?: { rope: boolean; ankle: boolean; hipIr: boolean };
+  conditioningFinisher?: string | null;
+  conditioningDone?: boolean;
 }
 
 function humanizeId(id: string): string {
@@ -50,6 +53,7 @@ export function SessionSummary({
   exerciseCount, setCount, duration, totalVolume,
   sessionName, weekLabel, notes, notesSaved, onNotesChange,
   prs, editMode, onEdit, onDelete, exercises, onUpdateSet,
+  warmup, conditioningFinisher, conditioningDone,
 }: SessionSummaryProps) {
   const prCount = prs?.length ?? 0;
 
@@ -63,7 +67,7 @@ export function SessionSummary({
             <Ionicons
               name={editMode ? 'checkmark-circle' : 'pencil'}
               size={22}
-              color={Colors.indigo}
+              color={editMode ? Colors.green : Colors.indigo}
             />
           </TouchableOpacity>
         )}
@@ -130,7 +134,9 @@ export function SessionSummary({
               {ex.sets.map((set, setIdx) => (
                 <View key={setIdx} style={styles.breakdownSetRow}>
                   <Text style={styles.breakdownSetNum}>Set {set.setNumber}</Text>
-                  {editMode ? (
+                  {set.status === 'pending' ? (
+                    <Text style={styles.breakdownSkipped}>Skipped</Text>
+                  ) : editMode ? (
                     <View style={styles.breakdownEditRow}>
                       <TextInput
                         style={styles.breakdownEditInput}
@@ -164,6 +170,44 @@ export function SessionSummary({
               ) : null}
             </View>
           ))}
+        </View>
+      )}
+
+      {/* Warmup & Conditioning summary */}
+      {(warmup || conditioningFinisher) && (
+        <View style={styles.checklistSection}>
+          {warmup && (
+            <>
+              <Text style={styles.checklistTitle}>WARM UP</Text>
+              <View style={styles.checklistRow}>
+                <Ionicons name={warmup.rope ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={warmup.rope ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !warmup.rope && styles.checklistSkipped]}>Jump Rope</Text>
+              </View>
+              <View style={styles.checklistRow}>
+                <Ionicons name={warmup.ankle ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={warmup.ankle ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !warmup.ankle && styles.checklistSkipped]}>Ankle Dorsiflexion</Text>
+              </View>
+              <View style={styles.checklistRow}>
+                <Ionicons name={warmup.hipIr ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={warmup.hipIr ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !warmup.hipIr && styles.checklistSkipped]}>Hip IR Mobility</Text>
+              </View>
+            </>
+          )}
+          {conditioningFinisher && (
+            <>
+              <Text style={[styles.checklistTitle, warmup && { marginTop: Spacing.lg }]}>CONDITIONING</Text>
+              <View style={styles.checklistRow}>
+                <Ionicons name={conditioningDone ? 'checkmark-circle' : 'close-circle-outline'} size={16}
+                  color={conditioningDone ? Colors.green : Colors.textMuted} />
+                <Text style={[styles.checklistLabel, !conditioningDone && styles.checklistSkipped]}>
+                  {conditioningFinisher}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
       )}
 
@@ -353,6 +397,11 @@ const styles = StyleSheet.create({
     fontSize: FontSize.body,
     fontWeight: '600',
   },
+  breakdownSkipped: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+    fontStyle: 'italic',
+  },
   breakdownEditRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -376,6 +425,32 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
     borderTopColor: Colors.surface,
+  },
+  checklistSection: {
+    width: '100%',
+    marginTop: Spacing.xl,
+  },
+  checklistTitle: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: Spacing.sm,
+  },
+  checklistRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: 3,
+  },
+  checklistLabel: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '500',
+  },
+  checklistSkipped: {
+    color: Colors.textMuted,
   },
   noteSection: {
     width: '100%',

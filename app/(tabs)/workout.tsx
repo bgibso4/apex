@@ -301,7 +301,7 @@ export default function WorkoutScreen() {
             }}
             exercises={w.exercises.map(ex => ({
               exerciseName: ex.exerciseName,
-              sets: ex.sets.filter(s => s.status !== 'pending').map(s => ({
+              sets: ex.sets.map(s => ({
                 setNumber: s.setNumber,
                 actualWeight: s.actualWeight,
                 actualReps: s.actualReps,
@@ -313,6 +313,9 @@ export default function WorkoutScreen() {
             onUpdateSet={(exIdx, setIdx, weight, reps) => {
               w.updateSetInSummary(exIdx, setIdx, weight, reps);
             }}
+            warmup={{ rope: w.warmupRope, ankle: w.warmupAnkle, hipIr: w.warmupHipIr }}
+            conditioningFinisher={w.conditioningFinisher}
+            conditioningDone={w.conditioningDone}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}
@@ -328,7 +331,21 @@ export default function WorkoutScreen() {
         >
           <TouchableOpacity
             style={styles.finishButton}
-            onPress={w.finishSession}
+            onPress={() => {
+              const pendingSets = totalSets - setCount;
+              if (pendingSets > 0) {
+                Alert.alert(
+                  'Finish Early?',
+                  `You have ${pendingSets} set${pendingSets > 1 ? 's' : ''} remaining. Finish anyway?`,
+                  [
+                    { text: 'Keep Going', style: 'cancel' },
+                    { text: 'Finish', onPress: w.finishSession },
+                  ]
+                );
+              } else {
+                w.finishSession();
+              }
+            }}
             activeOpacity={0.8}
           >
             <Text style={styles.finishButtonText}>Finish Workout</Text>

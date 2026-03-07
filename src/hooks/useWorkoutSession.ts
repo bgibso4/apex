@@ -495,12 +495,9 @@ export function useWorkoutSession() {
     setConditioningDone(false);
   };
 
-  /** Complete the session */
-  const finishSession = async () => {
+  /** Re-detect PRs from current set logs */
+  const recalculatePRs = async () => {
     if (!sessionId) return;
-    await completeSession(sessionId, conditioningDone);
-
-    // Detect PRs
     const setLogs = await getSetLogsForSession(sessionId);
     const detectedPRs = await detectPRs(
       sessionId,
@@ -513,6 +510,14 @@ export function useWorkoutSession() {
       }))
     );
     setPRs(detectedPRs);
+  };
+
+  /** Complete the session */
+  const finishSession = async () => {
+    if (!sessionId) return;
+    await completeSession(sessionId, conditioningDone);
+
+    await recalculatePRs();
 
     // Freeze timer before stopping it
     setFinalDuration(timerDisplay);
@@ -582,7 +587,7 @@ export function useWorkoutSession() {
     conditioningFinisher,
 
     // Edit mode
-    editMode, setEditMode,
+    editMode, setEditMode, recalculatePRs,
 
     // Phase control (for Edit Warmup)
     setPhase,

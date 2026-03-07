@@ -288,7 +288,13 @@ export default function WorkoutScreen() {
             weekLabel={`Week ${w.currentWeek}`}
             prs={w.prs}
             editMode={w.editMode}
-            onEdit={() => w.setEditMode(!w.editMode)}
+            onEdit={() => {
+              if (w.editMode) {
+                // Exiting edit mode — recalculate PRs with updated values
+                w.recalculatePRs();
+              }
+              w.setEditMode(!w.editMode);
+            }}
             onDelete={() => {
               Alert.alert(
                 'Delete Workout',

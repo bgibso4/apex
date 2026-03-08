@@ -9,9 +9,10 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } 
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency } from '../../src/db';
+import { getActiveProgram, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
-import { getBlockColorMap } from '../../src/utils/blockColors';
+import { getBlockColorMap, getBlockColorMuted } from '../../src/utils/blockColors';
+import type { E1RMHistoryPoint } from '../../src/db';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
@@ -35,7 +36,34 @@ type TimeRange = 'program' | 'all';
 
 interface LiftData {
   e1rm: Estimated1RM | null;
-  history: { date: string; e1rm: number }[];
+  history: E1RMHistoryPoint[];
+}
+
+function buildBands(
+  history: E1RMHistoryPoint[],
+  colorMap: Record<string, string>
+): { startIndex: number; endIndex: number; label: string; color: string }[] {
+  if (history.length === 0) return [];
+  const bands: { startIndex: number; endIndex: number; label: string; color: string }[] = [];
+  let current = { start: 0, block: history[0].blockName };
+  for (let i = 1; i < history.length; i++) {
+    if (history[i].blockName !== current.block) {
+      bands.push({
+        startIndex: current.start,
+        endIndex: i - 1,
+        label: current.block,
+        color: getBlockColorMuted(colorMap[current.block] ?? Colors.indigo),
+      });
+      current = { start: i, block: history[i].blockName };
+    }
+  }
+  bands.push({
+    startIndex: current.start,
+    endIndex: history.length - 1,
+    label: current.block,
+    color: getBlockColorMuted(colorMap[current.block] ?? Colors.indigo),
+  });
+  return bands;
 }
 
 export default function ProgressScreen() {
@@ -59,7 +87,7 @@ export default function ProgressScreen() {
       ALL_LIFTS.map(async (lift) => {
         const [e1rm, history] = await Promise.all([
           getEstimated1RM(lift.id),
-          get1RMHistory(lift.id, 12),
+          get1RMHistoryWithBlocks(lift.id, { limit: 12 }),
         ]);
         return [lift.id, { e1rm, history }] as [string, LiftData];
       })
@@ -184,6 +212,7 @@ export default function ProgressScreen() {
                     height={60}
                     viewBoxHeight={60}
                     areaOpacity={0.1}
+                    bands={buildBands(history, blockColorMap)}
                     xLabels={history.length > 0
                       ? history.map((_, i) => i === history.length - 1 ? `W${history.length}` : (i === 0 ? 'W1' : ''))
                         .filter(l => l !== '')

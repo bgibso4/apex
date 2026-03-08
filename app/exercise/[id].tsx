@@ -187,6 +187,25 @@ export default function ExerciseDetailScreen() {
         {/* 1RM Trend Chart */}
         <View style={styles.chartCard}>
           <Text style={styles.cardTitle}>1RM Progression</Text>
+          {bands.length > 0 && (
+            <View style={styles.bandLabelRow}>
+              {bands.map((band, i) => (
+                <View
+                  key={i}
+                  style={[styles.bandLabel, {
+                    flex: band.endIndex - band.startIndex + 1,
+                  }]}
+                >
+                  <View style={[styles.bandLabelDot, {
+                    backgroundColor: band.color.replace(/18$/, ''),
+                  }]} />
+                  <Text style={styles.bandLabelText} numberOfLines={1}>
+                    {band.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
           {history.length >= 2 ? (
             <TrendLineChart
               lines={[{
@@ -207,7 +226,7 @@ export default function ExerciseDetailScreen() {
               })()}
               yLabels={yLabels}
               bands={bands}
-              showBandLabels={true}
+              showBandLabels={false}
             />
           ) : (
             <View style={styles.chartEmpty}>
@@ -390,6 +409,26 @@ const styles = StyleSheet.create({
     fontSize: FontSize.body,
     fontWeight: '600',
     marginBottom: Spacing.md,
+  },
+  bandLabelRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  bandLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  bandLabelDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  bandLabelText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
   },
 
   // Section label

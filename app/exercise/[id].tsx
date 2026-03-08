@@ -212,8 +212,8 @@ export default function ExerciseDetailScreen() {
                 data: history.map(h => ({ value: h.e1rm })),
                 color: Colors.indigo,
               }]}
-              height={120}
-              viewBoxHeight={80}
+              height={140}
+              viewBoxHeight={100}
               areaOpacity={0.1}
               xLabels={(() => {
                 if (history.length <= 3) return history.map(h => formatShortDate(h.date));

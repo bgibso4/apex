@@ -257,14 +257,14 @@ export default function TrendLineChart({
                   }
 
                   // Show dots at regular intervals (every 2nd point, or all if <6)
-                  const showEveryN = filteredData.length > 6 ? 2 : 1;
+                  const showEveryN = filteredData.length > 12 ? 3 : filteredData.length > 6 ? 2 : 1;
                   if (i % showEveryN !== 0 && filteredData.length > 4) return null;
 
                   return (
                     <Circle
                       key={`dot-${li}-${i}`}
                       cx={cx} cy={cy}
-                      r={line.dashed ? 3 : 3.5}
+                      r={line.dashed ? 3 : (filteredData.length > 10 ? 3 : 3.5)}
                       fill={line.color}
                       opacity={line.dashed ? 0.5 : 1}
                     />

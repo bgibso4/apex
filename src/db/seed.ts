@@ -99,14 +99,20 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
   );
   if (existing && existing.count > 5) return 0;
 
-  // Ensure exercises exist
+  // Ensure exercises exist — main lifts + accessories
   const exercises = [
-    { id: 'back_squat', name: 'Back Squat', type: 'compound', muscle_groups: '["quads","glutes"]' },
-    { id: 'bench_press', name: 'Bench Press', type: 'compound', muscle_groups: '["chest","triceps"]' },
-    { id: 'overhead_press', name: 'Overhead Press', type: 'compound', muscle_groups: '["shoulders","triceps"]' },
-    { id: 'weighted_pullup', name: 'Weighted Pull-up', type: 'compound', muscle_groups: '["back","biceps"]' },
-    { id: 'romanian_deadlift', name: 'Romanian Deadlift', type: 'compound', muscle_groups: '["hamstrings","glutes"]' },
-    { id: 'zercher_squat', name: 'Zercher Squat', type: 'compound', muscle_groups: '["quads","core"]' },
+    { id: 'back_squat', name: 'Back Squat', type: 'compound', muscle_groups: '["Legs"]' },
+    { id: 'bench_press', name: 'Bench Press', type: 'compound', muscle_groups: '["Chest"]' },
+    { id: 'overhead_press', name: 'Overhead Press', type: 'compound', muscle_groups: '["Shoulders"]' },
+    { id: 'weighted_pullup', name: 'Weighted Pull-up', type: 'compound', muscle_groups: '["Back"]' },
+    { id: 'romanian_deadlift', name: 'Romanian Deadlift', type: 'compound', muscle_groups: '["Legs"]' },
+    { id: 'zercher_squat', name: 'Zercher Squat', type: 'compound', muscle_groups: '["Legs"]' },
+    { id: 'barbell_curl', name: 'Barbell Curl', type: 'isolation', muscle_groups: '["Arms"]' },
+    { id: 'lateral_raises', name: 'Lateral Raises', type: 'isolation', muscle_groups: '["Shoulders"]' },
+    { id: 'leg_curl', name: 'Leg Curl', type: 'isolation', muscle_groups: '["Legs"]' },
+    { id: 'face_pulls', name: 'Face Pulls', type: 'isolation', muscle_groups: '["Back"]' },
+    { id: 'hanging_leg_raise', name: 'Hanging Leg Raise', type: 'isolation', muscle_groups: '["Core"]' },
+    { id: 'dumbbell_row', name: 'Dumbbell Row', type: 'compound', muscle_groups: '["Back"]' },
   ];
 
   for (const ex of exercises) {
@@ -125,13 +131,17 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
         scheduled_day, actual_day, date, sleep, soreness, energy,
         warmup_rope, warmup_ankle, warmup_hip_ir, conditioning_done,
         started_at, completed_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 1, 1, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
         s.day, s.day, s.date,
         3 + Math.round(Math.random() * 2), // sleep 3-5
         2 + Math.round(Math.random() * 2), // soreness 2-4
         3 + Math.round(Math.random() * 2), // energy 3-5
+        s.warmupRope ? 1 : 0,
+        s.warmupAnkle ? 1 : 0,
+        s.warmupHipIr ? 1 : 0,
+        s.conditioningDone ? 1 : 0,
         s.startedAt, s.completedAt,
       ]
     );
@@ -154,21 +164,40 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
   return count;
 }
 
-function generateSessionData(programId: string, exercises: { id: string }[]) {
-  const sessions: {
-    id: string;
-    weekNumber: number;
-    blockName: string;
-    dayTemplateId: string;
-    day: string;
-    date: string;
-    startedAt: string;
-    completedAt: string;
-    sets: { exerciseId: string; setNumber: number; weight: number; reps: number; rpe: number }[];
-  }[] = [];
+/** Deterministic-ish pattern for warmup/conditioning variation */
+function warmupPattern(sessionIndex: number, rate: number): boolean {
+  // Use a simple hash-like pattern based on session index to be deterministic
+  const patterns: Record<number, number[]> = {
+    85: [1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,1],
+    70: [1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,1],
+    60: [1,1,0,1,0,1,0,1,1,0,0,1,1,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1,0,1,1],
+    75: [1,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1],
+  };
+  const pattern = patterns[rate] ?? patterns[75];
+  return pattern[sessionIndex % pattern.length] === 1;
+}
+
+interface SessionData {
+  id: string;
+  weekNumber: number;
+  blockName: string;
+  dayTemplateId: string;
+  day: string;
+  date: string;
+  startedAt: string;
+  completedAt: string;
+  warmupRope: boolean;
+  warmupAnkle: boolean;
+  warmupHipIr: boolean;
+  conditioningDone: boolean;
+  sets: { exerciseId: string; setNumber: number; weight: number; reps: number; rpe: number }[];
+}
+
+function generateSessionData(programId: string, exercises: { id: string }[]): SessionData[] {
+  const sessions: SessionData[] = [];
 
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 42); // 6 weeks ago
+  startDate.setDate(startDate.getDate() - 70); // 10 weeks ago
 
   // Day rotation
   const daySchedule = [
@@ -178,16 +207,65 @@ function generateSessionData(programId: string, exercises: { id: string }[]) {
     { day: 'friday', template: 'strength_lower' },
   ];
 
-  // Base weights (will progress over weeks)
+  // Base weights
   const baseWeights: Record<string, number> = {
-    back_squat: 185, bench_press: 155, overhead_press: 95,
-    weighted_pullup: 25, romanian_deadlift: 165, zercher_squat: 135,
+    back_squat: 225,
+    bench_press: 185,
+    overhead_press: 115,
+    weighted_pullup: 35,
+    romanian_deadlift: 195,
+    zercher_squat: 155,
+    barbell_curl: 75,
+    lateral_raises: 20,
+    leg_curl: 100,
+    face_pulls: 40,
+    hanging_leg_raise: 0,
+    dumbbell_row: 65,
   };
 
-  for (let week = 1; week <= 6; week++) {
-    const blockName = week <= 3 ? 'Hypertrophy' : 'Strength';
+  // Upper accessories and lower accessories
+  const upperAccessories = ['barbell_curl', 'lateral_raises', 'face_pulls', 'dumbbell_row'];
+  const lowerAccessories = ['leg_curl', 'hanging_leg_raise'];
 
-    for (const sched of daySchedule) {
+  // Sessions to skip: (week, dayIndex) pairs — ~90% completion
+  // Skip 1 in week 2, 1 in week 4, 2 in week 7
+  const skippedSessions = new Set([
+    '2-2', // week 2, thursday
+    '4-3', // week 4, friday
+    '7-0', // week 7, monday
+    '7-2', // week 7, thursday
+  ]);
+
+  // Block structure
+  function getBlock(week: number): { name: string; sets: number; reps: number; weightMult: number } {
+    if (week <= 4) return { name: 'Hypertrophy', sets: 4, reps: 10, weightMult: 1.0 };
+    if (week === 5) return { name: 'Deload', sets: 3, reps: 8, weightMult: 0.6 };
+    if (week <= 9) return { name: 'Strength', sets: 4, reps: 5, weightMult: 1.15 };
+    return { name: 'Deload', sets: 3, reps: 8, weightMult: 0.6 };
+  }
+
+  // RPE by block phase
+  function getRpeRange(week: number): [number, number] {
+    if (week <= 2) return [6, 7];   // early hypertrophy
+    if (week <= 4) return [7, 8];   // mid hypertrophy
+    if (week === 5) return [5, 6];  // deload
+    if (week <= 7) return [7, 8];   // early strength
+    if (week <= 9) return [8, 9];   // peak strength
+    return [5, 6];                  // deload
+  }
+
+  let sessionIndex = 0;
+
+  for (let week = 1; week <= 10; week++) {
+    const block = getBlock(week);
+    const [rpeMin, rpeMax] = getRpeRange(week);
+
+    for (let di = 0; di < daySchedule.length; di++) {
+      const sched = daySchedule[di];
+
+      // Check if this session is skipped
+      if (skippedSessions.has(`${week}-${di}`)) continue;
+
       const d = new Date(startDate);
       // Find the right day of the week
       const dayIdx = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(sched.day);
@@ -200,38 +278,86 @@ function generateSessionData(programId: string, exercises: { id: string }[]) {
       const completed = new Date(started);
       completed.setMinutes(completed.getMinutes() + 45 + Math.round(Math.random() * 20));
 
-      // Pick 3 exercises for this session
-      const sessionExercises = sched.template.includes('upper')
+      const isUpper = sched.template.includes('upper');
+
+      // Pick 3 main exercises
+      const mainExercises = isUpper
         ? [exercises[1], exercises[2], exercises[3]] // bench, OHP, pullup
         : [exercises[0], exercises[4], exercises[5]]; // squat, RDL, zercher
 
-      const sets: { exerciseId: string; setNumber: number; weight: number; reps: number; rpe: number }[] = [];
+      // Pick 2 accessories — rotate through available options
+      const accessoryPool = isUpper ? upperAccessories : lowerAccessories;
+      const acc1Id = accessoryPool[sessionIndex % accessoryPool.length];
+      const acc2Id = accessoryPool[(sessionIndex + 1) % accessoryPool.length];
+      const accessoryExercises = [
+        exercises.find(e => e.id === acc1Id)!,
+        exercises.find(e => e.id === acc2Id)!,
+      ];
 
-      for (const ex of sessionExercises) {
+      const sets: SessionData['sets'] = [];
+
+      // Week progression multiplier (within each block phase)
+      let weekProgression: number;
+      if (week <= 4) {
+        weekProgression = 1 + (week - 1) * 0.025; // +2.5% per week in hypertrophy
+      } else if (week === 5) {
+        weekProgression = 1.0; // deload uses weightMult directly
+      } else if (week <= 9) {
+        weekProgression = 1 + (week - 6) * 0.025; // +2.5% per week in strength
+      } else {
+        weekProgression = 1.0; // deload
+      }
+
+      // Main lifts
+      for (const ex of mainExercises) {
         const base = baseWeights[ex.id] ?? 100;
-        const weekMultiplier = 1 + (week - 1) * 0.025; // 2.5% per week
-        const numSets = blockName === 'Hypertrophy' ? 4 : 3;
-        const repsTarget = blockName === 'Hypertrophy' ? 10 : 5;
+        const weight = Math.round((base * block.weightMult * weekProgression) / 5) * 5;
 
-        for (let s = 1; s <= numSets; s++) {
-          const weight = Math.round((base * weekMultiplier) / 5) * 5; // Round to nearest 5
-          const reps = repsTarget + (Math.random() > 0.7 ? 1 : 0); // Occasionally hit +1
-          const rpe = 7 + Math.round(Math.random() * 2); // RPE 7-9
+        for (let s = 1; s <= block.sets; s++) {
+          // Vary reps slightly: occasionally +1 or -1
+          const repVariation = (sessionIndex + s) % 7 === 0 ? 1 : (sessionIndex + s) % 11 === 0 ? -1 : 0;
+          const reps = Math.max(1, block.reps + repVariation);
+          const rpe = rpeMin + ((sessionIndex + s) % (rpeMax - rpeMin + 1));
           sets.push({ exerciseId: ex.id, setNumber: s, weight, reps, rpe });
         }
       }
 
+      // Accessory lifts — lighter, higher reps, 3 sets
+      for (const ex of accessoryExercises) {
+        const base = baseWeights[ex.id] ?? 30;
+        // Accessories don't change much with blocks, just light progression
+        const weight = base === 0 ? 0 : Math.round((base * (1 + (week - 1) * 0.015)) / 5) * 5;
+        const accReps = 10 + ((sessionIndex) % 3); // 10-12
+
+        for (let s = 1; s <= 3; s++) {
+          const rpe = Math.min(rpeMin + 1, 8); // accessories capped at RPE 8
+          sets.push({ exerciseId: ex.id, setNumber: s, weight, reps: accReps, rpe });
+        }
+      }
+
+      // Warmup/conditioning variation
+      const warmupRope = warmupPattern(sessionIndex, 85);
+      const warmupAnkle = warmupPattern(sessionIndex, 70);
+      const warmupHipIr = warmupPattern(sessionIndex, 60);
+      const conditioningDone = warmupPattern(sessionIndex, 75);
+
       sessions.push({
         id: sessionId,
         weekNumber: week,
-        blockName,
+        blockName: block.name,
         dayTemplateId: sched.template,
         day: sched.day,
         date: d.toISOString().split('T')[0],
         startedAt: started.toISOString(),
         completedAt: completed.toISOString(),
+        warmupRope,
+        warmupAnkle,
+        warmupHipIr,
+        conditioningDone,
         sets,
       });
+
+      sessionIndex++;
     }
   }
 

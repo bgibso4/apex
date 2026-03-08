@@ -113,7 +113,9 @@ export default function ProgressScreen() {
 
         const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
         setConsistencyData(consistency);
-        setCurrentWeek(getCurrentWeek(program.activated_date));
+        if (program.activated_date) {
+          setCurrentWeek(getCurrentWeek(program.activated_date));
+        }
       }
 
       if (timeRange === 'all') {
@@ -299,7 +301,7 @@ export default function ProgressScreen() {
           <TouchableOpacity
             style={styles.allExercisesLink}
             activeOpacity={0.7}
-            onPress={() => router.push('/exercises')}
+            onPress={() => router.push('/exercises' as any)}
           >
             <Text style={styles.allExercisesText}>All Exercises</Text>
             <Ionicons name="arrow-forward" size={14} color={Colors.indigo} />
@@ -480,7 +482,7 @@ export default function ProgressScreen() {
                   )}% — {consistencyData.reduce((s, w) => s + w.completed, 0)}/{consistencyData.reduce((s, w) => s + w.planned, 0)} sessions
                 </Text>
                 {consistencyData.map((week) => {
-                  let color = Colors.textDim;
+                  let color: string = Colors.textDim;
                   if (week.completed >= week.planned) {
                     color = Colors.green;
                   } else if (week.completed > 0 && week.week === currentWeek) {
@@ -540,7 +542,7 @@ export default function ProgressScreen() {
           {protocolData.length > 0 ? (
             protocolData.map((item) => {
               const pct = item.total > 0 ? Math.round(item.completed / item.total * 100) : 0;
-              let color = Colors.textDim;
+              let color: string = Colors.textDim;
               if (pct >= 80) color = Colors.green;
               else if (pct >= 50) color = Colors.amber;
               return (

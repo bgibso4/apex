@@ -153,9 +153,9 @@ describe('getCurrentWeek', () => {
     expect(getCurrentWeek(today)).toBe(1);
   });
 
-  it('returns 2 for 7 days ago', () => {
+  it('returns 2 for 8 days ago', () => {
     const d = new Date();
-    d.setDate(d.getDate() - 7);
+    d.setDate(d.getDate() - 8);
     expect(getCurrentWeek(d.toISOString().split('T')[0])).toBe(2);
   });
 

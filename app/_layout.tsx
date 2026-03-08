@@ -64,8 +64,7 @@ export default function RootLayout() {
           <Stack.Screen
             name="exercises"
             options={{
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
+              animation: 'slide_from_right',
             }}
           />
           <Stack.Screen name="settings" />

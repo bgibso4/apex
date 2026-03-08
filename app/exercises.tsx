@@ -1,5 +1,5 @@
 /**
- * APEX — All Exercises Screen (modal)
+ * APEX — All Exercises Screen
  * Lists all exercises the user has ever logged, grouped by muscle group.
  * Each exercise is tappable to navigate to its detail view.
  */
@@ -86,14 +86,13 @@ export default function ExercisesScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>All Exercises</Text>
         <TouchableOpacity
-          style={styles.closeButton}
+          style={styles.backButton}
           onPress={() => router.back()}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Ionicons name="close" size={24} color={Colors.textSecondary} />
+          <Ionicons name="chevron-back" size={22} color={Colors.textDim} />
         </TouchableOpacity>
+        <Text style={styles.title}>All Exercises</Text>
       </View>
 
       {loading ? (
@@ -165,19 +164,23 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.md,
     paddingTop: Spacing.screenTop,
     paddingHorizontal: Spacing.screenHorizontal,
     paddingBottom: Spacing.md,
+  },
+  backButton: {
+    width: Spacing.xxxl,
+    height: Spacing.xxxl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.button,
   },
   title: {
     color: Colors.text,
     fontSize: FontSize.screenTitle,
     fontWeight: '800',
-  },
-  closeButton: {
-    padding: Spacing.xs,
   },
   scroll: {
     flex: 1,

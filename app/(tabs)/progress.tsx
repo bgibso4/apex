@@ -88,6 +88,16 @@ export default function ProgressScreen() {
     }
 
     // Load volume and consistency
+    if (!program) {
+      setVolumeData([]);
+      setPlannedVolume([]);
+      setBlockColorMap({});
+      setConsistencyData([]);
+      setAllTimeConsistency([]);
+      setAllTimeProgramVolumes([]);
+      setCurrentWeek(0);
+      setProgramBoundaries([]);
+    }
     if (program) {
       const trainingDaysPerWeek = getTrainingDays(program.definition.program.weekly_template).length;
 

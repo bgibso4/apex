@@ -71,6 +71,9 @@ export default function ProgressScreen() {
       const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
       setConsistencyData(consistency);
       setCurrentWeek(getCurrentWeek(program.activated_date));
+
+      const allTime = await getAllTimeConsistency(trainingDaysPerWeek);
+      setAllTimeConsistency(allTime);
     }
   }, []);
 

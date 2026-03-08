@@ -185,9 +185,9 @@ export default function ExerciseDetailScreen() {
         </View>
 
         {/* 1RM Trend Chart */}
-        {history.length >= 2 && (
-          <View style={styles.chartCard}>
-            <Text style={styles.cardTitle}>1RM Progression</Text>
+        <View style={styles.chartCard}>
+          <Text style={styles.cardTitle}>1RM Progression</Text>
+          {history.length >= 2 ? (
             <TrendLineChart
               lines={[{
                 data: history.map(h => ({ value: h.e1rm })),
@@ -209,8 +209,16 @@ export default function ExerciseDetailScreen() {
               bands={bands}
               showBandLabels={true}
             />
-          </View>
-        )}
+          ) : (
+            <View style={styles.chartEmpty}>
+              <Text style={styles.chartEmptyText}>
+                {history.length === 0
+                  ? 'No sessions in this time range'
+                  : 'Need at least 2 sessions for a chart'}
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* Session History */}
         <Text style={styles.sectionLabel}>Recent Sessions</Text>
@@ -472,5 +480,16 @@ const styles = StyleSheet.create({
     color: Colors.textDim,
     fontSize: FontSize.md,
     textAlign: 'center',
+  },
+
+  // Chart empty state
+  chartEmpty: {
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chartEmptyText: {
+    color: Colors.textDim,
+    fontSize: FontSize.sm,
   },
 });

@@ -7,8 +7,8 @@ export {
   getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists,
   deleteSession, getInProgressSession
 } from './sessions';
-export { calculateEpley, getEstimated1RM, get1RMHistory, get1RMHistoryWithBlocks, getWeeklyVolume, calculateTargetWeight, getExerciseSetHistory, getExerciseSetHistoryWithBlocks, getExerciseSessionCount, getTrainingConsistency, getAllTimeConsistency } from './metrics';
-export type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency } from './metrics';
+export { calculateEpley, getEstimated1RM, get1RMHistory, get1RMHistoryWithBlocks, getWeeklyVolume, calculateTargetWeight, getExerciseSetHistory, getExerciseSetHistoryWithBlocks, getExerciseSessionCount, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency } from './metrics';
+export type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency, ProtocolItem } from './metrics';
 export { logRun, getRunLogs, getPainTrend, getRunStats, updateRunPain24h, getPendingPainFollowUp } from './runs';
 export { saveExerciseNote, getExerciseNotesForSession, deleteExerciseNote } from './notes';
 export { detectPRs, getPRsForSession, deletePRsForSession, PR_REP_COUNTS } from './personal-records';

@@ -386,6 +386,53 @@ export async function getExerciseSessionCount(exerciseId: string): Promise<numbe
   return row?.count ?? 0;
 }
 
+/** Protocol item for warmup/finisher consistency tracking */
+export interface ProtocolItem {
+  name: string;
+  completed: number;
+  total: number;
+}
+
+/** Get warmup/finisher protocol consistency for a program (or all time) */
+export async function getProtocolConsistency(
+  programId: string | null
+): Promise<ProtocolItem[]> {
+  const db = await getDatabase();
+
+  let sql = `SELECT
+       COUNT(*) as total,
+       SUM(warmup_rope) as warmup_rope_count,
+       SUM(warmup_ankle) as warmup_ankle_count,
+       SUM(warmup_hip_ir) as warmup_hip_ir_count,
+       SUM(conditioning_done) as conditioning_done_count
+     FROM sessions
+     WHERE completed_at IS NOT NULL`;
+
+  const params: string[] = [];
+
+  if (programId !== null) {
+    sql += `\n       AND program_id = ?`;
+    params.push(programId);
+  }
+
+  const row = await db.getFirstAsync<{
+    total: number;
+    warmup_rope_count: number;
+    warmup_ankle_count: number;
+    warmup_hip_ir_count: number;
+    conditioning_done_count: number;
+  }>(sql, params);
+
+  const total = row?.total ?? 0;
+
+  return [
+    { name: 'Jump Rope', completed: row?.warmup_rope_count ?? 0, total },
+    { name: 'Ankle Protocol', completed: row?.warmup_ankle_count ?? 0, total },
+    { name: 'Hip IR Work', completed: row?.warmup_hip_ir_count ?? 0, total },
+    { name: 'Conditioning', completed: row?.conditioning_done_count ?? 0, total },
+  ];
+}
+
 /** Get recent set history for an exercise (for exercise detail page) */
 export async function getExerciseSetHistory(
   exerciseId: string,

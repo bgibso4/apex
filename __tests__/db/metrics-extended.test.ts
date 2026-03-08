@@ -8,9 +8,10 @@ import {
   getExerciseSessionCount,
   getTrainingConsistency,
   getAllTimeConsistency,
+  getProtocolConsistency,
   calculateEpley,
 } from '../../src/db/metrics';
-import type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency } from '../../src/db/metrics';
+import type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency, ProtocolItem } from '../../src/db/metrics';
 import { getDatabase, generateId } from '../../src/db/database';
 
 jest.mock('../../src/db/database', () => ({
@@ -586,5 +587,90 @@ describe('getAllTimeConsistency', () => {
     const result = await getAllTimeConsistency(3);
 
     expect(result[0].planned).toBe(12); // 4 weeks * 3 days
+  });
+});
+
+describe('getProtocolConsistency', () => {
+  let mockDb: {
+    getFirstAsync: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb = {
+      getFirstAsync: jest.fn(),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+  });
+
+  it('returns completion rate per protocol item', async () => {
+    mockDb.getFirstAsync.mockResolvedValue({
+      total: 10,
+      warmup_rope_count: 8,
+      warmup_ankle_count: 6,
+      warmup_hip_ir_count: 7,
+      conditioning_done_count: 5,
+    });
+
+    const result = await getProtocolConsistency('prog-1');
+
+    expect(result).toEqual([
+      { name: 'Jump Rope', completed: 8, total: 10 },
+      { name: 'Ankle Protocol', completed: 6, total: 10 },
+      { name: 'Hip IR Work', completed: 7, total: 10 },
+      { name: 'Conditioning', completed: 5, total: 10 },
+    ]);
+  });
+
+  it('queries all programs when programId is null (SQL should NOT contain program_id)', async () => {
+    mockDb.getFirstAsync.mockResolvedValue({
+      total: 5,
+      warmup_rope_count: 3,
+      warmup_ankle_count: 2,
+      warmup_hip_ir_count: 4,
+      conditioning_done_count: 1,
+    });
+
+    await getProtocolConsistency(null);
+
+    const call = mockDb.getFirstAsync.mock.calls[0];
+    const sql = call[0] as string;
+    expect(sql).not.toContain('program_id');
+  });
+
+  it('handles zero sessions gracefully', async () => {
+    mockDb.getFirstAsync.mockResolvedValue({
+      total: 0,
+      warmup_rope_count: 0,
+      warmup_ankle_count: 0,
+      warmup_hip_ir_count: 0,
+      conditioning_done_count: 0,
+    });
+
+    const result = await getProtocolConsistency('prog-1');
+
+    expect(result).toEqual([
+      { name: 'Jump Rope', completed: 0, total: 0 },
+      { name: 'Ankle Protocol', completed: 0, total: 0 },
+      { name: 'Hip IR Work', completed: 0, total: 0 },
+      { name: 'Conditioning', completed: 0, total: 0 },
+    ]);
+  });
+
+  it('filters by programId when provided', async () => {
+    mockDb.getFirstAsync.mockResolvedValue({
+      total: 3,
+      warmup_rope_count: 2,
+      warmup_ankle_count: 1,
+      warmup_hip_ir_count: 3,
+      conditioning_done_count: 0,
+    });
+
+    await getProtocolConsistency('prog-abc');
+
+    const call = mockDb.getFirstAsync.mock.calls[0];
+    const sql = call[0] as string;
+    expect(sql).toContain('program_id');
+    expect(call[1]).toContain('prog-abc');
   });
 });

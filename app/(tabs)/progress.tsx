@@ -9,10 +9,10 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } 
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency } from '../../src/db';
+import { getActiveProgram, getAllPrograms, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getProgramBoundaries } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
 import { getBlockColorMap, getBlockColorMuted } from '../../src/utils/blockColors';
-import type { E1RMHistoryPoint } from '../../src/db';
+import type { E1RMHistoryPoint, ProgramBoundary } from '../../src/db';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
@@ -33,6 +33,13 @@ const COMPACT_LIFTS = [
 const ALL_LIFTS = [...TOP_LIFTS, ...COMPACT_LIFTS];
 
 type TimeRange = 'program' | 'all';
+
+interface ProgramVolumeData {
+  programName: string;
+  volumeData: { week: number; totalSets: number }[];
+  plannedVolume: PlannedWeekVolume[];
+  blockColorMap: Record<string, string>;
+}
 
 interface LiftData {
   e1rm: Estimated1RM | null;
@@ -77,6 +84,8 @@ export default function ProgressScreen() {
   const [plannedVolume, setPlannedVolume] = useState<PlannedWeekVolume[]>([]);
   const [blockColorMap, setBlockColorMap] = useState<Record<string, string>>({});
   const [protocolData, setProtocolData] = useState<ProtocolItem[]>([]);
+  const [programBoundaries, setProgramBoundaries] = useState<ProgramBoundary[]>([]);
+  const [allTimeProgramVolumes, setAllTimeProgramVolumes] = useState<ProgramVolumeData[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -87,37 +96,70 @@ export default function ProgressScreen() {
       ALL_LIFTS.map(async (lift) => {
         const [e1rm, history] = await Promise.all([
           getEstimated1RM(lift.id),
-          get1RMHistoryWithBlocks(lift.id, { limit: 12 }),
+          timeRange === 'all'
+            ? get1RMHistoryWithBlocks(lift.id, { limit: 50 })
+            : get1RMHistoryWithBlocks(lift.id, { limit: 12 }),
         ]);
         return [lift.id, { e1rm, history }] as [string, LiftData];
       })
     );
     setLiftData(new Map(entries));
 
+    // Load program boundaries for All Time mode
+    if (timeRange === 'all') {
+      const boundaries = await getProgramBoundaries();
+      setProgramBoundaries(boundaries);
+    }
+
     // Load volume and consistency
     if (program) {
       const trainingDaysPerWeek = getTrainingDays(program.definition.program.weekly_template).length;
-      const vol = await getWeeklyVolume(program.id);
-      setVolumeData(vol);
 
-      const planned = getPlannedWeeklyVolume(program.definition, program.duration_weeks);
-      setPlannedVolume(planned);
+      if (timeRange === 'program') {
+        const vol = await getWeeklyVolume(program.id);
+        setVolumeData(vol);
 
-      const colorMap = getBlockColorMap(program.definition.program.blocks);
-      setBlockColorMap(colorMap);
+        const planned = getPlannedWeeklyVolume(program.definition, program.duration_weeks);
+        setPlannedVolume(planned);
 
-      const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
-      setConsistencyData(consistency);
-      setCurrentWeek(getCurrentWeek(program.activated_date));
+        const colorMap = getBlockColorMap(program.definition.program.blocks);
+        setBlockColorMap(colorMap);
 
-      const allTime = await getAllTimeConsistency(trainingDaysPerWeek);
-      setAllTimeConsistency(allTime);
+        const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
+        setConsistencyData(consistency);
+        setCurrentWeek(getCurrentWeek(program.activated_date));
+      }
+
+      if (timeRange === 'all') {
+        // All Time volume: per-program breakdown
+        const allPrograms = await getAllPrograms();
+        const activeCompleted = allPrograms.filter(p => p.status === 'active' || p.status === 'completed');
+        const programVolumes: ProgramVolumeData[] = [];
+
+        for (const prog of activeCompleted) {
+          const definition = JSON.parse(prog.definition_json);
+          const vol = await getWeeklyVolume(prog.id);
+          const planned = getPlannedWeeklyVolume(definition, prog.duration_weeks);
+          const colors = getBlockColorMap(definition.program.blocks);
+          programVolumes.push({
+            programName: prog.name,
+            volumeData: vol,
+            plannedVolume: planned,
+            blockColorMap: colors,
+          });
+        }
+        setAllTimeProgramVolumes(programVolumes);
+
+        // All Time consistency
+        const allConsistency = await getAllTimeConsistency(trainingDaysPerWeek);
+        setAllTimeConsistency(allConsistency);
+      }
     }
 
-    // Protocol consistency
-    const protocols = await getProtocolConsistency(program ? program.id : null);
+    // Protocol consistency — null for all time, programId for program
+    const protocols = await getProtocolConsistency(timeRange === 'program' && program ? program.id : null);
     setProtocolData(protocols);
-  }, []);
+  }, [timeRange]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
@@ -281,7 +323,59 @@ export default function ProgressScreen() {
 
         {/* Volume Trend */}
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Weekly Volume</Text>
-        {mergedVolume.length > 0 ? (
+        {timeRange === 'all' ? (
+          allTimeProgramVolumes.length > 0 ? (
+            allTimeProgramVolumes.map((prog) => {
+              const progMerged = prog.plannedVolume.map(pv => {
+                const actual = prog.volumeData.find(v => v.week === pv.week);
+                return {
+                  week: pv.week,
+                  actual: actual?.totalSets ?? 0,
+                  planned: pv.plannedSets,
+                  blockName: pv.blockName,
+                };
+              });
+              const progMax = Math.max(...prog.plannedVolume.map(v => v.plannedSets), ...prog.volumeData.map(v => v.totalSets), 1);
+
+              return (
+                <View key={prog.programName} style={{ marginBottom: Spacing.lg }}>
+                  <Text style={styles.programVolumeHeader}>{prog.programName}</Text>
+                  {progMerged.length > 0 ? (
+                    <View style={styles.chart}>
+                      {progMerged.map((entry, i) => (
+                        <View key={i} style={styles.chartBarCol}>
+                          <View style={[styles.bar, {
+                            height: `${(entry.planned / progMax) * 100}%`,
+                            backgroundColor: Colors.surface,
+                            position: 'absolute',
+                            bottom: 0,
+                            width: '80%',
+                          }]} />
+                          <View style={[styles.bar, {
+                            height: `${(entry.actual / progMax) * 100}%`,
+                            backgroundColor: prog.blockColorMap[entry.blockName] ?? Colors.indigo,
+                          }]} />
+                          <Text style={styles.chartLabel}>W{entry.week}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <View style={styles.emptyChart}>
+                      <Text style={styles.emptyChartText}>No volume data</Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })
+          ) : (
+            <View style={styles.emptyChart}>
+              <Ionicons name="bar-chart-outline" size={48} color={Colors.textMuted} />
+              <Text style={styles.emptyChartText}>
+                No program data available
+              </Text>
+            </View>
+          )
+        ) : mergedVolume.length > 0 ? (
           <View style={styles.chart}>
             {mergedVolume.map((entry, i) => (
               <View key={i} style={styles.chartBarCol}>
@@ -655,5 +749,11 @@ const styles = StyleSheet.create({
     fontSize: FontSize.body,
     fontWeight: '600',
     marginBottom: Spacing.lg,
+  },
+  programVolumeHeader: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
   },
 });

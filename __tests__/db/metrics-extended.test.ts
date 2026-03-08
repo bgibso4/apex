@@ -675,6 +675,120 @@ describe('getProtocolConsistency', () => {
   });
 });
 
+describe('getLoggedExercises', () => {
+  const { getLoggedExercises } = require('../../src/db/metrics');
+
+  let mockDb: {
+    getAllAsync: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb = {
+      getAllAsync: jest.fn(),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+  });
+
+  it('returns distinct exercises that have been logged, with muscleGroups parsed from JSON', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { id: 'ex-1', name: 'Bench Press', muscle_groups: '["chest","triceps"]' },
+      { id: 'ex-2', name: 'Squat', muscle_groups: '["quads","glutes"]' },
+    ]);
+
+    const result = await getLoggedExercises();
+
+    expect(result).toEqual([
+      { id: 'ex-1', name: 'Bench Press', muscleGroups: ['chest', 'triceps'] },
+      { id: 'ex-2', name: 'Squat', muscleGroups: ['quads', 'glutes'] },
+    ]);
+  });
+
+  it('returns empty array when no exercises have been logged', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    const result = await getLoggedExercises();
+
+    expect(result).toEqual([]);
+  });
+
+  it('queries with correct SQL (DISTINCT, JOIN, status filter, ORDER BY name)', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await getLoggedExercises();
+
+    const call = mockDb.getAllAsync.mock.calls[0];
+    const sql = call[0] as string;
+    expect(sql).toContain('DISTINCT');
+    expect(sql).toContain('set_logs');
+    expect(sql).toContain("'completed'");
+    expect(sql).toContain("'completed_below'");
+    expect(sql).toContain('ORDER BY');
+    expect(sql).toContain('name');
+  });
+
+  it('handles empty muscle_groups JSON gracefully', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { id: 'ex-1', name: 'Cable Fly', muscle_groups: '[]' },
+    ]);
+
+    const result = await getLoggedExercises();
+
+    expect(result[0].muscleGroups).toEqual([]);
+  });
+});
+
+describe('getProgramBoundaries', () => {
+  const { getProgramBoundaries } = require('../../src/db/metrics');
+
+  let mockDb: {
+    getAllAsync: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb = {
+      getAllAsync: jest.fn(),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+  });
+
+  it('returns program name and date boundaries', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { id: 'prog-1', name: 'Strength Block', activated_date: '2026-01-01', duration_weeks: 8 },
+      { id: 'prog-2', name: 'Hypertrophy Block', activated_date: '2026-03-01', duration_weeks: 6 },
+    ]);
+
+    const result = await getProgramBoundaries();
+
+    expect(result).toEqual([
+      { programId: 'prog-1', programName: 'Strength Block', startDate: '2026-01-01', durationWeeks: 8 },
+      { programId: 'prog-2', programName: 'Hypertrophy Block', startDate: '2026-03-01', durationWeeks: 6 },
+    ]);
+  });
+
+  it('returns empty array when no programs match', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    const result = await getProgramBoundaries();
+
+    expect(result).toEqual([]);
+  });
+
+  it('queries for active/completed programs with activated_date, ordered by activated_date ASC', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await getProgramBoundaries();
+
+    const call = mockDb.getAllAsync.mock.calls[0];
+    const sql = call[0] as string;
+    expect(sql).toContain("'active'");
+    expect(sql).toContain("'completed'");
+    expect(sql).toContain('activated_date');
+    expect(sql).toContain('ORDER BY');
+  });
+});
+
 describe('getPlannedWeeklyVolume', () => {
   const { getPlannedWeeklyVolume } = require('../../src/db/metrics');
   type ProgramDefinition = import('../../src/types/program').ProgramDefinition;

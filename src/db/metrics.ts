@@ -524,3 +524,66 @@ export function getPlannedWeeklyVolume(
 
   return result;
 }
+
+/** An exercise that has at least one completed set_log */
+export interface LoggedExercise {
+  id: string;
+  name: string;
+  muscleGroups: string[];
+}
+
+/** Get distinct exercises that have at least one completed set_log */
+export async function getLoggedExercises(): Promise<LoggedExercise[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{
+    id: string;
+    name: string;
+    muscle_groups: string;
+  }>(
+    `SELECT DISTINCT e.id, e.name, e.muscle_groups
+     FROM exercises e
+     JOIN set_logs sl ON sl.exercise_id = e.id
+     WHERE sl.status IN ('completed', 'completed_below')
+     ORDER BY e.name ASC`
+  );
+
+  return rows.map(row => ({
+    id: row.id,
+    name: row.name,
+    muscleGroups: JSON.parse(row.muscle_groups),
+  }));
+}
+
+/** Program boundary info for timeline overlays */
+export interface ProgramBoundary {
+  programId: string;
+  programName: string;
+  startDate: string;
+  durationWeeks: number;
+}
+
+/** Get program boundaries (active/completed programs with activation dates) */
+export async function getProgramBoundaries(): Promise<ProgramBoundary[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{
+    id: string;
+    name: string;
+    activated_date: string;
+    duration_weeks: number;
+  }>(
+    `SELECT id, name, activated_date, duration_weeks
+     FROM programs
+     WHERE status IN ('active', 'completed')
+       AND activated_date IS NOT NULL
+     ORDER BY activated_date ASC`
+  );
+
+  return rows.map(row => ({
+    programId: row.id,
+    programName: row.name,
+    startDate: row.activated_date,
+    durationWeeks: row.duration_weeks,
+  }));
+}

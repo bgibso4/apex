@@ -9,12 +9,13 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } 
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency } from '../../src/db';
+import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
+import { getBlockColorMap } from '../../src/utils/blockColors';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
-import type { WeekConsistency, ProgramConsistency, ProtocolItem } from '../../src/db';
+import type { WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume } from '../../src/db';
 
 const TOP_LIFTS = [
   { id: 'back_squat', name: 'Back Squat' },
@@ -45,6 +46,8 @@ export default function ProgressScreen() {
   const [consistencyData, setConsistencyData] = useState<WeekConsistency[]>([]);
   const [allTimeConsistency, setAllTimeConsistency] = useState<ProgramConsistency[]>([]);
   const [currentWeek, setCurrentWeek] = useState<number>(0);
+  const [plannedVolume, setPlannedVolume] = useState<PlannedWeekVolume[]>([]);
+  const [blockColorMap, setBlockColorMap] = useState<Record<string, string>>({});
   const [protocolData, setProtocolData] = useState<ProtocolItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -68,6 +71,12 @@ export default function ProgressScreen() {
       const trainingDaysPerWeek = getTrainingDays(program.definition.program.weekly_template).length;
       const vol = await getWeeklyVolume(program.id);
       setVolumeData(vol);
+
+      const planned = getPlannedWeeklyVolume(program.definition, program.duration_weeks);
+      setPlannedVolume(planned);
+
+      const colorMap = getBlockColorMap(program.definition.program.blocks);
+      setBlockColorMap(colorMap);
 
       const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
       setConsistencyData(consistency);
@@ -95,7 +104,17 @@ export default function ProgressScreen() {
     return history[history.length - 1].e1rm - history[0].e1rm;
   };
 
-  const maxVolume = Math.max(...volumeData.map(v => v.totalSets), 1);
+  const maxVolume = Math.max(...plannedVolume.map(v => v.plannedSets), ...volumeData.map(v => v.totalSets), 1);
+
+  const mergedVolume = plannedVolume.map(pv => {
+    const actual = volumeData.find(v => v.week === pv.week);
+    return {
+      week: pv.week,
+      actual: actual?.totalSets ?? 0,
+      planned: pv.plannedSets,
+      blockName: pv.blockName,
+    };
+  });
 
   return (
     <View style={styles.container}>
@@ -233,7 +252,28 @@ export default function ProgressScreen() {
 
         {/* Volume Trend */}
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Weekly Volume</Text>
-        {volumeData.length > 0 ? (
+        {mergedVolume.length > 0 ? (
+          <View style={styles.chart}>
+            {mergedVolume.map((entry, i) => (
+              <View key={i} style={styles.chartBarCol}>
+                {/* Planned (background) */}
+                <View style={[styles.bar, {
+                  height: `${(entry.planned / maxVolume) * 100}%`,
+                  backgroundColor: Colors.surface,
+                  position: 'absolute',
+                  bottom: 0,
+                  width: '80%',
+                }]} />
+                {/* Actual (foreground) */}
+                <View style={[styles.bar, {
+                  height: `${(entry.actual / maxVolume) * 100}%`,
+                  backgroundColor: blockColorMap[entry.blockName] ?? Colors.indigo,
+                }]} />
+                <Text style={styles.chartLabel}>W{entry.week}</Text>
+              </View>
+            ))}
+          </View>
+        ) : volumeData.length > 0 ? (
           <View style={styles.chart}>
             {volumeData.map((v, i) => (
               <View key={i} style={styles.chartBarCol}>

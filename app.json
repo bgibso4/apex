@@ -12,7 +12,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.apex.app"
+      "bundleIdentifier": "com.bgibso4.apex"
     },
     "plugins": [
       "expo-router",

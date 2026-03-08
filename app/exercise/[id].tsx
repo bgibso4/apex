@@ -102,7 +102,6 @@ export default function ExerciseDetailScreen() {
   const [recentSessions, setRecentSessions] = useState<SessionSetHistory[]>([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [showCount, setShowCount] = useState(5);
-  const [programId, setProgramId] = useState<string | undefined>();
   const [activatedDate, setActivatedDate] = useState<string | undefined>();
   const [blocks, setBlocks] = useState<{ name: string }[]>([]);
 
@@ -114,7 +113,6 @@ export default function ExerciseDetailScreen() {
     const progId = program?.id;
     const actDate = program?.activated_date;
     const progBlocks = program?.definition?.program?.blocks ?? [];
-    setProgramId(progId);
     setActivatedDate(actDate);
     setBlocks(progBlocks);
 

@@ -372,19 +372,32 @@ export async function getAllTimeConsistency(
 }
 
 /** Count distinct sessions where an exercise was logged */
-export async function getExerciseSessionCount(exerciseId: string): Promise<number> {
+export async function getExerciseSessionCount(
+  exerciseId: string,
+  options?: { startDate?: string; programId?: string }
+): Promise<number> {
   const db = await getDatabase();
 
-  const row = await db.getFirstAsync<{ count: number }>(
-    `SELECT COUNT(DISTINCT sl.session_id) as count
+  let sql = `SELECT COUNT(DISTINCT sl.session_id) as count
      FROM set_logs sl
      JOIN sessions s ON s.id = sl.session_id
      WHERE sl.exercise_id = ?
        AND sl.status IN ('completed', 'completed_below')
-       AND s.completed_at IS NOT NULL`,
-    [exerciseId]
-  );
+       AND s.completed_at IS NOT NULL`;
 
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    sql += `\n       AND s.date >= ?`;
+    params.push(options.startDate);
+  }
+
+  if (options?.programId) {
+    sql += `\n       AND s.program_id = ?`;
+    params.push(options.programId);
+  }
+
+  const row = await db.getFirstAsync<{ count: number }>(sql, params);
   return row?.count ?? 0;
 }
 

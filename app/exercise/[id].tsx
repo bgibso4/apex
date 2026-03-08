@@ -97,7 +97,7 @@ export default function ExerciseDetailScreen() {
       getEstimated1RM(id),
       get1RMHistoryWithBlocks(id, { startDate, programId: filterProgramId }),
       getExerciseSetHistoryWithBlocks(id, { startDate, programId: filterProgramId, limit: showCount }),
-      getExerciseSessionCount(id),
+      getExerciseSessionCount(id, { startDate, programId: filterProgramId }),
     ]);
     setE1rm(rm);
     setHistory(hist);

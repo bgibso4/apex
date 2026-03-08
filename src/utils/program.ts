@@ -5,6 +5,7 @@
 
 import type { ProgramDefinition, Block, DayTemplate, ExerciseSlot, ExerciseTarget } from '../types';
 import { calculateTargetWeight } from '../db/metrics';
+import { getBlockColorMap } from './blockColors';
 
 /** Day order for the weekly template */
 export const DAY_ORDER = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
@@ -22,12 +23,8 @@ export function getBlockForWeek(blocks: Block[], weekNumber: number): Block | un
 
 /** Get block color based on emphasis/name */
 export function getBlockColor(block: Block): string {
-  const name = block.name.toLowerCase();
-  if (name.includes('hypertrophy') || name.includes('work capacity')) return '#6366f1';
-  if (name.includes('deload')) return '#22c55e';
-  if (name.includes('strength')) return '#f59e0b';
-  if (name.includes('realization') || name.includes('peak')) return '#ec4899';
-  return '#6366f1';
+  const map = getBlockColorMap([block]);
+  return map[block.name] ?? '#6366f1';
 }
 
 /** Get training days (non-rest) from the weekly template */

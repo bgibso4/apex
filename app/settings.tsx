@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
-import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram } from '../src/db';
+import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData } from '../src/db';
 
 type WeightUnit = 'lbs' | 'kg';
 
@@ -49,7 +49,18 @@ export default function SettingsScreen() {
       'This will permanently delete all sessions, programs, and history. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete Everything', style: 'destructive', onPress: () => {} },
+        {
+          text: 'Delete Everything',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearAllData();
+              Alert.alert('Data Cleared', 'All data has been deleted.');
+            } catch (err: any) {
+              Alert.alert('Error', err.message ?? 'Failed to clear data');
+            }
+          },
+        },
       ],
     );
   };

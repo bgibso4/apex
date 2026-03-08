@@ -1,4 +1,4 @@
-export { getDatabase, generateId } from './database';
+export { getDatabase, generateId, clearAllData } from './database';
 export { getActiveProgram, getAllPrograms, importProgram, activateProgram, getOneRmValues } from './programs';
 export {
   createSession, updateReadiness, updateWarmup,

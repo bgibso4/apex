@@ -85,6 +85,21 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   return db;
 }
 
+/** Delete all user data (sessions, programs, logs, etc.) but keep the schema intact */
+export async function clearAllData(): Promise<void> {
+  const db = await getDatabase();
+  await db.execAsync(`
+    DELETE FROM personal_records;
+    DELETE FROM exercise_notes;
+    DELETE FROM set_logs;
+    DELETE FROM sessions;
+    DELETE FROM programs;
+    DELETE FROM run_logs;
+    DELETE FROM weekly_checkins;
+    DELETE FROM exercises;
+  `);
+}
+
 /** Generate a unique ID (simple UUID v4 alternative) */
 export function generateId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';

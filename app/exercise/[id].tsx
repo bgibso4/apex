@@ -21,6 +21,7 @@ import {
 import type { Estimated1RM, E1RMHistoryPoint, SessionSetHistory } from '../../src/db';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
+import { getDeltaExcludingDeload } from '../../src/utils/deltaCalculation';
 
 type TimeRange = 'program' | '3m' | '1y' | 'all';
 
@@ -106,9 +107,7 @@ export default function ExerciseDetailScreen() {
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
-  const delta = history.length >= 2
-    ? history[history.length - 1].e1rm - history[0].e1rm
-    : null;
+  const delta = getDeltaExcludingDeload(history);
 
   const exerciseName = e1rm?.exercise_name ?? id?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ?? 'Exercise';
 

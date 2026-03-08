@@ -17,6 +17,7 @@ import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
 import type { WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume } from '../../src/db';
+import { getDeltaExcludingDeload } from '../../src/utils/deltaCalculation';
 
 const TOP_LIFTS = [
   { id: 'back_squat', name: 'Back Squat' },
@@ -142,9 +143,8 @@ export default function ProgressScreen() {
     setRefreshing(false);
   };
 
-  const getDelta = (history: { e1rm: number }[]): number | null => {
-    if (history.length < 2) return null;
-    return history[history.length - 1].e1rm - history[0].e1rm;
+  const getDelta = (history: E1RMHistoryPoint[]): number | null => {
+    return getDeltaExcludingDeload(history);
   };
 
   const maxVolume = Math.max(...plannedVolume.map(v => v.plannedSets), ...volumeData.map(v => v.totalSets), 1);

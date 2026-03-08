@@ -5,6 +5,8 @@
 
 import { getDatabase } from './database';
 import type { Estimated1RM } from '../types';
+import type { ProgramDefinition, DayTemplate } from '../types';
+import { getBlockForWeek, getTargetForWeek } from '../utils/program';
 
 /** Epley formula: weight × (1 + reps / 30) */
 export function calculateEpley(weight: number, reps: number): number {
@@ -479,4 +481,46 @@ export async function getExerciseSetHistory(
   }
 
   return Array.from(grouped.values()).slice(0, limit);
+}
+
+/** Planned volume per week from a program definition */
+export interface PlannedWeekVolume {
+  week: number;
+  plannedSets: number;
+  blockName: string;
+}
+
+/** Calculate planned sets per week from a program definition (pure function, no DB access) */
+export function getPlannedWeeklyVolume(
+  definition: ProgramDefinition,
+  durationWeeks: number
+): PlannedWeekVolume[] {
+  const { blocks, weekly_template } = definition.program;
+  const result: PlannedWeekVolume[] = [];
+
+  for (let week = 1; week <= durationWeeks; week++) {
+    const block = getBlockForWeek(blocks, week);
+    let plannedSets = 0;
+
+    for (const dayEntry of Object.values(weekly_template)) {
+      // Skip rest days
+      if ('type' in dayEntry && dayEntry.type === 'rest') continue;
+
+      const day = dayEntry as DayTemplate;
+      for (const slot of day.exercises) {
+        const target = getTargetForWeek(slot, week);
+        if (target) {
+          plannedSets += target.sets;
+        }
+      }
+    }
+
+    result.push({
+      week,
+      plannedSets,
+      blockName: block?.name ?? '',
+    });
+  }
+
+  return result;
 }

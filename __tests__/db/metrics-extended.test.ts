@@ -674,3 +674,120 @@ describe('getProtocolConsistency', () => {
     expect(call[1]).toContain('prog-abc');
   });
 });
+
+describe('getPlannedWeeklyVolume', () => {
+  const { getPlannedWeeklyVolume } = require('../../src/db/metrics');
+  type ProgramDefinition = import('../../src/types/program').ProgramDefinition;
+
+  it('calculates planned sets per week from definition with two training days', () => {
+    const definition: ProgramDefinition = {
+      program: {
+        name: 'Test Program',
+        duration_weeks: 4,
+        created: '2026-01-01',
+        blocks: [
+          { name: 'Hypertrophy', weeks: [1, 2, 3, 4], main_lift_scheme: {} },
+        ],
+        weekly_template: {
+          monday: {
+            name: 'Upper',
+            locked: false,
+            warmup: 'standard',
+            exercises: [
+              {
+                exercise_id: 'bench',
+                category: 'main' as const,
+                targets: [{ weeks: [1, 2, 3, 4], sets: 4, reps: 8 }],
+              },
+              {
+                exercise_id: 'row',
+                category: 'accessory' as const,
+                targets: [{ weeks: [1, 2, 3, 4], sets: 3, reps: 10 }],
+              },
+            ],
+          },
+          wednesday: { type: 'rest' as const },
+          friday: {
+            name: 'Lower',
+            locked: false,
+            warmup: 'standard',
+            exercises: [
+              {
+                exercise_id: 'squat',
+                category: 'main' as const,
+                targets: [{ weeks: [1, 2, 3, 4], sets: 5, reps: 5 }],
+              },
+            ],
+          },
+        },
+        exercise_definitions: [],
+        warmup_protocols: {},
+      },
+    };
+
+    const result = getPlannedWeeklyVolume(definition, 4);
+
+    expect(result).toHaveLength(4);
+    // Each week: bench(4) + row(3) + squat(5) = 12 sets
+    for (const week of result) {
+      expect(week.plannedSets).toBe(12);
+      expect(week.blockName).toBe('Hypertrophy');
+    }
+    expect(result[0].week).toBe(1);
+    expect(result[3].week).toBe(4);
+  });
+
+  it('handles different targets per week/block (varying set counts across blocks)', () => {
+    const definition: ProgramDefinition = {
+      program: {
+        name: 'Periodized Program',
+        duration_weeks: 6,
+        created: '2026-01-01',
+        blocks: [
+          { name: 'Volume', weeks: [1, 2, 3], main_lift_scheme: {} },
+          { name: 'Intensity', weeks: [4, 5, 6], main_lift_scheme: {} },
+        ],
+        weekly_template: {
+          tuesday: {
+            name: 'Main Day',
+            locked: false,
+            warmup: 'standard',
+            exercises: [
+              {
+                exercise_id: 'deadlift',
+                category: 'main' as const,
+                targets: [
+                  { weeks: [1, 2, 3], sets: 5, reps: 8 },
+                  { weeks: [4, 5, 6], sets: 3, reps: 3 },
+                ],
+              },
+              {
+                exercise_id: 'pull_up',
+                category: 'accessory' as const,
+                targets: [
+                  { weeks: [1, 2, 3], sets: 4, reps: 10 },
+                  { weeks: [4, 5, 6], sets: 2, reps: 5 },
+                ],
+              },
+            ],
+          },
+          sunday: { type: 'rest' as const },
+        },
+        exercise_definitions: [],
+        warmup_protocols: {},
+      },
+    };
+
+    const result = getPlannedWeeklyVolume(definition, 6);
+
+    expect(result).toHaveLength(6);
+    // Weeks 1-3 (Volume): deadlift(5) + pull_up(4) = 9
+    expect(result[0]).toEqual({ week: 1, plannedSets: 9, blockName: 'Volume' });
+    expect(result[1]).toEqual({ week: 2, plannedSets: 9, blockName: 'Volume' });
+    expect(result[2]).toEqual({ week: 3, plannedSets: 9, blockName: 'Volume' });
+    // Weeks 4-6 (Intensity): deadlift(3) + pull_up(2) = 5
+    expect(result[3]).toEqual({ week: 4, plannedSets: 5, blockName: 'Intensity' });
+    expect(result[4]).toEqual({ week: 5, plannedSets: 5, blockName: 'Intensity' });
+    expect(result[5]).toEqual({ week: 6, plannedSets: 5, blockName: 'Intensity' });
+  });
+});

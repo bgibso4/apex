@@ -61,8 +61,10 @@ export default function ProgressScreen() {
   const [programBoundaries, setProgramBoundaries] = useState<ProgramBoundary[]>([]);
   const [allTimeProgramVolumes, setAllTimeProgramVolumes] = useState<ProgramVolumeData[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAllPrograms, setShowAllPrograms] = useState(false);
 
   const loadData = useCallback(async () => {
+    setShowAllPrograms(false);
     const program = await getActiveProgram();
 
     // Load 1RMs and history for all lifts
@@ -298,48 +300,71 @@ export default function ProgressScreen() {
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Weekly Volume</Text>
         {timeRange === 'all' ? (
           allTimeProgramVolumes.length > 0 ? (
-            allTimeProgramVolumes.map((prog) => {
-              const progMerged = prog.plannedVolume.map(pv => {
-                const actual = prog.volumeData.find(v => v.week === pv.week);
-                return {
-                  week: pv.week,
-                  actual: actual?.totalSets ?? 0,
-                  planned: pv.plannedSets,
-                  blockName: pv.blockName,
-                };
-              });
-              const progMax = Math.max(...prog.plannedVolume.map(v => v.plannedSets), ...prog.volumeData.map(v => v.totalSets), 1);
-
+            <>
+            {(() => {
+              const MAX_VISIBLE_PROGRAMS = 2;
+              const visiblePrograms = showAllPrograms
+                ? allTimeProgramVolumes
+                : allTimeProgramVolumes.slice(-MAX_VISIBLE_PROGRAMS);
+              const hiddenCount = allTimeProgramVolumes.length - MAX_VISIBLE_PROGRAMS;
               return (
-                <View key={prog.programName} style={{ marginBottom: Spacing.lg }}>
-                  <Text style={styles.programVolumeHeader}>{prog.programName}</Text>
-                  {progMerged.length > 0 ? (
-                    <View style={styles.chart}>
-                      {progMerged.map((entry, i) => (
-                        <View key={i} style={styles.chartBarCol}>
-                          <View style={[styles.bar, {
-                            height: `${(entry.planned / progMax) * 100}%`,
-                            backgroundColor: Colors.surface,
-                            position: 'absolute',
-                            bottom: 0,
-                            width: '80%',
-                          }]} />
-                          <View style={[styles.bar, {
-                            height: `${(entry.actual / progMax) * 100}%`,
-                            backgroundColor: prog.blockColorMap[entry.blockName] ?? Colors.indigo,
-                          }]} />
-                          <Text style={styles.chartLabel}>W{entry.week}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  ) : (
-                    <View style={styles.emptyChart}>
-                      <Text style={styles.emptyChartText}>No volume data</Text>
-                    </View>
+                <>
+                  {visiblePrograms.map((prog) => {
+                    const progMerged = prog.plannedVolume.map(pv => {
+                      const actual = prog.volumeData.find(v => v.week === pv.week);
+                      return {
+                        week: pv.week,
+                        actual: actual?.totalSets ?? 0,
+                        planned: pv.plannedSets,
+                        blockName: pv.blockName,
+                      };
+                    });
+                    const progMax = Math.max(...prog.plannedVolume.map(v => v.plannedSets), ...prog.volumeData.map(v => v.totalSets), 1);
+
+                    return (
+                      <View key={prog.programName} style={{ marginBottom: Spacing.lg }}>
+                        <Text style={styles.programVolumeHeader}>{prog.programName}</Text>
+                        {progMerged.length > 0 ? (
+                          <View style={styles.chart}>
+                            {progMerged.map((entry, i) => (
+                              <View key={i} style={styles.chartBarCol}>
+                                <View style={[styles.bar, {
+                                  height: `${(entry.planned / progMax) * 100}%`,
+                                  backgroundColor: Colors.surface,
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  width: '80%',
+                                }]} />
+                                <View style={[styles.bar, {
+                                  height: `${(entry.actual / progMax) * 100}%`,
+                                  backgroundColor: prog.blockColorMap[entry.blockName] ?? Colors.indigo,
+                                }]} />
+                                <Text style={styles.chartLabel}>W{entry.week}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        ) : (
+                          <View style={styles.emptyChart}>
+                            <Text style={styles.emptyChartText}>No volume data</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                  {!showAllPrograms && hiddenCount > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setShowAllPrograms(true)}
+                      style={styles.showOlderLink}
+                    >
+                      <Text style={styles.showOlderText}>
+                        Show {hiddenCount} older program{hiddenCount > 1 ? 's' : ''} →
+                      </Text>
+                    </TouchableOpacity>
                   )}
-                </View>
+                </>
               );
-            })
+            })()}
+            </>
           ) : (
             <View style={styles.emptyChart}>
               <Ionicons name="bar-chart-outline" size={48} color={Colors.textMuted} />
@@ -728,5 +753,14 @@ const styles = StyleSheet.create({
     fontSize: FontSize.body,
     fontWeight: '700',
     marginBottom: Spacing.sm,
+  },
+  showOlderLink: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  showOlderText: {
+    color: Colors.indigo,
+    fontSize: FontSize.body,
+    fontWeight: '600',
   },
 });

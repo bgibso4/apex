@@ -10,7 +10,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import {
   getEstimated1RM,
   get1RMHistoryWithBlocks,
@@ -20,7 +20,7 @@ import {
 } from '../../src/db';
 import type { Estimated1RM, E1RMHistoryPoint, SessionSetHistory } from '../../src/db';
 import TrendLineChart from '../../src/components/TrendLineChart';
-import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
+import { getBlockColorMap, buildBands, getBlockColorOpaque } from '../../src/utils/blockColors';
 import { getDeltaExcludingDeload } from '../../src/utils/deltaCalculation';
 
 type TimeRange = 'program' | '3m' | '1y' | 'all';
@@ -197,7 +197,7 @@ export default function ExerciseDetailScreen() {
                   }]}
                 >
                   <View style={[styles.bandLabelDot, {
-                    backgroundColor: band.color.replace(/18$/, ''),
+                    backgroundColor: getBlockColorOpaque(band.color),
                   }]} />
                   <Text style={styles.bandLabelText} numberOfLines={1}>
                     {band.label}
@@ -421,9 +421,9 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   bandLabelDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: ComponentSize.bandDotSize,
+    height: ComponentSize.bandDotSize,
+    borderRadius: ComponentSize.bandDotSize / 2,
   },
   bandLabelText: {
     color: Colors.textMuted,
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
 
   // Chart empty state
   chartEmpty: {
-    height: 80,
+    height: ComponentSize.chartHeightSmall,
     justifyContent: 'center',
     alignItems: 'center',
   },

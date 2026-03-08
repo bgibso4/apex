@@ -8,7 +8,7 @@ import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { getActiveProgram, getAllPrograms, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getProgramBoundaries } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
 import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
@@ -737,12 +737,12 @@ const styles = StyleSheet.create({
   volumeLegendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: Spacing.xs,
   },
   legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 2,
+    width: ComponentSize.legendDotSize,
+    height: ComponentSize.legendDotSize,
+    borderRadius: BorderRadius.xs - 1,
   },
   legendText: {
     color: Colors.textMuted,
@@ -753,13 +753,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginBottom: Spacing.sm - 2,
+    marginBottom: Spacing.xs,
   },
   volumeWeekLabel: {
     color: Colors.textMuted,
     fontSize: FontSize.xs,
     fontWeight: '600',
-    width: 24,
+    width: ComponentSize.volumeWeekLabelWidth,
     textAlign: 'right',
   },
   volumeWeekLabelCurrent: {
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
   },
   volumeDualBar: {
     flex: 1,
-    height: 20,
+    height: ComponentSize.volumeBarHeight,
     position: 'relative',
     justifyContent: 'center',
   },
@@ -781,14 +781,14 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xs,
   },
   volumeActualBar: {
-    height: 12,
+    height: ComponentSize.volumeBarInnerHeight,
     borderRadius: BorderRadius.xs - 1,
-    marginVertical: 4,
+    marginVertical: Spacing.xs,
   },
   volumeNums: {
     flexDirection: 'row',
-    gap: 2,
-    width: 55,
+    gap: Spacing.xs / 2,
+    width: ComponentSize.volumeNumsWidth,
     justifyContent: 'flex-end',
   },
   volumeActualNum: {

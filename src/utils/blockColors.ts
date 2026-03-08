@@ -54,6 +54,18 @@ export function getBlockColorMuted(color: string): string {
 }
 
 /**
+ * Return the opaque (solid) version of a muted color by stripping the 2-char hex opacity suffix.
+ * If the color doesn't appear to have an opacity suffix (length <= 7), returns as-is.
+ */
+export function getBlockColorOpaque(mutedColor: string): string {
+  // Standard hex with opacity: #RRGGBB + 2 hex chars = 9 chars
+  if (mutedColor.length === 9 && mutedColor.startsWith('#')) {
+    return mutedColor.slice(0, 7);
+  }
+  return mutedColor;
+}
+
+/**
  * Build contiguous bands of block colors for chart background shading.
  * Groups consecutive history points with the same blockName into bands.
  */

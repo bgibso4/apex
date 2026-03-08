@@ -2,7 +2,7 @@
  * APEX — Block color map utility tests
  */
 
-import { getBlockColorMap, getBlockColorMuted } from '../../src/utils/blockColors';
+import { getBlockColorMap, getBlockColorMuted, getBlockColorOpaque } from '../../src/utils/blockColors';
 import { Colors } from '../../src/theme/colors';
 import type { Block } from '../../src/types';
 
@@ -106,5 +106,17 @@ describe('getBlockColorMuted', () => {
   it('appends 18 hex opacity to color', () => {
     expect(getBlockColorMuted('#6366f1')).toBe('#6366f118');
     expect(getBlockColorMuted('#22c55e')).toBe('#22c55e18');
+  });
+});
+
+describe('getBlockColorOpaque', () => {
+  it('strips 2-char hex opacity suffix from 9-char color', () => {
+    expect(getBlockColorOpaque('#6366f118')).toBe('#6366f1');
+    expect(getBlockColorOpaque('#22c55e18')).toBe('#22c55e');
+  });
+
+  it('returns short colors unchanged', () => {
+    expect(getBlockColorOpaque('#6366f1')).toBe('#6366f1');
+    expect(getBlockColorOpaque('#fff')).toBe('#fff');
   });
 });

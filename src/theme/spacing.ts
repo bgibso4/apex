@@ -76,4 +76,14 @@ export const ComponentSize = {
   tabBarHeight: 84,
   tabBarPaddingBottom: 28,
   tabBarPaddingTop: 8,
+
+  // Volume bar chart
+  volumeBarHeight: 20,
+  volumeBarInnerHeight: 12,
+  volumeNumsWidth: 55,
+  volumeWeekLabelWidth: 24,
+
+  // Legend / indicator dots
+  legendDotSize: 8,
+  bandDotSize: 6,
 } as const;

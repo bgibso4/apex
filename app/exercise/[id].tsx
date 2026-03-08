@@ -20,7 +20,7 @@ import {
 } from '../../src/db';
 import type { Estimated1RM, E1RMHistoryPoint, SessionSetHistory } from '../../src/db';
 import TrendLineChart from '../../src/components/TrendLineChart';
-import { getBlockColorMap, getBlockColorMuted } from '../../src/utils/blockColors';
+import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
 
 type TimeRange = 'program' | '3m' | '1y' | 'all';
 
@@ -30,33 +30,6 @@ const TIME_RANGE_LABELS: [TimeRange, string][] = [
   ['1y', '1Y'],
   ['all', 'All'],
 ];
-
-function buildBands(
-  history: E1RMHistoryPoint[],
-  colorMap: Record<string, string>
-): { startIndex: number; endIndex: number; label: string; color: string }[] {
-  if (history.length === 0) return [];
-  const bands = [];
-  let current = { start: 0, block: history[0].blockName };
-  for (let i = 1; i < history.length; i++) {
-    if (history[i].blockName !== current.block) {
-      bands.push({
-        startIndex: current.start,
-        endIndex: i - 1,
-        label: current.block,
-        color: getBlockColorMuted(colorMap[current.block] ?? Colors.indigo),
-      });
-      current = { start: i, block: history[i].blockName };
-    }
-  }
-  bands.push({
-    startIndex: current.start,
-    endIndex: history.length - 1,
-    label: current.block,
-    color: getBlockColorMuted(colorMap[current.block] ?? Colors.indigo),
-  });
-  return bands;
-}
 
 function generateYLabels(history: E1RMHistoryPoint[]): string[] {
   if (history.length === 0) return [];
@@ -345,7 +318,7 @@ const styles = StyleSheet.create({
   },
   heroValue: {
     color: Colors.text,
-    fontSize: 40,
+    fontSize: FontSize.hero,
     fontWeight: '800',
   },
   heroUnit: {

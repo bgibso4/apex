@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { getActiveProgram, getAllPrograms, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getProgramBoundaries } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
-import { getBlockColorMap, getBlockColorMuted } from '../../src/utils/blockColors';
+import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
 import type { E1RMHistoryPoint, ProgramBoundary } from '../../src/db';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
@@ -44,33 +44,6 @@ interface ProgramVolumeData {
 interface LiftData {
   e1rm: Estimated1RM | null;
   history: E1RMHistoryPoint[];
-}
-
-function buildBands(
-  history: E1RMHistoryPoint[],
-  colorMap: Record<string, string>
-): { startIndex: number; endIndex: number; label: string; color: string }[] {
-  if (history.length === 0) return [];
-  const bands: { startIndex: number; endIndex: number; label: string; color: string }[] = [];
-  let current = { start: 0, block: history[0].blockName };
-  for (let i = 1; i < history.length; i++) {
-    if (history[i].blockName !== current.block) {
-      bands.push({
-        startIndex: current.start,
-        endIndex: i - 1,
-        label: current.block,
-        color: getBlockColorMuted(colorMap[current.block] ?? Colors.indigo),
-      });
-      current = { start: i, block: history[i].blockName };
-    }
-  }
-  bands.push({
-    startIndex: current.start,
-    endIndex: history.length - 1,
-    label: current.block,
-    color: getBlockColorMuted(colorMap[current.block] ?? Colors.indigo),
-  });
-  return bands;
 }
 
 export default function ProgressScreen() {
@@ -546,7 +519,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rangeButtonActive: {
-    backgroundColor: `${Colors.indigo}15`,
+    backgroundColor: Colors.indigoMuted,
     borderColor: Colors.indigo,
   },
   rangeText: {

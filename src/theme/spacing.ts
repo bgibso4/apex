@@ -37,6 +37,7 @@ export const FontSize = {
   sectionTitle: 24,
   xxxl: 28,
   screenTitle: 32,
+  hero: 40,
 
   chartLabel: 9,
   tabLabel: 10,

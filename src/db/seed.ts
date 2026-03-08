@@ -599,7 +599,9 @@ function generateSessionData(programId: string, exercises: { id: string }[]): Se
       // Find the right day of the week
       const dayIdx = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(sched.day);
       d.setDate(d.getDate() + (week - 1) * 7 + dayIdx);
-      if (d > new Date()) continue; // Don't seed future
+      // Don't seed current week or future — prevents false "Workout complete" on home screen
+      const daysAgo = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysAgo < 7) continue;
 
       const sessionId = generateId();
       const started = new Date(d);

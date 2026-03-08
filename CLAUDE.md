@@ -41,12 +41,28 @@ Every decision should be evaluated against these, in order:
 
 ## Tech Stack
 
-- **Platform:** iOS (React Native — currently Expo SDK 54, may move to bare React Native)
+- **Platform:** iOS (React Native — Expo SDK 54, managed workflow with local native builds)
 - **Routing:** expo-router (file-based, `app/` directory)
 - **Database:** SQLite (expo-sqlite) — the database must persist across app reinstalls/updates
 - **Animations:** react-native-reanimated + react-native-gesture-handler
 - **Language:** TypeScript (strict)
 - **Testing:** Jest + @testing-library/react-native
+
+## Building & Deploying to Device
+
+The app runs as a standalone iOS app — no Expo dev server needed at the gym.
+
+**Build commands:**
+- `npm run prebuild` — generate/regenerate native `ios/` project from `app.json`
+- `npm run device` — build and install to connected iPhone
+- `npm run device:clean` — full clean rebuild (prebuild + install)
+
+**Key details:**
+- Uses free Apple ID signing (7-day expiry — just re-run `npm run device` weekly)
+- The `ios/` directory is gitignored and fully regenerable via prebuild
+- First install requires trusting the developer certificate on the phone (Settings > General > VPN & Device Management)
+- SQLite data persists across reinstalls
+- After initial USB pairing, wireless deployment works via Xcode's "Connect via network"
 
 ## Project Structure
 

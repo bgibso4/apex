@@ -9,12 +9,12 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } 
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume, getTrainingConsistency, getAllTimeConsistency } from '../../src/db';
+import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
-import type { WeekConsistency, ProgramConsistency } from '../../src/db';
+import type { WeekConsistency, ProgramConsistency, ProtocolItem } from '../../src/db';
 
 const TOP_LIFTS = [
   { id: 'back_squat', name: 'Back Squat' },
@@ -45,6 +45,7 @@ export default function ProgressScreen() {
   const [consistencyData, setConsistencyData] = useState<WeekConsistency[]>([]);
   const [allTimeConsistency, setAllTimeConsistency] = useState<ProgramConsistency[]>([]);
   const [currentWeek, setCurrentWeek] = useState<number>(0);
+  const [protocolData, setProtocolData] = useState<ProtocolItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -75,6 +76,10 @@ export default function ProgressScreen() {
       const allTime = await getAllTimeConsistency(trainingDaysPerWeek);
       setAllTimeConsistency(allTime);
     }
+
+    // Protocol consistency
+    const protocols = await getProtocolConsistency(program ? program.id : null);
+    setProtocolData(protocols);
   }, []);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
@@ -315,6 +320,33 @@ export default function ProgressScreen() {
             )}
           </View>
         )}
+
+        {/* Protocol Consistency */}
+        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Protocol Consistency</Text>
+        <View style={styles.consistencyCard}>
+          {protocolData.length > 0 ? (
+            protocolData.map((item) => {
+              const pct = item.total > 0 ? Math.round(item.completed / item.total * 100) : 0;
+              let color = Colors.textDim;
+              if (pct >= 80) color = Colors.green;
+              else if (pct >= 50) color = Colors.amber;
+              return (
+                <ProgressBar
+                  key={item.name}
+                  label={item.name}
+                  value={item.completed}
+                  max={item.total}
+                  color={color}
+                  showPercentage
+                />
+              );
+            })
+          ) : (
+            <Text style={styles.emptyChartText}>
+              Complete some sessions to see protocol data
+            </Text>
+          )}
+        </View>
       </ScrollView>
     </View>
   );

@@ -100,6 +100,72 @@ export async function get1RMHistory(
     .slice(-limit);
 }
 
+/** Data point for 1RM history with block context */
+export interface E1RMHistoryPoint {
+  date: string;
+  e1rm: number;
+  blockName: string;
+}
+
+/** Get 1RM history with block names, supporting date-range and program filtering */
+export async function get1RMHistoryWithBlocks(
+  exerciseId: string,
+  options?: { startDate?: string; programId?: string; limit?: number }
+): Promise<E1RMHistoryPoint[]> {
+  const db = await getDatabase();
+  const limit = options?.limit ?? 50;
+
+  let sql = `SELECT s.date, sl.actual_weight, sl.actual_reps, sl.session_id, s.block_name
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND sl.actual_weight > 0
+       AND sl.actual_reps > 0
+       AND s.completed_at IS NOT NULL`;
+
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    sql += `\n       AND s.date >= ?`;
+    params.push(options.startDate);
+  }
+
+  if (options?.programId) {
+    sql += `\n       AND s.program_id = ?`;
+    params.push(options.programId);
+  }
+
+  sql += `\n     ORDER BY s.date DESC\n     LIMIT ?`;
+  params.push(limit * 5);
+
+  const rows = await db.getAllAsync<{
+    date: string;
+    actual_weight: number;
+    actual_reps: number;
+    session_id: string;
+    block_name: string;
+  }>(sql, params);
+
+  // Group by session, take best e1RM per session
+  const sessionBests = new Map<string, E1RMHistoryPoint>();
+  for (const row of rows) {
+    const e1rm = calculateEpley(row.actual_weight, row.actual_reps);
+    const existing = sessionBests.get(row.session_id);
+    if (!existing || e1rm > existing.e1rm) {
+      sessionBests.set(row.session_id, {
+        date: row.date,
+        e1rm,
+        blockName: row.block_name,
+      });
+    }
+  }
+
+  return Array.from(sessionBests.values())
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-limit);
+}
+
 /** Get weekly volume (total sets completed) for a program */
 export async function getWeeklyVolume(
   programId: string

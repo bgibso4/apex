@@ -296,6 +296,79 @@ export async function getExerciseSetHistoryWithBlocks(
   return results.slice(0, limit);
 }
 
+/** Per-week training consistency */
+export interface WeekConsistency {
+  week: number;
+  completed: number;
+  planned: number;
+}
+
+/** Get training consistency per week for a program */
+export async function getTrainingConsistency(
+  programId: string,
+  trainingDaysPerWeek: number
+): Promise<WeekConsistency[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{ week: number; completed: number }>(
+    `SELECT
+       s.week_number as week,
+       COUNT(*) as completed
+     FROM sessions s
+     WHERE s.program_id = ?
+       AND s.completed_at IS NOT NULL
+     GROUP BY s.week_number
+     ORDER BY s.week_number`,
+    [programId]
+  );
+
+  return rows.map(row => ({
+    week: row.week,
+    completed: row.completed,
+    planned: trainingDaysPerWeek,
+  }));
+}
+
+/** Per-program training consistency */
+export interface ProgramConsistency {
+  programId: string;
+  programName: string;
+  completed: number;
+  planned: number;
+}
+
+/** Get all-time training consistency across programs */
+export async function getAllTimeConsistency(
+  trainingDaysPerWeek: number
+): Promise<ProgramConsistency[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{
+    programId: string;
+    programName: string;
+    completed: number;
+    duration_weeks: number;
+  }>(
+    `SELECT
+       p.id as programId,
+       p.name as programName,
+       COUNT(s.id) as completed,
+       p.duration_weeks
+     FROM programs p
+     LEFT JOIN sessions s ON s.program_id = p.id AND s.completed_at IS NOT NULL
+     WHERE p.status IN ('active', 'completed')
+     GROUP BY p.id
+     ORDER BY p.activated_date ASC`
+  );
+
+  return rows.map(row => ({
+    programId: row.programId,
+    programName: row.programName,
+    completed: row.completed,
+    planned: row.duration_weeks * trainingDaysPerWeek,
+  }));
+}
+
 /** Count distinct sessions where an exercise was logged */
 export async function getExerciseSessionCount(exerciseId: string): Promise<number> {
   const db = await getDatabase();

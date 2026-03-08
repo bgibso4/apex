@@ -6,9 +6,11 @@ import {
   get1RMHistoryWithBlocks,
   getExerciseSetHistoryWithBlocks,
   getExerciseSessionCount,
+  getTrainingConsistency,
+  getAllTimeConsistency,
   calculateEpley,
 } from '../../src/db/metrics';
-import type { E1RMHistoryPoint, SessionSetHistory } from '../../src/db/metrics';
+import type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency } from '../../src/db/metrics';
 import { getDatabase, generateId } from '../../src/db/database';
 
 jest.mock('../../src/db/database', () => ({
@@ -469,5 +471,120 @@ describe('getExerciseSessionCount', () => {
     const result = await getExerciseSessionCount('exercise-1');
 
     expect(result).toBe(0);
+  });
+});
+
+describe('getTrainingConsistency', () => {
+  let mockDb: {
+    getAllAsync: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb = {
+      getAllAsync: jest.fn(),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+  });
+
+  it('returns per-week completed vs planned', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { week: 1, completed: 3 },
+      { week: 2, completed: 2 },
+      { week: 3, completed: 4 },
+    ]);
+
+    const result = await getTrainingConsistency('program-1', 4);
+
+    expect(result).toEqual([
+      { week: 1, completed: 3, planned: 4 },
+      { week: 2, completed: 2, planned: 4 },
+      { week: 3, completed: 4, planned: 4 },
+    ]);
+  });
+
+  it('returns empty array when no sessions', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    const result = await getTrainingConsistency('program-1', 3);
+
+    expect(result).toEqual([]);
+  });
+
+  it('passes programId to query', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await getTrainingConsistency('prog-abc', 4);
+
+    const call = mockDb.getAllAsync.mock.calls[0];
+    expect(call[1]).toContain('prog-abc');
+  });
+
+  it('uses trainingDaysPerWeek for planned value', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { week: 1, completed: 2 },
+    ]);
+
+    const result = await getTrainingConsistency('program-1', 5);
+
+    expect(result[0].planned).toBe(5);
+  });
+});
+
+describe('getAllTimeConsistency', () => {
+  let mockDb: {
+    getAllAsync: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb = {
+      getAllAsync: jest.fn(),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+  });
+
+  it('returns per-program consistency stats with correct planned calculation', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { programId: 'prog-1', programName: 'Strength Block', completed: 10, duration_weeks: 4 },
+      { programId: 'prog-2', programName: 'Hypertrophy Block', completed: 8, duration_weeks: 3 },
+    ]);
+
+    const result = await getAllTimeConsistency(4);
+
+    expect(result).toEqual([
+      { programId: 'prog-1', programName: 'Strength Block', completed: 10, planned: 16 },
+      { programId: 'prog-2', programName: 'Hypertrophy Block', completed: 8, planned: 12 },
+    ]);
+  });
+
+  it('returns empty array when no programs', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    const result = await getAllTimeConsistency(3);
+
+    expect(result).toEqual([]);
+  });
+
+  it('handles programs with zero completed sessions', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { programId: 'prog-1', programName: 'New Program', completed: 0, duration_weeks: 6 },
+    ]);
+
+    const result = await getAllTimeConsistency(4);
+
+    expect(result).toEqual([
+      { programId: 'prog-1', programName: 'New Program', completed: 0, planned: 24 },
+    ]);
+  });
+
+  it('passes trainingDaysPerWeek correctly for planned calculation', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { programId: 'prog-1', programName: 'Test', completed: 5, duration_weeks: 4 },
+    ]);
+
+    const result = await getAllTimeConsistency(3);
+
+    expect(result[0].planned).toBe(12); // 4 weeks * 3 days
   });
 });

@@ -9,9 +9,12 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } 
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume } from '../../src/db';
+import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume, getTrainingConsistency, getAllTimeConsistency } from '../../src/db';
+import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
+import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
+import type { WeekConsistency, ProgramConsistency } from '../../src/db';
 
 const TOP_LIFTS = [
   { id: 'back_squat', name: 'Back Squat' },
@@ -39,6 +42,9 @@ export default function ProgressScreen() {
   const [timeRange, setTimeRange] = useState<TimeRange>('program');
   const [liftData, setLiftData] = useState<Map<string, LiftData>>(new Map());
   const [volumeData, setVolumeData] = useState<{ week: number; totalSets: number }[]>([]);
+  const [consistencyData, setConsistencyData] = useState<WeekConsistency[]>([]);
+  const [allTimeConsistency, setAllTimeConsistency] = useState<ProgramConsistency[]>([]);
+  const [currentWeek, setCurrentWeek] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -56,10 +62,15 @@ export default function ProgressScreen() {
     );
     setLiftData(new Map(entries));
 
-    // Load volume
+    // Load volume and consistency
     if (program) {
+      const trainingDaysPerWeek = getTrainingDays(program.definition.program.weekly_template).length;
       const vol = await getWeeklyVolume(program.id);
       setVolumeData(vol);
+
+      const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
+      setConsistencyData(consistency);
+      setCurrentWeek(getCurrentWeek(program.activated_date));
     }
   }, []);
 
@@ -205,7 +216,7 @@ export default function ProgressScreen() {
           <TouchableOpacity
             style={styles.allExercisesLink}
             activeOpacity={0.7}
-            onPress={() => router.push('/library')}
+            onPress={() => router.push('/exercises')}
           >
             <Text style={styles.allExercisesText}>All Exercises</Text>
             <Ionicons name="arrow-forward" size={14} color={Colors.indigo} />
@@ -232,6 +243,73 @@ export default function ProgressScreen() {
             <Text style={styles.emptyChartText}>
               Complete some sessions to see volume trends
             </Text>
+          </View>
+        )}
+
+        {/* Training Consistency */}
+        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Training Consistency</Text>
+        {timeRange === 'program' ? (
+          <View style={styles.consistencyCard}>
+            {consistencyData.length > 0 ? (
+              <>
+                <Text style={styles.consistencySummary}>
+                  {Math.round(
+                    (consistencyData.reduce((s, w) => s + w.completed, 0) /
+                      Math.max(consistencyData.reduce((s, w) => s + w.planned, 0), 1)) * 100
+                  )}% — {consistencyData.reduce((s, w) => s + w.completed, 0)}/{consistencyData.reduce((s, w) => s + w.planned, 0)} sessions
+                </Text>
+                {consistencyData.map((week) => {
+                  let color = Colors.textDim;
+                  if (week.completed >= week.planned) {
+                    color = Colors.green;
+                  } else if (week.completed > 0 && week.week === currentWeek) {
+                    color = Colors.indigo;
+                  } else if (week.completed > 0) {
+                    color = Colors.amber;
+                  }
+                  return (
+                    <ProgressBar
+                      key={week.week}
+                      label={`Week ${week.week}`}
+                      value={week.completed}
+                      max={week.planned}
+                      color={color}
+                    />
+                  );
+                })}
+              </>
+            ) : (
+              <Text style={styles.emptyChartText}>
+                Complete some sessions to see consistency data
+              </Text>
+            )}
+          </View>
+        ) : (
+          <View style={styles.consistencyCard}>
+            {allTimeConsistency.length > 0 ? (
+              <>
+                <Text style={styles.consistencySummary}>
+                  {Math.round(
+                    (allTimeConsistency.reduce((s, p) => s + p.completed, 0) /
+                      Math.max(allTimeConsistency.reduce((s, p) => s + p.planned, 0), 1)) * 100
+                  )}% — {allTimeConsistency.reduce((s, p) => s + p.completed, 0)}/{allTimeConsistency.reduce((s, p) => s + p.planned, 0)} sessions
+                </Text>
+                {allTimeConsistency.map((prog) => (
+                  <ProgressBar
+                    key={prog.programName}
+                    label={prog.programName}
+                    value={prog.completed}
+                    max={prog.planned}
+                    color={Colors.indigo}
+                    showPercentage
+                  />
+                ))}
+              </>
+            ) : (
+              <Text style={styles.emptyChartText}>
+                No program data available
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -458,5 +536,20 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     marginTop: Spacing.md,
     textAlign: 'center',
+  },
+
+  // Training Consistency
+  consistencyCard: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    padding: Spacing.lg,
+  },
+  consistencySummary: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    marginBottom: Spacing.lg,
   },
 });

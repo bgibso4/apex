@@ -13,4 +13,4 @@ export { logRun, getRunLogs, getPainTrend, getRunStats, updateRunPain24h, getPen
 export { saveExerciseNote, getExerciseNotesForSession, deleteExerciseNote } from './notes';
 export { detectPRs, getPRsForSession, deletePRsForSession, PR_REP_COUNTS } from './personal-records';
 export type { PRRecord } from './personal-records';
-export { seedRunLogs, seedWorkoutSessions } from './seed';
+export { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram } from './seed';

@@ -88,6 +88,335 @@ function generateRunData() {
   return runs;
 }
 
+/** Seed a completed historical program with sessions and set logs */
+export async function seedHistoricalProgram(): Promise<number> {
+  const db = await getDatabase();
+
+  // Check if we already have a completed program
+  const existing = await db.getFirstAsync<{ count: number }>(
+    "SELECT COUNT(*) as count FROM programs WHERE status = 'completed'"
+  );
+  if (existing && existing.count > 0) return 0;
+
+  // Ensure exercises exist
+  const exercises = [
+    { id: 'back_squat', name: 'Back Squat', type: 'compound', muscle_groups: '["Legs"]' },
+    { id: 'bench_press', name: 'Bench Press', type: 'compound', muscle_groups: '["Chest"]' },
+    { id: 'overhead_press', name: 'Overhead Press', type: 'compound', muscle_groups: '["Shoulders"]' },
+    { id: 'weighted_pullup', name: 'Weighted Pull-up', type: 'compound', muscle_groups: '["Back"]' },
+    { id: 'romanian_deadlift', name: 'Romanian Deadlift', type: 'compound', muscle_groups: '["Legs"]' },
+    { id: 'zercher_squat', name: 'Zercher Squat', type: 'compound', muscle_groups: '["Legs"]' },
+    { id: 'barbell_curl', name: 'Barbell Curl', type: 'isolation', muscle_groups: '["Arms"]' },
+    { id: 'lateral_raises', name: 'Lateral Raises', type: 'isolation', muscle_groups: '["Shoulders"]' },
+    { id: 'leg_curl', name: 'Leg Curl', type: 'isolation', muscle_groups: '["Legs"]' },
+    { id: 'face_pulls', name: 'Face Pulls', type: 'isolation', muscle_groups: '["Back"]' },
+    { id: 'hanging_leg_raise', name: 'Hanging Leg Raise', type: 'isolation', muscle_groups: '["Core"]' },
+    { id: 'dumbbell_row', name: 'Dumbbell Row', type: 'compound', muscle_groups: '["Back"]' },
+  ];
+
+  for (const ex of exercises) {
+    await db.runAsync(
+      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives)
+       VALUES (?, ?, ?, ?, '[]')`,
+      [ex.id, ex.name, ex.type, ex.muscle_groups]
+    );
+  }
+
+  // Program started 22 weeks ago
+  const activatedDate = new Date();
+  activatedDate.setDate(activatedDate.getDate() - 22 * 7);
+  const activatedDateStr = activatedDate.toISOString().split('T')[0];
+
+  // Build the weekly target helper for definition_json
+  const allWeeks = [1,2,3,4,5,6,7,8];
+  function makeTargets() {
+    return [
+      { weeks: [1,2,3], sets: 4, reps: 10 },
+      { weeks: [4], sets: 3, reps: 8 },
+      { weeks: [5,6,7], sets: 4, reps: 6 },
+      { weeks: [8], sets: 3, reps: 8 },
+    ];
+  }
+
+  function makeExerciseDef(exerciseId: string) {
+    return { exercise_id: exerciseId, category: 'main', targets: makeTargets() };
+  }
+
+  const definitionJson = JSON.stringify({
+    program: {
+      name: 'Foundation Builder',
+      duration_weeks: 8,
+      created: activatedDateStr,
+      blocks: [
+        { name: 'Base Building', weeks: [1, 2, 3], main_lift_scheme: {} },
+        { name: 'Deload', weeks: [4], main_lift_scheme: {} },
+        { name: 'Progressive', weeks: [5, 6, 7], main_lift_scheme: {} },
+        { name: 'Deload', weeks: [8], main_lift_scheme: {} },
+      ],
+      weekly_template: {
+        monday: {
+          name: 'Upper A',
+          warmup: 'standard',
+          exercises: [
+            makeExerciseDef('bench_press'),
+            makeExerciseDef('overhead_press'),
+            makeExerciseDef('weighted_pullup'),
+          ],
+        },
+        tuesday: {
+          name: 'Lower A',
+          warmup: 'standard',
+          exercises: [
+            makeExerciseDef('back_squat'),
+            makeExerciseDef('romanian_deadlift'),
+            makeExerciseDef('zercher_squat'),
+          ],
+        },
+        wednesday: { type: 'rest' },
+        thursday: {
+          name: 'Upper B',
+          warmup: 'standard',
+          exercises: [
+            makeExerciseDef('bench_press'),
+            makeExerciseDef('overhead_press'),
+            makeExerciseDef('weighted_pullup'),
+          ],
+        },
+        friday: {
+          name: 'Lower B',
+          warmup: 'standard',
+          exercises: [
+            makeExerciseDef('back_squat'),
+            makeExerciseDef('romanian_deadlift'),
+            makeExerciseDef('zercher_squat'),
+          ],
+        },
+        saturday: { type: 'rest' },
+        sunday: { type: 'rest' },
+      },
+      exercise_definitions: [],
+      warmup_protocols: {},
+    },
+  });
+
+  const oneRmValues = JSON.stringify({
+    back_squat: 185,
+    bench_press: 155,
+    overhead_press: 95,
+    weighted_pullup: 15,
+    romanian_deadlift: 165,
+    zercher_squat: 125,
+  });
+
+  const programId = generateId();
+  await db.runAsync(
+    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, one_rm_values, activated_date)
+     VALUES (?, ?, ?, ?, 'completed', ?, ?, ?)`,
+    [programId, 'Foundation Builder', 8, activatedDateStr, definitionJson, oneRmValues, activatedDateStr]
+  );
+
+  // Generate sessions
+  const sessions = generateHistoricalSessionData(programId, exercises, activatedDate);
+  let count = 0;
+  for (const s of sessions) {
+    await db.runAsync(
+      `INSERT INTO sessions (id, program_id, week_number, block_name, day_template_id,
+        scheduled_day, actual_day, date, sleep, soreness, energy,
+        warmup_rope, warmup_ankle, warmup_hip_ir, conditioning_done,
+        started_at, completed_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
+        s.day, s.day, s.date,
+        3 + Math.round(Math.random() * 2),
+        2 + Math.round(Math.random() * 2),
+        3 + Math.round(Math.random() * 2),
+        s.warmupRope ? 1 : 0,
+        s.warmupAnkle ? 1 : 0,
+        s.warmupHipIr ? 1 : 0,
+        s.conditioningDone ? 1 : 0,
+        s.startedAt, s.completedAt,
+      ]
+    );
+
+    for (const set of s.sets) {
+      await db.runAsync(
+        `INSERT INTO set_logs (id, session_id, exercise_id, set_number,
+          target_weight, target_reps, actual_weight, actual_reps, rpe, status, timestamp)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?)`,
+        [
+          generateId(), s.id, set.exerciseId, set.setNumber,
+          set.weight, set.reps, set.weight, set.reps, set.rpe,
+          s.startedAt,
+        ]
+      );
+    }
+    count++;
+  }
+
+  return count;
+}
+
+function generateHistoricalSessionData(
+  programId: string,
+  exercises: { id: string }[],
+  startDate: Date
+): SessionData[] {
+  const sessions: SessionData[] = [];
+
+  const daySchedule = [
+    { day: 'monday', template: 'upper_a' },
+    { day: 'tuesday', template: 'lower_a' },
+    { day: 'thursday', template: 'upper_b' },
+    { day: 'friday', template: 'lower_b' },
+  ];
+
+  // Lower starting weights for the historical program
+  const baseWeights: Record<string, number> = {
+    back_squat: 185,
+    bench_press: 155,
+    overhead_press: 95,
+    weighted_pullup: 15,
+    romanian_deadlift: 165,
+    zercher_squat: 125,
+    barbell_curl: 65,
+    lateral_raises: 15,
+    leg_curl: 85,
+    face_pulls: 30,
+    hanging_leg_raise: 0,
+    dumbbell_row: 55,
+  };
+
+  const upperAccessories = ['barbell_curl', 'lateral_raises', 'face_pulls', 'dumbbell_row'];
+  const lowerAccessories = ['leg_curl', 'hanging_leg_raise'];
+
+  // Skip ~5 sessions across 8 weeks for ~85% completion (32 total, skip 5 = 84%)
+  const skippedSessions = new Set([
+    '2-2',  // week 2, thursday
+    '3-3',  // week 3, friday
+    '5-0',  // week 5, monday
+    '6-2',  // week 6, thursday
+    '8-1',  // week 8, tuesday
+  ]);
+
+  function getBlock(week: number): { name: string; sets: number; reps: number; weightMult: number } {
+    if (week <= 3) return { name: 'Base Building', sets: 4, reps: 10, weightMult: 1.0 };
+    if (week === 4) return { name: 'Deload', sets: 3, reps: 8, weightMult: 0.6 };
+    if (week <= 7) return { name: 'Progressive', sets: 4, reps: 6, weightMult: 1.15 };
+    return { name: 'Deload', sets: 3, reps: 8, weightMult: 0.6 };
+  }
+
+  function getRpeRange(week: number): [number, number] {
+    if (week <= 2) return [6, 7];
+    if (week <= 3) return [7, 8];
+    if (week === 4) return [5, 6];
+    if (week <= 6) return [7, 8];
+    if (week === 7) return [8, 9];
+    return [5, 6];
+  }
+
+  let sessionIndex = 0;
+
+  for (let week = 1; week <= 8; week++) {
+    const block = getBlock(week);
+    const [rpeMin, rpeMax] = getRpeRange(week);
+
+    for (let di = 0; di < daySchedule.length; di++) {
+      const sched = daySchedule[di];
+
+      if (skippedSessions.has(`${week}-${di}`)) continue;
+
+      const d = new Date(startDate);
+      const dayIdx = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(sched.day);
+      d.setDate(d.getDate() + (week - 1) * 7 + dayIdx);
+
+      const sessionId = generateId();
+      const started = new Date(d);
+      started.setHours(6, 30, 0);
+      const completed = new Date(started);
+      completed.setMinutes(completed.getMinutes() + 45 + Math.round(Math.random() * 20));
+
+      const isUpper = sched.template.includes('upper');
+
+      const mainExercises = isUpper
+        ? [exercises[1], exercises[2], exercises[3]] // bench, OHP, pullup
+        : [exercises[0], exercises[4], exercises[5]]; // squat, RDL, zercher
+
+      const accessoryPool = isUpper ? upperAccessories : lowerAccessories;
+      const acc1Id = accessoryPool[sessionIndex % accessoryPool.length];
+      const acc2Id = accessoryPool[(sessionIndex + 1) % accessoryPool.length];
+      const accessoryExercises = [
+        exercises.find(e => e.id === acc1Id)!,
+        exercises.find(e => e.id === acc2Id)!,
+      ];
+
+      const sets: SessionData['sets'] = [];
+
+      // Week progression: +2-3% per week within each block phase
+      let weekProgression: number;
+      if (week <= 3) {
+        weekProgression = 1 + (week - 1) * 0.025;
+      } else if (week === 4) {
+        weekProgression = 1.0;
+      } else if (week <= 7) {
+        weekProgression = 1 + (week - 5) * 0.03;
+      } else {
+        weekProgression = 1.0;
+      }
+
+      // Main lifts
+      for (const ex of mainExercises) {
+        const base = baseWeights[ex.id] ?? 100;
+        const weight = Math.round((base * block.weightMult * weekProgression) / 5) * 5;
+
+        for (let s = 1; s <= block.sets; s++) {
+          const repVariation = (sessionIndex + s) % 7 === 0 ? 1 : (sessionIndex + s) % 11 === 0 ? -1 : 0;
+          const reps = Math.max(1, block.reps + repVariation);
+          const rpe = rpeMin + ((sessionIndex + s) % (rpeMax - rpeMin + 1));
+          sets.push({ exerciseId: ex.id, setNumber: s, weight, reps, rpe });
+        }
+      }
+
+      // Accessories
+      for (const ex of accessoryExercises) {
+        const base = baseWeights[ex.id] ?? 30;
+        const weight = base === 0 ? 0 : Math.round((base * (1 + (week - 1) * 0.015)) / 5) * 5;
+        const accReps = 10 + ((sessionIndex) % 3);
+
+        for (let s = 1; s <= 3; s++) {
+          const rpe = Math.min(rpeMin + 1, 8);
+          sets.push({ exerciseId: ex.id, setNumber: s, weight, reps: accReps, rpe });
+        }
+      }
+
+      const warmupRope = warmupPattern(sessionIndex, 85);
+      const warmupAnkle = warmupPattern(sessionIndex, 70);
+      const warmupHipIr = warmupPattern(sessionIndex, 60);
+      const conditioningDone = warmupPattern(sessionIndex, 75);
+
+      sessions.push({
+        id: sessionId,
+        weekNumber: week,
+        blockName: block.name,
+        dayTemplateId: sched.template,
+        day: sched.day,
+        date: d.toISOString().split('T')[0],
+        startedAt: started.toISOString(),
+        completedAt: completed.toISOString(),
+        warmupRope,
+        warmupAnkle,
+        warmupHipIr,
+        conditioningDone,
+        sets,
+      });
+
+      sessionIndex++;
+    }
+  }
+
+  return sessions;
+}
+
 /** Seed workout sessions with set logs for progress charts */
 export async function seedWorkoutSessions(programId: string): Promise<number> {
   const db = await getDatabase();

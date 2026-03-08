@@ -1,51 +1,122 @@
 /**
  * APEX — Exercise Detail Screen
- * Shows 1RM trend chart, current estimated 1RM, and recent set history
- * for a single exercise. Navigated from Progress screen lift cards.
+ * Shows 1RM trend chart with block bands, time range chips,
+ * current estimated 1RM, and compact session history rows.
+ * Navigated from Progress screen lift cards.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
-import { getEstimated1RM, get1RMHistory, getExerciseSetHistory } from '../../src/db';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
+import {
+  getEstimated1RM,
+  get1RMHistoryWithBlocks,
+  getExerciseSetHistoryWithBlocks,
+  getExerciseSessionCount,
+  getActiveProgram,
+} from '../../src/db';
+import type { Estimated1RM, E1RMHistoryPoint, SessionSetHistory } from '../../src/db';
 import TrendLineChart from '../../src/components/TrendLineChart';
-import type { Estimated1RM } from '../../src/types';
+import { getBlockColorMap, buildBands, getBlockColorOpaque } from '../../src/utils/blockColors';
+import { getDeltaExcludingDeload } from '../../src/utils/deltaCalculation';
 
-interface SessionSets {
-  date: string;
-  sets: { setNumber: number; weight: number; reps: number; rpe: number | null }[];
+type TimeRange = 'program' | '3m' | '1y' | 'all';
+
+const TIME_RANGE_LABELS: [TimeRange, string][] = [
+  ['program', 'Program'],
+  ['3m', '3M'],
+  ['1y', '1Y'],
+  ['all', 'All'],
+];
+
+function generateYLabels(history: E1RMHistoryPoint[]): string[] {
+  if (history.length === 0) return [];
+  const values = history.map(h => h.e1rm);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  if (min === max) return [String(Math.round(min))];
+  const step = (max - min) / 3;
+  return [
+    String(Math.round(min)),
+    String(Math.round(min + step)),
+    String(Math.round(min + step * 2)),
+    String(Math.round(max)),
+  ];
+}
+
+function getStartDate(range: TimeRange, activatedDate?: string): string | undefined {
+  switch (range) {
+    case 'program':
+      return activatedDate;
+    case '3m': {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 3);
+      return d.toISOString().slice(0, 10);
+    }
+    case '1y': {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 1);
+      return d.toISOString().slice(0, 10);
+    }
+    case 'all':
+      return undefined;
+  }
 }
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
+  const [timeRange, setTimeRange] = useState<TimeRange>('program');
   const [e1rm, setE1rm] = useState<Estimated1RM | null>(null);
-  const [history, setHistory] = useState<{ date: string; e1rm: number }[]>([]);
-  const [recentSessions, setRecentSessions] = useState<SessionSets[]>([]);
+  const [history, setHistory] = useState<E1RMHistoryPoint[]>([]);
+  const [recentSessions, setRecentSessions] = useState<SessionSetHistory[]>([]);
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [showCount, setShowCount] = useState(5);
+  const [activatedDate, setActivatedDate] = useState<string | undefined>();
+  const [blocks, setBlocks] = useState<{ name: string }[]>([]);
 
   const loadData = useCallback(async () => {
     if (!id) return;
-    const [rm, hist, sets] = await Promise.all([
+
+    // Load program info first (needed for date calculation)
+    const program = await getActiveProgram();
+    const progId = program?.id;
+    const actDate = program?.activated_date;
+    const progBlocks = program?.definition?.program?.blocks ?? [];
+    setActivatedDate(actDate);
+    setBlocks(progBlocks);
+
+    const startDate = getStartDate(timeRange, actDate);
+    const filterProgramId = timeRange === 'program' ? progId : undefined;
+
+    const [rm, hist, sets, count] = await Promise.all([
       getEstimated1RM(id),
-      get1RMHistory(id, 20),
-      getExerciseSetHistory(id, 10),
+      get1RMHistoryWithBlocks(id, { startDate, programId: filterProgramId }),
+      getExerciseSetHistoryWithBlocks(id, { startDate, programId: filterProgramId, limit: showCount }),
+      getExerciseSessionCount(id, { startDate, programId: filterProgramId }),
     ]);
     setE1rm(rm);
     setHistory(hist);
     setRecentSessions(sets);
-  }, [id]);
+    setTotalSessions(count);
+  }, [id, timeRange, showCount]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
-  const delta = history.length >= 2
-    ? history[history.length - 1].e1rm - history[0].e1rm
-    : null;
+  const delta = getDeltaExcludingDeload(history);
 
   const exerciseName = e1rm?.exercise_name ?? id?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ?? 'Exercise';
+
+  const colorMap = useMemo(
+    () => getBlockColorMap(blocks as { name: string; weeks: number[]; main_lift_scheme: any }[]),
+    [blocks]
+  );
+  const bands = useMemo(() => buildBands(history, colorMap), [history, colorMap]);
+  const yLabels = useMemo(() => generateYLabels(history), [history]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T12:00:00');
@@ -53,6 +124,20 @@ export default function ExerciseDetailScreen() {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return `${days[d.getDay()]} \u00B7 ${months[d.getMonth()]} ${d.getDate()}`;
   };
+
+  const formatCompactDate = (dateStr: string) => {
+    const d = new Date(dateStr + 'T12:00:00');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[d.getMonth()]} ${d.getDate()}`;
+  };
+
+  const formatSessionSummary = (session: SessionSetHistory) => {
+    if (session.sets.length === 0) return '';
+    const first = session.sets[0];
+    return `${first.weight} \u00D7 ${first.reps} \u00D7 ${session.sets.length} sets`;
+  };
+
+  const isDeload = (blockName: string) => /deload/i.test(blockName);
 
   return (
     <View style={styles.container}>
@@ -84,17 +169,51 @@ export default function ExerciseDetailScreen() {
           )}
         </View>
 
+        {/* Time Range Chips */}
+        <View style={styles.rangeRow}>
+          {TIME_RANGE_LABELS.map(([key, label]) => (
+            <TouchableOpacity
+              key={key}
+              style={[styles.rangeButton, timeRange === key && styles.rangeButtonActive]}
+              onPress={() => setTimeRange(key)}
+            >
+              <Text style={[styles.rangeText, timeRange === key && styles.rangeTextActive]}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {/* 1RM Trend Chart */}
-        {history.length >= 2 && (
-          <View style={styles.chartCard}>
-            <Text style={styles.cardTitle}>1RM Progression</Text>
+        <View style={styles.chartCard}>
+          <Text style={styles.cardTitle}>1RM Progression</Text>
+          {bands.length > 0 && (
+            <View style={styles.bandLabelRow}>
+              {bands.map((band, i) => (
+                <View
+                  key={i}
+                  style={[styles.bandLabel, {
+                    flex: band.endIndex - band.startIndex + 1,
+                  }]}
+                >
+                  <View style={[styles.bandLabelDot, {
+                    backgroundColor: getBlockColorOpaque(band.color),
+                  }]} />
+                  <Text style={styles.bandLabelText} numberOfLines={1}>
+                    {band.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          {history.length >= 2 ? (
             <TrendLineChart
               lines={[{
                 data: history.map(h => ({ value: h.e1rm })),
                 color: Colors.indigo,
               }]}
-              height={120}
-              viewBoxHeight={80}
+              height={140}
+              viewBoxHeight={100}
               areaOpacity={0.1}
               xLabels={(() => {
                 if (history.length <= 3) return history.map(h => formatShortDate(h.date));
@@ -105,34 +224,40 @@ export default function ExerciseDetailScreen() {
                   formatShortDate(history[history.length - 1].date),
                 ];
               })()}
+              yLabels={yLabels}
+              bands={bands}
+              showBandLabels={false}
             />
-          </View>
-        )}
+          ) : (
+            <View style={styles.chartEmpty}>
+              <Text style={styles.chartEmptyText}>
+                {history.length === 0
+                  ? 'No sessions in this time range'
+                  : 'Need at least 2 sessions for a chart'}
+              </Text>
+            </View>
+          )}
+        </View>
 
-        {/* Set History */}
+        {/* Session History */}
         <Text style={styles.sectionLabel}>Recent Sessions</Text>
         {recentSessions.length > 0 ? (
-          <View style={styles.sessionsContainer}>
+          <View style={styles.sessionsCard}>
             {recentSessions.map((session, si) => (
-              <View key={si} style={styles.sessionCard}>
-                <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
-                <View style={styles.setTable}>
-                  <View style={styles.setTableHeader}>
-                    <Text style={[styles.setHeaderText, { flex: 0.5 }]}>Set</Text>
-                    <Text style={styles.setHeaderText}>Weight</Text>
-                    <Text style={styles.setHeaderText}>Reps</Text>
-                    <Text style={styles.setHeaderText}>RPE</Text>
+              <View key={si}>
+                {si > 0 && <View style={styles.sessionDivider} />}
+                <View style={styles.sessionRow}>
+                  <View style={styles.sessionLeft}>
+                    <Text style={styles.sessionDate}>{formatCompactDate(session.date)}</Text>
+                    {isDeload(session.blockName) && (
+                      <Text style={styles.deloadTag}>(deload)</Text>
+                    )}
                   </View>
-                  {session.sets.map((set, setIdx) => (
-                    <View key={setIdx} style={styles.setRow}>
-                      <Text style={[styles.setValueDim, { flex: 0.5 }]}>{set.setNumber}</Text>
-                      <Text style={styles.setValue}>{set.weight}</Text>
-                      <Text style={styles.setValue}>{set.reps}</Text>
-                      <Text style={styles.setValueDim}>
-                        {set.rpe != null ? set.rpe : '\u2014'}
-                      </Text>
-                    </View>
-                  ))}
+                  <Text style={styles.sessionSummary}>{formatSessionSummary(session)}</Text>
+                  <Text style={styles.sessionE1rm}>{Math.round(session.sessionE1rm)}</Text>
+                  {session.avgRpe != null && (
+                    <Text style={styles.sessionRpe}>RPE {session.avgRpe.toFixed(1)}</Text>
+                  )}
                 </View>
               </View>
             ))}
@@ -141,6 +266,18 @@ export default function ExerciseDetailScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>No completed sets yet</Text>
           </View>
+        )}
+
+        {/* View all sessions link */}
+        {totalSessions > showCount && (
+          <TouchableOpacity
+            style={styles.viewAllButton}
+            onPress={() => setShowCount(totalSessions)}
+          >
+            <Text style={styles.viewAllText}>
+              View all {totalSessions} sessions {'\u2192'}
+            </Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
     </View>
@@ -207,7 +344,7 @@ const styles = StyleSheet.create({
   },
   heroValue: {
     color: Colors.text,
-    fontSize: 40,
+    fontSize: FontSize.hero,
     fontWeight: '800',
   },
   heroUnit: {
@@ -230,6 +367,34 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
 
+  // Time range chips
+  rangeRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginBottom: Spacing.lg,
+  },
+  rangeButton: {
+    flex: 1,
+    paddingVertical: Spacing.md - 2,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+  },
+  rangeButtonActive: {
+    backgroundColor: Colors.indigoMuted,
+    borderColor: Colors.indigo,
+  },
+  rangeText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  rangeTextActive: {
+    color: Colors.text,
+  },
+
   // Chart card
   chartCard: {
     backgroundColor: Colors.card,
@@ -245,6 +410,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: Spacing.md,
   },
+  bandLabelRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  bandLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  bandLabelDot: {
+    width: ComponentSize.bandDotSize,
+    height: ComponentSize.bandDotSize,
+    borderRadius: ComponentSize.bandDotSize / 2,
+  },
+  bandLabelText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
 
   // Section label
   sectionLabel: {
@@ -256,60 +441,69 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md - 2,
   },
 
-  // Sessions list
-  sessionsContainer: {
-    gap: Spacing.sm,
-  },
-  sessionCard: {
+  // Compact sessions
+  sessionsCard: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
     padding: Spacing.lg,
   },
+  sessionDivider: {
+    height: 1,
+    backgroundColor: Colors.surface,
+    marginVertical: Spacing.sm,
+  },
+  sessionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sessionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    width: 90,
+  },
   sessionDate: {
-    color: Colors.text,
-    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
     fontWeight: '600',
-    marginBottom: Spacing.md,
+  },
+  deloadTag: {
+    color: Colors.green,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+  sessionSummary: {
+    flex: 1,
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  sessionE1rm: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    width: 40,
+    textAlign: 'right',
+  },
+  sessionRpe: {
+    color: Colors.textDim,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    width: 50,
+    textAlign: 'right',
   },
 
-  // Set table
-  setTable: {
-    gap: Spacing.sm - 2,
+  // View all link
+  viewAllButton: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
   },
-  setTableHeader: {
-    flexDirection: 'row',
-    paddingBottom: Spacing.sm - 2,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.surface,
-  },
-  setHeaderText: {
-    flex: 1,
-    color: Colors.textMuted,
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    textAlign: 'center',
-  },
-  setRow: {
-    flexDirection: 'row',
-    paddingVertical: 2,
-  },
-  setValue: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: FontSize.md,
+  viewAllText: {
+    color: Colors.indigo,
+    fontSize: FontSize.body,
     fontWeight: '600',
-    textAlign: 'center',
-  },
-  setValueDim: {
-    flex: 1,
-    color: Colors.textDim,
-    fontSize: FontSize.md,
-    fontWeight: '600',
-    textAlign: 'center',
   },
 
   // Empty state
@@ -325,5 +519,16 @@ const styles = StyleSheet.create({
     color: Colors.textDim,
     fontSize: FontSize.md,
     textAlign: 'center',
+  },
+
+  // Chart empty state
+  chartEmpty: {
+    height: ComponentSize.chartHeightSmall,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chartEmptyText: {
+    color: Colors.textDim,
+    fontSize: FontSize.sm,
   },
 });

@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
-import { seedRunLogs, seedWorkoutSessions, getActiveProgram } from '../src/db';
+import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData } from '../src/db';
 
 type WeightUnit = 'lbs' | 'kg';
 
@@ -26,15 +26,17 @@ export default function SettingsScreen() {
   const handleSeedData = async () => {
     try {
       const runCount = await seedRunLogs();
+      const historicalCount = await seedHistoricalProgram();
       const program = await getActiveProgram();
       let sessionCount = 0;
       if (program) {
         sessionCount = await seedWorkoutSessions(program.id);
       }
-      if (runCount === 0 && sessionCount === 0) {
+      const total = runCount + historicalCount + sessionCount;
+      if (total === 0) {
         Alert.alert('Sample Data', 'Sample data already loaded.');
       } else {
-        Alert.alert('Sample Data Loaded', `Added ${runCount} runs and ${sessionCount} workout sessions.`);
+        Alert.alert('Sample Data Loaded', `Added ${runCount} runs, ${historicalCount + sessionCount} workout sessions.`);
       }
     } catch (err: any) {
       Alert.alert('Error', err.message ?? 'Failed to load sample data');
@@ -47,7 +49,18 @@ export default function SettingsScreen() {
       'This will permanently delete all sessions, programs, and history. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete Everything', style: 'destructive', onPress: () => {} },
+        {
+          text: 'Delete Everything',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearAllData();
+              Alert.alert('Data Cleared', 'All data has been deleted.');
+            } catch (err: any) {
+              Alert.alert('Error', err.message ?? 'Failed to clear data');
+            }
+          },
+        },
       ],
     );
   };

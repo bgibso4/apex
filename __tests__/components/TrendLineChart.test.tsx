@@ -206,6 +206,32 @@ describe('TrendLineChart', () => {
     const { toJSON } = render(<TrendLineChart lines={[emptyDataLine]} />);
     expect(toJSON()).toBeNull();
   });
+
+  // ── Band background tests ─────────────────────────────────
+
+  it('renders without bands (backward compatible)', () => {
+    const { toJSON } = render(
+      <TrendLineChart
+        lines={[{ data: [{ value: 100 }, { value: 110 }], color: '#6366f1' }]}
+        height={80}
+      />
+    );
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it('renders with bands prop without crashing', () => {
+    const { toJSON } = render(
+      <TrendLineChart
+        lines={[{ data: [{ value: 100 }, { value: 110 }, { value: 120 }], color: '#6366f1' }]}
+        height={80}
+        bands={[
+          { startIndex: 0, endIndex: 1, label: 'Hypertrophy', color: '#6366f118' },
+          { startIndex: 2, endIndex: 2, label: 'Deload', color: '#22c55e18' },
+        ]}
+      />
+    );
+    expect(toJSON()).toBeTruthy();
+  });
 });
 
 /* ────────────────────────────────────────────

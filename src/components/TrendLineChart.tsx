@@ -8,7 +8,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, {
-  Polyline, Path, Circle, Line, Defs, LinearGradient, Stop,
+  Polyline, Path, Circle, Line, Rect, Text as SvgText, Defs, LinearGradient, Stop,
 } from 'react-native-svg';
 import { Colors, FontSize, Spacing } from '../theme';
 
@@ -55,6 +55,10 @@ interface Props {
   showDots?: boolean;
   /** Gradient ID for the primary line */
   gradientId?: string;
+  /** Block background bands (e.g., training phases) */
+  bands?: { startIndex: number; endIndex: number; label: string; color: string }[];
+  /** Show band labels (default false — use true for larger charts) */
+  showBandLabels?: boolean;
 }
 
 export default function TrendLineChart({
@@ -72,6 +76,8 @@ export default function TrendLineChart({
   yLabels,
   showDots = true,
   gradientId,
+  bands,
+  showBandLabels = false,
 }: Props) {
   if (lines.length === 0 || lines[0].data.length === 0) return null;
 
@@ -146,6 +152,44 @@ export default function TrendLineChart({
             )}
           </Defs>
 
+          {/* Block background bands */}
+          {bands && bands.map((band, bi) => {
+            const total = lines[0]?.data.length ?? 0;
+            if (total === 0) return null;
+
+            // Calculate x positions with midpoint boundaries
+            const x1 = band.startIndex === 0
+              ? 0
+              : (toX(band.startIndex, total) + toX(band.startIndex - 1, total)) / 2;
+            const x2 = band.endIndex === total - 1
+              ? viewBoxWidth
+              : (toX(band.endIndex, total) + toX(band.endIndex + 1, total)) / 2;
+
+            return (
+              <React.Fragment key={`band-${bi}`}>
+                <Rect
+                  x={x1}
+                  y={0}
+                  width={x2 - x1}
+                  height={viewBoxHeight}
+                  fill={band.color}
+                />
+                {showBandLabels && (
+                  <SvgText
+                    x={(x1 + x2) / 2}
+                    y={viewBoxHeight - 4}
+                    fill={Colors.textMuted}
+                    fontSize={8}
+                    textAnchor="middle"
+                    opacity={0.6}
+                  >
+                    {band.label}
+                  </SvgText>
+                )}
+              </React.Fragment>
+            );
+          })}
+
           {/* Grid lines */}
           {gridPositions.map((y, i) => (
             <Line
@@ -213,14 +257,14 @@ export default function TrendLineChart({
                   }
 
                   // Show dots at regular intervals (every 2nd point, or all if <6)
-                  const showEveryN = filteredData.length > 6 ? 2 : 1;
+                  const showEveryN = filteredData.length > 12 ? 3 : filteredData.length > 6 ? 2 : 1;
                   if (i % showEveryN !== 0 && filteredData.length > 4) return null;
 
                   return (
                     <Circle
                       key={`dot-${li}-${i}`}
                       cx={cx} cy={cy}
-                      r={line.dashed ? 3 : 3.5}
+                      r={line.dashed ? 3 : (filteredData.length > 10 ? 3 : 3.5)}
                       fill={line.color}
                       opacity={line.dashed ? 0.5 : 1}
                     />

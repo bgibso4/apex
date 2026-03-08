@@ -9,9 +9,15 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } 
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getEstimated1RM, get1RMHistory, getWeeklyVolume } from '../../src/db';
+import { getActiveProgram, getAllPrograms, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getProgramBoundaries } from '../../src/db';
+import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
+import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
+import type { E1RMHistoryPoint, ProgramBoundary } from '../../src/db';
+import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
+import type { WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume } from '../../src/db';
+import { getDeltaExcludingDeload } from '../../src/utils/deltaCalculation';
 
 const TOP_LIFTS = [
   { id: 'back_squat', name: 'Back Squat' },
@@ -29,9 +35,16 @@ const ALL_LIFTS = [...TOP_LIFTS, ...COMPACT_LIFTS];
 
 type TimeRange = 'program' | 'all';
 
+interface ProgramVolumeData {
+  programName: string;
+  volumeData: { week: number; totalSets: number }[];
+  plannedVolume: PlannedWeekVolume[];
+  blockColorMap: Record<string, string>;
+}
+
 interface LiftData {
   e1rm: Estimated1RM | null;
-  history: { date: string; e1rm: number }[];
+  history: E1RMHistoryPoint[];
 }
 
 export default function ProgressScreen() {
@@ -39,9 +52,19 @@ export default function ProgressScreen() {
   const [timeRange, setTimeRange] = useState<TimeRange>('program');
   const [liftData, setLiftData] = useState<Map<string, LiftData>>(new Map());
   const [volumeData, setVolumeData] = useState<{ week: number; totalSets: number }[]>([]);
+  const [consistencyData, setConsistencyData] = useState<WeekConsistency[]>([]);
+  const [allTimeConsistency, setAllTimeConsistency] = useState<ProgramConsistency[]>([]);
+  const [currentWeek, setCurrentWeek] = useState<number>(0);
+  const [plannedVolume, setPlannedVolume] = useState<PlannedWeekVolume[]>([]);
+  const [blockColorMap, setBlockColorMap] = useState<Record<string, string>>({});
+  const [protocolData, setProtocolData] = useState<ProtocolItem[]>([]);
+  const [programBoundaries, setProgramBoundaries] = useState<ProgramBoundary[]>([]);
+  const [allTimeProgramVolumes, setAllTimeProgramVolumes] = useState<ProgramVolumeData[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAllPrograms, setShowAllPrograms] = useState(false);
 
   const loadData = useCallback(async () => {
+    setShowAllPrograms(false);
     const program = await getActiveProgram();
 
     // Load 1RMs and history for all lifts
@@ -49,19 +72,82 @@ export default function ProgressScreen() {
       ALL_LIFTS.map(async (lift) => {
         const [e1rm, history] = await Promise.all([
           getEstimated1RM(lift.id),
-          get1RMHistory(lift.id, 12),
+          timeRange === 'all'
+            ? get1RMHistoryWithBlocks(lift.id, { limit: 50 })
+            : get1RMHistoryWithBlocks(lift.id, { limit: 12 }),
         ]);
         return [lift.id, { e1rm, history }] as [string, LiftData];
       })
     );
     setLiftData(new Map(entries));
 
-    // Load volume
-    if (program) {
-      const vol = await getWeeklyVolume(program.id);
-      setVolumeData(vol);
+    // Load program boundaries for All Time mode
+    if (timeRange === 'all') {
+      const boundaries = await getProgramBoundaries();
+      setProgramBoundaries(boundaries);
     }
-  }, []);
+
+    // Load volume and consistency
+    if (!program) {
+      setVolumeData([]);
+      setPlannedVolume([]);
+      setBlockColorMap({});
+      setConsistencyData([]);
+      setAllTimeConsistency([]);
+      setAllTimeProgramVolumes([]);
+      setCurrentWeek(0);
+      setProgramBoundaries([]);
+    }
+    if (program) {
+      const trainingDaysPerWeek = getTrainingDays(program.definition.program.weekly_template).length;
+
+      if (timeRange === 'program') {
+        const vol = await getWeeklyVolume(program.id);
+        setVolumeData(vol);
+
+        const planned = getPlannedWeeklyVolume(program.definition, program.duration_weeks);
+        setPlannedVolume(planned);
+
+        const colorMap = getBlockColorMap(program.definition.program.blocks);
+        setBlockColorMap(colorMap);
+
+        const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
+        setConsistencyData(consistency);
+        if (program.activated_date) {
+          setCurrentWeek(getCurrentWeek(program.activated_date));
+        }
+      }
+
+      if (timeRange === 'all') {
+        // All Time volume: per-program breakdown
+        const allPrograms = await getAllPrograms();
+        const activeCompleted = allPrograms.filter(p => p.status === 'active' || p.status === 'completed');
+        const programVolumes: ProgramVolumeData[] = [];
+
+        for (const prog of activeCompleted) {
+          const definition = JSON.parse(prog.definition_json);
+          const vol = await getWeeklyVolume(prog.id);
+          const planned = getPlannedWeeklyVolume(definition, prog.duration_weeks);
+          const colors = getBlockColorMap(definition.program.blocks);
+          programVolumes.push({
+            programName: prog.name,
+            volumeData: vol,
+            plannedVolume: planned,
+            blockColorMap: colors,
+          });
+        }
+        setAllTimeProgramVolumes(programVolumes);
+
+        // All Time consistency
+        const allConsistency = await getAllTimeConsistency(trainingDaysPerWeek);
+        setAllTimeConsistency(allConsistency);
+      }
+    }
+
+    // Protocol consistency — null for all time, programId for program
+    const protocols = await getProtocolConsistency(timeRange === 'program' && program ? program.id : null);
+    setProtocolData(protocols);
+  }, [timeRange]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
@@ -71,12 +157,21 @@ export default function ProgressScreen() {
     setRefreshing(false);
   };
 
-  const getDelta = (history: { e1rm: number }[]): number | null => {
-    if (history.length < 2) return null;
-    return history[history.length - 1].e1rm - history[0].e1rm;
+  const getDelta = (history: E1RMHistoryPoint[]): number | null => {
+    return getDeltaExcludingDeload(history);
   };
 
-  const maxVolume = Math.max(...volumeData.map(v => v.totalSets), 1);
+  const maxVolume = Math.max(...plannedVolume.map(v => v.plannedSets), ...volumeData.map(v => v.totalSets), 1);
+
+  const mergedVolume = plannedVolume.map(pv => {
+    const actual = volumeData.find(v => v.week === pv.week);
+    return {
+      week: pv.week,
+      actual: actual?.totalSets ?? 0,
+      planned: pv.plannedSets,
+      blockName: pv.blockName,
+    };
+  });
 
   return (
     <View style={styles.container}>
@@ -146,6 +241,7 @@ export default function ProgressScreen() {
                     height={60}
                     viewBoxHeight={60}
                     areaOpacity={0.1}
+                    bands={buildBands(history, blockColorMap)}
                     xLabels={history.length > 0
                       ? history.map((_, i) => i === history.length - 1 ? `W${history.length}` : (i === 0 ? 'W1' : ''))
                         .filter(l => l !== '')
@@ -205,7 +301,7 @@ export default function ProgressScreen() {
           <TouchableOpacity
             style={styles.allExercisesLink}
             activeOpacity={0.7}
-            onPress={() => router.push('/library')}
+            onPress={() => router.push('/exercises' as any)}
           >
             <Text style={styles.allExercisesText}>All Exercises</Text>
             <Ionicons name="arrow-forward" size={14} color={Colors.indigo} />
@@ -214,17 +310,155 @@ export default function ProgressScreen() {
 
         {/* Volume Trend */}
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Weekly Volume</Text>
-        {volumeData.length > 0 ? (
-          <View style={styles.chart}>
-            {volumeData.map((v, i) => (
-              <View key={i} style={styles.chartBarCol}>
-                <View style={[styles.bar, {
-                  height: `${(v.totalSets / maxVolume) * 100}%`,
-                  backgroundColor: Colors.indigo,
-                }]} />
-                <Text style={styles.chartLabel}>W{v.week}</Text>
+        {timeRange === 'all' ? (
+          allTimeProgramVolumes.length > 0 ? (
+            <>
+            {(() => {
+              const MAX_VISIBLE_PROGRAMS = 2;
+              const visiblePrograms = showAllPrograms
+                ? allTimeProgramVolumes
+                : allTimeProgramVolumes.slice(-MAX_VISIBLE_PROGRAMS);
+              const hiddenCount = allTimeProgramVolumes.length - MAX_VISIBLE_PROGRAMS;
+              return (
+                <>
+                  {visiblePrograms.map((prog) => {
+                    const progMerged = prog.plannedVolume.map(pv => {
+                      const actual = prog.volumeData.find(v => v.week === pv.week);
+                      return {
+                        week: pv.week,
+                        actual: actual?.totalSets ?? 0,
+                        planned: pv.plannedSets,
+                        blockName: pv.blockName,
+                      };
+                    });
+                    const progMax = Math.max(...prog.plannedVolume.map(v => v.plannedSets), ...prog.volumeData.map(v => v.totalSets), 1);
+
+                    return (
+                      <View key={prog.programName} style={{ marginBottom: Spacing.lg }}>
+                        <Text style={styles.programVolumeHeader}>{prog.programName}</Text>
+                        {progMerged.length > 0 ? (
+                          <View style={styles.volumeCard}>
+                            <View style={styles.volumeLegend}>
+                              <View style={styles.volumeLegendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: Colors.indigo }]} />
+                                <Text style={styles.legendText}>Actual sets</Text>
+                              </View>
+                              <View style={styles.volumeLegendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: Colors.surface }]} />
+                                <Text style={styles.legendText}>Planned sets</Text>
+                              </View>
+                            </View>
+
+                            {progMerged.map((entry, i) => {
+                              const plannedPct = progMax > 0 ? (entry.planned / progMax) * 100 : 0;
+                              const actualPct = progMax > 0 ? (entry.actual / progMax) * 100 : 0;
+
+                              return (
+                                <View key={i} style={styles.volumeRow}>
+                                  <Text style={styles.volumeWeekLabel}>W{entry.week}</Text>
+                                  <View style={styles.volumeDualBar}>
+                                    <View style={[styles.volumePlannedBar, { width: `${plannedPct}%` }]} />
+                                    <View style={[styles.volumeActualBar, {
+                                      width: `${actualPct}%`,
+                                      backgroundColor: prog.blockColorMap[entry.blockName] ?? Colors.indigo,
+                                    }]} />
+                                  </View>
+                                  <View style={styles.volumeNums}>
+                                    <Text style={styles.volumeActualNum}>{entry.actual}</Text>
+                                    <Text style={styles.volumePlannedNum}>/ {entry.planned}</Text>
+                                  </View>
+                                </View>
+                              );
+                            })}
+                          </View>
+                        ) : (
+                          <View style={styles.emptyChart}>
+                            <Text style={styles.emptyChartText}>No volume data</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                  {!showAllPrograms && hiddenCount > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setShowAllPrograms(true)}
+                      style={styles.showOlderLink}
+                    >
+                      <Text style={styles.showOlderText}>
+                        Show {hiddenCount} older program{hiddenCount > 1 ? 's' : ''} →
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              );
+            })()}
+            </>
+          ) : (
+            <View style={styles.emptyChart}>
+              <Ionicons name="bar-chart-outline" size={48} color={Colors.textMuted} />
+              <Text style={styles.emptyChartText}>
+                No program data available
+              </Text>
+            </View>
+          )
+        ) : mergedVolume.length > 0 ? (
+          <View style={styles.volumeCard}>
+            {/* Legend */}
+            <View style={styles.volumeLegend}>
+              <View style={styles.volumeLegendItem}>
+                <View style={[styles.legendDot, { backgroundColor: Colors.indigo }]} />
+                <Text style={styles.legendText}>Actual sets</Text>
               </View>
-            ))}
+              <View style={styles.volumeLegendItem}>
+                <View style={[styles.legendDot, { backgroundColor: Colors.surface }]} />
+                <Text style={styles.legendText}>Planned sets</Text>
+              </View>
+            </View>
+
+            {mergedVolume.map((entry, i) => {
+              const plannedPct = maxVolume > 0 ? (entry.planned / maxVolume) * 100 : 0;
+              const actualPct = maxVolume > 0 ? (entry.actual / maxVolume) * 100 : 0;
+              const isCurrent = entry.week === currentWeek;
+
+              return (
+                <View key={i} style={styles.volumeRow}>
+                  <Text style={[styles.volumeWeekLabel, isCurrent && styles.volumeWeekLabelCurrent]}>
+                    W{entry.week}
+                  </Text>
+                  <View style={styles.volumeDualBar}>
+                    <View style={[styles.volumePlannedBar, { width: `${plannedPct}%` }]} />
+                    <View style={[styles.volumeActualBar, {
+                      width: `${actualPct}%`,
+                      backgroundColor: blockColorMap[entry.blockName] ?? Colors.indigo,
+                    }]} />
+                  </View>
+                  <View style={styles.volumeNums}>
+                    <Text style={styles.volumeActualNum}>{entry.actual}</Text>
+                    <Text style={styles.volumePlannedNum}>/ {entry.planned}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        ) : volumeData.length > 0 ? (
+          <View style={styles.volumeCard}>
+            {volumeData.map((v, i) => {
+              const pct = maxVolume > 0 ? (v.totalSets / maxVolume) * 100 : 0;
+              return (
+                <View key={i} style={styles.volumeRow}>
+                  <Text style={styles.volumeWeekLabel}>W{v.week}</Text>
+                  <View style={styles.volumeDualBar}>
+                    <View style={[styles.volumeActualBar, {
+                      width: `${pct}%`,
+                      backgroundColor: Colors.indigo,
+                    }]} />
+                  </View>
+                  <View style={styles.volumeNums}>
+                    <Text style={styles.volumeActualNum}>{v.totalSets}</Text>
+                  </View>
+                </View>
+              );
+            })}
           </View>
         ) : (
           <View style={styles.emptyChart}>
@@ -234,6 +468,100 @@ export default function ProgressScreen() {
             </Text>
           </View>
         )}
+
+        {/* Training Consistency */}
+        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Training Consistency</Text>
+        {timeRange === 'program' ? (
+          <View style={styles.consistencyCard}>
+            {consistencyData.length > 0 ? (
+              <>
+                <Text style={styles.consistencySummary}>
+                  {Math.round(
+                    (consistencyData.reduce((s, w) => s + w.completed, 0) /
+                      Math.max(consistencyData.reduce((s, w) => s + w.planned, 0), 1)) * 100
+                  )}% — {consistencyData.reduce((s, w) => s + w.completed, 0)}/{consistencyData.reduce((s, w) => s + w.planned, 0)} sessions
+                </Text>
+                {consistencyData.map((week) => {
+                  let color: string = Colors.textDim;
+                  if (week.completed >= week.planned) {
+                    color = Colors.green;
+                  } else if (week.completed > 0 && week.week === currentWeek) {
+                    color = Colors.indigo;
+                  } else if (week.completed > 0) {
+                    color = Colors.amber;
+                  }
+                  return (
+                    <ProgressBar
+                      key={week.week}
+                      label={`Week ${week.week}`}
+                      value={week.completed}
+                      max={week.planned}
+                      color={color}
+                    />
+                  );
+                })}
+              </>
+            ) : (
+              <Text style={styles.emptyChartText}>
+                Complete some sessions to see consistency data
+              </Text>
+            )}
+          </View>
+        ) : (
+          <View style={styles.consistencyCard}>
+            {allTimeConsistency.length > 0 ? (
+              <>
+                <Text style={styles.consistencySummary}>
+                  {Math.round(
+                    (allTimeConsistency.reduce((s, p) => s + p.completed, 0) /
+                      Math.max(allTimeConsistency.reduce((s, p) => s + p.planned, 0), 1)) * 100
+                  )}% — {allTimeConsistency.reduce((s, p) => s + p.completed, 0)}/{allTimeConsistency.reduce((s, p) => s + p.planned, 0)} sessions
+                </Text>
+                {allTimeConsistency.map((prog) => (
+                  <ProgressBar
+                    key={prog.programName}
+                    label={prog.programName}
+                    value={prog.completed}
+                    max={prog.planned}
+                    color={Colors.indigo}
+                    showPercentage
+                  />
+                ))}
+              </>
+            ) : (
+              <Text style={styles.emptyChartText}>
+                No program data available
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Protocol Consistency */}
+        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl + Spacing.xs }]}>Protocol Consistency</Text>
+        <View style={styles.consistencyCard}>
+          {protocolData.length > 0 ? (
+            protocolData.map((item) => {
+              const pct = item.total > 0 ? Math.round(item.completed / item.total * 100) : 0;
+              let color: string = Colors.textDim;
+              if (pct >= 80) color = Colors.green;
+              else if (pct >= 50) color = Colors.amber;
+              return (
+                <ProgressBar
+                  key={item.name}
+                  label={item.name}
+                  value={item.completed}
+                  max={item.total}
+                  color={color}
+                  showPercentage
+                />
+              );
+            })
+          ) : (
+            <Text style={styles.emptyChartText}>
+              Complete some sessions to see protocol data
+            </Text>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -270,7 +598,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rangeButtonActive: {
-    backgroundColor: `${Colors.indigo}15`,
+    backgroundColor: Colors.indigoMuted,
     borderColor: Colors.indigo,
   },
   rangeText: {
@@ -405,36 +733,85 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Volume chart (bar chart — volume is best shown as bars)
-  chart: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: ComponentSize.chartHeight,
-    gap: Spacing.xs,
+  // Volume section (horizontal bars)
+  volumeCard: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    padding: Spacing.xl,
   },
-  chartBarCol: {
-    flex: 1,
+  volumeLegend: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  volumeLegendItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  legendDot: {
+    width: ComponentSize.legendDotSize,
+    height: ComponentSize.legendDotSize,
+    borderRadius: BorderRadius.xs - 1,
+  },
+  legendText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+  volumeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  volumeWeekLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    width: ComponentSize.volumeWeekLabelWidth,
+    textAlign: 'right',
+  },
+  volumeWeekLabelCurrent: {
+    color: Colors.text,
+    fontWeight: '700',
+  },
+  volumeDualBar: {
+    flex: 1,
+    height: ComponentSize.volumeBarHeight,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  volumePlannedBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     height: '100%',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xs,
+  },
+  volumeActualBar: {
+    height: ComponentSize.volumeBarInnerHeight,
+    borderRadius: BorderRadius.xs - 1,
+    marginVertical: Spacing.xs,
+  },
+  volumeNums: {
+    flexDirection: 'row',
+    gap: Spacing.xs / 2,
+    width: ComponentSize.volumeNumsWidth,
     justifyContent: 'flex-end',
   },
-  bar: {
-    width: '80%',
-    borderRadius: BorderRadius.xs,
-    minHeight: Spacing.xs,
+  volumeActualNum: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
   },
-  chartLabel: {
-    color: Colors.textDim,
-    fontSize: FontSize.chartLabel,
-    marginTop: Spacing.xs,
-    position: 'absolute',
-    bottom: -Spacing.lg,
+  volumePlannedNum: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
   },
 
   // No data
@@ -458,5 +835,35 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     marginTop: Spacing.md,
     textAlign: 'center',
+  },
+
+  // Training Consistency
+  consistencyCard: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    padding: Spacing.lg,
+  },
+  consistencySummary: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    marginBottom: Spacing.lg,
+  },
+  programVolumeHeader: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
+  },
+  showOlderLink: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  showOlderText: {
+    color: Colors.indigo,
+    fontSize: FontSize.body,
+    fontWeight: '600',
   },
 });

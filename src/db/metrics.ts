@@ -5,6 +5,8 @@
 
 import { getDatabase } from './database';
 import type { Estimated1RM } from '../types';
+import type { ProgramDefinition, DayTemplate } from '../types';
+import { getBlockForWeek, getTargetForWeek } from '../utils/program';
 
 /** Epley formula: weight × (1 + reps / 30) */
 export function calculateEpley(weight: number, reps: number): number {
@@ -100,6 +102,72 @@ export async function get1RMHistory(
     .slice(-limit);
 }
 
+/** Data point for 1RM history with block context */
+export interface E1RMHistoryPoint {
+  date: string;
+  e1rm: number;
+  blockName: string;
+}
+
+/** Get 1RM history with block names, supporting date-range and program filtering */
+export async function get1RMHistoryWithBlocks(
+  exerciseId: string,
+  options?: { startDate?: string; programId?: string; limit?: number }
+): Promise<E1RMHistoryPoint[]> {
+  const db = await getDatabase();
+  const limit = options?.limit ?? 50;
+
+  let sql = `SELECT s.date, sl.actual_weight, sl.actual_reps, sl.session_id, s.block_name
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND sl.actual_weight > 0
+       AND sl.actual_reps > 0
+       AND s.completed_at IS NOT NULL`;
+
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    sql += `\n       AND s.date >= ?`;
+    params.push(options.startDate);
+  }
+
+  if (options?.programId) {
+    sql += `\n       AND s.program_id = ?`;
+    params.push(options.programId);
+  }
+
+  sql += `\n     ORDER BY s.date DESC\n     LIMIT ?`;
+  params.push(limit * 5);
+
+  const rows = await db.getAllAsync<{
+    date: string;
+    actual_weight: number;
+    actual_reps: number;
+    session_id: string;
+    block_name: string;
+  }>(sql, params);
+
+  // Group by session, take best e1RM per session
+  const sessionBests = new Map<string, E1RMHistoryPoint>();
+  for (const row of rows) {
+    const e1rm = calculateEpley(row.actual_weight, row.actual_reps);
+    const existing = sessionBests.get(row.session_id);
+    if (!existing || e1rm > existing.e1rm) {
+      sessionBests.set(row.session_id, {
+        date: row.date,
+        e1rm,
+        blockName: row.block_name,
+      });
+    }
+  }
+
+  return Array.from(sessionBests.values())
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-limit);
+}
+
 /** Get weekly volume (total sets completed) for a program */
 export async function getWeeklyVolume(
   programId: string
@@ -126,6 +194,258 @@ export async function getWeeklyVolume(
 export function calculateTargetWeight(oneRm: number, percentage: number): number {
   const raw = oneRm * (percentage / 100);
   return Math.round(raw / 5) * 5; // Round to nearest 5 lbs
+}
+
+/** Session set history with block context */
+export interface SessionSetHistory {
+  date: string;
+  blockName: string;
+  sessionE1rm: number;
+  avgRpe: number | null;
+  sets: { setNumber: number; weight: number; reps: number; rpe: number | null }[];
+}
+
+/** Get exercise set history with block names, supporting date-range and program filtering */
+export async function getExerciseSetHistoryWithBlocks(
+  exerciseId: string,
+  options?: { startDate?: string; programId?: string; limit?: number }
+): Promise<SessionSetHistory[]> {
+  const db = await getDatabase();
+  const limit = options?.limit ?? 5;
+
+  let sql = `SELECT s.date, sl.session_id, sl.set_number, sl.actual_weight, sl.actual_reps, sl.rpe, s.block_name
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND sl.actual_weight > 0
+       AND s.completed_at IS NOT NULL`;
+
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    sql += `\n       AND s.date >= ?`;
+    params.push(options.startDate);
+  }
+
+  if (options?.programId) {
+    sql += `\n       AND s.program_id = ?`;
+    params.push(options.programId);
+  }
+
+  sql += `\n     ORDER BY s.date DESC, sl.set_number ASC`;
+
+  const rows = await db.getAllAsync<{
+    date: string;
+    session_id: string;
+    set_number: number;
+    actual_weight: number;
+    actual_reps: number;
+    rpe: number | null;
+    block_name: string;
+  }>(sql, params);
+
+  // Group by session
+  const sessionMap = new Map<string, {
+    date: string;
+    blockName: string;
+    bestE1rm: number;
+    rpeValues: number[];
+    sets: { setNumber: number; weight: number; reps: number; rpe: number | null }[];
+  }>();
+
+  for (const row of rows) {
+    const key = row.session_id;
+    if (!sessionMap.has(key)) {
+      sessionMap.set(key, {
+        date: row.date,
+        blockName: row.block_name,
+        bestE1rm: 0,
+        rpeValues: [],
+        sets: [],
+      });
+    }
+    const session = sessionMap.get(key)!;
+
+    const e1rm = calculateEpley(row.actual_weight, row.actual_reps);
+    if (e1rm > session.bestE1rm) {
+      session.bestE1rm = e1rm;
+    }
+
+    if (row.rpe !== null) {
+      session.rpeValues.push(row.rpe);
+    }
+
+    session.sets.push({
+      setNumber: row.set_number,
+      weight: row.actual_weight,
+      reps: row.actual_reps,
+      rpe: row.rpe,
+    });
+  }
+
+  const results: SessionSetHistory[] = Array.from(sessionMap.values()).map(s => ({
+    date: s.date,
+    blockName: s.blockName,
+    sessionE1rm: s.bestE1rm,
+    avgRpe: s.rpeValues.length > 0
+      ? Math.round((s.rpeValues.reduce((a, b) => a + b, 0) / s.rpeValues.length) * 10) / 10
+      : null,
+    sets: s.sets,
+  }));
+
+  // Already sorted desc by date from SQL ORDER BY
+  return results.slice(0, limit);
+}
+
+/** Per-week training consistency */
+export interface WeekConsistency {
+  week: number;
+  completed: number;
+  planned: number;
+}
+
+/** Get training consistency per week for a program */
+export async function getTrainingConsistency(
+  programId: string,
+  trainingDaysPerWeek: number
+): Promise<WeekConsistency[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{ week: number; completed: number }>(
+    `SELECT
+       s.week_number as week,
+       COUNT(*) as completed
+     FROM sessions s
+     WHERE s.program_id = ?
+       AND s.completed_at IS NOT NULL
+     GROUP BY s.week_number
+     ORDER BY s.week_number`,
+    [programId]
+  );
+
+  return rows.map(row => ({
+    week: row.week,
+    completed: row.completed,
+    planned: trainingDaysPerWeek,
+  }));
+}
+
+/** Per-program training consistency */
+export interface ProgramConsistency {
+  programId: string;
+  programName: string;
+  completed: number;
+  planned: number;
+}
+
+/** Get all-time training consistency across programs */
+export async function getAllTimeConsistency(
+  trainingDaysPerWeek: number
+): Promise<ProgramConsistency[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{
+    programId: string;
+    programName: string;
+    completed: number;
+    duration_weeks: number;
+  }>(
+    `SELECT
+       p.id as programId,
+       p.name as programName,
+       COUNT(s.id) as completed,
+       p.duration_weeks
+     FROM programs p
+     LEFT JOIN sessions s ON s.program_id = p.id AND s.completed_at IS NOT NULL
+     WHERE p.status IN ('active', 'completed')
+     GROUP BY p.id
+     ORDER BY p.activated_date ASC`
+  );
+
+  return rows.map(row => ({
+    programId: row.programId,
+    programName: row.programName,
+    completed: row.completed,
+    planned: row.duration_weeks * trainingDaysPerWeek,
+  }));
+}
+
+/** Count distinct sessions where an exercise was logged */
+export async function getExerciseSessionCount(
+  exerciseId: string,
+  options?: { startDate?: string; programId?: string }
+): Promise<number> {
+  const db = await getDatabase();
+
+  let sql = `SELECT COUNT(DISTINCT sl.session_id) as count
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND s.completed_at IS NOT NULL`;
+
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    sql += `\n       AND s.date >= ?`;
+    params.push(options.startDate);
+  }
+
+  if (options?.programId) {
+    sql += `\n       AND s.program_id = ?`;
+    params.push(options.programId);
+  }
+
+  const row = await db.getFirstAsync<{ count: number }>(sql, params);
+  return row?.count ?? 0;
+}
+
+/** Protocol item for warmup/finisher consistency tracking */
+export interface ProtocolItem {
+  name: string;
+  completed: number;
+  total: number;
+}
+
+/** Get warmup/finisher protocol consistency for a program (or all time) */
+export async function getProtocolConsistency(
+  programId: string | null
+): Promise<ProtocolItem[]> {
+  const db = await getDatabase();
+
+  let sql = `SELECT
+       COUNT(*) as total,
+       SUM(warmup_rope) as warmup_rope_count,
+       SUM(warmup_ankle) as warmup_ankle_count,
+       SUM(warmup_hip_ir) as warmup_hip_ir_count,
+       SUM(conditioning_done) as conditioning_done_count
+     FROM sessions
+     WHERE completed_at IS NOT NULL`;
+
+  const params: string[] = [];
+
+  if (programId !== null) {
+    sql += `\n       AND program_id = ?`;
+    params.push(programId);
+  }
+
+  const row = await db.getFirstAsync<{
+    total: number;
+    warmup_rope_count: number;
+    warmup_ankle_count: number;
+    warmup_hip_ir_count: number;
+    conditioning_done_count: number;
+  }>(sql, params);
+
+  const total = row?.total ?? 0;
+
+  return [
+    { name: 'Jump Rope', completed: row?.warmup_rope_count ?? 0, total },
+    { name: 'Ankle Protocol', completed: row?.warmup_ankle_count ?? 0, total },
+    { name: 'Hip IR Work', completed: row?.warmup_hip_ir_count ?? 0, total },
+    { name: 'Conditioning', completed: row?.conditioning_done_count ?? 0, total },
+  ];
 }
 
 /** Get recent set history for an exercise (for exercise detail page) */
@@ -174,4 +494,109 @@ export async function getExerciseSetHistory(
   }
 
   return Array.from(grouped.values()).slice(0, limit);
+}
+
+/** Planned volume per week from a program definition */
+export interface PlannedWeekVolume {
+  week: number;
+  plannedSets: number;
+  blockName: string;
+}
+
+/** Calculate planned sets per week from a program definition (pure function, no DB access) */
+export function getPlannedWeeklyVolume(
+  definition: ProgramDefinition,
+  durationWeeks: number
+): PlannedWeekVolume[] {
+  const { blocks, weekly_template } = definition.program;
+  const result: PlannedWeekVolume[] = [];
+
+  for (let week = 1; week <= durationWeeks; week++) {
+    const block = getBlockForWeek(blocks, week);
+    let plannedSets = 0;
+
+    for (const dayEntry of Object.values(weekly_template)) {
+      // Skip rest days
+      if ('type' in dayEntry && dayEntry.type === 'rest') continue;
+
+      const day = dayEntry as DayTemplate;
+      for (const slot of day.exercises) {
+        const target = getTargetForWeek(slot, week);
+        if (target) {
+          plannedSets += target.sets;
+        }
+      }
+    }
+
+    result.push({
+      week,
+      plannedSets,
+      blockName: block?.name ?? '',
+    });
+  }
+
+  return result;
+}
+
+/** An exercise that has at least one completed set_log */
+export interface LoggedExercise {
+  id: string;
+  name: string;
+  muscleGroups: string[];
+}
+
+/** Get distinct exercises that have at least one completed set_log */
+export async function getLoggedExercises(): Promise<LoggedExercise[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{
+    id: string;
+    name: string;
+    muscle_groups: string;
+  }>(
+    `SELECT DISTINCT e.id, e.name, e.muscle_groups
+     FROM exercises e
+     JOIN set_logs sl ON sl.exercise_id = e.id
+     WHERE sl.status IN ('completed', 'completed_below')
+     ORDER BY e.name ASC`
+  );
+
+  return rows.map(row => ({
+    id: row.id,
+    name: row.name,
+    muscleGroups: JSON.parse(row.muscle_groups),
+  }));
+}
+
+/** Program boundary info for timeline overlays */
+export interface ProgramBoundary {
+  programId: string;
+  programName: string;
+  startDate: string;
+  durationWeeks: number;
+}
+
+/** Get program boundaries (active/completed programs with activation dates) */
+export async function getProgramBoundaries(): Promise<ProgramBoundary[]> {
+  const db = await getDatabase();
+
+  const rows = await db.getAllAsync<{
+    id: string;
+    name: string;
+    activated_date: string;
+    duration_weeks: number;
+  }>(
+    `SELECT id, name, activated_date, duration_weeks
+     FROM programs
+     WHERE status IN ('active', 'completed')
+       AND activated_date IS NOT NULL
+     ORDER BY activated_date ASC`
+  );
+
+  return rows.map(row => ({
+    programId: row.id,
+    programName: row.name,
+    startDate: row.activated_date,
+    durationWeeks: row.duration_weeks,
+  }));
 }

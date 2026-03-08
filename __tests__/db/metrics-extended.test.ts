@@ -4,8 +4,11 @@ import {
   getWeeklyVolume,
   getExerciseSetHistory,
   get1RMHistoryWithBlocks,
+  getExerciseSetHistoryWithBlocks,
+  getExerciseSessionCount,
+  calculateEpley,
 } from '../../src/db/metrics';
-import type { E1RMHistoryPoint } from '../../src/db/metrics';
+import type { E1RMHistoryPoint, SessionSetHistory } from '../../src/db/metrics';
 import { getDatabase, generateId } from '../../src/db/database';
 
 jest.mock('../../src/db/database', () => ({
@@ -324,5 +327,147 @@ describe('get1RMHistoryWithBlocks', () => {
     const params = call[1] as any[];
     // The limit * 5 (250) should be the last param
     expect(params[params.length - 1]).toBe(250);
+  });
+});
+
+describe('getExerciseSetHistoryWithBlocks', () => {
+  let mockDb: {
+    getAllAsync: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb = {
+      getAllAsync: jest.fn(),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+  });
+
+  it('returns blockName and sessionE1rm for each session', async () => {
+    // Mock data ordered by date DESC (as SQL would return)
+    mockDb.getAllAsync.mockResolvedValue([
+      { date: '2026-01-22', session_id: 's2', set_number: 1, actual_weight: 210, actual_reps: 4, rpe: 9, block_name: 'Strength' },
+      { date: '2026-01-15', session_id: 's1', set_number: 1, actual_weight: 200, actual_reps: 5, rpe: 8, block_name: 'Hypertrophy' },
+      { date: '2026-01-15', session_id: 's1', set_number: 2, actual_weight: 200, actual_reps: 5, rpe: 8.5, block_name: 'Hypertrophy' },
+    ]);
+
+    const result = await getExerciseSetHistoryWithBlocks('exercise-1');
+
+    expect(result.length).toBe(2);
+    // Most recent first (descending)
+    expect(result[0].date).toBe('2026-01-22');
+    expect(result[0].blockName).toBe('Strength');
+    expect(result[0].sessionE1rm).toBe(calculateEpley(210, 4));
+    expect(result[0].sets.length).toBe(1);
+
+    expect(result[1].date).toBe('2026-01-15');
+    expect(result[1].blockName).toBe('Hypertrophy');
+    expect(result[1].sessionE1rm).toBe(calculateEpley(200, 5));
+    expect(result[1].sets.length).toBe(2);
+  });
+
+  it('filters by startDate when provided', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await getExerciseSetHistoryWithBlocks('exercise-1', { startDate: '2026-01-01' });
+
+    const call = mockDb.getAllAsync.mock.calls[0];
+    const sql = call[0] as string;
+    expect(sql).toContain('s.date >= ?');
+    expect(call[1]).toContain('2026-01-01');
+  });
+
+  it('filters by programId when provided', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await getExerciseSetHistoryWithBlocks('exercise-1', { programId: 'prog-1' });
+
+    const call = mockDb.getAllAsync.mock.calls[0];
+    const sql = call[0] as string;
+    expect(sql).toContain('s.program_id = ?');
+    expect(call[1]).toContain('prog-1');
+  });
+
+  it('computes avgRpe from non-null RPEs rounded to 1 decimal', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { date: '2026-01-15', session_id: 's1', set_number: 1, actual_weight: 200, actual_reps: 5, rpe: 7, block_name: 'Hypertrophy' },
+      { date: '2026-01-15', session_id: 's1', set_number: 2, actual_weight: 200, actual_reps: 5, rpe: 8, block_name: 'Hypertrophy' },
+      { date: '2026-01-15', session_id: 's1', set_number: 3, actual_weight: 200, actual_reps: 5, rpe: null, block_name: 'Hypertrophy' },
+    ]);
+
+    const result = await getExerciseSetHistoryWithBlocks('exercise-1');
+
+    expect(result.length).toBe(1);
+    // Average of 7 and 8 = 7.5 (null excluded)
+    expect(result[0].avgRpe).toBe(7.5);
+  });
+
+  it('returns avgRpe null when all RPEs are null', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { date: '2026-01-15', session_id: 's1', set_number: 1, actual_weight: 200, actual_reps: 5, rpe: null, block_name: 'Hypertrophy' },
+    ]);
+
+    const result = await getExerciseSetHistoryWithBlocks('exercise-1');
+
+    expect(result[0].avgRpe).toBeNull();
+  });
+
+  it('defaults to limit of 5', async () => {
+    // Create 10 sessions
+    const rows = [];
+    for (let i = 0; i < 10; i++) {
+      rows.push({
+        date: `2026-01-${String(i + 1).padStart(2, '0')}`,
+        session_id: `s${i}`,
+        set_number: 1,
+        actual_weight: 200,
+        actual_reps: 5,
+        rpe: 8,
+        block_name: 'Block',
+      });
+    }
+    mockDb.getAllAsync.mockResolvedValue(rows);
+
+    const result = await getExerciseSetHistoryWithBlocks('exercise-1');
+
+    expect(result.length).toBe(5);
+  });
+
+  it('returns empty array when no data', async () => {
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    const result = await getExerciseSetHistoryWithBlocks('exercise-1');
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('getExerciseSessionCount', () => {
+  let mockDb: {
+    getFirstAsync: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDb = {
+      getFirstAsync: jest.fn(),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+  });
+
+  it('returns the count of distinct sessions', async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ count: 7 });
+
+    const result = await getExerciseSessionCount('exercise-1');
+
+    expect(result).toBe(7);
+  });
+
+  it('returns 0 when no sessions found', async () => {
+    mockDb.getFirstAsync.mockResolvedValue({ count: 0 });
+
+    const result = await getExerciseSessionCount('exercise-1');
+
+    expect(result).toBe(0);
   });
 });

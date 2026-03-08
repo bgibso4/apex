@@ -194,6 +194,125 @@ export function calculateTargetWeight(oneRm: number, percentage: number): number
   return Math.round(raw / 5) * 5; // Round to nearest 5 lbs
 }
 
+/** Session set history with block context */
+export interface SessionSetHistory {
+  date: string;
+  blockName: string;
+  sessionE1rm: number;
+  avgRpe: number | null;
+  sets: { setNumber: number; weight: number; reps: number; rpe: number | null }[];
+}
+
+/** Get exercise set history with block names, supporting date-range and program filtering */
+export async function getExerciseSetHistoryWithBlocks(
+  exerciseId: string,
+  options?: { startDate?: string; programId?: string; limit?: number }
+): Promise<SessionSetHistory[]> {
+  const db = await getDatabase();
+  const limit = options?.limit ?? 5;
+
+  let sql = `SELECT s.date, sl.session_id, sl.set_number, sl.actual_weight, sl.actual_reps, sl.rpe, s.block_name
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND sl.actual_weight > 0
+       AND s.completed_at IS NOT NULL`;
+
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    sql += `\n       AND s.date >= ?`;
+    params.push(options.startDate);
+  }
+
+  if (options?.programId) {
+    sql += `\n       AND s.program_id = ?`;
+    params.push(options.programId);
+  }
+
+  sql += `\n     ORDER BY s.date DESC, sl.set_number ASC`;
+
+  const rows = await db.getAllAsync<{
+    date: string;
+    session_id: string;
+    set_number: number;
+    actual_weight: number;
+    actual_reps: number;
+    rpe: number | null;
+    block_name: string;
+  }>(sql, params);
+
+  // Group by session
+  const sessionMap = new Map<string, {
+    date: string;
+    blockName: string;
+    bestE1rm: number;
+    rpeValues: number[];
+    sets: { setNumber: number; weight: number; reps: number; rpe: number | null }[];
+  }>();
+
+  for (const row of rows) {
+    const key = row.session_id;
+    if (!sessionMap.has(key)) {
+      sessionMap.set(key, {
+        date: row.date,
+        blockName: row.block_name,
+        bestE1rm: 0,
+        rpeValues: [],
+        sets: [],
+      });
+    }
+    const session = sessionMap.get(key)!;
+
+    const e1rm = calculateEpley(row.actual_weight, row.actual_reps);
+    if (e1rm > session.bestE1rm) {
+      session.bestE1rm = e1rm;
+    }
+
+    if (row.rpe !== null) {
+      session.rpeValues.push(row.rpe);
+    }
+
+    session.sets.push({
+      setNumber: row.set_number,
+      weight: row.actual_weight,
+      reps: row.actual_reps,
+      rpe: row.rpe,
+    });
+  }
+
+  const results: SessionSetHistory[] = Array.from(sessionMap.values()).map(s => ({
+    date: s.date,
+    blockName: s.blockName,
+    sessionE1rm: s.bestE1rm,
+    avgRpe: s.rpeValues.length > 0
+      ? Math.round((s.rpeValues.reduce((a, b) => a + b, 0) / s.rpeValues.length) * 10) / 10
+      : null,
+    sets: s.sets,
+  }));
+
+  // Already sorted desc by date from SQL ORDER BY
+  return results.slice(0, limit);
+}
+
+/** Count distinct sessions where an exercise was logged */
+export async function getExerciseSessionCount(exerciseId: string): Promise<number> {
+  const db = await getDatabase();
+
+  const row = await db.getFirstAsync<{ count: number }>(
+    `SELECT COUNT(DISTINCT sl.session_id) as count
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND s.completed_at IS NOT NULL`,
+    [exerciseId]
+  );
+
+  return row?.count ?? 0;
+}
+
 /** Get recent set history for an exercise (for exercise detail page) */
 export async function getExerciseSetHistory(
   exerciseId: string,

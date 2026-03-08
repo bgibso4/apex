@@ -11,7 +11,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint .",
-    "typecheck": "npx tsc --noEmit"
+    "typecheck": "npx tsc --noEmit",
+    "prebuild": "npx expo prebuild --platform ios",
+    "device": "npx expo run:ios --device",
+    "device:clean": "npx expo prebuild --clean --platform ios && npx expo run:ios --device"
   },
   "jest": {
     "collectCoverageFrom": [

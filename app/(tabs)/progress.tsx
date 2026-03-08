@@ -8,7 +8,7 @@ import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import { getActiveProgram, getAllPrograms, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getProgramBoundaries } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
 import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
@@ -325,23 +325,39 @@ export default function ProgressScreen() {
                       <View key={prog.programName} style={{ marginBottom: Spacing.lg }}>
                         <Text style={styles.programVolumeHeader}>{prog.programName}</Text>
                         {progMerged.length > 0 ? (
-                          <View style={styles.chart}>
-                            {progMerged.map((entry, i) => (
-                              <View key={i} style={styles.chartBarCol}>
-                                <View style={[styles.bar, {
-                                  height: `${(entry.planned / progMax) * 100}%`,
-                                  backgroundColor: Colors.surface,
-                                  position: 'absolute',
-                                  bottom: 0,
-                                  width: '80%',
-                                }]} />
-                                <View style={[styles.bar, {
-                                  height: `${(entry.actual / progMax) * 100}%`,
-                                  backgroundColor: prog.blockColorMap[entry.blockName] ?? Colors.indigo,
-                                }]} />
-                                <Text style={styles.chartLabel}>W{entry.week}</Text>
+                          <View style={styles.volumeCard}>
+                            <View style={styles.volumeLegend}>
+                              <View style={styles.volumeLegendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: Colors.indigo }]} />
+                                <Text style={styles.legendText}>Actual sets</Text>
                               </View>
-                            ))}
+                              <View style={styles.volumeLegendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: Colors.surface }]} />
+                                <Text style={styles.legendText}>Planned sets</Text>
+                              </View>
+                            </View>
+
+                            {progMerged.map((entry, i) => {
+                              const plannedPct = progMax > 0 ? (entry.planned / progMax) * 100 : 0;
+                              const actualPct = progMax > 0 ? (entry.actual / progMax) * 100 : 0;
+
+                              return (
+                                <View key={i} style={styles.volumeRow}>
+                                  <Text style={styles.volumeWeekLabel}>W{entry.week}</Text>
+                                  <View style={styles.volumeDualBar}>
+                                    <View style={[styles.volumePlannedBar, { width: `${plannedPct}%` }]} />
+                                    <View style={[styles.volumeActualBar, {
+                                      width: `${actualPct}%`,
+                                      backgroundColor: prog.blockColorMap[entry.blockName] ?? Colors.indigo,
+                                    }]} />
+                                  </View>
+                                  <View style={styles.volumeNums}>
+                                    <Text style={styles.volumeActualNum}>{entry.actual}</Text>
+                                    <Text style={styles.volumePlannedNum}>/ {entry.planned}</Text>
+                                  </View>
+                                </View>
+                              );
+                            })}
                           </View>
                         ) : (
                           <View style={styles.emptyChart}>
@@ -374,37 +390,63 @@ export default function ProgressScreen() {
             </View>
           )
         ) : mergedVolume.length > 0 ? (
-          <View style={styles.chart}>
-            {mergedVolume.map((entry, i) => (
-              <View key={i} style={styles.chartBarCol}>
-                {/* Planned (background) */}
-                <View style={[styles.bar, {
-                  height: `${(entry.planned / maxVolume) * 100}%`,
-                  backgroundColor: Colors.surface,
-                  position: 'absolute',
-                  bottom: 0,
-                  width: '80%',
-                }]} />
-                {/* Actual (foreground) */}
-                <View style={[styles.bar, {
-                  height: `${(entry.actual / maxVolume) * 100}%`,
-                  backgroundColor: blockColorMap[entry.blockName] ?? Colors.indigo,
-                }]} />
-                <Text style={styles.chartLabel}>W{entry.week}</Text>
+          <View style={styles.volumeCard}>
+            {/* Legend */}
+            <View style={styles.volumeLegend}>
+              <View style={styles.volumeLegendItem}>
+                <View style={[styles.legendDot, { backgroundColor: Colors.indigo }]} />
+                <Text style={styles.legendText}>Actual sets</Text>
               </View>
-            ))}
+              <View style={styles.volumeLegendItem}>
+                <View style={[styles.legendDot, { backgroundColor: Colors.surface }]} />
+                <Text style={styles.legendText}>Planned sets</Text>
+              </View>
+            </View>
+
+            {mergedVolume.map((entry, i) => {
+              const plannedPct = maxVolume > 0 ? (entry.planned / maxVolume) * 100 : 0;
+              const actualPct = maxVolume > 0 ? (entry.actual / maxVolume) * 100 : 0;
+              const isCurrent = entry.week === currentWeek;
+
+              return (
+                <View key={i} style={styles.volumeRow}>
+                  <Text style={[styles.volumeWeekLabel, isCurrent && styles.volumeWeekLabelCurrent]}>
+                    W{entry.week}
+                  </Text>
+                  <View style={styles.volumeDualBar}>
+                    <View style={[styles.volumePlannedBar, { width: `${plannedPct}%` }]} />
+                    <View style={[styles.volumeActualBar, {
+                      width: `${actualPct}%`,
+                      backgroundColor: blockColorMap[entry.blockName] ?? Colors.indigo,
+                    }]} />
+                  </View>
+                  <View style={styles.volumeNums}>
+                    <Text style={styles.volumeActualNum}>{entry.actual}</Text>
+                    <Text style={styles.volumePlannedNum}>/ {entry.planned}</Text>
+                  </View>
+                </View>
+              );
+            })}
           </View>
         ) : volumeData.length > 0 ? (
-          <View style={styles.chart}>
-            {volumeData.map((v, i) => (
-              <View key={i} style={styles.chartBarCol}>
-                <View style={[styles.bar, {
-                  height: `${(v.totalSets / maxVolume) * 100}%`,
-                  backgroundColor: Colors.indigo,
-                }]} />
-                <Text style={styles.chartLabel}>W{v.week}</Text>
-              </View>
-            ))}
+          <View style={styles.volumeCard}>
+            {volumeData.map((v, i) => {
+              const pct = maxVolume > 0 ? (v.totalSets / maxVolume) * 100 : 0;
+              return (
+                <View key={i} style={styles.volumeRow}>
+                  <Text style={styles.volumeWeekLabel}>W{v.week}</Text>
+                  <View style={styles.volumeDualBar}>
+                    <View style={[styles.volumeActualBar, {
+                      width: `${pct}%`,
+                      backgroundColor: Colors.indigo,
+                    }]} />
+                  </View>
+                  <View style={styles.volumeNums}>
+                    <Text style={styles.volumeActualNum}>{v.totalSets}</Text>
+                  </View>
+                </View>
+              );
+            })}
           </View>
         ) : (
           <View style={styles.emptyChart}>
@@ -679,36 +721,85 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Volume chart (bar chart — volume is best shown as bars)
-  chart: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: ComponentSize.chartHeight,
-    gap: Spacing.xs,
+  // Volume section (horizontal bars)
+  volumeCard: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    padding: Spacing.xl,
   },
-  chartBarCol: {
-    flex: 1,
+  volumeLegend: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  volumeLegendItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+  },
+  legendText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+  volumeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm - 2,
+  },
+  volumeWeekLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    width: 24,
+    textAlign: 'right',
+  },
+  volumeWeekLabelCurrent: {
+    color: Colors.text,
+    fontWeight: '700',
+  },
+  volumeDualBar: {
+    flex: 1,
+    height: 20,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  volumePlannedBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     height: '100%',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xs,
+  },
+  volumeActualBar: {
+    height: 12,
+    borderRadius: BorderRadius.xs - 1,
+    marginVertical: 4,
+  },
+  volumeNums: {
+    flexDirection: 'row',
+    gap: 2,
+    width: 55,
     justifyContent: 'flex-end',
   },
-  bar: {
-    width: '80%',
-    borderRadius: BorderRadius.xs,
-    minHeight: Spacing.xs,
+  volumeActualNum: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
   },
-  chartLabel: {
-    color: Colors.textDim,
-    fontSize: FontSize.chartLabel,
-    marginTop: Spacing.xs,
-    position: 'absolute',
-    bottom: -Spacing.lg,
+  volumePlannedNum: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
   },
 
   // No data

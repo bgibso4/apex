@@ -12,7 +12,11 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.bgibso4.apex"
+      "bundleIdentifier": "com.bgibso4.apex",
+      "infoPlist": {
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true
+      }
     },
     "plugins": [
       "expo-router",

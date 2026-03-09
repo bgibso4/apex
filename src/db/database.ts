@@ -85,6 +85,15 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   return db;
 }
 
+/** Close the database connection and clear the singleton.
+ *  Must be called before replacing the DB file (e.g., import). */
+export async function closeDatabase(): Promise<void> {
+  if (db) {
+    await db.closeAsync();
+    db = null;
+  }
+}
+
 /** Delete all user data (sessions, programs, logs, etc.) but keep the schema intact */
 export async function clearAllData(): Promise<void> {
   const db = await getDatabase();

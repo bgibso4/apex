@@ -40,6 +40,9 @@
           "**/__tests__/utils/**",
           "**/__tests__/db/**"
         ],
+        "moduleNameMapper": {
+          "^expo-file-system/legacy$": "expo-file-system"
+        },
         "transform": {
           "^.+\\.(ts|tsx)$": [
             "babel-jest",

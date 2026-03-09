@@ -3,24 +3,62 @@
  * Training preferences, integrations, and data management.
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
 import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData } from '../src/db';
+import { exportDatabase, importDatabase, getLastExportTimestamp } from '../src/db';
 
 type WeightUnit = 'lbs' | 'kg';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const [unit, setUnit] = useState<WeightUnit>('lbs');
+  const [lastExport, setLastExport] = useState<string | null>(null);
 
-  const handleExportData = () => {
-    Alert.alert('Export Data', 'Training data export is not yet available.');
+  useFocusEffect(
+    useCallback(() => {
+      getLastExportTimestamp().then(setLastExport);
+    }, [])
+  );
+
+  const handleExportData = async () => {
+    try {
+      await exportDatabase();
+      const timestamp = await getLastExportTimestamp();
+      setLastExport(timestamp);
+    } catch (err: any) {
+      Alert.alert('Export Failed', err.message ?? 'Could not export database');
+    }
+  };
+
+  const handleImportData = () => {
+    Alert.alert(
+      'Import Backup',
+      'This will replace ALL current data with the backup. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Import',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await importDatabase();
+              if (success) {
+                Alert.alert('Import Complete', 'Your data has been restored from the backup.');
+              }
+            } catch (err: any) {
+              Alert.alert('Import Failed', err.message ?? 'Could not import database');
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleSeedData = async () => {
@@ -180,9 +218,49 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Data Section */}
+        {/* Backup & Data Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>DATA</Text>
+          <Text style={styles.sectionLabel}>BACKUP & DATA</Text>
+          <View style={styles.group}>
+            {/* Export Backup */}
+            <TouchableOpacity
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={handleExportData}
+            >
+              <View style={styles.rowLeft}>
+                <Text style={styles.rowLabel}>Export Backup</Text>
+                <Text style={styles.rowHint}>
+                  {lastExport
+                    ? `Last: ${new Date(lastExport).toLocaleDateString()}`
+                    : 'Save your data to Files, AirDrop, etc.'}
+                </Text>
+              </View>
+              <Ionicons name="share-outline" size={18} color={Colors.indigo} />
+            </TouchableOpacity>
+
+            <View style={styles.rowDivider} />
+
+            {/* Import Backup */}
+            <TouchableOpacity
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={handleImportData}
+            >
+              <View style={styles.rowLeft}>
+                <Text style={styles.rowLabel}>Import Backup</Text>
+                <Text style={styles.rowHint}>
+                  Restore from a previously exported .db file
+                </Text>
+              </View>
+              <Ionicons name="download-outline" size={18} color={Colors.indigo} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Dev Tools Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>DEV TOOLS</Text>
           <View style={styles.group}>
             {/* Seed Data */}
             <TouchableOpacity
@@ -197,23 +275,6 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               <Ionicons name="flask-outline" size={18} color={Colors.cyan} />
-            </TouchableOpacity>
-
-            <View style={styles.rowDivider} />
-
-            {/* Export */}
-            <TouchableOpacity
-              style={styles.row}
-              activeOpacity={0.7}
-              onPress={handleExportData}
-            >
-              <View style={styles.rowLeft}>
-                <Text style={styles.rowLabel}>Export Training Data</Text>
-                <Text style={styles.rowHint}>
-                  Download all sessions as JSON
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
             </TouchableOpacity>
 
             <View style={styles.rowDivider} />

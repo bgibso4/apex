@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -10,6 +11,7 @@ import {
   detectPRs, getPRsForSession,
   getSetLogsForSession,
   getInProgressSession, deleteSession,
+  shouldShowBackupReminder, exportDatabase,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
 import {
@@ -527,6 +529,28 @@ export function useWorkoutSession() {
 
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setPhase('complete');
+
+    // Check if backup reminder is needed (non-blocking)
+    try {
+      const needsBackup = await shouldShowBackupReminder();
+      if (needsBackup) {
+        Alert.alert(
+          'Back Up Your Data?',
+          "It's been a while since your last backup.",
+          [
+            { text: 'Dismiss', style: 'cancel' },
+            {
+              text: 'Export Now',
+              onPress: async () => {
+                try {
+                  await exportDatabase();
+                } catch { /* silently fail — non-critical */ }
+              },
+            },
+          ],
+        );
+      }
+    } catch { /* silently fail — non-critical */ }
   };
 
   return {

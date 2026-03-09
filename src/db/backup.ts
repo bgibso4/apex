@@ -102,16 +102,23 @@ export async function importDatabase(): Promise<boolean> {
   return true;
 }
 
-/** Validate that an imported file has the expected APEX schema. */
+/** Validate that an imported file has the expected APEX schema.
+ *  expo-sqlite's openDatabaseAsync takes a name + directory, not a full path.
+ *  So we copy the backup into the cache directory and open by name. */
 async function validateBackupSchema(uri: string): Promise<void> {
-  const validationPath = `${FileSystem.cacheDirectory}apex-validation-temp.db`;
+  const tempDbName = 'apex-validation-temp.db';
+  const cacheDir = FileSystem.cacheDirectory;
+  if (!cacheDir) throw new Error('Cache directory not available');
+
+  const validationPath = `${cacheDir}${tempDbName}`;
   await FileSystem.copyAsync({ from: uri, to: validationPath });
+
+  // Strip the file:// prefix to get a plain directory path for expo-sqlite
+  const cacheDirPath = cacheDir.replace(/^file:\/\//, '');
 
   let validationDb: SQLite.SQLiteDatabase | null = null;
   try {
-    validationDb = await SQLite.openDatabaseAsync(validationPath, {
-      useNewConnection: true,
-    });
+    validationDb = await SQLite.openDatabaseAsync(tempDbName, {}, cacheDirPath);
 
     const row = await validationDb.getFirstAsync<{ value: string }>(
       "SELECT value FROM schema_info WHERE key = 'schema_version'"
@@ -129,7 +136,7 @@ async function validateBackupSchema(uri: string): Promise<void> {
       );
     }
   } catch (err: any) {
-    if (err.message.includes('APEX')) throw err;
+    if (err.message?.includes('APEX')) throw err;
     throw new Error('Backup file is not a valid APEX database');
   } finally {
     if (validationDb) {

@@ -226,8 +226,9 @@ describe('backup', () => {
 
       // Should have validated the schema
       expect(SQLite.openDatabaseAsync).toHaveBeenCalledWith(
-        'file:///cache/apex-validation-temp.db',
-        { useNewConnection: true }
+        'apex-validation-temp.db',
+        {},
+        '/cache/'
       );
 
       // Should close the current DB

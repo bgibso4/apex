@@ -10,6 +10,7 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import * as SQLite from 'expo-sqlite';
 import { getDatabase, closeDatabase } from './database';
+import { SCHEMA_VERSION } from './schema';
 
 /** Export the database via the iOS Share Sheet.
  *  Checkpoints WAL, copies to a temp file, opens share sheet. */
@@ -121,7 +122,6 @@ async function validateBackupSchema(uri: string): Promise<void> {
     }
 
     const version = parseInt(row.value);
-    const { SCHEMA_VERSION } = require('./schema');
 
     if (version > SCHEMA_VERSION) {
       throw new Error(

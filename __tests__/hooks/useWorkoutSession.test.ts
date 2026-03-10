@@ -991,6 +991,9 @@ describe('useWorkoutSession', () => {
       const hookResult = await setupWithSession();
       const countBefore = hookResult.result.current.exercises.length;
 
+      // Clear calls from startSession's ensureExerciseExists before testing adhoc
+      mockedEnsureExerciseExists.mockClear();
+
       await act(async () => {
         await hookResult.result.current.addAdhocExercise();
       });

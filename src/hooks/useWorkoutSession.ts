@@ -171,6 +171,15 @@ export function useWorkoutSession() {
       if (!target) continue;
 
       const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
+
+      // Ensure exercise exists in DB (guards against missing exercise_definitions)
+      await ensureExerciseExists({
+        id: slot.exercise_id,
+        name: exerciseDef?.name ?? slot.exercise_id.replace(/_/g, ' '),
+        type: slot.category ?? 'accessory',
+        muscleGroups: exerciseDef?.muscle_groups ?? [],
+      });
+
       const reps = typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;

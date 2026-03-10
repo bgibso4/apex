@@ -34,20 +34,18 @@ export default function WorkoutScreen() {
   const [recentSessions, setRecentSessions] = useState<(Session & { setCount?: number; durationMin?: number })[]>([]);
 
   useFocusEffect(useCallback(() => {
-    if (w.phase === 'select') {
-      getRecentCompletedSessions(5).then(async (sessions) => {
-        const enriched = await Promise.all(sessions.map(async (s) => {
-          const sets = await getSetLogsForSession(s.id);
-          const completedSets = sets.filter(sl => sl.status === 'completed' || sl.status === 'completed_below');
-          const startedAt = s.started_at ? new Date(s.started_at).getTime() : 0;
-          const completedAt = s.completed_at ? new Date(s.completed_at).getTime() : 0;
-          const durationMin = startedAt && completedAt ? Math.round((completedAt - startedAt) / 60000) : undefined;
-          return { ...s, setCount: completedSets.length, durationMin };
-        }));
-        setRecentSessions(enriched);
-      });
-    }
-  }, [w.phase]));
+    getRecentCompletedSessions(5).then(async (sessions) => {
+      const enriched = await Promise.all(sessions.map(async (s) => {
+        const sets = await getSetLogsForSession(s.id);
+        const completedSets = sets.filter(sl => sl.status === 'completed' || sl.status === 'completed_below');
+        const startedAt = s.started_at ? new Date(s.started_at).getTime() : 0;
+        const completedAt = s.completed_at ? new Date(s.completed_at).getTime() : 0;
+        const durationMin = startedAt && completedAt ? Math.round((completedAt - startedAt) / 60000) : undefined;
+        return { ...s, setCount: completedSets.length, durationMin };
+      }));
+      setRecentSessions(enriched);
+    }).catch(() => {});
+  }, []));
 
   // Hooks must be called unconditionally (before any early returns)
   const exerciseCount = w.exercises.filter(e =>
@@ -80,40 +78,49 @@ export default function WorkoutScreen() {
             <Text style={styles.emptyText}>No active program</Text>
           </View>
 
-          {recentSessions.length > 0 && (
-            <View style={styles.recentSection}>
-              <Text style={styles.recentTitle}>Recent Workouts</Text>
-              {recentSessions.map((s) => {
-                const dateLabel = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
-                  weekday: 'short', month: 'short', day: 'numeric',
-                });
-                return (
-                  <TouchableOpacity
-                    key={s.id}
-                    style={styles.recentCard}
-                    onPress={() => router.push(`/session/${s.id}`)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.recentCardLeft}>
-                      <Text style={styles.recentCardName}>{s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
-                      <Text style={styles.recentCardDate}>
-                        {dateLabel}
-                        {s.block_name ? ` · ${s.block_name}` : ''}
-                      </Text>
-                    </View>
-                    <View style={styles.recentCardRight}>
-                      {s.durationMin != null && (
-                        <Text style={styles.recentCardStat}>{s.durationMin}m</Text>
-                      )}
-                      {s.setCount != null && (
-                        <Text style={styles.recentCardStat}>{s.setCount} sets</Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
+          <View style={styles.recentSection}>
+            <Text style={styles.recentTitle}>Recent Workouts</Text>
+            {recentSessions.length === 0 && (
+              <Text style={styles.noRecentText}>No recent workouts</Text>
+            )}
+            {recentSessions.map((s) => {
+              const dateLabel = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric',
+              });
+              return (
+                <TouchableOpacity
+                  key={s.id}
+                  style={styles.recentCard}
+                  onPress={() => router.push(`/session/${s.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.recentCardLeft}>
+                    <Text style={styles.recentCardName}>{s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+                    <Text style={styles.recentCardDate}>
+                      {dateLabel}
+                      {s.block_name ? ` · ${s.block_name}` : ''}
+                    </Text>
+                  </View>
+                  <View style={styles.recentCardRight}>
+                    {s.durationMin != null && (
+                      <Text style={styles.recentCardStat}>{s.durationMin}m</Text>
+                    )}
+                    {s.setCount != null && (
+                      <Text style={styles.recentCardStat}>{s.setCount} sets</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+            <TouchableOpacity
+              style={styles.viewAllButton}
+              onPress={() => router.push('/history')}
+            >
+              <Text style={styles.viewAllText}>
+                View all workouts {'\u2192'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </View>
     );
@@ -193,9 +200,12 @@ export default function WorkoutScreen() {
         )}
 
         {/* Recent workouts (select phase) */}
-        {w.phase === 'select' && recentSessions.length > 0 && (
+        {w.phase === 'select' && (
           <View style={styles.recentSection}>
             <Text style={styles.recentTitle}>Recent Workouts</Text>
+            {recentSessions.length === 0 && (
+              <Text style={styles.noRecentText}>No recent workouts</Text>
+            )}
             {recentSessions.map((s) => {
               const dateLabel = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
                 weekday: 'short', month: 'short', day: 'numeric',
@@ -225,6 +235,14 @@ export default function WorkoutScreen() {
                 </TouchableOpacity>
               );
             })}
+            <TouchableOpacity
+              style={styles.viewAllButton}
+              onPress={() => router.push('/history')}
+            >
+              <Text style={styles.viewAllText}>
+                View all workouts {'\u2192'}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -718,6 +736,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: Spacing.md,
   },
+  noRecentText: {
+    color: Colors.textDim,
+    fontSize: FontSize.body,
+    textAlign: 'center',
+    paddingVertical: Spacing.lg,
+  },
   recentCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -752,6 +776,15 @@ const styles = StyleSheet.create({
     color: Colors.textDim,
     fontSize: FontSize.body,
     fontWeight: '500',
+  },
+  viewAllButton: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  viewAllText: {
+    color: Colors.indigo,
+    fontSize: FontSize.body,
+    fontWeight: '600',
   },
 
   // Logging header

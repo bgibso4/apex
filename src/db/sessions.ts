@@ -288,6 +288,17 @@ export async function getRecentCompletedSessions(limit: number = 10): Promise<Se
   );
 }
 
+/** Get all completed sessions with program name, ordered newest first */
+export async function getAllCompletedSessions(): Promise<(Session & { program_name: string })[]> {
+  const db = await getDatabase();
+  return db.getAllAsync<Session & { program_name: string }>(
+    `SELECT s.*, p.name as program_name FROM sessions s
+     JOIN programs p ON p.id = s.program_id
+     WHERE s.completed_at IS NOT NULL
+     ORDER BY s.date DESC`
+  );
+}
+
 /** Get the most recent sets for an exercise (for pre-fill) */
 export async function getLastSessionForExercise(
   exerciseId: string,

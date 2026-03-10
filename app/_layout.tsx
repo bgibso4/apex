@@ -68,6 +68,7 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen name="settings" />
+          <Stack.Screen name="history" />
           <Stack.Screen
             name="activate"
             options={{

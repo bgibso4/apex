@@ -440,7 +440,7 @@ export default function WorkoutScreen() {
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}
-            sessionId={w.sessionId}
+            sessionId={w.sessionId ?? undefined}
             onViewSession={(id) => router.push(`/session/${id}`)}
             onViewAllWorkouts={() => router.push('/history')}
             recentSessions={recentSessions.map(s => ({

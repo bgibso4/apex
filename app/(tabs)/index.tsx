@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import { APEX_FONT_FAMILY } from '../../src/theme/fonts';
-import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h } from '../../src/db';
+import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
@@ -55,14 +55,15 @@ export default function HomeScreen() {
     const active = await getActiveProgram();
     setProgram(active);
 
+    // Always fetch month sessions (for calendar in both states)
+    const { startDate, endDate } = getMonthDateRange(displayYear, displayMonth);
+
     if (active?.activated_date) {
       const week = getCurrentWeek(active.activated_date);
       setCurrentWeek(week);
       const sessions = await getSessionsForWeek(active.id, week);
       setWeekSessions(sessions);
 
-      // Fetch all sessions for the current month
-      const { startDate, endDate } = getMonthDateRange(displayYear, displayMonth);
       const mSessions = await getSessionsForDateRange(active.id, startDate, endDate);
       setMonthSessions(mSessions);
 
@@ -80,6 +81,10 @@ export default function HomeScreen() {
         setTodaySessionId(todayCompleted?.id ?? null);
         setCompletedStats(null);
       }
+    } else {
+      // No active program — still load completed sessions for the calendar
+      const mSessions = await getAllSessionsForDateRange(startDate, endDate);
+      setMonthSessions(mSessions);
     }
 
     // Check for pending pain follow-up (independent of program)
@@ -173,19 +178,73 @@ export default function HomeScreen() {
   if (!program || !def) {
     return (
       <View style={styles.container}>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>{'🏋'}</Text>
-          <Text style={styles.emptyTitle}>No Active Program</Text>
-          <Text style={styles.emptySub}>
-            Choose a training program from the library to get started.
-          </Text>
-          <TouchableOpacity
-            style={styles.browseButton}
-            onPress={() => router.push('/library')}
-          >
-            <Text style={styles.browseButtonText}>Browse Library</Text>
-          </TouchableOpacity>
-        </View>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.indigo} />
+          }
+        >
+          {/* Header: APEX title + gear */}
+          <View style={styles.header}>
+            <Text style={[
+              styles.apexTitle,
+              APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
+            ]}>APEX</Text>
+            <TouchableOpacity
+              style={styles.gearIcon}
+              onPress={() => router.push('/settings')}
+            >
+              <Ionicons name="settings-outline" size={22} color={Colors.textDim} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>{'🏋'}</Text>
+            <Text style={styles.emptyTitle}>No Active Program</Text>
+            <Text style={styles.emptySub}>
+              Choose a training program from the library to get started.
+            </Text>
+            <TouchableOpacity
+              style={styles.browseButton}
+              onPress={() => router.push('/library')}
+            >
+              <Text style={styles.browseButtonText}>Browse Library</Text>
+            </TouchableOpacity>
+          </View>
+
+          <MonthCalendar
+            year={displayYear}
+            month={displayMonth}
+            days={calendarDays}
+            blockColor={Colors.indigo}
+            onDayPress={(day) => {
+              if (day.isCompleted && day.sessionId) {
+                router.push(`/session/${day.sessionId}`);
+              }
+            }}
+            onPrevMonth={() => {
+              if (displayMonth === 0) {
+                setDisplayMonth(11);
+                setDisplayYear(y => y - 1);
+              } else {
+                setDisplayMonth(m => m - 1);
+              }
+            }}
+            onNextMonth={
+              displayYear < now.getFullYear() || displayMonth < now.getMonth()
+                ? () => {
+                    if (displayMonth === 11) {
+                      setDisplayMonth(0);
+                      setDisplayYear(y => y + 1);
+                    } else {
+                      setDisplayMonth(m => m + 1);
+                    }
+                  }
+                : undefined
+            }
+          />
+        </ScrollView>
       </View>
     );
   }
@@ -349,11 +408,9 @@ const styles = StyleSheet.create({
   },
   // Empty state
   emptyState: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     gap: Spacing.xl,
-    paddingHorizontal: Spacing.screenHorizontal,
+    paddingVertical: Spacing.xxxl,
   },
   emptyIcon: {
     fontSize: 48,

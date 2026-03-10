@@ -75,11 +75,15 @@ export function ExerciseCard({
     >
       <View style={styles.expandedContent}>
         <Text style={styles.exerciseName}>{exerciseName}</Text>
-        {lastWeight != null && (
-          <Text style={styles.lastSession}>
-            Last: <Text style={styles.lastSessionValue}>
-              {lastWeight} lbs {'\u00D7'} {lastReps} {'\u00D7'} {sets.length} sets
-            </Text>
+
+        {/* Reference data: %1RM, target RPE, last weight */}
+        {(target?.percent || target?.rpe_target || lastWeight != null) && (
+          <Text style={styles.referenceText}>
+            {[
+              target?.percent != null ? `${target.percent}% 1RM` : null,
+              target?.rpe_target != null ? `RPE ${target.rpe_target}` : null,
+              lastWeight != null ? `Last ${lastWeight} lbs` : null,
+            ].filter(Boolean).join('  \u00B7  ')}
           </Text>
         )}
 
@@ -118,7 +122,7 @@ export function ExerciseCard({
                   isCompleted && styles.setValueCompleted,
                   isFuture && styles.setValueFuture,
                 ]}
-                onPress={() => isCompleted && onLongPressSet(setIdx)}
+                onPress={() => onLongPressSet(setIdx)}
               >
                 {set.actualWeight} lbs
               </Text>
@@ -128,7 +132,7 @@ export function ExerciseCard({
                   isCompleted && styles.setValueCompleted,
                   isFuture && styles.setValueFuture,
                 ]}
-                onPress={() => isCompleted && onLongPressSet(setIdx)}
+                onPress={() => onLongPressSet(setIdx)}
               >
                 {set.actualReps}
               </Text>
@@ -252,13 +256,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: Spacing.xs,
   },
-  lastSession: {
+  referenceText: {
     color: Colors.textMuted,
     fontSize: FontSize.sm,
     marginBottom: Spacing.lg,
-  },
-  lastSessionValue: {
-    color: Colors.textDim,
   },
 
   // Set grid

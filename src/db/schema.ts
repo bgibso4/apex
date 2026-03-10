@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   warmup_ankle INTEGER DEFAULT 0,
   warmup_hip_ir INTEGER DEFAULT 0,
   conditioning_done INTEGER DEFAULT 0,
+  notes TEXT,
   started_at TEXT,
   completed_at TEXT,
   FOREIGN KEY (program_id) REFERENCES programs(id)

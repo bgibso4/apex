@@ -1436,4 +1436,42 @@ describe('useWorkoutSession', () => {
       expect(mockedGetInProgressSession).not.toHaveBeenCalled();
     });
   });
+
+  // -----------------------------------------------------------------------
+  // endEarlyAction
+  // -----------------------------------------------------------------------
+  describe('endEarlyAction', () => {
+    it('calls finishSession and transitions to complete phase', async () => {
+      const { result } = await setupWithSession();
+
+      expect(result.current.phase).toBe('logging');
+
+      // Complete one set so we have some logged data
+      await act(async () => {
+        await result.current.completeSetAction(0, 0);
+      });
+
+      // End early
+      await act(async () => {
+        await result.current.endEarlyAction();
+      });
+
+      // Should transition to complete phase
+      expect(result.current.phase).toBe('complete');
+      expect(mockedCompleteSession).toHaveBeenCalledWith('session-1', false);
+    });
+
+    it('works even with no sets logged (from warmup → logging)', async () => {
+      const { result } = await setupWithSession();
+
+      expect(result.current.phase).toBe('logging');
+
+      await act(async () => {
+        await result.current.endEarlyAction();
+      });
+
+      expect(result.current.phase).toBe('complete');
+      expect(mockedCompleteSession).toHaveBeenCalled();
+    });
+  });
 });

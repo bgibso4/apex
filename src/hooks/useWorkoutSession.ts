@@ -791,6 +791,11 @@ export function useWorkoutSession() {
     });
   };
 
+  /** End the session early (calls finishSession) */
+  const endEarlyAction = async () => {
+    await finishSession();
+  };
+
   /** Delete the current session and reset state */
   const deleteSessionAction = async () => {
     if (!sessionId) return;
@@ -949,6 +954,7 @@ export function useWorkoutSession() {
     moveExercise,
     enterReorderMode,
     deleteSessionAction,
+    endEarlyAction,
     updateSetInSummary,
   };
 }

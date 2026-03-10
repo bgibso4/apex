@@ -10,6 +10,8 @@ import {
   getRunStats,
   updateRunPain24h,
   getPendingPainFollowUp,
+  deleteRun,
+  updateRun,
 } from '../../src/db/runs';
 
 jest.mock('../../src/db/database', () => ({
@@ -225,6 +227,58 @@ describe('runs', () => {
       expect(sql).toContain('UPDATE run_logs SET pain_level_24h = ?');
       expect(sql).toContain('WHERE id = ?');
       expect(params).toEqual([4, 'run-123']);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // deleteRun
+  // ---------------------------------------------------------------------------
+  describe('deleteRun', () => {
+    it('calls DELETE with correct id', async () => {
+      await deleteRun('run-456');
+
+      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('DELETE FROM run_logs');
+      expect(sql).toContain('WHERE id = ?');
+      expect(params).toEqual(['run-456']);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // updateRun
+  // ---------------------------------------------------------------------------
+  describe('updateRun', () => {
+    it('calls UPDATE with all fields', async () => {
+      await updateRun('run-789', {
+        durationMin: 35,
+        distance: 3.5,
+        painLevel: 4,
+        notes: 'updated notes',
+        includedPickups: true,
+      });
+
+      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('UPDATE run_logs SET');
+      expect(sql).toContain('duration_min = ?');
+      expect(sql).toContain('distance = ?');
+      expect(sql).toContain('pain_level = ?');
+      expect(sql).toContain('notes = ?');
+      expect(sql).toContain('included_pickups = ?');
+      expect(sql).toContain('WHERE id = ?');
+      expect(params).toEqual([35, 3.5, 4, 'updated notes', 1, 'run-789']);
+    });
+
+    it('defaults optional fields to null', async () => {
+      await updateRun('run-789', {
+        durationMin: 20,
+        painLevel: 1,
+        includedPickups: false,
+      });
+
+      const [, params] = mockDb.runAsync.mock.calls[0];
+      expect(params).toEqual([20, null, 1, null, 0, 'run-789']);
     });
   });
 

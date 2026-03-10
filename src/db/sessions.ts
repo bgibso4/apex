@@ -299,6 +299,36 @@ export async function getAllCompletedSessions(): Promise<(Session & { program_na
   );
 }
 
+/** Get full session state (session + set logs + exercise notes) for restoration */
+export async function getFullSessionState(sessionId: string): Promise<{
+  session: Session;
+  setLogs: SetLog[];
+  exerciseNotes: Record<string, string>;
+} | null> {
+  const db = await getDatabase();
+  const session = await db.getFirstAsync<Session>(
+    "SELECT * FROM sessions WHERE id = ?",
+    [sessionId]
+  );
+  if (!session) return null;
+
+  const setLogs = await db.getAllAsync<SetLog>(
+    "SELECT * FROM set_logs WHERE session_id = ? ORDER BY exercise_id, set_number",
+    [sessionId]
+  );
+
+  const noteRows = await db.getAllAsync<{ exercise_id: string; note: string }>(
+    "SELECT exercise_id, note FROM exercise_notes WHERE session_id = ?",
+    [sessionId]
+  );
+  const exerciseNotes: Record<string, string> = {};
+  for (const row of noteRows) {
+    exerciseNotes[row.exercise_id] = row.note;
+  }
+
+  return { session, setLogs, exerciseNotes };
+}
+
 /** Get the most recent sets for an exercise (for pre-fill) */
 export async function getLastSessionForExercise(
   exerciseId: string,

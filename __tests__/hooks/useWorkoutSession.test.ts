@@ -42,6 +42,11 @@ jest.mock('../../src/db', () => ({
   getPRsForSession: jest.fn(),
   detectPRs: jest.fn(),
   saveExerciseNote: jest.fn(),
+  getInProgressSession: jest.fn(),
+  getFullSessionState: jest.fn(),
+  deleteSession: jest.fn(),
+  shouldShowBackupReminder: jest.fn(),
+  exportDatabase: jest.fn(),
 }));
 
 jest.mock('../../src/utils/program', () => ({
@@ -69,6 +74,7 @@ import {
   getLastSessionForExercise, calculateTargetWeight,
   ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
   getExerciseNames, getExerciseNotesForSession, getPRsForSession, detectPRs,
+  getInProgressSession, getFullSessionState, deleteSession,
 } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
@@ -94,6 +100,9 @@ const mockedGetExerciseNames = getExerciseNames as jest.Mock;
 const mockedGetExerciseNotesForSession = getExerciseNotesForSession as jest.Mock;
 const mockedGetPRsForSession = getPRsForSession as jest.Mock;
 const mockedDetectPRs = detectPRs as jest.Mock;
+const mockedGetInProgressSession = getInProgressSession as jest.Mock;
+const mockedGetFullSessionState = getFullSessionState as jest.Mock;
+const mockedDeleteSession = deleteSession as jest.Mock;
 
 const mockedGetBlockForWeek = getBlockForWeek as jest.Mock;
 const mockedGetBlockColor = getBlockColor as jest.Mock;
@@ -200,6 +209,9 @@ function setupDefaultMocks() {
   mockedGetExerciseNotesForSession.mockResolvedValue({});
   mockedGetPRsForSession.mockResolvedValue([]);
   mockedDetectPRs.mockResolvedValue([]);
+  mockedGetInProgressSession.mockResolvedValue(null);
+  mockedGetFullSessionState.mockResolvedValue(null);
+  mockedDeleteSession.mockResolvedValue(undefined);
 
   mockedGetCurrentWeek.mockReturnValue(1);
   mockedGetTodayKey.mockReturnValue('monday');

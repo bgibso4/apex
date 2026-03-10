@@ -6,7 +6,8 @@ export {
   logSet, updateSet, deleteSet, completeSession, updateSessionNotes,
   getSessionsForWeek, getSessionsForDateRange, getSetLogsForSession, getLastSessionForExercise,
   getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists,
-  deleteSession, getInProgressSession, getRecentCompletedSessions, getAllSessionsForDateRange, getAllCompletedSessions
+  deleteSession, getInProgressSession, getRecentCompletedSessions, getAllSessionsForDateRange, getAllCompletedSessions,
+  getFullSessionState
 } from './sessions';
 export { calculateEpley, getEstimated1RM, get1RMHistory, get1RMHistoryWithBlocks, getWeeklyVolume, calculateTargetWeight, getExerciseSetHistory, getExerciseSetHistoryWithBlocks, getExerciseSessionCount, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getPlannedWeeklyVolume, getLoggedExercises, getProgramBoundaries } from './metrics';
 export type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume, LoggedExercise, ProgramBoundary } from './metrics';

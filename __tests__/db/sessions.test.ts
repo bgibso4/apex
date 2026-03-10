@@ -20,6 +20,7 @@ import {
   getExerciseNames,
   ensureExerciseExists,
   getLastSessionForExercise,
+  getFullSessionState,
 } from '../../src/db/sessions';
 
 jest.mock('../../src/db/database', () => ({
@@ -531,6 +532,89 @@ describe('sessions', () => {
       const [sql, params] = mockDb.getFirstAsync.mock.calls[0];
       expect(sql).not.toContain('s.program_id = ?');
       expect(params).toEqual(['bench']);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getFullSessionState
+  // ---------------------------------------------------------------------------
+  describe('getFullSessionState', () => {
+    it('returns null when session is not found', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      const result = await getFullSessionState('nonexistent');
+
+      expect(result).toBeNull();
+      expect(mockDb.getFirstAsync).toHaveBeenCalledTimes(1);
+      // Should not query for set logs or notes
+      expect(mockDb.getAllAsync).not.toHaveBeenCalled();
+    });
+
+    it('returns session, set logs, and exercise notes', async () => {
+      const mockSession = {
+        id: 'sess-1',
+        program_id: 'prog-1',
+        week_number: 2,
+        started_at: '2026-03-09T10:00:00Z',
+        completed_at: null,
+      };
+      const mockSetLogs = [
+        { id: 'sl1', session_id: 'sess-1', exercise_id: 'squat', set_number: 1, status: 'completed' },
+        { id: 'sl2', session_id: 'sess-1', exercise_id: 'squat', set_number: 2, status: 'completed' },
+        { id: 'sl3', session_id: 'sess-1', exercise_id: 'bench', set_number: 1, status: 'completed' },
+      ];
+      const mockNoteRows = [
+        { exercise_id: 'squat', note: 'Felt strong' },
+        { exercise_id: 'bench', note: 'Slight pain' },
+      ];
+
+      mockDb.getFirstAsync.mockResolvedValue(mockSession);
+      mockDb.getAllAsync
+        .mockResolvedValueOnce(mockSetLogs)
+        .mockResolvedValueOnce(mockNoteRows);
+
+      const result = await getFullSessionState('sess-1');
+
+      expect(result).not.toBeNull();
+      expect(result!.session).toEqual(mockSession);
+      expect(result!.setLogs).toEqual(mockSetLogs);
+      expect(result!.exerciseNotes).toEqual({
+        squat: 'Felt strong',
+        bench: 'Slight pain',
+      });
+
+      // Verify queries
+      const [sessionSql, sessionParams] = mockDb.getFirstAsync.mock.calls[0];
+      expect(sessionSql).toContain('SELECT * FROM sessions WHERE id = ?');
+      expect(sessionParams).toEqual(['sess-1']);
+
+      const [setLogSql, setLogParams] = mockDb.getAllAsync.mock.calls[0];
+      expect(setLogSql).toContain('SELECT * FROM set_logs WHERE session_id = ?');
+      expect(setLogSql).toContain('ORDER BY exercise_id, set_number');
+      expect(setLogParams).toEqual(['sess-1']);
+
+      const [notesSql, notesParams] = mockDb.getAllAsync.mock.calls[1];
+      expect(notesSql).toContain('SELECT exercise_id, note FROM exercise_notes WHERE session_id = ?');
+      expect(notesParams).toEqual(['sess-1']);
+    });
+
+    it('returns empty set logs and notes when session has none', async () => {
+      const mockSession = {
+        id: 'sess-2',
+        program_id: 'prog-1',
+        started_at: '2026-03-09T10:00:00Z',
+      };
+      mockDb.getFirstAsync.mockResolvedValue(mockSession);
+      mockDb.getAllAsync
+        .mockResolvedValueOnce([])  // no set logs
+        .mockResolvedValueOnce([]); // no notes
+
+      const result = await getFullSessionState('sess-2');
+
+      expect(result).not.toBeNull();
+      expect(result!.session).toEqual(mockSession);
+      expect(result!.setLogs).toEqual([]);
+      expect(result!.exerciseNotes).toEqual({});
     });
   });
 });

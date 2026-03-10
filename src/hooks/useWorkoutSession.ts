@@ -137,7 +137,7 @@ export function useWorkoutSession() {
             {
               text: 'Complete As-Is',
               onPress: async () => {
-                await completeSession(session.id, false);
+                await completeSession(session.id, !!session.conditioning_done);
                 resolve();
               },
             },

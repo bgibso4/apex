@@ -1299,4 +1299,141 @@ describe('useWorkoutSession', () => {
       expect(hookResult.result.current.blockColor).toBe('#6366f1');
     });
   });
+
+  // -----------------------------------------------------------------------
+  // Session Restoration
+  // -----------------------------------------------------------------------
+  describe('session restoration', () => {
+    function makeInProgressSession(overrides: Record<string, unknown> = {}) {
+      return {
+        id: 'sess-restore',
+        program_id: 'prog-1',
+        week_number: 1,
+        block_name: 'Hypertrophy',
+        day_template_id: 'monday',
+        scheduled_day: 'monday',
+        actual_day: 'monday',
+        date: '2026-03-09',
+        sleep: 4,
+        soreness: 2,
+        energy: 5,
+        warmup_rope: true,
+        warmup_ankle: false,
+        warmup_hip_ir: true,
+        conditioning_done: false,
+        notes: 'Feeling strong',
+        started_at: new Date().toISOString(),
+        ...overrides,
+      };
+    }
+
+    function makeFullSessionState(
+      session: ReturnType<typeof makeInProgressSession>,
+      setLogs: Array<Record<string, unknown>> = [],
+      exerciseNotes: Record<string, string> = {},
+    ) {
+      return { session, setLogs, exerciseNotes };
+    }
+
+    it('restores session with logged sets — phase is logging and exercises are rebuilt', async () => {
+      setupDefaultMocks();
+
+      const session = makeInProgressSession();
+      const setLogs = [
+        {
+          id: 'log-1',
+          exercise_id: 'bench_press',
+          set_number: 1,
+          target_weight: 170,
+          target_reps: 8,
+          actual_weight: 170,
+          actual_reps: 8,
+          rpe: null,
+          status: 'completed' as const,
+        },
+      ];
+
+      mockedGetInProgressSession.mockResolvedValue(session);
+      mockedGetFullSessionState.mockResolvedValue(
+        makeFullSessionState(session, setLogs, { bench_press: 'Felt easy' }),
+      );
+
+      const { result } = renderHook(() => useWorkoutSession());
+
+      await waitFor(() => {
+        expect(result.current.phase).toBe('logging');
+      });
+
+      // Exercises should be rebuilt from the monday template
+      expect(result.current.exercises.length).toBeGreaterThanOrEqual(1);
+
+      // The first exercise (bench_press) should have the logged set marked completed
+      const bench = result.current.exercises.find(
+        e => e.slot.exercise_id === 'bench_press',
+      );
+      expect(bench).toBeDefined();
+      expect(bench!.sets[0].status).toBe('completed');
+      expect(bench!.sets[0].actualWeight).toBe(170);
+      expect(bench!.sets[0].id).toBe('log-1');
+
+      // Exercise notes should be restored
+      expect(result.current.exerciseNotes).toEqual({ bench_press: 'Felt easy' });
+
+      // Session notes should be restored
+      expect(result.current.sessionNotes).toBe('Feeling strong');
+    });
+
+    it('restores session with no sets logged — phase is warmup', async () => {
+      setupDefaultMocks();
+
+      const session = makeInProgressSession();
+
+      mockedGetInProgressSession.mockResolvedValue(session);
+      mockedGetFullSessionState.mockResolvedValue(
+        makeFullSessionState(session, [], {}),
+      );
+
+      const { result } = renderHook(() => useWorkoutSession());
+
+      await waitFor(() => {
+        // Phase should be warmup since no sets were logged
+        expect(result.current.phase).toBe('warmup');
+      });
+
+      // Exercises should still be rebuilt from the template
+      expect(result.current.exercises.length).toBeGreaterThanOrEqual(1);
+
+      // All sets should be pending
+      for (const ex of result.current.exercises) {
+        for (const set of ex.sets) {
+          expect(set.status).toBe('pending');
+        }
+      }
+    });
+
+    it('does not call getInProgressSession on subsequent loadData calls (re-trigger prevention)', async () => {
+      setupDefaultMocks();
+      // No in-progress session
+      mockedGetInProgressSession.mockResolvedValue(null);
+
+      const { result, rerender } = renderHook(() => useWorkoutSession());
+
+      await waitFor(() => {
+        expect(result.current.selectedDay).toBe('monday');
+      });
+
+      expect(mockedGetInProgressSession).toHaveBeenCalledTimes(1);
+
+      // Re-render triggers useFocusEffect -> loadData again
+      mockedGetInProgressSession.mockClear();
+      rerender({});
+
+      await waitFor(() => {
+        expect(result.current.selectedDay).toBe('monday');
+      });
+
+      // Should NOT have been called again due to hasAttemptedRestore ref
+      expect(mockedGetInProgressSession).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -902,6 +902,9 @@ export function useWorkoutSession() {
     // Conditioning
     conditioningFinisher,
 
+    // Session ID (for navigation to session detail)
+    sessionId,
+
     // Edit mode
     editMode, setEditMode, recalculatePRs,
 

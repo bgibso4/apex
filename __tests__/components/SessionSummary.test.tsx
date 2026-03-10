@@ -21,16 +21,15 @@ describe('SessionSummary', () => {
     expect(screen.getByText('Session Notes (optional)')).toBeTruthy();
   });
 
-  it('shows duration in stat grid', () => {
+  it('shows duration in summary row', () => {
     render(<SessionSummary {...defaultProps} duration="52:18" />);
     expect(screen.getByText('52:18')).toBeTruthy();
     expect(screen.getByText('Duration')).toBeTruthy();
   });
 
-  it('shows total volume in stat grid', () => {
-    render(<SessionSummary {...defaultProps} totalVolume={12450} />);
-    expect(screen.getByText('12,450')).toBeTruthy();
-    expect(screen.getByText('Total lbs')).toBeTruthy();
+  it('shows sets compliance when totalSets provided', () => {
+    render(<SessionSummary {...defaultProps} totalSets={20} />);
+    expect(screen.getByText('18/20')).toBeTruthy();
   });
 
   it('shows PR count with PRs label', () => {
@@ -43,7 +42,7 @@ describe('SessionSummary', () => {
     expect(screen.getByText('PRs')).toBeTruthy();
   });
 
-  it('shows PR detail cards with descriptions', () => {
+  it('shows PR detail cards with trophy icon and descriptions', () => {
     const prs = [
       { id: '1', exercise_id: 'bench', record_type: 'e1rm' as const, rep_count: null,
         value: 263, previous_value: 250, session_id: 's1', date: '2026-03-07',
@@ -52,6 +51,7 @@ describe('SessionSummary', () => {
     render(<SessionSummary {...defaultProps} prs={prs} />);
     expect(screen.getByText(/Bench Press/)).toBeTruthy();
     expect(screen.getByText(/263/)).toBeTruthy();
+    expect(screen.getByText('Personal Records')).toBeTruthy();
   });
 
   it('shows Edit button and calls onEdit on press', () => {
@@ -66,5 +66,55 @@ describe('SessionSummary', () => {
     const onDelete = jest.fn();
     render(<SessionSummary {...defaultProps} editMode={true} onDelete={onDelete} />);
     expect(screen.getByText('Delete Workout')).toBeTruthy();
+  });
+
+  it('shows Session Review card when sessionId and onViewSession provided', () => {
+    const onViewSession = jest.fn();
+    render(
+      <SessionSummary
+        {...defaultProps}
+        sessionId="s123"
+        onViewSession={onViewSession}
+      />
+    );
+    expect(screen.getByText('Session Review')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('session-review-card'));
+    expect(onViewSession).toHaveBeenCalledWith('s123');
+  });
+
+  it('shows protocol chips for warmup and conditioning', () => {
+    render(
+      <SessionSummary
+        {...defaultProps}
+        warmup={{ rope: true, ankle: true, hipIr: false }}
+        conditioningFinisher="EMOM 10min"
+        conditioningDone={true}
+      />
+    );
+    expect(screen.getByText('Protocols')).toBeTruthy();
+    expect(screen.getByText(/Jump Rope/)).toBeTruthy();
+    expect(screen.getByText(/Hip IR/)).toBeTruthy();
+    expect(screen.getByText(/Conditioning/)).toBeTruthy();
+  });
+
+  it('shows recent workouts section', () => {
+    const recentSessions = [
+      { id: 's1', name: 'Pull A', dateLabel: 'Mar 7', blockName: 'Strength Block', durationMin: 45, setCount: 18 },
+      { id: 's2', name: 'Legs A', dateLabel: 'Mar 5', durationMin: 52, setCount: 20 },
+    ];
+    const onViewSession = jest.fn();
+    const onViewAllWorkouts = jest.fn();
+    render(
+      <SessionSummary
+        {...defaultProps}
+        recentSessions={recentSessions}
+        onViewSession={onViewSession}
+        onViewAllWorkouts={onViewAllWorkouts}
+      />
+    );
+    expect(screen.getByText('Recent Workouts')).toBeTruthy();
+    expect(screen.getByText('Pull A')).toBeTruthy();
+    expect(screen.getByText('Legs A')).toBeTruthy();
+    expect(screen.getByText(/View all workouts/)).toBeTruthy();
   });
 });

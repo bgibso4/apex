@@ -112,6 +112,14 @@ export default function WorkoutScreen() {
                   </TouchableOpacity>
                 );
               })}
+              <TouchableOpacity
+                style={styles.viewAllButton}
+                onPress={() => router.push('/history')}
+              >
+                <Text style={styles.viewAllText}>
+                  View all workouts {'\u2192'}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -225,6 +233,14 @@ export default function WorkoutScreen() {
                 </TouchableOpacity>
               );
             })}
+              <TouchableOpacity
+                style={styles.viewAllButton}
+                onPress={() => router.push('/history')}
+              >
+                <Text style={styles.viewAllText}>
+                  View all workouts {'\u2192'}
+                </Text>
+              </TouchableOpacity>
           </View>
         )}
 
@@ -752,6 +768,15 @@ const styles = StyleSheet.create({
     color: Colors.textDim,
     fontSize: FontSize.body,
     fontWeight: '500',
+  },
+  viewAllButton: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  viewAllText: {
+    color: Colors.indigo,
+    fontSize: FontSize.body,
+    fontWeight: '600',
   },
 
   // Logging header

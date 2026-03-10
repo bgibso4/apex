@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     color: Colors.textSecondary,
     fontSize: FontSize.md,
-    height: 44,
+    height: 72,
   },
 
   // Recent workouts

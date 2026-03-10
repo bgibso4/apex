@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Warmup Option 2: Collapsed Card</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .container {
+    width: 393px;
+    background: #0A0A0F;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #2A2A3A;
+    padding: 24px 20px;
+  }
+
+  /* Session Review Card (context above) */
+  .session-review {
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .session-review-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .session-review-title {
+    color: #F0F0F5;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .session-review-subtitle {
+    color: #5A5A6E;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .session-review-chevron {
+    color: #5A5A6E;
+    font-size: 18px;
+  }
+
+  /* Collapsed warmup card */
+  .warmup-card {
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .warmup-card-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .warmup-card-title {
+    color: #F0F0F5;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .warmup-card-subtitle {
+    color: #5A5A6E;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .warmup-card-subtitle .done-count {
+    color: #22C55E;
+    font-weight: 600;
+  }
+  .warmup-card-chevron {
+    color: #5A5A6E;
+    font-size: 18px;
+  }
+
+  /* Session Notes (context below) */
+  .notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+  .notes-title {
+    color: #5A5A6E;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .notes-saved {
+    color: #22C55E;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .notes-input {
+    width: 100%;
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #5A5A6E;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    min-height: 44px;
+  }
+
+  .context-label {
+    color: #5A5A6E;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-align: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed #2A2A3A;
+    margin-bottom: 16px;
+  }
+  .context-label.bottom {
+    border-bottom: none;
+    border-top: 1px dashed #2A2A3A;
+    margin-bottom: 0;
+    margin-top: 16px;
+    padding: 12px 0 0;
+  }
+
+  .highlight-area {
+    background: #6366F108;
+    border: 1px dashed #6366F144;
+    border-radius: 12px;
+    padding: 4px 12px 12px;
+    margin-top: 6px;
+  }
+  .option-badge {
+    display: inline-block;
+    background: #6366F1;
+    color: #F0F0F5;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="label">Option 2: Collapsed Card</div>
+  <div class="container">
+
+    <!-- Context above: Session Review -->
+    <div class="context-label">Context Above</div>
+    <div class="session-review">
+      <div class="session-review-left">
+        <div class="session-review-title">Session Review</div>
+        <div class="session-review-subtitle">6 exercises · 2 with notes</div>
+      </div>
+      <span class="session-review-chevron">›</span>
+    </div>
+
+    <!-- HIGHLIGHTED: Warmup/Conditioning as collapsed card -->
+    <div class="highlight-area">
+      <div class="option-badge">This Section</div>
+      <div class="warmup-card">
+        <div class="warmup-card-left">
+          <div class="warmup-card-title">Warm Up & Conditioning</div>
+          <div class="warmup-card-subtitle"><span class="done-count">3/4</span> completed</div>
+        </div>
+        <span class="warmup-card-chevron">›</span>
+      </div>
+    </div>
+
+    <!-- Context below: Session Notes -->
+    <div class="notes-header">
+      <span class="notes-title">Session Notes (optional)</span>
+      <span class="notes-saved">✓ Saved</span>
+    </div>
+    <textarea class="notes-input" placeholder="How did the session feel overall?"></textarea>
+    <div class="context-label bottom">Context Below</div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -193,7 +193,7 @@ export async function getAllSessionsForDateRange(
 export async function getSetLogsForSession(sessionId: string): Promise<SetLog[]> {
   const db = await getDatabase();
   return db.getAllAsync<SetLog>(
-    "SELECT * FROM set_logs WHERE session_id = ? ORDER BY exercise_id, set_number",
+    "SELECT * FROM set_logs WHERE session_id = ? ORDER BY rowid, set_number",
     [sessionId]
   );
 }
@@ -313,7 +313,7 @@ export async function getFullSessionState(sessionId: string): Promise<{
   if (!session) return null;
 
   const setLogs = await db.getAllAsync<SetLog>(
-    "SELECT * FROM set_logs WHERE session_id = ? ORDER BY exercise_id, set_number",
+    "SELECT * FROM set_logs WHERE session_id = ? ORDER BY rowid, set_number",
     [sessionId]
   );
 

@@ -3,6 +3,7 @@
  */
 
 import { getDatabase, generateId } from './database';
+import { getLocalDateString } from '../utils/date';
 import type { Program } from '../types';
 import type { ProgramDefinition } from '../types';
 
@@ -66,7 +67,7 @@ export async function activateProgram(
   await db.runAsync(
     `UPDATE programs SET status = 'active', one_rm_values = ?, activated_date = ?
      WHERE id = ?`,
-    [JSON.stringify(oneRmValues), new Date().toISOString().split('T')[0], programId]
+    [JSON.stringify(oneRmValues), getLocalDateString(), programId]
   );
 }
 
@@ -96,8 +97,9 @@ export async function stopProgram(
          (SELECT id FROM sessions WHERE program_id = ?)`,
         [programId]
       );
+      // Unlink any run_logs from deleted sessions (preserve run data)
       await db.runAsync(
-        `DELETE FROM run_logs WHERE session_id IN
+        `UPDATE run_logs SET session_id = NULL WHERE session_id IN
          (SELECT id FROM sessions WHERE program_id = ?)`,
         [programId]
       );

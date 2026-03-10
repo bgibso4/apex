@@ -15,6 +15,7 @@ import {
   shouldShowBackupReminder, exportDatabase,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
+import { getLocalDateString } from '../utils/date';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
@@ -322,12 +323,31 @@ export function useWorkoutSession() {
 
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
-    setProgram(active);
+
+    // Detect program change (stopped + restarted, or switched)
+    const programChanged = active?.id !== program?.id;
+    if (programChanged) {
+      setProgram(active);
+      // Reset all session state when program changes
+      setSessionId(null);
+      setPhase('select');
+      setExercises([]);
+      setStartedAt(null);
+      setFinalDuration(null);
+      setPRs([]);
+      setExerciseNotes({});
+      setSessionNotes('');
+      setEditMode(false);
+      setConditioningDone(false);
+      hasAttemptedRestore.current = false;
+    }
+
     if (active?.activated_date) {
       const week = getCurrentWeek(active.activated_date);
       setCurrentWeek(week);
       // Don't reset selectedDay if we're mid-session (preserves title/state on tab switch)
-      if (phase === 'select') {
+      const effectivePhase = programChanged ? 'select' : phase;
+      if (effectivePhase === 'select') {
         setSelectedDay(getTodayKey());
 
         // Attempt to restore an in-progress session (only once)
@@ -337,7 +357,7 @@ export function useWorkoutSession() {
         }
       }
     }
-  }, [phase]);
+  }, [phase, program?.id]);
 
   useFocusEffect(useCallback(() => {
     loadData();
@@ -389,7 +409,7 @@ export function useWorkoutSession() {
       dayTemplateId: selectedDay,
       scheduledDay: selectedDay,
       actualDay: getTodayKey(),
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateString(),
     });
     setSessionId(id);
     setStartedAt(new Date().toISOString());
@@ -793,7 +813,7 @@ export function useWorkoutSession() {
     const setLogs = await getSetLogsForSession(sessionId);
     const detectedPRs = await detectPRs(
       sessionId,
-      new Date().toISOString().split('T')[0],
+      getLocalDateString(),
       setLogs
         .filter(s => s.actual_weight != null && s.actual_reps != null)
         .map(s => ({

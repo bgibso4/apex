@@ -351,7 +351,7 @@ describe('sessions', () => {
       const [sql, params] = mockDb.getAllAsync.mock.calls[0];
       expect(sql).toContain('SELECT * FROM set_logs');
       expect(sql).toContain('session_id = ?');
-      expect(sql).toContain('ORDER BY exercise_id, set_number');
+      expect(sql).toContain('ORDER BY rowid, set_number');
       expect(params).toEqual(['sess-1']);
       expect(result).toEqual(mockLogs);
     });
@@ -590,7 +590,7 @@ describe('sessions', () => {
 
       const [setLogSql, setLogParams] = mockDb.getAllAsync.mock.calls[0];
       expect(setLogSql).toContain('SELECT * FROM set_logs WHERE session_id = ?');
-      expect(setLogSql).toContain('ORDER BY exercise_id, set_number');
+      expect(setLogSql).toContain('ORDER BY rowid, set_number');
       expect(setLogParams).toEqual(['sess-1']);
 
       const [notesSql, notesParams] = mockDb.getAllAsync.mock.calls[1];

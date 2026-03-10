@@ -3,7 +3,7 @@
  * Thin render layer — all state logic lives in useWorkoutSession.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   Modal, Pressable, Alert, StyleSheet,
@@ -13,18 +13,41 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
 import { getTargetForWeek } from '../../src/utils/program';
+import { getRecentCompletedSessions, getSetLogsForSession } from '../../src/db';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
 import { DaySelector } from '../../src/components/DaySelector';
 import { WarmupChecklist } from '../../src/components/WarmupChecklist';
 import { ExerciseCard } from '../../src/components/ExerciseCard';
 import { AdjustModal } from '../../src/components/AdjustModal';
 import { SessionSummary } from '../../src/components/SessionSummary';
+import type { Session } from '../../src/types';
 
 export default function WorkoutScreen() {
   const w = useWorkoutSession();
+  const router = useRouter();
+
+  // Recent completed sessions for the idle state
+  const [recentSessions, setRecentSessions] = useState<(Session & { setCount?: number; durationMin?: number })[]>([]);
+
+  useFocusEffect(useCallback(() => {
+    if (w.phase === 'select') {
+      getRecentCompletedSessions(5).then(async (sessions) => {
+        const enriched = await Promise.all(sessions.map(async (s) => {
+          const sets = await getSetLogsForSession(s.id);
+          const completedSets = sets.filter(sl => sl.status === 'completed' || sl.status === 'completed_below');
+          const startedAt = s.started_at ? new Date(s.started_at).getTime() : 0;
+          const completedAt = s.completed_at ? new Date(s.completed_at).getTime() : 0;
+          const durationMin = startedAt && completedAt ? Math.round((completedAt - startedAt) / 60000) : undefined;
+          return { ...s, setCount: completedSets.length, durationMin };
+        }));
+        setRecentSessions(enriched);
+      });
+    }
+  }, [w.phase]));
 
   // Hooks must be called unconditionally (before any early returns)
   const exerciseCount = w.exercises.filter(e =>
@@ -48,9 +71,50 @@ export default function WorkoutScreen() {
   if (!w.program) {
     return (
       <View style={styles.container}>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No active program</Text>
-        </View>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.emptyState}>
+            <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
+            <Text style={styles.emptyText}>No active program</Text>
+          </View>
+
+          {recentSessions.length > 0 && (
+            <View style={styles.recentSection}>
+              <Text style={styles.recentTitle}>Recent Workouts</Text>
+              {recentSessions.map((s) => {
+                const dateLabel = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
+                  weekday: 'short', month: 'short', day: 'numeric',
+                });
+                return (
+                  <TouchableOpacity
+                    key={s.id}
+                    style={styles.recentCard}
+                    onPress={() => router.push(`/session/${s.id}`)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.recentCardLeft}>
+                      <Text style={styles.recentCardName}>{s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+                      <Text style={styles.recentCardDate}>
+                        {dateLabel}
+                        {s.block_name ? ` · ${s.block_name}` : ''}
+                      </Text>
+                    </View>
+                    <View style={styles.recentCardRight}>
+                      {s.durationMin != null && (
+                        <Text style={styles.recentCardStat}>{s.durationMin}m</Text>
+                      )}
+                      {s.setCount != null && (
+                        <Text style={styles.recentCardStat}>{s.setCount} sets</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </ScrollView>
       </View>
     );
   }
@@ -125,6 +189,42 @@ export default function WorkoutScreen() {
             >
               <Text style={styles.startButtonText}>Start Session {'\u2192'}</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Recent workouts (select phase) */}
+        {w.phase === 'select' && recentSessions.length > 0 && (
+          <View style={styles.recentSection}>
+            <Text style={styles.recentTitle}>Recent Workouts</Text>
+            {recentSessions.map((s) => {
+              const dateLabel = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric',
+              });
+              return (
+                <TouchableOpacity
+                  key={s.id}
+                  style={styles.recentCard}
+                  onPress={() => router.push(`/session/${s.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.recentCardLeft}>
+                    <Text style={styles.recentCardName}>{s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+                    <Text style={styles.recentCardDate}>
+                      {dateLabel}
+                      {s.block_name ? ` · ${s.block_name}` : ''}
+                    </Text>
+                  </View>
+                  <View style={styles.recentCardRight}>
+                    {s.durationMin != null && (
+                      <Text style={styles.recentCardStat}>{s.durationMin}m</Text>
+                    )}
+                    {s.setCount != null && (
+                      <Text style={styles.recentCardStat}>{s.setCount} sets</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
 
@@ -534,7 +634,7 @@ const styles = StyleSheet.create({
   scrollContentFill: {
     flexGrow: 1,
   },
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyState: { alignItems: 'center', paddingVertical: Spacing.xxxl, gap: Spacing.md },
   emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg },
 
   // Rest day
@@ -604,6 +704,54 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSize.lg,
     fontWeight: '700',
+  },
+
+  // Recent workouts
+  recentSection: {
+    marginTop: Spacing.xl,
+  },
+  recentTitle: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: Spacing.md,
+  },
+  recentCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.sm,
+  },
+  recentCardLeft: {
+    flex: 1,
+    gap: 2,
+  },
+  recentCardName: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+  recentCardDate: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+  },
+  recentCardRight: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    alignItems: 'center',
+  },
+  recentCardStat: {
+    color: Colors.textDim,
+    fontSize: FontSize.body,
+    fontWeight: '500',
   },
 
   // Logging header

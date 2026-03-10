@@ -55,8 +55,7 @@ describe('ExerciseCard', () => {
 
   it('shows last session info when provided', () => {
     render(<ExerciseCard {...defaultProps} expanded={true} lastWeight={130} lastReps={8} />);
-    expect(screen.getByText(/Last:/)).toBeTruthy();
-    expect(screen.getByText(/130/)).toBeTruthy();
+    expect(screen.getByText(/Last 130 lbs/)).toBeTruthy();
   });
 
   it('calls onToggleExpand on press', () => {
@@ -147,7 +146,6 @@ describe('ExerciseCard', () => {
         onLongPressSet={onLongPressSet}
       />,
     );
-    // Each completed set shows "135 lbs" — press the first one
     const weightTexts = screen.getAllByText('135 lbs');
     fireEvent.press(weightTexts[0]);
     expect(onLongPressSet).toHaveBeenCalledWith(0);
@@ -170,7 +168,7 @@ describe('ExerciseCard', () => {
     expect(onLongPressSet).toHaveBeenCalledWith(0);
   });
 
-  it('does not call onLongPressSet when pressing weight text of a pending set', () => {
+  it('calls onLongPressSet when pressing weight text of a pending set', () => {
     const onLongPressSet = jest.fn();
     const sets = makeSets(1, 'pending');
     render(
@@ -183,7 +181,7 @@ describe('ExerciseCard', () => {
     );
     const weightTexts = screen.getAllByText('135 lbs');
     fireEvent.press(weightTexts[0]);
-    expect(onLongPressSet).not.toHaveBeenCalled();
+    expect(onLongPressSet).toHaveBeenCalledWith(0);
   });
 
   it('calls onCompleteSet when pressing the set action button', () => {

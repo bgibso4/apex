@@ -177,6 +177,18 @@ export async function getSessionsForDateRange(
   );
 }
 
+/** Get all completed sessions across all programs within a date range */
+export async function getAllSessionsForDateRange(
+  startDate: string,
+  endDate: string
+): Promise<Session[]> {
+  const db = await getDatabase();
+  return db.getAllAsync<Session>(
+    "SELECT * FROM sessions WHERE date >= ? AND date <= ? AND completed_at IS NOT NULL ORDER BY date",
+    [startDate, endDate]
+  );
+}
+
 /** Get set logs for a session */
 export async function getSetLogsForSession(sessionId: string): Promise<SetLog[]> {
   const db = await getDatabase();
@@ -263,6 +275,16 @@ export async function getInProgressSession(
      WHERE program_id = ? AND started_at IS NOT NULL AND completed_at IS NULL
      ORDER BY started_at DESC LIMIT 1`,
     [programId]
+  );
+}
+
+/** Get recent completed sessions across all programs */
+export async function getRecentCompletedSessions(limit: number = 10): Promise<Session[]> {
+  const db = await getDatabase();
+  return db.getAllAsync<Session>(
+    `SELECT * FROM sessions WHERE completed_at IS NOT NULL
+     ORDER BY date DESC LIMIT ?`,
+    [limit]
   );
 }
 

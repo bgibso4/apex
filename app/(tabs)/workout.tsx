@@ -34,20 +34,18 @@ export default function WorkoutScreen() {
   const [recentSessions, setRecentSessions] = useState<(Session & { setCount?: number; durationMin?: number })[]>([]);
 
   useFocusEffect(useCallback(() => {
-    if (w.phase === 'select') {
-      getRecentCompletedSessions(5).then(async (sessions) => {
-        const enriched = await Promise.all(sessions.map(async (s) => {
-          const sets = await getSetLogsForSession(s.id);
-          const completedSets = sets.filter(sl => sl.status === 'completed' || sl.status === 'completed_below');
-          const startedAt = s.started_at ? new Date(s.started_at).getTime() : 0;
-          const completedAt = s.completed_at ? new Date(s.completed_at).getTime() : 0;
-          const durationMin = startedAt && completedAt ? Math.round((completedAt - startedAt) / 60000) : undefined;
-          return { ...s, setCount: completedSets.length, durationMin };
-        }));
-        setRecentSessions(enriched);
-      });
-    }
-  }, [w.phase]));
+    getRecentCompletedSessions(5).then(async (sessions) => {
+      const enriched = await Promise.all(sessions.map(async (s) => {
+        const sets = await getSetLogsForSession(s.id);
+        const completedSets = sets.filter(sl => sl.status === 'completed' || sl.status === 'completed_below');
+        const startedAt = s.started_at ? new Date(s.started_at).getTime() : 0;
+        const completedAt = s.completed_at ? new Date(s.completed_at).getTime() : 0;
+        const durationMin = startedAt && completedAt ? Math.round((completedAt - startedAt) / 60000) : undefined;
+        return { ...s, setCount: completedSets.length, durationMin };
+      }));
+      setRecentSessions(enriched);
+    }).catch(() => {});
+  }, []));
 
   // Hooks must be called unconditionally (before any early returns)
   const exerciseCount = w.exercises.filter(e =>

@@ -70,6 +70,55 @@ export async function activateProgram(
   );
 }
 
+/** Stop an active program, optionally deleting all associated data */
+export async function stopProgram(
+  programId: string,
+  deleteData: boolean
+): Promise<void> {
+  const db = await getDatabase();
+
+  if (deleteData) {
+    // Cascade delete in FK dependency order
+    await db.runAsync(
+      `DELETE FROM personal_records WHERE session_id IN
+       (SELECT id FROM sessions WHERE program_id = ?)`,
+      [programId]
+    );
+    await db.runAsync(
+      `DELETE FROM exercise_notes WHERE session_id IN
+       (SELECT id FROM sessions WHERE program_id = ?)`,
+      [programId]
+    );
+    await db.runAsync(
+      `DELETE FROM set_logs WHERE session_id IN
+       (SELECT id FROM sessions WHERE program_id = ?)`,
+      [programId]
+    );
+    await db.runAsync(
+      `DELETE FROM run_logs WHERE session_id IN
+       (SELECT id FROM sessions WHERE program_id = ?)`,
+      [programId]
+    );
+    await db.runAsync(
+      'DELETE FROM sessions WHERE program_id = ?',
+      [programId]
+    );
+    await db.runAsync(
+      'DELETE FROM weekly_checkins WHERE program_id = ?',
+      [programId]
+    );
+    await db.runAsync(
+      "UPDATE programs SET status = 'inactive', activated_date = NULL WHERE id = ?",
+      [programId]
+    );
+  } else {
+    await db.runAsync(
+      "UPDATE programs SET status = 'completed' WHERE id = ?",
+      [programId]
+    );
+  }
+}
+
 /** Get 1RM values for the active program */
 export async function getOneRmValues(programId: string): Promise<Record<string, number>> {
   const db = await getDatabase();

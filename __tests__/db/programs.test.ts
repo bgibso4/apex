@@ -9,6 +9,7 @@ import {
   importProgram,
   activateProgram,
   getOneRmValues,
+  stopProgram,
 } from '../../src/db/programs';
 import type { ProgramDefinition } from '../../src/types';
 
@@ -273,6 +274,67 @@ describe('programs', () => {
       const result = await getOneRmValues('nonexistent');
 
       expect(result).toEqual({});
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // stopProgram
+  // ---------------------------------------------------------------------------
+  describe('stopProgram', () => {
+    it('sets status to completed when keeping data', async () => {
+      await stopProgram('prog-1', false);
+
+      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain("UPDATE programs SET status = 'completed'");
+      expect(sql).toContain('WHERE id = ?');
+      expect(params).toEqual(['prog-1']);
+    });
+
+    it('does not delete any session data when keeping data', async () => {
+      await stopProgram('prog-1', false);
+
+      // Only one call: the status update
+      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
+      const [sql] = mockDb.runAsync.mock.calls[0];
+      expect(sql).not.toContain('DELETE');
+    });
+
+    it('deletes all related data when deleteData is true', async () => {
+      await stopProgram('prog-1', true);
+
+      // Should have multiple DELETE calls + one UPDATE
+      const calls = mockDb.runAsync.mock.calls;
+      expect(calls.length).toBeGreaterThanOrEqual(6);
+
+      // Verify cascade delete order: personal_records, exercise_notes, set_logs, run_logs, sessions, weekly_checkins
+      const sqls = calls.map(([sql]: [string]) => sql);
+
+      expect(sqls[0]).toContain('DELETE FROM personal_records');
+      expect(sqls[1]).toContain('DELETE FROM exercise_notes');
+      expect(sqls[2]).toContain('DELETE FROM set_logs');
+      expect(sqls[3]).toContain('DELETE FROM run_logs');
+      expect(sqls[4]).toContain('DELETE FROM sessions');
+      expect(sqls[5]).toContain('DELETE FROM weekly_checkins');
+
+      // All deletes reference the program_id
+      for (let i = 0; i < 6; i++) {
+        const params = calls[i][1];
+        expect(params).toEqual(['prog-1']);
+      }
+    });
+
+    it('sets status to inactive and clears activated_date when deleting data', async () => {
+      await stopProgram('prog-1', true);
+
+      const calls = mockDb.runAsync.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      const [sql, params] = lastCall;
+
+      expect(sql).toContain("UPDATE programs SET status = 'inactive'");
+      expect(sql).toContain('activated_date = NULL');
+      expect(sql).toContain('WHERE id = ?');
+      expect(params).toEqual(['prog-1']);
     });
   });
 });

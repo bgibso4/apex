@@ -12,6 +12,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { getRunLogs, logRun, getPainTrend, getRunStats } from '../../src/db';
+import { getLocalDateString } from '../../src/utils/date';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import type { RunLog } from '../../src/types';
 
@@ -82,7 +83,7 @@ export default function RunningScreen() {
     const dist = parseFloat(distance);
 
     await logRun({
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateString(),
       durationMin: durMin,
       distance: !isNaN(dist) && dist > 0 ? dist : undefined,
       painLevel: pain,

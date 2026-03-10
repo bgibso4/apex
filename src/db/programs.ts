@@ -3,6 +3,7 @@
  */
 
 import { getDatabase, generateId } from './database';
+import { getLocalDateString } from '../utils/date';
 import type { Program } from '../types';
 import type { ProgramDefinition } from '../types';
 
@@ -66,8 +67,65 @@ export async function activateProgram(
   await db.runAsync(
     `UPDATE programs SET status = 'active', one_rm_values = ?, activated_date = ?
      WHERE id = ?`,
-    [JSON.stringify(oneRmValues), new Date().toISOString().split('T')[0], programId]
+    [JSON.stringify(oneRmValues), getLocalDateString(), programId]
   );
+}
+
+/** Stop an active program, optionally deleting all associated data */
+export async function stopProgram(
+  programId: string,
+  deleteData: boolean
+): Promise<void> {
+  const db = await getDatabase();
+
+  if (deleteData) {
+    // Cascade delete in FK dependency order — wrapped in transaction for atomicity
+    await db.execAsync('BEGIN TRANSACTION');
+    try {
+      await db.runAsync(
+        `DELETE FROM personal_records WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
+        `DELETE FROM exercise_notes WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
+        `DELETE FROM set_logs WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      // Unlink any run_logs from deleted sessions (preserve run data)
+      await db.runAsync(
+        `UPDATE run_logs SET session_id = NULL WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
+        'DELETE FROM sessions WHERE program_id = ?',
+        [programId]
+      );
+      await db.runAsync(
+        'DELETE FROM weekly_checkins WHERE program_id = ?',
+        [programId]
+      );
+      await db.runAsync(
+        "UPDATE programs SET status = 'inactive', activated_date = NULL WHERE id = ?",
+        [programId]
+      );
+      await db.execAsync('COMMIT');
+    } catch (e) {
+      await db.execAsync('ROLLBACK');
+      throw e;
+    }
+  } else {
+    await db.runAsync(
+      "UPDATE programs SET status = 'completed' WHERE id = ?",
+      [programId]
+    );
+  }
 }
 
 /** Get 1RM values for the active program */

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -11,15 +11,17 @@ import {
   detectPRs, getPRsForSession,
   getSetLogsForSession,
   getInProgressSession, deleteSession,
+  getFullSessionState, getExerciseNames,
   shouldShowBackupReminder, exportDatabase,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
+import { getLocalDateString } from '../utils/date';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
 } from '../utils/program';
 import { Colors } from '../theme';
-import type { Program, ProgramDefinition, ExerciseSlot, SetLog } from '../types';
+import type { Program, ProgramDefinition, ExerciseSlot, SetLog, Session } from '../types';
 import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
 import { useSessionTimer } from './useSessionTimer';
@@ -97,18 +99,265 @@ export function useWorkoutSession() {
   // Edit mode
   const [editMode, setEditMode] = useState(false);
 
+  // Prevent re-running restoration on every tab focus
+  const hasAttemptedRestore = useRef(false);
+
+  /** Restore an in-progress session if one exists */
+  const restoreInProgressSession = async (
+    active: (Program & { definition: ProgramDefinition }) | null
+  ) => {
+    if (!active) return;
+
+    const inProgress = await getInProgressSession(active.id);
+    if (!inProgress) return;
+
+    const fullState = await getFullSessionState(inProgress.id);
+    if (!fullState) return;
+
+    const { session, setLogs, exerciseNotes: restoredNotes } = fullState;
+
+    // Check if session is stale (>4 hours old)
+    const sessionAge = Date.now() - new Date(session.started_at).getTime();
+    const STALE_THRESHOLD = 4 * 60 * 60 * 1000; // 4 hours
+
+    if (sessionAge > STALE_THRESHOLD) {
+      // Show alert and wait for user decision
+      await new Promise<void>((resolve) => {
+        Alert.alert(
+          'Resume Workout?',
+          'You have an unfinished workout from earlier. What would you like to do?',
+          [
+            {
+              text: 'Discard',
+              style: 'destructive',
+              onPress: async () => {
+                await deleteSession(session.id);
+                resolve();
+              },
+            },
+            {
+              text: 'Complete As-Is',
+              onPress: async () => {
+                await completeSession(session.id, !!session.conditioning_done);
+                resolve();
+              },
+            },
+            {
+              text: 'Resume',
+              style: 'default',
+              onPress: () => {
+                performRestore(active, session, setLogs, restoredNotes);
+                resolve();
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      });
+      return;
+    }
+
+    // Not stale — restore directly
+    performRestore(active, session, setLogs, restoredNotes);
+  };
+
+  /** Perform the actual state restoration from session data */
+  const performRestore = async (
+    active: Program & { definition: ProgramDefinition },
+    session: Session,
+    setLogs: SetLog[],
+    restoredNotes: Record<string, string>
+  ) => {
+    const def = active.definition.program;
+    const week = session.week_number;
+
+    // Parse 1RM values (same as startSession)
+    const orm: Record<string, number> = active.one_rm_values
+      ? (typeof active.one_rm_values === 'string'
+        ? JSON.parse(active.one_rm_values as string)
+        : active.one_rm_values)
+      : {};
+
+    // Find the day template for this session
+    const trainingDays = getTrainingDays(def.weekly_template);
+    const dayEntry = trainingDays.find(d => d.day === session.day_template_id);
+    const template = dayEntry?.template;
+
+    if (!template) return; // Can't restore without a template
+
+    // Group set logs by exercise_id
+    const logsByExercise: Record<string, SetLog[]> = {};
+    for (const log of setLogs) {
+      if (!logsByExercise[log.exercise_id]) {
+        logsByExercise[log.exercise_id] = [];
+      }
+      logsByExercise[log.exercise_id].push(log);
+    }
+
+    // Build exercise states from template
+    const exStates: ExerciseState[] = [];
+    const templateExerciseIds = new Set<string>();
+
+    for (const slot of template.exercises) {
+      templateExerciseIds.add(slot.exercise_id);
+      const target = getTargetForWeek(slot, week);
+      if (!target) continue;
+
+      const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
+      const reps = typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
+
+      let suggestedWeight = 0;
+      if (target.percent && orm[slot.exercise_id]) {
+        const pct = typeof target.percent === 'string' ? parseFloat(target.percent) : target.percent;
+        suggestedWeight = calculateTargetWeight(orm[slot.exercise_id], pct);
+      }
+
+      const lastSets = await getLastSessionForExercise(slot.exercise_id, active.id);
+      const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
+      const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
+      const weight = suggestedWeight || lastWeight || 0;
+
+      // Merge logged sets into the template sets
+      const logged = logsByExercise[slot.exercise_id] || [];
+      const sets: SetState[] = Array.from({ length: target.sets }, (_, i) => {
+        const setNum = i + 1;
+        const loggedSet = logged.find(l => l.set_number === setNum);
+        if (loggedSet) {
+          return {
+            setNumber: setNum,
+            targetWeight: loggedSet.target_weight,
+            targetReps: loggedSet.target_reps,
+            actualWeight: loggedSet.actual_weight ?? loggedSet.target_weight,
+            actualReps: loggedSet.actual_reps ?? loggedSet.target_reps,
+            rpe: loggedSet.rpe ?? undefined,
+            status: loggedSet.status,
+            id: loggedSet.id,
+          };
+        }
+        return {
+          setNumber: setNum,
+          targetWeight: weight,
+          targetReps: reps,
+          actualWeight: weight,
+          actualReps: reps,
+          status: 'pending' as const,
+        };
+      });
+
+      exStates.push({
+        slot,
+        exerciseName: exerciseDef?.name ?? slot.exercise_id.replace(/_/g, ' '),
+        sets,
+        expanded: false,
+        lastWeight: lastWeight ?? undefined,
+        lastReps: lastReps ?? undefined,
+      });
+    }
+
+    // Restore ad-hoc exercises (logged sets for exercise_ids not in the template)
+    const adhocExerciseIds = Object.keys(logsByExercise).filter(id => !templateExerciseIds.has(id));
+    if (adhocExerciseIds.length > 0) {
+      const adhocNames = await getExerciseNames(adhocExerciseIds);
+      for (const exerciseId of adhocExerciseIds) {
+        const logged = logsByExercise[exerciseId];
+        const sets: SetState[] = logged.map(l => ({
+          setNumber: l.set_number,
+          targetWeight: l.target_weight,
+          targetReps: l.target_reps,
+          actualWeight: l.actual_weight ?? l.target_weight,
+          actualReps: l.actual_reps ?? l.target_reps,
+          rpe: l.rpe ?? undefined,
+          status: l.status,
+          id: l.id,
+        }));
+
+        exStates.push({
+          slot: {
+            exercise_id: exerciseId,
+            category: 'accessory',
+            targets: [],
+          },
+          exerciseName: adhocNames[exerciseId] ?? exerciseId.replace(/_/g, ' '),
+          sets,
+          expanded: false,
+          isAdhoc: true,
+        });
+      }
+    }
+
+    // Expand the first incomplete exercise
+    const firstIncomplete = exStates.findIndex(ex => ex.sets.some(s => s.status === 'pending'));
+    if (firstIncomplete >= 0) {
+      exStates[firstIncomplete].expanded = true;
+    } else if (exStates.length > 0) {
+      // All complete — expand the last one
+      exStates[exStates.length - 1].expanded = true;
+    }
+
+    // Restore state
+    setSessionId(session.id);
+    setStartedAt(session.started_at);
+    setSelectedDay(session.day_template_id);
+
+    // Restore readiness values
+    if (session.sleep) setSleep(session.sleep);
+    if (session.soreness) setSoreness(session.soreness);
+    if (session.energy) setEnergy(session.energy);
+
+    // Restore warmup flags
+    setWarmupRope(!!session.warmup_rope);
+    setWarmupAnkle(!!session.warmup_ankle);
+    setWarmupHipIr(!!session.warmup_hip_ir);
+
+    // Restore notes
+    setExerciseNotes(restoredNotes);
+    if (session.notes) setSessionNotes(session.notes);
+
+    // Set exercises
+    setExercises(exStates);
+
+    // Determine phase: if any sets have been logged, go to 'logging', otherwise 'warmup'
+    const hasLoggedSets = setLogs.length > 0;
+    setPhase(hasLoggedSets ? 'logging' : 'warmup');
+  };
+
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
-    setProgram(active);
+
+    // Detect program change (stopped + restarted, or switched)
+    const programChanged = active?.id !== program?.id;
+    if (programChanged) {
+      setProgram(active);
+      // Reset all session state when program changes
+      setSessionId(null);
+      setPhase('select');
+      setExercises([]);
+      setStartedAt(null);
+      setFinalDuration(null);
+      setPRs([]);
+      setExerciseNotes({});
+      setSessionNotes('');
+      setEditMode(false);
+      setConditioningDone(false);
+      hasAttemptedRestore.current = false;
+    }
+
     if (active?.activated_date) {
       const week = getCurrentWeek(active.activated_date);
       setCurrentWeek(week);
       // Don't reset selectedDay if we're mid-session (preserves title/state on tab switch)
-      if (phase === 'select') {
+      const effectivePhase = programChanged ? 'select' : phase;
+      if (effectivePhase === 'select') {
         setSelectedDay(getTodayKey());
+
+        // Attempt to restore an in-progress session (only once)
+        if (!hasAttemptedRestore.current) {
+          hasAttemptedRestore.current = true;
+          await restoreInProgressSession(active);
+        }
       }
     }
-  }, [phase]);
+  }, [phase, program?.id]);
 
   useFocusEffect(useCallback(() => {
     loadData();
@@ -160,7 +409,7 @@ export function useWorkoutSession() {
       dayTemplateId: selectedDay,
       scheduledDay: selectedDay,
       actualDay: getTodayKey(),
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateString(),
     });
     setSessionId(id);
     setStartedAt(new Date().toISOString());
@@ -335,6 +584,58 @@ export function useWorkoutSession() {
     });
 
     setOverrideModal(null);
+  };
+
+  /** Save override to all sets of the exercise */
+  const saveOverrideToAll = async () => {
+    if (!overrideModal || !sessionId) return;
+    const { exerciseIdx } = overrideModal;
+    const ex = exercises[exerciseIdx];
+
+    for (let i = 0; i < ex.sets.length; i++) {
+      const set = ex.sets[i];
+      const hitTarget = overrideWeight >= set.targetWeight && overrideReps >= set.targetReps;
+      const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
+
+      if (set.id) {
+        await updateSet(set.id, {
+          actualWeight: overrideWeight,
+          actualReps: overrideReps,
+          status,
+        });
+      } else {
+        const setId = await logSet({
+          sessionId,
+          exerciseId: ex.slot.exercise_id,
+          setNumber: set.setNumber,
+          targetWeight: set.targetWeight,
+          targetReps: set.targetReps,
+          actualWeight: overrideWeight,
+          actualReps: overrideReps,
+          status,
+          isAdhoc: ex.isAdhoc,
+        });
+        ex.sets[i] = { ...ex.sets[i], id: setId };
+      }
+    }
+
+    setExercises(prev => {
+      const next = [...prev];
+      next[exerciseIdx] = {
+        ...next[exerciseIdx],
+        sets: next[exerciseIdx].sets.map(s => ({
+          ...s,
+          actualWeight: overrideWeight,
+          actualReps: overrideReps,
+          status: (overrideWeight >= s.targetWeight && overrideReps >= s.targetReps)
+            ? 'completed' as const : 'completed_below' as const,
+        })),
+      };
+      return next;
+    });
+
+    setOverrideModal(null);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   /** Set RPE for an exercise (persists to all completed sets), then auto-advance */
@@ -512,7 +813,7 @@ export function useWorkoutSession() {
     const setLogs = await getSetLogsForSession(sessionId);
     const detectedPRs = await detectPRs(
       sessionId,
-      new Date().toISOString().split('T')[0],
+      getLocalDateString(),
       setLogs
         .filter(s => s.actual_weight != null && s.actual_reps != null)
         .map(s => ({
@@ -621,6 +922,9 @@ export function useWorkoutSession() {
     // Conditioning
     conditioningFinisher,
 
+    // Session ID (for navigation to session detail)
+    sessionId,
+
     // Edit mode
     editMode, setEditMode, recalculatePRs,
 
@@ -634,6 +938,7 @@ export function useWorkoutSession() {
     toggleExpand,
     openOverride,
     saveOverride,
+    saveOverrideToAll,
     setRPE,
     submitReadiness,
     submitWarmup,

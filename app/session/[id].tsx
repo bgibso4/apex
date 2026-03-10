@@ -9,7 +9,8 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import {
-  getSessionById, getSetLogsForSession, getExerciseNames, getActiveProgram
+  getSessionById, getSetLogsForSession, getExerciseNames, getActiveProgram,
+  getExerciseNotesForSession,
 } from '../../src/db';
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
 import type { Session, SetLog } from '../../src/types';
@@ -32,6 +33,7 @@ export default function SessionDetailScreen() {
   const [session, setSession] = useState<Session | null>(null);
   const [exerciseGroups, setExerciseGroups] = useState<ExerciseGroup[]>([]);
   const [dateLabel, setDateLabel] = useState('');
+  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
 
   useFocusEffect(useCallback(() => {
     if (!id) return;
@@ -54,8 +56,12 @@ export default function SessionDetailScreen() {
       }
       setDateLabel(`${dayName}, ${monthDay} · Week ${s.week_number} ${blockLabel}`);
 
-      // Get set logs and group by exercise
-      const setLogs = await getSetLogsForSession(id);
+      // Get set logs, exercise notes, and group by exercise
+      const [setLogs, notes] = await Promise.all([
+        getSetLogsForSession(id),
+        getExerciseNotesForSession(id),
+      ]);
+      setExerciseNotes(notes);
       const exerciseIds = [...new Set(setLogs.map(sl => sl.exercise_id))];
       const nameMap = await getExerciseNames(exerciseIds);
 
@@ -172,6 +178,14 @@ export default function SessionDetailScreen() {
           )}
         </View>
 
+        {/* Session notes */}
+        {!!session.notes && (
+          <View style={styles.sessionNotesCard}>
+            <Text style={styles.sessionNotesLabel}>Session Notes</Text>
+            <Text style={styles.sessionNotesText}>{session.notes}</Text>
+          </View>
+        )}
+
         {/* Exercise cards */}
         {exerciseGroups.map((group) => (
           <View key={group.exerciseId} style={styles.exerciseCard}>
@@ -221,6 +235,14 @@ export default function SessionDetailScreen() {
                 </View>
               </View>
             ))}
+
+            {/* Exercise note */}
+            {!!exerciseNotes[group.exerciseId] && (
+              <View style={styles.exerciseNote}>
+                <Ionicons name="chatbubble-outline" size={12} color={Colors.textDim} />
+                <Text style={styles.exerciseNoteText}>{exerciseNotes[group.exerciseId]}</Text>
+              </View>
+            )}
           </View>
         ))}
       </ScrollView>
@@ -291,4 +313,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5, borderBottomColor: `${Colors.border}40`,
   },
   setGridValue: { color: Colors.text, fontSize: FontSize.md },
+
+  sessionNotesCard: {
+    backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
+    padding: Spacing.lg, marginBottom: Spacing.xl,
+  },
+  sessionNotesLabel: {
+    color: Colors.textDim, fontSize: FontSize.xs, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.sm,
+  },
+  sessionNotesText: {
+    color: Colors.textSecondary, fontSize: FontSize.md, lineHeight: 20,
+  },
+
+  exerciseNote: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm,
+    marginTop: Spacing.md, paddingTop: Spacing.sm,
+    borderTopWidth: 0.5, borderTopColor: `${Colors.border}40`,
+  },
+  exerciseNoteText: {
+    color: Colors.textSecondary, fontSize: FontSize.sm, flex: 1, lineHeight: 18,
+  },
 });

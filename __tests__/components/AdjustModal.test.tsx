@@ -23,10 +23,12 @@ describe('AdjustModal', () => {
     expect(screen.getByText('Reps')).toBeTruthy();
   });
 
-  it('displays current weight and reps', () => {
+  it('displays current weight and reps in TextInputs', () => {
     render(<AdjustModal {...defaultProps} />);
-    expect(screen.getByText('135')).toBeTruthy();
-    expect(screen.getByText('8')).toBeTruthy();
+    const weightInput = screen.getByTestId('weight-input');
+    const repsInput = screen.getByTestId('reps-input');
+    expect(weightInput.props.value).toBe('135');
+    expect(repsInput.props.value).toBe('8');
   });
 
   it('calls onWeightChange with +5 when pressing plus', () => {
@@ -69,5 +71,73 @@ describe('AdjustModal', () => {
     render(<AdjustModal {...defaultProps} onSave={onSave} />);
     fireEvent.press(screen.getByText('Save'));
     expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  // Task 3: Custom weight/reps input tests
+  it('renders a weight TextInput that accepts custom values', () => {
+    const onWeightChange = jest.fn();
+    render(<AdjustModal {...defaultProps} onWeightChange={onWeightChange} />);
+    const weightInput = screen.getByTestId('weight-input');
+    fireEvent.changeText(weightInput, '185');
+    expect(onWeightChange).toHaveBeenCalledWith(185);
+  });
+
+  it('renders a reps TextInput that accepts custom values', () => {
+    const onRepsChange = jest.fn();
+    render(<AdjustModal {...defaultProps} onRepsChange={onRepsChange} />);
+    const repsInput = screen.getByTestId('reps-input');
+    fireEvent.changeText(repsInput, '12');
+    expect(onRepsChange).toHaveBeenCalledWith(12);
+  });
+
+  it('clamps negative typed weight values to 0', () => {
+    const onWeightChange = jest.fn();
+    render(<AdjustModal {...defaultProps} onWeightChange={onWeightChange} />);
+    const weightInput = screen.getByTestId('weight-input');
+    fireEvent.changeText(weightInput, '-10');
+    expect(onWeightChange).toHaveBeenCalledWith(0);
+  });
+
+  it('clamps negative typed reps values to 0', () => {
+    const onRepsChange = jest.fn();
+    render(<AdjustModal {...defaultProps} onRepsChange={onRepsChange} />);
+    const repsInput = screen.getByTestId('reps-input');
+    fireEvent.changeText(repsInput, '-5');
+    expect(onRepsChange).toHaveBeenCalledWith(0);
+  });
+
+  it('ignores non-numeric weight input', () => {
+    const onWeightChange = jest.fn();
+    render(<AdjustModal {...defaultProps} onWeightChange={onWeightChange} />);
+    const weightInput = screen.getByTestId('weight-input');
+    fireEvent.changeText(weightInput, 'abc');
+    expect(onWeightChange).not.toHaveBeenCalled();
+  });
+
+  it('ignores non-numeric reps input', () => {
+    const onRepsChange = jest.fn();
+    render(<AdjustModal {...defaultProps} onRepsChange={onRepsChange} />);
+    const repsInput = screen.getByTestId('reps-input');
+    fireEvent.changeText(repsInput, 'abc');
+    expect(onRepsChange).not.toHaveBeenCalled();
+  });
+
+  // Task 4: Apply to all sets tests
+  it('shows "Apply to all sets" button when onApplyToAll provided', () => {
+    const onApplyToAll = jest.fn();
+    render(<AdjustModal {...defaultProps} onApplyToAll={onApplyToAll} />);
+    expect(screen.getByText('Apply to all sets')).toBeTruthy();
+  });
+
+  it('hides "Apply to all sets" button when onApplyToAll not provided', () => {
+    render(<AdjustModal {...defaultProps} />);
+    expect(screen.queryByText('Apply to all sets')).toBeNull();
+  });
+
+  it('calls onApplyToAll on press', () => {
+    const onApplyToAll = jest.fn();
+    render(<AdjustModal {...defaultProps} onApplyToAll={onApplyToAll} />);
+    fireEvent.press(screen.getByText('Apply to all sets'));
+    expect(onApplyToAll).toHaveBeenCalledTimes(1);
   });
 });

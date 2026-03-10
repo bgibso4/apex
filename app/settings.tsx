@@ -11,7 +11,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
-import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData } from '../src/db';
+import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData, stopProgram } from '../src/db';
 import { exportDatabase, importDatabase, getLastExportTimestamp } from '../src/db';
 
 type WeightUnit = 'lbs' | 'kg';
@@ -20,10 +20,12 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [unit, setUnit] = useState<WeightUnit>('lbs');
   const [lastExport, setLastExport] = useState<string | null>(null);
+  const [activeProgram, setActiveProgram] = useState<{ id: string; name: string } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       getLastExportTimestamp().then(setLastExport);
+      getActiveProgram().then((p) => setActiveProgram(p ? { id: p.id, name: p.name } : null));
     }, [])
   );
 
@@ -79,6 +81,42 @@ export default function SettingsScreen() {
     } catch (err: any) {
       Alert.alert('Error', err.message ?? 'Failed to load sample data');
     }
+  };
+
+  const handleStopProgram = () => {
+    if (!activeProgram) return;
+    Alert.alert(
+      'Stop Program',
+      `Stop "${activeProgram.name}"? You can keep your workout history or delete all data from this program.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Keep Data',
+          onPress: async () => {
+            try {
+              await stopProgram(activeProgram.id, false);
+              setActiveProgram(null);
+              Alert.alert('Program Stopped', 'Your workout history has been preserved.');
+            } catch (err: any) {
+              Alert.alert('Error', err.message ?? 'Failed to stop program');
+            }
+          },
+        },
+        {
+          text: 'Delete Data',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await stopProgram(activeProgram.id, true);
+              setActiveProgram(null);
+              Alert.alert('Program Stopped', 'All program data has been deleted.');
+            } catch (err: any) {
+              Alert.alert('Error', err.message ?? 'Failed to stop program');
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleClearData = () => {
@@ -176,6 +214,28 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Program Section */}
+        {activeProgram && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>PROGRAM</Text>
+            <View style={styles.group}>
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Text style={styles.rowLabel}>{activeProgram.name}</Text>
+                  <Text style={styles.rowHint}>Currently active program</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.dangerButton}
+                  onPress={handleStopProgram}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.dangerButtonText}>Stop</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Supplementary Goals Section */}
         <View style={styles.section}>

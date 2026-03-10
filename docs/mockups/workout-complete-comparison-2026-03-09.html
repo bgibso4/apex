@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Complete — Comparison</title>
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --card: #151520;
+    --border: #2A2A3A;
+    --text: #F0F0F5;
+    --text-secondary: #9898A8;
+    --text-muted: #5A5A6E;
+    --indigo: #6366F1;
+    --green: #22C55E;
+    --amber: #F59E0B;
+    --red: #EF4444;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: #111;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    gap: 40px;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .phone-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .phone {
+    width: 390px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px 20px 40px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .phone::-webkit-scrollbar {
+    width: 4px;
+  }
+  .phone::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .phone::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  /* Header */
+  .header {
+    position: relative;
+    text-align: center;
+    padding-bottom: 24px;
+  }
+
+  .edit-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .header-emoji {
+    font-size: 48px;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+
+  .header-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .header-subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+
+  /* Summary Row */
+  .summary-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .summary-card {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .summary-card.pr {
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+
+  .summary-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .summary-card.pr .summary-value {
+    color: var(--amber);
+  }
+
+  .summary-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* PR Cards */
+  .pr-card {
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+
+  .pr-card:last-of-type {
+    margin-bottom: 20px;
+  }
+
+  .pr-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .pr-card-detail {
+    font-size: 13px;
+    color: var(--amber);
+  }
+
+  /* Tappable Card */
+  .tappable-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  .tappable-card-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tappable-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .tappable-card-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .tappable-card-subtitle.green {
+    color: var(--green);
+  }
+
+  .chevron {
+    font-size: 20px;
+    color: var(--text-muted);
+    font-weight: 300;
+  }
+
+  /* Section Label */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-label .saved {
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Chips */
+  .chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .chip.completed {
+    border-color: rgba(34, 197, 94, 0.4);
+    color: var(--green);
+    background: rgba(34, 197, 94, 0.06);
+  }
+
+  .chip.skipped {
+    border-color: var(--border);
+    color: var(--text-muted);
+    background: transparent;
+  }
+
+  .chip-icon {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* Notes Input */
+  .notes-input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    font-family: inherit;
+  }
+
+  /* Recent Workouts */
+  .recent-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .recent-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .recent-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .recent-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .recent-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .recent-duration {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .recent-sets {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .view-all {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--indigo);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- Option 1: Compact Chips -->
+<div class="phone-wrapper">
+  <div class="phone-label">Option 1: Compact Chips</div>
+  <div class="phone">
+
+    <div class="header">
+      <div class="edit-btn">✎</div>
+      <div class="header-emoji">💪</div>
+      <div class="header-title">Workout Complete</div>
+      <div class="header-subtitle">Push A — Week 5</div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-card">
+        <div class="summary-value">12/15</div>
+        <div class="summary-label">Sets</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-value">32m</div>
+        <div class="summary-label">Duration</div>
+      </div>
+      <div class="summary-card pr">
+        <div class="summary-value">2</div>
+        <div class="summary-label">PRs</div>
+      </div>
+    </div>
+
+    <div class="pr-card">
+      <div class="pr-card-title">Back Squat</div>
+      <div class="pr-card-detail">New est. 1RM: 315 lbs (+10)</div>
+    </div>
+    <div class="pr-card" style="margin-bottom: 20px;">
+      <div class="pr-card-title">Bench Press</div>
+      <div class="pr-card-detail">225 lbs × 5 (best at 5 reps)</div>
+    </div>
+
+    <div class="tappable-card">
+      <div class="tappable-card-left">
+        <div class="tappable-card-title">Session Review</div>
+        <div class="tappable-card-subtitle">6 exercises · 2 with notes</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="section-label">Protocols</div>
+    <div class="chips-row">
+      <div class="chip completed"><span class="chip-icon">✓</span> Jump Rope</div>
+      <div class="chip completed"><span class="chip-icon">✓</span> Ankle</div>
+      <div class="chip skipped"><span class="chip-icon">✗</span> Hip IR</div>
+      <div class="chip completed"><span class="chip-icon">✓</span> Conditioning</div>
+    </div>
+
+    <div class="section-label">
+      Session Notes
+      <span class="saved">✓ Saved</span>
+    </div>
+    <div class="notes-input">How did the session feel overall?</div>
+
+    <div class="section-label">Recent Workouts</div>
+    <div class="recent-card">
+      <div class="recent-left">
+        <div class="recent-title">Pull A</div>
+        <div class="recent-subtitle">Thu, Mar 6 · Strength</div>
+      </div>
+      <div class="recent-right">
+        <div class="recent-duration">28m</div>
+        <div class="recent-sets">14 sets</div>
+      </div>
+    </div>
+    <div class="recent-card">
+      <div class="recent-left">
+        <div class="recent-title">Legs</div>
+        <div class="recent-subtitle">Wed, Mar 5 · Strength</div>
+      </div>
+      <div class="recent-right">
+        <div class="recent-duration">35m</div>
+        <div class="recent-sets">18 sets</div>
+      </div>
+    </div>
+    <div class="recent-card">
+      <div class="recent-left">
+        <div class="recent-title">Push B</div>
+        <div class="recent-subtitle">Mon, Mar 3 · Strength</div>
+      </div>
+      <div class="recent-right">
+        <div class="recent-duration">30m</div>
+        <div class="recent-sets">12 sets</div>
+      </div>
+    </div>
+    <div class="view-all">View all workouts →</div>
+
+  </div>
+</div>
+
+<!-- Option 2: Collapsed Card -->
+<div class="phone-wrapper">
+  <div class="phone-label">Option 2: Collapsed Card</div>
+  <div class="phone">
+
+    <div class="header">
+      <div class="edit-btn">✎</div>
+      <div class="header-emoji">💪</div>
+      <div class="header-title">Workout Complete</div>
+      <div class="header-subtitle">Push A — Week 5</div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-card">
+        <div class="summary-value">12/15</div>
+        <div class="summary-label">Sets</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-value">32m</div>
+        <div class="summary-label">Duration</div>
+      </div>
+      <div class="summary-card pr">
+        <div class="summary-value">2</div>
+        <div class="summary-label">PRs</div>
+      </div>
+    </div>
+
+    <div class="pr-card">
+      <div class="pr-card-title">Back Squat</div>
+      <div class="pr-card-detail">New est. 1RM: 315 lbs (+10)</div>
+    </div>
+    <div class="pr-card" style="margin-bottom: 20px;">
+      <div class="pr-card-title">Bench Press</div>
+      <div class="pr-card-detail">225 lbs × 5 (best at 5 reps)</div>
+    </div>
+
+    <div class="tappable-card">
+      <div class="tappable-card-left">
+        <div class="tappable-card-title">Session Review</div>
+        <div class="tappable-card-subtitle">6 exercises · 2 with notes</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="tappable-card">
+      <div class="tappable-card-left">
+        <div class="tappable-card-title">Warm Up & Conditioning</div>
+        <div class="tappable-card-subtitle green">3/4 completed</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="section-label">
+      Session Notes
+      <span class="saved">✓ Saved</span>
+    </div>
+    <div class="notes-input">How did the session feel overall?</div>
+
+    <div class="section-label">Recent Workouts</div>
+    <div class="recent-card">
+      <div class="recent-left">
+        <div class="recent-title">Pull A</div>
+        <div class="recent-subtitle">Thu, Mar 6 · Strength</div>
+      </div>
+      <div class="recent-right">
+        <div class="recent-duration">28m</div>
+        <div class="recent-sets">14 sets</div>
+      </div>
+    </div>
+    <div class="recent-card">
+      <div class="recent-left">
+        <div class="recent-title">Legs</div>
+        <div class="recent-subtitle">Wed, Mar 5 · Strength</div>
+      </div>
+      <div class="recent-right">
+        <div class="recent-duration">35m</div>
+        <div class="recent-sets">18 sets</div>
+      </div>
+    </div>
+    <div class="recent-card">
+      <div class="recent-left">
+        <div class="recent-title">Push B</div>
+        <div class="recent-subtitle">Mon, Mar 3 · Strength</div>
+      </div>
+      <div class="recent-right">
+        <div class="recent-duration">30m</div>
+        <div class="recent-sets">12 sets</div>
+      </div>
+    </div>
+    <div class="view-all">View all workouts →</div>
+
+  </div>
+</div>
+
+</body>
+</html>

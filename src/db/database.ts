@@ -74,6 +74,11 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         CREATE INDEX IF NOT EXISTS idx_personal_records_session ON personal_records(session_id);
       `);
     }
+    if (currentVersion < 5) {
+      try {
+        await db.execAsync('ALTER TABLE sessions ADD COLUMN notes TEXT');
+      } catch { /* already exists */ }
+    }
     if (currentVersion < SCHEMA_VERSION) {
       await db.runAsync(
         "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",

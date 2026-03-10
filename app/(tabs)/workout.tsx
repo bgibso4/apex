@@ -400,8 +400,8 @@ export default function WorkoutScreen() {
           <SessionSummary
             exerciseCount={exerciseCount}
             setCount={setCount}
+            totalSets={totalSets}
             duration={w.timer}
-            totalVolume={w.totalVolume}
             sessionName={w.selectedTemplate?.name}
             weekLabel={`Week ${w.currentWeek}`}
             prs={w.prs}
@@ -434,15 +434,25 @@ export default function WorkoutScreen() {
               rpe: ex.rpe,
               note: w.exerciseNotes[ex.slot.exercise_id],
             }))}
-            onUpdateSet={(exIdx, setIdx, weight, reps) => {
-              w.updateSetInSummary(exIdx, setIdx, weight, reps);
-            }}
             warmup={{ rope: w.warmupRope, ankle: w.warmupAnkle, hipIr: w.warmupHipIr }}
             conditioningFinisher={w.conditioningFinisher}
             conditioningDone={w.conditioningDone}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}
+            sessionId={w.sessionId ?? undefined}
+            onViewSession={(id) => router.push(`/session/${id}`)}
+            onViewAllWorkouts={() => router.push('/history')}
+            recentSessions={recentSessions.map(s => ({
+              id: String(s.id),
+              name: s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+              dateLabel: new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric',
+              }),
+              blockName: s.block_name || undefined,
+              durationMin: s.durationMin,
+              setCount: s.setCount,
+            }))}
           />
         )}
       </ScrollView>
@@ -486,6 +496,7 @@ export default function WorkoutScreen() {
         onRepsChange={w.setOverrideReps}
         onSave={w.saveOverride}
         onClose={w.closeOverride}
+        onApplyToAll={w.saveOverrideToAll}
       />
 
       {/* Exercise Picker Modal */}

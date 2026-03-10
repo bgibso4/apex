@@ -15,11 +15,20 @@ export interface ExerciseBreakdown {
   note?: string;
 }
 
+export interface RecentSession {
+  id: string;
+  name: string;
+  dateLabel: string;
+  blockName?: string;
+  durationMin?: number;
+  setCount?: number;
+}
+
 export interface SessionSummaryProps {
   exerciseCount: number;
   setCount: number;
+  totalSets?: number;
   duration?: string;
-  totalVolume?: number;
   sessionName?: string;
   weekLabel?: string;
   notes?: string;
@@ -30,10 +39,13 @@ export interface SessionSummaryProps {
   onEdit?: () => void;
   onDelete?: () => void;
   exercises?: ExerciseBreakdown[];
-  onUpdateSet?: (exerciseIdx: number, setIdx: number, weight: number, reps: number) => void;
   warmup?: { rope: boolean; ankle: boolean; hipIr: boolean };
   conditioningFinisher?: string | null;
   conditioningDone?: boolean;
+  sessionId?: string;
+  onViewSession?: (id: string) => void;
+  onViewAllWorkouts?: () => void;
+  recentSessions?: RecentSession[];
 }
 
 function humanizeId(id: string): string {
@@ -50,167 +62,135 @@ function formatPRDescription(pr: PRRecord): { name: string; detail: string } {
 }
 
 export function SessionSummary({
-  exerciseCount, setCount, duration, totalVolume,
+  exerciseCount, setCount, totalSets, duration,
   sessionName, weekLabel, notes, notesSaved, onNotesChange,
-  prs, editMode, onEdit, onDelete, exercises, onUpdateSet,
+  prs, editMode, onEdit, onDelete, exercises,
   warmup, conditioningFinisher, conditioningDone,
+  sessionId, onViewSession, onViewAllWorkouts, recentSessions,
 }: SessionSummaryProps) {
   const prCount = prs?.length ?? 0;
+
+  // Calculate notes count from exercises
+  const notesCount = exercises?.filter(e => e.note).length ?? 0;
+
+  // Build protocol chips from warmup + conditioning
+  const protocols: { label: string; done: boolean }[] = [];
+  if (warmup) {
+    protocols.push({ label: 'Jump Rope', done: warmup.rope });
+    protocols.push({ label: 'Ankle', done: warmup.ankle });
+    protocols.push({ label: 'Hip IR', done: warmup.hipIr });
+  }
+  if (conditioningFinisher) {
+    protocols.push({ label: 'Conditioning', done: conditioningDone ?? false });
+  }
+
+  // Sets compliance string (e.g. "12/15")
+  const setsDisplay = totalSets != null ? `${setCount}/${totalSets}` : `${setCount}`;
 
   return (
     <View style={styles.container}>
       {/* Header with edit button */}
-      <View style={styles.headerRow}>
-        <View style={{ flex: 1 }} />
+      <View style={styles.header}>
         {onEdit && (
-          <TouchableOpacity onPress={onEdit} testID="edit-button">
+          <TouchableOpacity
+            style={[styles.editBtn, editMode && styles.editBtnActive]}
+            onPress={onEdit}
+            testID="edit-button"
+          >
             <Ionicons
-              name={editMode ? 'checkmark-circle' : 'pencil'}
-              size={22}
-              color={editMode ? Colors.green : Colors.indigo}
+              name={editMode ? 'checkmark' : 'pencil'}
+              size={16}
+              color={editMode ? Colors.green : Colors.textSecondary}
             />
           </TouchableOpacity>
         )}
+        <Text style={styles.icon}>{'\uD83D\uDCAA'}</Text>
+        <Text style={styles.title}>Workout Complete</Text>
+        {sessionName && (
+          <Text style={styles.subtitle}>
+            {sessionName}{weekLabel ? ` \u2014 ${weekLabel}` : ''}
+          </Text>
+        )}
       </View>
 
-      <Text style={styles.icon}>{'\uD83D\uDCAA'}</Text>
-      <Text style={styles.title}>Workout Complete</Text>
-      {sessionName && (
-        <Text style={styles.subtitle}>
-          {sessionName}{weekLabel ? ` \u2014 ${weekLabel}` : ''}
-        </Text>
-      )}
-
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{duration ?? '--'}</Text>
-          <Text style={styles.statLabel}>Duration</Text>
+      {/* Summary Row — 3 compact cards */}
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryValue}>{setsDisplay}</Text>
+          <Text style={styles.summaryLabel}>Sets</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{setCount}</Text>
-          <Text style={styles.statLabel}>Sets</Text>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryValue}>{duration ?? '--'}</Text>
+          <Text style={styles.summaryLabel}>Duration</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>
-            {totalVolume != null ? totalVolume.toLocaleString() : exerciseCount}
+        <View style={styles.summaryItem}>
+          <Text style={[styles.summaryValue, prCount > 0 && styles.summaryValueAmber]}>
+            {prCount}
           </Text>
-          <Text style={styles.statLabel}>
-            {totalVolume != null ? 'Total lbs' : 'Exercises'}
-          </Text>
-        </View>
-        <View style={[styles.statCard, prCount > 0 && styles.statCardPR]}>
-          <Text style={[styles.statValue, prCount > 0 && styles.statValuePR]}>{prCount}</Text>
-          <Text style={[styles.statLabel, prCount > 0 && styles.statLabelPR]}>PRs</Text>
+          <Text style={styles.summaryLabel}>PRs</Text>
         </View>
       </View>
 
       {/* PR detail cards */}
       {prs && prs.length > 0 && (
-        <View style={styles.prSection}>
-          {prs.map(pr => {
-            const { name, detail } = formatPRDescription(pr);
-            return (
-              <View key={pr.id} style={styles.prCard}>
-                <Text style={styles.prName}>{name}</Text>
-                <Text style={styles.prDetail}>{detail}</Text>
-              </View>
-            );
-          })}
-        </View>
-      )}
-
-      {/* Exercise breakdown */}
-      {exercises && exercises.length > 0 && (
-        <View style={styles.exerciseBreakdown}>
-          <Text style={styles.breakdownTitle}>EXERCISES</Text>
-          {exercises.map((ex, exIdx) => (
-            <View key={exIdx} style={styles.breakdownCard}>
-              <View style={styles.breakdownHeader}>
-                <Text style={styles.breakdownName}>{ex.exerciseName}</Text>
-                {ex.rpe != null && (
-                  <Text style={styles.breakdownRpe}>RPE {ex.rpe}</Text>
-                )}
-              </View>
-              {ex.sets.map((set, setIdx) => (
-                <View key={setIdx} style={styles.breakdownSetRow}>
-                  <Text style={styles.breakdownSetNum}>Set {set.setNumber}</Text>
-                  {set.status === 'pending' ? (
-                    <Text style={styles.breakdownSkipped}>Skipped</Text>
-                  ) : editMode ? (
-                    <View style={styles.breakdownEditRow}>
-                      <TextInput
-                        style={styles.breakdownEditInput}
-                        defaultValue={String(set.actualWeight)}
-                        keyboardType="numeric"
-                        onEndEditing={(e) => {
-                          const newWeight = parseFloat(e.nativeEvent.text) || set.actualWeight;
-                          onUpdateSet?.(exIdx, setIdx, newWeight, set.actualReps);
-                        }}
-                      />
-                      <Text style={styles.breakdownSetDetail}> lbs × </Text>
-                      <TextInput
-                        style={styles.breakdownEditInput}
-                        defaultValue={String(set.actualReps)}
-                        keyboardType="numeric"
-                        onEndEditing={(e) => {
-                          const newReps = parseInt(e.nativeEvent.text) || set.actualReps;
-                          onUpdateSet?.(exIdx, setIdx, set.actualWeight, newReps);
-                        }}
-                      />
-                    </View>
-                  ) : (
-                    <Text style={styles.breakdownSetDetail}>
-                      {set.actualWeight} lbs × {set.actualReps}
-                    </Text>
-                  )}
+        <>
+          <Text style={styles.sectionLabel}>Personal Records</Text>
+          <View style={styles.prCards}>
+            {prs.map(pr => {
+              const { name, detail } = formatPRDescription(pr);
+              return (
+                <View key={pr.id} style={styles.prCard}>
+                  <Text style={styles.prIcon}>{'\uD83C\uDFC6'}</Text>
+                  <View style={styles.prInfo}>
+                    <Text style={styles.prName}>{name}</Text>
+                    <Text style={styles.prDetail}>{detail}</Text>
+                  </View>
                 </View>
-              ))}
-              {ex.note ? (
-                <Text style={styles.breakdownNote}>{ex.note}</Text>
-              ) : null}
-            </View>
-          ))}
-        </View>
+              );
+            })}
+          </View>
+        </>
       )}
 
-      {/* Warmup & Conditioning summary */}
-      {(warmup || conditioningFinisher) && (
-        <View style={styles.checklistSection}>
-          {warmup && (
-            <>
-              <Text style={styles.checklistTitle}>WARM UP</Text>
-              <View style={styles.checklistRow}>
-                <Ionicons name={warmup.rope ? 'checkmark-circle' : 'close-circle-outline'} size={16}
-                  color={warmup.rope ? Colors.green : Colors.textMuted} />
-                <Text style={[styles.checklistLabel, !warmup.rope && styles.checklistSkipped]}>Jump Rope</Text>
-              </View>
-              <View style={styles.checklistRow}>
-                <Ionicons name={warmup.ankle ? 'checkmark-circle' : 'close-circle-outline'} size={16}
-                  color={warmup.ankle ? Colors.green : Colors.textMuted} />
-                <Text style={[styles.checklistLabel, !warmup.ankle && styles.checklistSkipped]}>Ankle Dorsiflexion</Text>
-              </View>
-              <View style={styles.checklistRow}>
-                <Ionicons name={warmup.hipIr ? 'checkmark-circle' : 'close-circle-outline'} size={16}
-                  color={warmup.hipIr ? Colors.green : Colors.textMuted} />
-                <Text style={[styles.checklistLabel, !warmup.hipIr && styles.checklistSkipped]}>Hip IR Mobility</Text>
-              </View>
-            </>
-          )}
-          {conditioningFinisher && (
-            <>
-              <Text style={[styles.checklistTitle, warmup && { marginTop: Spacing.lg }]}>CONDITIONING</Text>
-              <View style={styles.checklistRow}>
-                <Ionicons name={conditioningDone ? 'checkmark-circle' : 'close-circle-outline'} size={16}
-                  color={conditioningDone ? Colors.green : Colors.textMuted} />
-                <Text style={[styles.checklistLabel, !conditioningDone && styles.checklistSkipped]}>
-                  {conditioningFinisher}
+      {/* Session Review card */}
+      {sessionId && onViewSession && (
+        <TouchableOpacity
+          style={styles.sessionReview}
+          onPress={() => onViewSession(sessionId)}
+          activeOpacity={0.7}
+          testID="session-review-card"
+        >
+          <View style={styles.sessionReviewLeft}>
+            <Text style={styles.sessionReviewTitle}>Session Review</Text>
+            <Text style={styles.sessionReviewSubtitle}>
+              {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
+              {notesCount > 0 ? ` \u00B7 ${notesCount} with notes` : ''}
+            </Text>
+          </View>
+          <Text style={styles.sessionReviewChevron}>{'\u203A'}</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Protocol chips */}
+      {protocols.length > 0 && (
+        <>
+          <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Protocols</Text>
+          <View style={styles.protocolChips}>
+            {protocols.map((p, i) => (
+              <View
+                key={i}
+                style={[styles.chip, p.done ? styles.chipDone : styles.chipMissed]}
+              >
+                <Text style={[styles.chipText, p.done ? styles.chipTextDone : styles.chipTextMissed]}>
+                  {p.done ? '\u2713' : '\u2717'} {p.label}
                 </Text>
               </View>
-            </>
-          )}
-        </View>
+            ))}
+          </View>
+        </>
       )}
 
+      {/* Session Notes */}
       <View style={styles.noteSection}>
         <View style={styles.noteLabelRow}>
           <Text style={styles.noteLabel}>Session Notes (optional)</Text>
@@ -229,6 +209,43 @@ export function SessionSummary({
         />
       </View>
 
+      {/* Recent Workouts */}
+      {recentSessions && recentSessions.length > 0 && (
+        <>
+          <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Recent Workouts</Text>
+          <View style={styles.recentWorkouts}>
+            {recentSessions.map(s => (
+              <TouchableOpacity
+                key={s.id}
+                style={styles.recentCard}
+                onPress={() => onViewSession?.(s.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.recentLeft}>
+                  <Text style={styles.recentName}>{s.name}</Text>
+                  <Text style={styles.recentMeta}>
+                    {s.dateLabel}{s.blockName ? ` \u00B7 ${s.blockName}` : ''}
+                  </Text>
+                </View>
+                <View style={styles.recentRight}>
+                  {s.durationMin != null && (
+                    <Text style={styles.recentDuration}>{s.durationMin}m</Text>
+                  )}
+                  {s.setCount != null && (
+                    <Text style={styles.recentSets}>{s.setCount} sets</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {onViewAllWorkouts && (
+            <TouchableOpacity style={styles.viewAll} onPress={onViewAllWorkouts}>
+              <Text style={styles.viewAllText}>View all workouts {'\u2192'}</Text>
+            </TouchableOpacity>
+          )}
+        </>
+      )}
+
       {/* Delete button (edit mode only) */}
       {editMode && onDelete && (
         <TouchableOpacity style={styles.deleteBtn} onPress={onDelete}>
@@ -242,219 +259,196 @@ export function SessionSummary({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     paddingVertical: Spacing.xs,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    width: '100%',
-    marginBottom: Spacing.sm,
+
+  // Header
+  header: {
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingBottom: Spacing.xl,
+    position: 'relative' as const,
   },
   editBtn: {
-    color: Colors.indigo,
-    fontSize: FontSize.md,
-    fontWeight: '600',
+    position: 'absolute' as const,
+    top: Spacing.sm,
+    right: 0,
+    width: 36,
+    height: 36,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    zIndex: 1,
+  },
+  editBtnActive: {
+    borderColor: Colors.green,
   },
   icon: {
     fontSize: 48,
-    marginTop: Spacing.xxl,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   title: {
     color: Colors.text,
-    fontSize: FontSize.sectionTitle,
+    fontSize: 26,
     fontWeight: '800',
-    marginBottom: Spacing.sm,
+    letterSpacing: -0.3,
+    marginBottom: Spacing.xs,
   },
   subtitle: {
     color: Colors.textSecondary,
-    fontSize: FontSize.md,
-    marginBottom: Spacing.xxxl,
+    fontSize: FontSize.base,
+    fontWeight: '500',
   },
-  statsGrid: {
+
+  // Summary row
+  summaryRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
-    width: '100%',
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.xxl,
+    gap: 10,
+    marginBottom: Spacing.xl,
   },
-  statCard: {
+  summaryItem: {
     flex: 1,
-    minWidth: '45%',
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
-    padding: Spacing.lg,
+    paddingVertical: Spacing.md + 2, // 14px
+    paddingHorizontal: Spacing.sm,
     alignItems: 'center',
   },
-  statValue: {
+  summaryValue: {
     color: Colors.text,
-    fontSize: FontSize.sectionTitle,
-    fontWeight: '800',
+    fontSize: FontSize.xxl,
+    fontWeight: '700',
+    letterSpacing: -0.3,
     marginBottom: 2,
   },
-  statLabel: {
+  summaryValueAmber: {
+    color: Colors.amber,
+  },
+  summaryLabel: {
     color: Colors.textMuted,
-    fontSize: FontSize.sectionLabel,
+    fontSize: FontSize.sm,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  statCardPR: {
-    borderColor: `${Colors.amber}40`,
-    backgroundColor: `${Colors.amber}10`,
+
+  // Section label
+  sectionLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.xxl,
   },
-  statValuePR: {
-    color: Colors.amber,
-  },
-  statLabelPR: {
-    color: Colors.amber,
-  },
-  prSection: {
-    width: '100%',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xl,
+
+  // PR Cards
+  prCards: {
+    gap: 10,
+    marginBottom: Spacing.xs,
   },
   prCard: {
-    backgroundColor: `${Colors.amber}10`,
+    backgroundColor: Colors.card,
     borderWidth: 1,
-    borderColor: `${Colors.amber}30`,
+    borderColor: `${Colors.amber}33`,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.amber,
     borderRadius: BorderRadius.cardInner,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.lg,
-    gap: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  prIcon: {
+    fontSize: 20,
+  },
+  prInfo: {
+    flex: 1,
   },
   prName: {
     color: Colors.text,
     fontSize: FontSize.base,
-    fontWeight: '700',
+    fontWeight: '600',
+    marginBottom: 2,
   },
   prDetail: {
     color: Colors.amber,
     fontSize: FontSize.body,
     fontWeight: '500',
   },
-  deleteBtn: {
-    marginTop: Spacing.xxl,
-    paddingVertical: Spacing.md,
-  },
-  deleteText: {
-    color: Colors.red,
-    fontSize: FontSize.md,
-    fontWeight: '600',
-  },
-  exerciseBreakdown: {
-    width: '100%',
-    marginTop: Spacing.xl,
-  },
-  breakdownTitle: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sectionLabel,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: Spacing.md,
-  },
-  breakdownCard: {
+
+  // Session Review
+  sessionReview: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
     padding: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  breakdownHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    justifyContent: 'space-between',
+    marginTop: Spacing.xl,
   },
-  breakdownName: {
+  sessionReviewLeft: {
+    gap: 2,
+  },
+  sessionReviewTitle: {
     color: Colors.text,
     fontSize: FontSize.base,
     fontWeight: '600',
   },
-  breakdownRpe: {
+  sessionReviewSubtitle: {
     color: Colors.textMuted,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-  breakdownSetRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.xs,
-  },
-  breakdownSetNum: {
-    color: Colors.textMuted,
-    fontSize: FontSize.body,
-  },
-  breakdownSetDetail: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.body,
-    fontWeight: '600',
-  },
-  breakdownSkipped: {
-    color: Colors.textMuted,
-    fontSize: FontSize.body,
-    fontStyle: 'italic',
-  },
-  breakdownEditRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  breakdownEditInput: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.button,
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    color: Colors.text,
-    fontSize: FontSize.body,
-    fontWeight: '600',
-    minWidth: 50,
-    textAlign: 'center',
-  },
-  breakdownNote: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sm,
-    fontStyle: 'italic',
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.surface,
-  },
-  checklistSection: {
-    width: '100%',
-    marginTop: Spacing.xl,
-  },
-  checklistTitle: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sectionLabel,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: Spacing.sm,
-  },
-  checklistRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingVertical: 3,
-  },
-  checklistLabel: {
-    color: Colors.textSecondary,
     fontSize: FontSize.body,
     fontWeight: '500',
   },
-  checklistSkipped: {
+  sessionReviewChevron: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xl,
+  },
+
+  // Protocol chips
+  protocolChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  chip: {
+    paddingVertical: 6,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  chipDone: {
+    backgroundColor: `${Colors.green}15`,
+    borderColor: `${Colors.green}30`,
+  },
+  chipMissed: {
+    backgroundColor: `${Colors.textMuted}10`,
+    borderColor: `${Colors.textMuted}30`,
+  },
+  chipText: {
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+  chipTextDone: {
+    color: Colors.green,
+  },
+  chipTextMissed: {
     color: Colors.textMuted,
   },
+
+  // Notes
   noteSection: {
     width: '100%',
-    marginTop: Spacing.xl,
+    marginTop: Spacing.xxl,
   },
   noteLabelRow: {
     flexDirection: 'row',
@@ -464,26 +458,90 @@ const styles = StyleSheet.create({
   },
   noteSaved: {
     color: Colors.green,
-    fontSize: FontSize.sectionLabel,
+    fontSize: FontSize.sm,
     fontWeight: '600',
   },
   noteLabel: {
     color: Colors.textMuted,
     fontSize: FontSize.sectionLabel,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   noteInput: {
     width: '100%',
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md + 2, // 14px
+    borderRadius: BorderRadius.cardInner,
+    paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.lg,
     color: Colors.textSecondary,
     fontSize: FontSize.md,
     height: 72,
+  },
+
+  // Recent workouts
+  recentWorkouts: {
+    gap: Spacing.sm,
+  },
+  recentCard: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recentLeft: {
+    gap: 1,
+  },
+  recentName: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+  recentMeta: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '500',
+  },
+  recentRight: {
+    alignItems: 'flex-end',
+    gap: 1,
+  },
+  recentDuration: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+  recentSets: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '500',
+  },
+  viewAll: {
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  viewAllText: {
+    color: Colors.indigo,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+
+  // Delete
+  deleteBtn: {
+    marginTop: Spacing.xxl,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  deleteText: {
+    color: Colors.red,
+    fontSize: FontSize.md,
+    fontWeight: '600',
   },
 });

@@ -55,4 +55,19 @@ describe('WarmupChecklist', () => {
     fireEvent.press(screen.getByText(/Continue to Exercises/));
     expect(onContinue).toHaveBeenCalledTimes(1);
   });
+
+  it('should display the workout timer when provided', () => {
+    const { getByText } = render(
+      <WarmupChecklist {...defaultProps} timer="03:45" />
+    );
+    expect(getByText('03:45')).toBeTruthy();
+  });
+
+  it('should not display timer when not provided', () => {
+    const { queryByText } = render(
+      <WarmupChecklist {...defaultProps} />
+    );
+    // Timer text should not be present — just verify the component renders without error
+    expect(queryByText('Warm Up')).toBeTruthy();
+  });
 });

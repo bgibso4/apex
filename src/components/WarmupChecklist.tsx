@@ -11,11 +11,12 @@ export interface WarmupChecklistProps {
   onToggleAnkle: () => void;
   onToggleHipIr: () => void;
   onContinue: () => void;
+  timer?: string;
 }
 
 export function WarmupChecklist({
   warmupRope, warmupAnkle, warmupHipIr, blockColor,
-  onToggleRope, onToggleAnkle, onToggleHipIr, onContinue,
+  onToggleRope, onToggleAnkle, onToggleHipIr, onContinue, timer,
 }: WarmupChecklistProps) {
   const items = [
     { label: 'Jump Rope \u2014 3 min', value: warmupRope, toggle: onToggleRope },
@@ -25,7 +26,12 @@ export function WarmupChecklist({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Warm Up</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>Warm Up</Text>
+        {timer && (
+          <Text style={styles.timerDisplay}>{timer}</Text>
+        )}
+      </View>
       <View style={styles.items}>
         {items.map(({ label, value, toggle }) => (
           <TouchableOpacity
@@ -69,11 +75,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: Spacing.xl,
+  },
   title: {
     color: Colors.text,
     fontSize: FontSize.screenTitle,
     fontWeight: '800',
-    marginBottom: Spacing.xl,
+  },
+  timerDisplay: {
+    fontSize: FontSize.lg,
+    fontWeight: '600',
+    color: Colors.textDim,
+    fontVariant: ['tabular-nums'],
   },
   items: {
     gap: Spacing.sm,

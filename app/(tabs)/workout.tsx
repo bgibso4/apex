@@ -301,6 +301,7 @@ export default function WorkoutScreen() {
               onToggleAnkle={w.toggleWarmupAnkle}
               onToggleHipIr={w.toggleWarmupHipIr}
               onContinue={w.submitWarmup}
+              timer={w.timer}
             />
           </>
         )}
@@ -312,20 +313,20 @@ export default function WorkoutScreen() {
             <View style={styles.loggingHeader}>
               <View style={styles.loggingHeaderLeft}>
                 <Text style={styles.loggingTitle}>{w.selectedTemplate?.name ?? 'Workout'}</Text>
-                <Text style={styles.loggingSubtitle}>
-                  Week {w.currentWeek} — {w.block?.name ?? ''}
-                </Text>
+                <View style={styles.loggingSubtitleRow}>
+                  <Text style={styles.loggingSubtitle}>
+                    Week {w.currentWeek} — {w.block?.name ?? ''}
+                  </Text>
+                  <Text style={styles.timerDisplay}>{w.timer}</Text>
+                </View>
               </View>
-              <View style={styles.loggingHeaderRight}>
-                <Text style={styles.timerDisplay}>{w.timer}</Text>
-                <TouchableOpacity
-                  onPress={showWorkoutMenu}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  style={styles.overflowButton}
-                >
-                  <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                onPress={showWorkoutMenu}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={styles.overflowButton}
+              >
+                <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
             </View>
 
             {/* Progress bar */}
@@ -884,10 +885,10 @@ const styles = StyleSheet.create({
   loggingHeaderLeft: {
     flex: 1,
   },
-  loggingHeaderRight: {
+  loggingSubtitleRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: Spacing.sm,
   },
   loggingTitle: {
     color: Colors.text,

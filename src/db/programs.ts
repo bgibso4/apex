@@ -78,39 +78,46 @@ export async function stopProgram(
   const db = await getDatabase();
 
   if (deleteData) {
-    // Cascade delete in FK dependency order
-    await db.runAsync(
-      `DELETE FROM personal_records WHERE session_id IN
-       (SELECT id FROM sessions WHERE program_id = ?)`,
-      [programId]
-    );
-    await db.runAsync(
-      `DELETE FROM exercise_notes WHERE session_id IN
-       (SELECT id FROM sessions WHERE program_id = ?)`,
-      [programId]
-    );
-    await db.runAsync(
-      `DELETE FROM set_logs WHERE session_id IN
-       (SELECT id FROM sessions WHERE program_id = ?)`,
-      [programId]
-    );
-    await db.runAsync(
-      `DELETE FROM run_logs WHERE session_id IN
-       (SELECT id FROM sessions WHERE program_id = ?)`,
-      [programId]
-    );
-    await db.runAsync(
-      'DELETE FROM sessions WHERE program_id = ?',
-      [programId]
-    );
-    await db.runAsync(
-      'DELETE FROM weekly_checkins WHERE program_id = ?',
-      [programId]
-    );
-    await db.runAsync(
-      "UPDATE programs SET status = 'inactive', activated_date = NULL WHERE id = ?",
-      [programId]
-    );
+    // Cascade delete in FK dependency order — wrapped in transaction for atomicity
+    await db.execAsync('BEGIN TRANSACTION');
+    try {
+      await db.runAsync(
+        `DELETE FROM personal_records WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
+        `DELETE FROM exercise_notes WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
+        `DELETE FROM set_logs WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
+        `DELETE FROM run_logs WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
+        'DELETE FROM sessions WHERE program_id = ?',
+        [programId]
+      );
+      await db.runAsync(
+        'DELETE FROM weekly_checkins WHERE program_id = ?',
+        [programId]
+      );
+      await db.runAsync(
+        "UPDATE programs SET status = 'inactive', activated_date = NULL WHERE id = ?",
+        [programId]
+      );
+      await db.execAsync('COMMIT');
+    } catch (e) {
+      await db.execAsync('ROLLBACK');
+      throw e;
+    }
   } else {
     await db.runAsync(
       "UPDATE programs SET status = 'completed' WHERE id = ?",

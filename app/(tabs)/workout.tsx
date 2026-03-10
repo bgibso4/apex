@@ -486,6 +486,7 @@ export default function WorkoutScreen() {
         onRepsChange={w.setOverrideReps}
         onSave={w.saveOverride}
         onClose={w.closeOverride}
+        onApplyToAll={w.saveOverrideToAll}
       />
 
       {/* Exercise Picker Modal */}

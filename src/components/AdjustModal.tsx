@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Modal, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, Pressable, StyleSheet } from 'react-native';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
 
 export interface AdjustModalProps {
@@ -10,11 +10,12 @@ export interface AdjustModalProps {
   onRepsChange: (reps: number) => void;
   onSave: () => void;
   onClose: () => void;
+  onApplyToAll?: () => void;
 }
 
 export function AdjustModal({
   visible, weight, reps, blockColor,
-  onWeightChange, onRepsChange, onSave, onClose,
+  onWeightChange, onRepsChange, onSave, onClose, onApplyToAll,
 }: AdjustModalProps) {
   return (
     <Modal visible={visible} transparent animationType="fade">
@@ -30,7 +31,18 @@ export function AdjustModal({
             >
               <Text style={styles.adjustButtonText}>-5</Text>
             </TouchableOpacity>
-            <Text style={styles.adjustValue}>{weight}</Text>
+            <TextInput
+              testID="weight-input"
+              style={styles.adjustValue}
+              value={String(weight)}
+              keyboardType="decimal-pad"
+              selectTextOnFocus
+              onChangeText={(text) => {
+                const parsed = parseFloat(text);
+                if (isNaN(parsed)) return;
+                onWeightChange(Math.max(0, parsed));
+              }}
+            />
             <TouchableOpacity
               style={styles.adjustButton}
               onPress={() => onWeightChange(weight + 5)}
@@ -47,7 +59,18 @@ export function AdjustModal({
             >
               <Text style={styles.adjustButtonText}>-1</Text>
             </TouchableOpacity>
-            <Text style={styles.adjustValue}>{reps}</Text>
+            <TextInput
+              testID="reps-input"
+              style={styles.adjustValue}
+              value={String(reps)}
+              keyboardType="number-pad"
+              selectTextOnFocus
+              onChangeText={(text) => {
+                const parsed = parseInt(text, 10);
+                if (isNaN(parsed)) return;
+                onRepsChange(Math.max(0, parsed));
+              }}
+            />
             <TouchableOpacity
               style={styles.adjustButton}
               onPress={() => onRepsChange(reps + 1)}
@@ -63,6 +86,16 @@ export function AdjustModal({
           >
             <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
+
+          {onApplyToAll && (
+            <TouchableOpacity
+              style={styles.applyAllButton}
+              onPress={onApplyToAll}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.applyAllText}>Apply to all sets</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Pressable>
     </Modal>
@@ -134,5 +167,15 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSize.lg,
     fontWeight: '700',
+  },
+  applyAllButton: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  applyAllText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
   },
 });

@@ -566,6 +566,58 @@ export function useWorkoutSession() {
     setOverrideModal(null);
   };
 
+  /** Save override to all sets of the exercise */
+  const saveOverrideToAll = async () => {
+    if (!overrideModal || !sessionId) return;
+    const { exerciseIdx } = overrideModal;
+    const ex = exercises[exerciseIdx];
+
+    for (let i = 0; i < ex.sets.length; i++) {
+      const set = ex.sets[i];
+      const hitTarget = overrideWeight >= set.targetWeight && overrideReps >= set.targetReps;
+      const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
+
+      if (set.id) {
+        await updateSet(set.id, {
+          actualWeight: overrideWeight,
+          actualReps: overrideReps,
+          status,
+        });
+      } else {
+        const setId = await logSet({
+          sessionId,
+          exerciseId: ex.slot.exercise_id,
+          setNumber: set.setNumber,
+          targetWeight: set.targetWeight,
+          targetReps: set.targetReps,
+          actualWeight: overrideWeight,
+          actualReps: overrideReps,
+          status,
+          isAdhoc: ex.isAdhoc,
+        });
+        ex.sets[i] = { ...ex.sets[i], id: setId };
+      }
+    }
+
+    setExercises(prev => {
+      const next = [...prev];
+      next[exerciseIdx] = {
+        ...next[exerciseIdx],
+        sets: next[exerciseIdx].sets.map(s => ({
+          ...s,
+          actualWeight: overrideWeight,
+          actualReps: overrideReps,
+          status: (overrideWeight >= s.targetWeight && overrideReps >= s.targetReps)
+            ? 'completed' as const : 'completed_below' as const,
+        })),
+      };
+      return next;
+    });
+
+    setOverrideModal(null);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
   /** Set RPE for an exercise (persists to all completed sets), then auto-advance */
   const setRPE = async (exIdx: number, rpe: number) => {
     const ex = exercises[exIdx];
@@ -863,6 +915,7 @@ export function useWorkoutSession() {
     toggleExpand,
     openOverride,
     saveOverride,
+    saveOverrideToAll,
     setRPE,
     submitReadiness,
     submitWarmup,

@@ -110,16 +110,16 @@ export default function WorkoutScreen() {
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity
-                style={styles.viewAllButton}
-                onPress={() => router.push('/history')}
-              >
-                <Text style={styles.viewAllText}>
-                  View all workouts {'\u2192'}
-                </Text>
-              </TouchableOpacity>
             </View>
           )}
+          <TouchableOpacity
+            style={styles.viewAllButton}
+            onPress={() => router.push('/history')}
+          >
+            <Text style={styles.viewAllText}>
+              View all workouts {'\u2192'}
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
     );
@@ -231,15 +231,17 @@ export default function WorkoutScreen() {
                 </TouchableOpacity>
               );
             })}
-              <TouchableOpacity
-                style={styles.viewAllButton}
-                onPress={() => router.push('/history')}
-              >
-                <Text style={styles.viewAllText}>
-                  View all workouts {'\u2192'}
-                </Text>
-              </TouchableOpacity>
           </View>
+        )}
+        {w.phase === 'select' && (
+          <TouchableOpacity
+            style={styles.viewAllButton}
+            onPress={() => router.push('/history')}
+          >
+            <Text style={styles.viewAllText}>
+              View all workouts {'\u2192'}
+            </Text>
+          </TouchableOpacity>
         )}
 
         {/* Phase: Warmup */}

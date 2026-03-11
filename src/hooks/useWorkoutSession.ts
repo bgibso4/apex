@@ -523,8 +523,12 @@ export function useWorkoutSession() {
 
     // Insert warmup + conditioning protocols from day template
     const protocolItems: { type: string; protocolKey: string | null; protocolName: string }[] = [];
-    if (selectedTemplate.warmup) {
-      for (const key of selectedTemplate.warmup) {
+    // Normalize warmup to array (handles legacy string format from stored programs)
+    const warmupKeys = Array.isArray(selectedTemplate.warmup)
+      ? selectedTemplate.warmup
+      : selectedTemplate.warmup ? [selectedTemplate.warmup] : [];
+    if (warmupKeys.length > 0) {
+      for (const key of warmupKeys) {
         const proto = def.warmup_protocols?.[key];
         const name = proto?.name ?? key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         protocolItems.push({ type: 'warmup', protocolKey: key, protocolName: name });

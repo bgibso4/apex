@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
 import type { SessionProtocol } from '../types';
@@ -8,20 +9,38 @@ export interface WarmupChecklistProps {
   onToggle: (protocolId: number) => void;
   onContinue: () => void;
   timer?: string;
+  sessionName?: string;
+  onMenu?: () => void;
 }
 
 export function WarmupChecklist({
-  protocols, onToggle, onContinue, timer,
+  protocols, onToggle, onContinue, timer, sessionName, onMenu,
 }: WarmupChecklistProps) {
   const warmupProtocols = protocols.filter(p => p.type === 'warmup');
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>Warm Up</Text>
-        {timer && (
-          <Text style={styles.timerDisplay}>{timer}</Text>
-        )}
+      <View style={styles.headerRow}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>Warm Up</Text>
+          {sessionName && (
+            <Text style={styles.subtitle}>{sessionName}</Text>
+          )}
+        </View>
+        <View style={styles.headerRight}>
+          {timer && (
+            <Text style={styles.timerDisplay}>{timer}</Text>
+          )}
+          {onMenu && (
+            <TouchableOpacity
+              onPress={onMenu}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={styles.menuButton}
+            >
+              <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       <View style={styles.items}>
         {warmupProtocols.map((protocol) => (
@@ -66,22 +85,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  titleRow: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
+    alignItems: 'flex-start',
     marginBottom: Spacing.xl,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    flexShrink: 0,
   },
   title: {
     color: Colors.text,
     fontSize: FontSize.screenTitle,
     fontWeight: '800',
   },
+  subtitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    marginTop: Spacing.xs,
+  },
   timerDisplay: {
     fontSize: FontSize.lg,
     fontWeight: '600',
     color: Colors.textDim,
     fontVariant: ['tabular-nums'],
+  },
+  menuButton: {
+    padding: Spacing.xs,
   },
   items: {
     gap: Spacing.sm,

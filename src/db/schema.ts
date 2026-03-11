@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -43,10 +43,6 @@ CREATE TABLE IF NOT EXISTS sessions (
   sleep INTEGER DEFAULT 3,
   soreness INTEGER DEFAULT 3,
   energy INTEGER DEFAULT 3,
-  warmup_rope INTEGER DEFAULT 0,
-  warmup_ankle INTEGER DEFAULT 0,
-  warmup_hip_ir INTEGER DEFAULT 0,
-  conditioning_done INTEGER DEFAULT 0,
   notes TEXT,
   started_at TEXT,
   completed_at TEXT,
@@ -140,6 +136,19 @@ CREATE TABLE IF NOT EXISTS personal_records (
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 
+-- Session protocols (warmup + conditioning items per session)
+CREATE TABLE IF NOT EXISTS session_protocols (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  protocol_key TEXT,
+  protocol_name TEXT NOT NULL,
+  completed INTEGER DEFAULT 0,
+  sort_order INTEGER DEFAULT 0,
+  is_sample INTEGER DEFAULT 0,
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+
 -- Indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_sessions_program ON sessions(program_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(date);
@@ -148,6 +157,7 @@ CREATE INDEX IF NOT EXISTS idx_set_logs_session ON set_logs(session_id);
 CREATE INDEX IF NOT EXISTS idx_set_logs_exercise ON set_logs(exercise_id);
 CREATE INDEX IF NOT EXISTS idx_run_logs_date ON run_logs(date);
 CREATE INDEX IF NOT EXISTS idx_checkins_program ON weekly_checkins(program_id, week_number);
+CREATE INDEX IF NOT EXISTS idx_session_protocols_session ON session_protocols(session_id);
 CREATE INDEX IF NOT EXISTS idx_exercise_notes_session ON exercise_notes(session_id);
 CREATE INDEX IF NOT EXISTS idx_personal_records_exercise ON personal_records(exercise_id, record_type, rep_count);
 CREATE INDEX IF NOT EXISTS idx_personal_records_session ON personal_records(session_id);

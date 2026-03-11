@@ -531,11 +531,11 @@
       { "id": "zercher_squat", "name": "Zercher Squat", "type": "main", "muscle_groups": ["quads", "glutes", "core", "upper_back"], "alternatives": ["front_squat", "back_squat"], "uses_1rm": true },
       { "id": "romanian_deadlift", "name": "Romanian Deadlift", "type": "main", "muscle_groups": ["hamstrings", "glutes", "lower_back"], "uses_1rm": true },
 
-      { "id": "broad_jump", "name": "Broad Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["box_jump"] },
-      { "id": "box_jump", "name": "Box Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["broad_jump"] },
+      { "id": "broad_jump", "name": "Broad Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["box_jump"], "input_fields": [{ "type": "reps" }] },
+      { "id": "box_jump", "name": "Box Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["broad_jump"], "input_fields": [{ "type": "reps" }] },
       { "id": "db_hang_high_pull", "name": "DB Hang High Pull", "type": "power", "muscle_groups": ["traps", "shoulders", "upper_back"] },
-      { "id": "plyo_pushup", "name": "Plyo Push-up", "type": "power", "muscle_groups": ["chest", "triceps"] },
-      { "id": "pogo_hops", "name": "Pogo Hops", "type": "power", "muscle_groups": ["calves", "ankles"] },
+      { "id": "plyo_pushup", "name": "Plyo Push-up", "type": "power", "muscle_groups": ["chest", "triceps"], "input_fields": [{ "type": "reps" }] },
+      { "id": "pogo_hops", "name": "Pogo Hops", "type": "power", "muscle_groups": ["calves", "ankles"], "input_fields": [{ "type": "reps" }] },
 
       { "id": "barbell_row", "name": "Barbell Row", "type": "accessory", "muscle_groups": ["upper_back", "lats", "biceps"] },
       { "id": "face_pulls", "name": "Face Pulls", "type": "accessory", "muscle_groups": ["rear_delts", "upper_back"] },
@@ -546,22 +546,22 @@
       { "id": "hip_thrust", "name": "Hip Thrust", "type": "accessory", "muscle_groups": ["glutes", "hamstrings"] },
       { "id": "close_stance_smith_squat", "name": "Close-Stance Smith Squat", "type": "accessory", "muscle_groups": ["quads"] },
       { "id": "bulgarian_split_squat", "name": "Bulgarian Split Squat", "type": "accessory", "muscle_groups": ["quads", "glutes"] },
-      { "id": "nordic_curl", "name": "Nordic Hamstring Curl", "type": "accessory", "muscle_groups": ["hamstrings"], "alternatives": ["lying_leg_curl"] },
+      { "id": "nordic_curl", "name": "Nordic Hamstring Curl", "type": "accessory", "muscle_groups": ["hamstrings"], "alternatives": ["lying_leg_curl"], "input_fields": [{ "type": "reps" }] },
       { "id": "hip_adduction", "name": "Hip Adduction", "type": "accessory", "muscle_groups": ["adductors"] },
       { "id": "hip_abduction", "name": "Hip Abduction", "type": "accessory", "muscle_groups": ["abductors", "glutes"] },
       { "id": "cossack_squat", "name": "Cossack Squat", "type": "movement", "muscle_groups": ["quads", "adductors", "ankles"] },
-      { "id": "cossack_squat_bw", "name": "Cossack Squat (BW)", "type": "movement", "muscle_groups": ["quads", "adductors", "ankles"] },
+      { "id": "cossack_squat_bw", "name": "Cossack Squat (BW)", "type": "movement", "muscle_groups": ["quads", "adductors", "ankles"], "input_fields": [{ "type": "reps" }] },
 
-      { "id": "skierg_intervals", "name": "SkiErg Intervals", "type": "conditioning", "muscle_groups": ["full_body"] },
-      { "id": "farmers_carry", "name": "Farmer's Carry", "type": "conditioning", "muscle_groups": ["grip", "core", "traps"] },
-      { "id": "light_farmers_carry", "name": "Light Farmer's Carry", "type": "conditioning", "muscle_groups": ["grip", "core"] },
-      { "id": "sled_push", "name": "Sled Push", "type": "conditioning", "muscle_groups": ["quads", "glutes"], "alternatives": ["kb_swings_heavy"] },
+      { "id": "skierg_intervals", "name": "SkiErg Intervals", "type": "conditioning", "muscle_groups": ["full_body"], "input_fields": [{ "type": "duration", "unit": "sec" }] },
+      { "id": "farmers_carry", "name": "Farmer's Carry", "type": "conditioning", "muscle_groups": ["grip", "core", "traps"], "input_fields": [{ "type": "weight", "unit": "lbs" }, { "type": "distance", "unit": "m" }] },
+      { "id": "light_farmers_carry", "name": "Light Farmer's Carry", "type": "conditioning", "muscle_groups": ["grip", "core"], "input_fields": [{ "type": "weight", "unit": "lbs" }, { "type": "distance", "unit": "m" }] },
+      { "id": "sled_push", "name": "Sled Push", "type": "conditioning", "muscle_groups": ["quads", "glutes"], "alternatives": ["kb_swings_heavy"], "input_fields": [{ "type": "weight", "unit": "lbs" }, { "type": "distance", "unit": "m" }] },
       { "id": "kb_swings_heavy", "name": "KB Swings (Heavy)", "type": "conditioning", "muscle_groups": ["hamstrings", "glutes", "core"] },
-      { "id": "easy_run", "name": "Easy Run", "type": "conditioning", "muscle_groups": ["cardio", "legs"] },
-      { "id": "agility_drills", "name": "Agility Ladder / Ankle Drills", "type": "movement", "muscle_groups": ["ankles", "coordination"] },
-      { "id": "hip_mobility_flow", "name": "Hip Mobility Flow", "type": "movement", "muscle_groups": ["hips"] },
+      { "id": "easy_run", "name": "Easy Run", "type": "conditioning", "muscle_groups": ["cardio", "legs"], "input_fields": [{ "type": "duration", "unit": "sec" }] },
+      { "id": "agility_drills", "name": "Agility Ladder / Ankle Drills", "type": "movement", "muscle_groups": ["ankles", "coordination"], "input_fields": [{ "type": "duration", "unit": "sec" }] },
+      { "id": "hip_mobility_flow", "name": "Hip Mobility Flow", "type": "movement", "muscle_groups": ["hips"], "input_fields": [{ "type": "duration", "unit": "sec" }] },
 
-      { "id": "core_circuit", "name": "Core Circuit", "type": "core", "muscle_groups": ["core"] }
+      { "id": "core_circuit", "name": "Core Circuit", "type": "core", "muscle_groups": ["core"], "input_fields": [{ "type": "reps" }] }
     ],
 
     "warmup_protocols": {

@@ -57,6 +57,8 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
   { id: 'calf_raises', name: 'Calf Raises', muscleGroup: 'Legs', type: 'accessory' },
   { id: 'hip_thrust', name: 'Hip Thrust', muscleGroup: 'Legs', type: 'accessory' },
   { id: 'broad_jump', name: 'Broad Jump', muscleGroup: 'Legs', type: 'accessory', inputFields: [{ type: 'reps' }] },
+  { id: 'box_jump', name: 'Box Jump', muscleGroup: 'Legs', type: 'accessory', inputFields: [{ type: 'reps' }] },
+  { id: 'nordic_curl', name: 'Nordic Hamstring Curl', muscleGroup: 'Legs', type: 'accessory', inputFields: [{ type: 'reps' }] },
 
   // Arms
   { id: 'barbell_curl', name: 'Barbell Curl', muscleGroup: 'Arms', type: 'accessory' },

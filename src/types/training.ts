@@ -21,6 +21,7 @@ export interface Exercise {
   type: string;
   muscle_groups: string; // JSON array stored as string
   alternatives: string;  // JSON array stored as string
+  input_fields?: string; // JSON array of InputField stored as string
 }
 
 export interface Session {
@@ -49,10 +50,16 @@ export interface SetLog {
   session_id: string;
   exercise_id: string;
   set_number: number;
-  target_weight: number;
-  target_reps: number;
+  target_weight?: number;
+  target_reps?: number;
   actual_weight?: number;
   actual_reps?: number;
+  target_distance?: number;
+  actual_distance?: number;
+  target_duration?: number;
+  actual_duration?: number;
+  target_time?: number;
+  actual_time?: number;
   rpe?: number;
   status: 'pending' | 'completed' | 'completed_below' | 'skipped';
   timestamp?: string;

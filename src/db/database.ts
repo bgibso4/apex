@@ -90,6 +90,29 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         ALTER TABLE exercise_notes ADD COLUMN is_sample INTEGER DEFAULT 0;
       `);
     }
+    if (currentVersion < 7) {
+      try {
+        await db.execAsync('ALTER TABLE exercises ADD COLUMN input_fields TEXT');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE set_logs ADD COLUMN target_distance REAL');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE set_logs ADD COLUMN actual_distance REAL');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE set_logs ADD COLUMN target_duration REAL');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE set_logs ADD COLUMN actual_duration REAL');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE set_logs ADD COLUMN target_time REAL');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE set_logs ADD COLUMN actual_time REAL');
+      } catch { /* already exists */ }
+    }
     if (currentVersion < SCHEMA_VERSION) {
       await db.runAsync(
         "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",

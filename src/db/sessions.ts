@@ -74,10 +74,16 @@ export async function logSet(params: {
   sessionId: string;
   exerciseId: string;
   setNumber: number;
-  targetWeight: number;
-  targetReps: number;
+  targetWeight?: number;
+  targetReps?: number;
   actualWeight?: number;
   actualReps?: number;
+  targetDistance?: number;
+  actualDistance?: number;
+  targetDuration?: number;
+  actualDuration?: number;
+  targetTime?: number;
+  actualTime?: number;
   rpe?: number;
   status: SetLog['status'];
   isAdhoc?: boolean;
@@ -88,13 +94,21 @@ export async function logSet(params: {
   await db.runAsync(
     `INSERT INTO set_logs
      (id, session_id, exercise_id, set_number, target_weight, target_reps,
-      actual_weight, actual_reps, rpe, status, timestamp, is_adhoc)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      actual_weight, actual_reps, target_distance, actual_distance,
+      target_duration, actual_duration, target_time, actual_time,
+      rpe, status, timestamp, is_adhoc)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id, params.sessionId, params.exerciseId, params.setNumber,
-      params.targetWeight, params.targetReps,
-      params.actualWeight ?? params.targetWeight,
-      params.actualReps ?? params.targetReps,
+      params.targetWeight ?? null, params.targetReps ?? null,
+      params.actualWeight ?? params.targetWeight ?? null,
+      params.actualReps ?? params.targetReps ?? null,
+      params.targetDistance ?? null,
+      params.actualDistance ?? params.targetDistance ?? null,
+      params.targetDuration ?? null,
+      params.actualDuration ?? params.targetDuration ?? null,
+      params.targetTime ?? null,
+      params.actualTime ?? params.targetTime ?? null,
       params.rpe ?? null,
       params.status,
       new Date().toISOString(),
@@ -108,7 +122,15 @@ export async function logSet(params: {
 /** Update an existing set log (for overrides) */
 export async function updateSet(
   setId: string,
-  updates: { actualWeight?: number; actualReps?: number; rpe?: number; status?: SetLog['status'] }
+  updates: {
+    actualWeight?: number;
+    actualReps?: number;
+    actualDistance?: number;
+    actualDuration?: number;
+    actualTime?: number;
+    rpe?: number;
+    status?: SetLog['status'];
+  }
 ): Promise<void> {
   const db = await getDatabase();
   const fields: string[] = [];
@@ -116,6 +138,9 @@ export async function updateSet(
 
   if (updates.actualWeight !== undefined) { fields.push('actual_weight = ?'); values.push(updates.actualWeight); }
   if (updates.actualReps !== undefined) { fields.push('actual_reps = ?'); values.push(updates.actualReps); }
+  if (updates.actualDistance !== undefined) { fields.push('actual_distance = ?'); values.push(updates.actualDistance); }
+  if (updates.actualDuration !== undefined) { fields.push('actual_duration = ?'); values.push(updates.actualDuration); }
+  if (updates.actualTime !== undefined) { fields.push('actual_time = ?'); values.push(updates.actualTime); }
   if (updates.rpe !== undefined) { fields.push('rpe = ?'); values.push(updates.rpe); }
   if (updates.status !== undefined) { fields.push('status = ?'); values.push(updates.status); }
 

@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS exercises (
   type TEXT NOT NULL,
   muscle_groups TEXT NOT NULL DEFAULT '[]',
   alternatives TEXT NOT NULL DEFAULT '[]',
+  input_fields TEXT,
   is_sample INTEGER DEFAULT 0
 );
 
@@ -63,6 +64,12 @@ CREATE TABLE IF NOT EXISTS set_logs (
   target_reps INTEGER,
   actual_weight REAL,
   actual_reps INTEGER,
+  target_distance REAL,
+  actual_distance REAL,
+  target_duration REAL,
+  actual_duration REAL,
+  target_time REAL,
+  actual_time REAL,
   rpe REAL,
   status TEXT NOT NULL DEFAULT 'pending',
   timestamp TEXT,

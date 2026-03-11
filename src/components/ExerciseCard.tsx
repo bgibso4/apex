@@ -112,7 +112,7 @@ export function ExerciseCard({
               {field.unit && <Text style={styles.setHeaderUnit}>{field.unit}</Text>}
             </View>
           ))}
-          <Text style={styles.setHeaderText}>{''}</Text>
+          <View style={styles.setAction} />
         </View>
 
         {/* Set rows */}

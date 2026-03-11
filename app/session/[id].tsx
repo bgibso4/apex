@@ -15,7 +15,8 @@ import {
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
 import { getFieldsForExercise, FIELD_LABELS } from '../../src/types/fields';
 import type { InputField } from '../../src/types/fields';
-import type { Session, SetLog } from '../../src/types';
+import type { Session, SetLog, SessionProtocol } from '../../src/types';
+import { getSessionProtocols } from '../../src/db/sessions';
 
 const DAY_FULL_NAMES: Record<string, string> = {
   sunday: 'Sunday', monday: 'Monday', tuesday: 'Tuesday',
@@ -37,6 +38,7 @@ export default function SessionDetailScreen() {
   const [exerciseGroups, setExerciseGroups] = useState<ExerciseGroup[]>([]);
   const [dateLabel, setDateLabel] = useState('');
   const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
+  const [protocols, setProtocols] = useState<SessionProtocol[]>([]);
 
   useFocusEffect(useCallback(() => {
     if (!id) return;
@@ -44,6 +46,9 @@ export default function SessionDetailScreen() {
       const s = await getSessionById(id);
       if (!s) return;
       setSession(s);
+
+      const sessionProtocols = await getSessionProtocols(s.id);
+      setProtocols(sessionProtocols);
 
       // Build date label: "Wednesday, Mar 4 · Week 6 Strength"
       const sessionDate = new Date(s.date);
@@ -156,32 +161,16 @@ export default function SessionDetailScreen() {
         </View>
 
         {/* Protocol chips */}
-        <View style={styles.chipRow}>
-          {!!session.warmup_rope && (
-            <View style={styles.chip}>
-              <Ionicons name="checkmark" size={12} color={Colors.green} />
-              <Text style={styles.chipText}>Jump Rope</Text>
-            </View>
-          )}
-          {!!session.warmup_ankle && (
-            <View style={styles.chip}>
-              <Ionicons name="checkmark" size={12} color={Colors.green} />
-              <Text style={styles.chipText}>Ankle</Text>
-            </View>
-          )}
-          {!!session.warmup_hip_ir && (
-            <View style={styles.chip}>
-              <Ionicons name="checkmark" size={12} color={Colors.green} />
-              <Text style={styles.chipText}>Hip IR</Text>
-            </View>
-          )}
-          {!!session.conditioning_done && (
-            <View style={styles.chip}>
-              <Ionicons name="checkmark" size={12} color={Colors.green} />
-              <Text style={styles.chipText}>Conditioning</Text>
-            </View>
-          )}
-        </View>
+        {protocols.filter(p => p.completed).length > 0 && (
+          <View style={styles.chipRow}>
+            {protocols.filter(p => p.completed).map(p => (
+              <View key={p.id} style={styles.chip}>
+                <Ionicons name="checkmark" size={12} color={Colors.green} />
+                <Text style={styles.chipText}>{p.protocol_name}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Session notes */}
         {!!session.notes && (

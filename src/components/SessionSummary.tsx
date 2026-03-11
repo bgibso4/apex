@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 import type { PRRecord } from '../db/personal-records';
+import type { SessionProtocol } from '../types';
 
 export interface ExerciseBreakdown {
   exerciseName: string;
@@ -39,9 +40,7 @@ export interface SessionSummaryProps {
   onEdit?: () => void;
   onDelete?: () => void;
   exercises?: ExerciseBreakdown[];
-  warmup?: { rope: boolean; ankle: boolean; hipIr: boolean };
-  conditioningFinisher?: string | null;
-  conditioningDone?: boolean;
+  protocols?: SessionProtocol[];
   sessionId?: string;
   onViewSession?: (id: string) => void;
   onViewAllWorkouts?: () => void;
@@ -65,7 +64,7 @@ export function SessionSummary({
   exerciseCount, setCount, totalSets, duration,
   sessionName, weekLabel, notes, notesSaved, onNotesChange,
   prs, editMode, onEdit, onDelete, exercises,
-  warmup, conditioningFinisher, conditioningDone,
+  protocols,
   sessionId, onViewSession, onViewAllWorkouts, recentSessions,
 }: SessionSummaryProps) {
   const prCount = prs?.length ?? 0;
@@ -73,16 +72,11 @@ export function SessionSummary({
   // Calculate notes count from exercises
   const notesCount = exercises?.filter(e => e.note).length ?? 0;
 
-  // Build protocol chips from warmup + conditioning
-  const protocols: { label: string; done: boolean }[] = [];
-  if (warmup) {
-    protocols.push({ label: 'Jump Rope', done: warmup.rope });
-    protocols.push({ label: 'Ankle', done: warmup.ankle });
-    protocols.push({ label: 'Hip IR', done: warmup.hipIr });
-  }
-  if (conditioningFinisher) {
-    protocols.push({ label: 'Conditioning', done: conditioningDone ?? false });
-  }
+  // Build protocol chips from session protocols
+  const protocolChips = (protocols ?? []).map(p => ({
+    label: p.protocol_name,
+    done: !!p.completed,
+  }));
 
   // Sets compliance string (e.g. "12/15")
   const setsDisplay = totalSets != null ? `${setCount}/${totalSets}` : `${setCount}`;
@@ -172,11 +166,11 @@ export function SessionSummary({
       )}
 
       {/* Protocol chips */}
-      {protocols.length > 0 && (
+      {protocolChips.length > 0 && (
         <>
           <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Protocols</Text>
           <View style={styles.protocolChips}>
-            {protocols.map((p, i) => (
+            {protocolChips.map((p, i) => (
               <View
                 key={i}
                 style={[styles.chip, p.done ? styles.chipDone : styles.chipMissed]}

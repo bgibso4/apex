@@ -38,6 +38,7 @@ jest.mock('../../src/db', () => ({
   getCompletedSessionForDay: jest.fn(),
   getSetLogsForSession: jest.fn(),
   getExerciseNames: jest.fn(),
+  getExerciseInfo: jest.fn(),
   getExerciseNotesForSession: jest.fn(),
   getPRsForSession: jest.fn(),
   detectPRs: jest.fn(),
@@ -73,7 +74,7 @@ import {
   completeSession, updateReadiness, updateWarmup, updateSessionNotes,
   getLastSessionForExercise, calculateTargetWeight,
   ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
-  getExerciseNames, getExerciseNotesForSession, getPRsForSession, detectPRs,
+  getExerciseNames, getExerciseInfo, getExerciseNotesForSession, getPRsForSession, detectPRs,
   getInProgressSession, getFullSessionState, deleteSession,
 } from '../../src/db';
 import {
@@ -97,6 +98,7 @@ const mockedEnsureExerciseExists = ensureExerciseExists as jest.Mock;
 const mockedGetCompletedSessionForDay = getCompletedSessionForDay as jest.Mock;
 const mockedGetSetLogsForSession = getSetLogsForSession as jest.Mock;
 const mockedGetExerciseNames = getExerciseNames as jest.Mock;
+const mockedGetExerciseInfo = getExerciseInfo as jest.Mock;
 const mockedGetExerciseNotesForSession = getExerciseNotesForSession as jest.Mock;
 const mockedGetPRsForSession = getPRsForSession as jest.Mock;
 const mockedDetectPRs = detectPRs as jest.Mock;
@@ -206,6 +208,7 @@ function setupDefaultMocks() {
   mockedEnsureExerciseExists.mockResolvedValue(undefined);
   mockedGetSetLogsForSession.mockResolvedValue([]);
   mockedGetExerciseNames.mockResolvedValue({});
+  mockedGetExerciseInfo.mockResolvedValue({});
   mockedGetExerciseNotesForSession.mockResolvedValue({});
   mockedGetPRsForSession.mockResolvedValue([]);
   mockedDetectPRs.mockResolvedValue([]);

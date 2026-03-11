@@ -100,6 +100,206 @@ describe('personal records', () => {
     });
   });
 
+  describe('PR detection for non-standard exercises', () => {
+    it('skips e1RM PR for exercises without weight+reps', async () => {
+      // Exercise with inputFields = duration only — should not generate e1RM or rep PRs
+      const sessionSets = [
+        {
+          exercise_id: 'plank',
+          actual_weight: 0,
+          actual_reps: 0,
+          actual_duration: 60,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'duration', unit: 'sec' }]),
+        },
+      ];
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      const e1rmPRs = prs.filter(p => p.record_type === 'e1rm');
+      expect(e1rmPRs).toHaveLength(0);
+      const repPRs = prs.filter(p => p.record_type === 'rep_best');
+      expect(repPRs).toHaveLength(0);
+    });
+
+    it('detects duration PR for duration exercises', async () => {
+      const sessionSets = [
+        {
+          exercise_id: 'plank',
+          actual_weight: 0,
+          actual_reps: 0,
+          actual_duration: 60,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'duration', unit: 'sec' }]),
+        },
+      ];
+      // Previous best was 45
+      mockDb.getFirstAsync.mockImplementation(async (sql: string) => {
+        if (sql.includes('best_duration')) return { value: 45 };
+        return null;
+      });
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      expect(prs).toContainEqual(expect.objectContaining({
+        exercise_id: 'plank',
+        record_type: 'best_duration',
+        value: 60,
+        previous_value: 45,
+      }));
+    });
+
+    it('detects time PR for distance_time exercises (lower is better)', async () => {
+      const sessionSets = [
+        {
+          exercise_id: 'ski_erg',
+          actual_weight: 0,
+          actual_reps: 0,
+          actual_time: 100,
+          actual_distance: 500,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'distance', unit: 'm' }, { type: 'time', unit: 'sec' }]),
+        },
+      ];
+      // Previous best was 108 (slower)
+      mockDb.getFirstAsync.mockImplementation(async (sql: string) => {
+        if (sql.includes('best_time')) return { value: 108 };
+        return null;
+      });
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      expect(prs).toContainEqual(expect.objectContaining({
+        exercise_id: 'ski_erg',
+        record_type: 'best_time',
+        value: 100,
+        previous_value: 108,
+      }));
+    });
+
+    it('detects reps PR for reps-only exercises', async () => {
+      const sessionSets = [
+        {
+          exercise_id: 'pullups',
+          actual_weight: 0,
+          actual_reps: 15,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'reps' }]),
+        },
+      ];
+      // Previous best was 12
+      mockDb.getFirstAsync.mockImplementation(async (sql: string) => {
+        if (sql.includes('best_reps')) return { value: 12 };
+        return null;
+      });
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      expect(prs).toContainEqual(expect.objectContaining({
+        exercise_id: 'pullups',
+        record_type: 'best_reps',
+        value: 15,
+        previous_value: 12,
+      }));
+    });
+
+    it('does not create duration PR when not beaten', async () => {
+      const sessionSets = [
+        {
+          exercise_id: 'plank',
+          actual_weight: 0,
+          actual_reps: 0,
+          actual_duration: 30,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'duration', unit: 'sec' }]),
+        },
+      ];
+      // Previous best was 45 — current 30 is worse
+      mockDb.getFirstAsync.mockImplementation(async (sql: string) => {
+        if (sql.includes('best_duration')) return { value: 45 };
+        return null;
+      });
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      const durationPRs = prs.filter(p => p.record_type === 'best_duration');
+      expect(durationPRs).toHaveLength(0);
+    });
+
+    it('does not create time PR when slower', async () => {
+      const sessionSets = [
+        {
+          exercise_id: 'ski_erg',
+          actual_weight: 0,
+          actual_reps: 0,
+          actual_time: 120,
+          actual_distance: 500,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'distance', unit: 'm' }, { type: 'time', unit: 'sec' }]),
+        },
+      ];
+      // Previous best was 108 — current 120 is slower
+      mockDb.getFirstAsync.mockImplementation(async (sql: string) => {
+        if (sql.includes('best_time')) return { value: 108 };
+        return null;
+      });
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      const timePRs = prs.filter(p => p.record_type === 'best_time');
+      expect(timePRs).toHaveLength(0);
+    });
+
+    it('detects duration PR when no previous record exists', async () => {
+      const sessionSets = [
+        {
+          exercise_id: 'plank',
+          actual_weight: 0,
+          actual_reps: 0,
+          actual_duration: 60,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'duration', unit: 'sec' }]),
+        },
+      ];
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      expect(prs).toContainEqual(expect.objectContaining({
+        exercise_id: 'plank',
+        record_type: 'best_duration',
+        value: 60,
+        previous_value: null,
+      }));
+    });
+
+    it('weight+reps exercises still get e1RM and rep PRs', async () => {
+      const sessionSets = [
+        {
+          exercise_id: 'bench_press',
+          actual_weight: 225,
+          actual_reps: 5,
+          status: 'completed' as const,
+          input_fields: JSON.stringify([{ type: 'weight', unit: 'lbs' }, { type: 'reps' }]),
+        },
+      ];
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      const prs = await detectPRs('session-1', '2026-03-07', sessionSets);
+
+      expect(prs).toContainEqual(expect.objectContaining({
+        exercise_id: 'bench_press',
+        record_type: 'e1rm',
+      }));
+      expect(prs).toContainEqual(expect.objectContaining({
+        exercise_id: 'bench_press',
+        record_type: 'rep_best',
+        rep_count: 5,
+      }));
+    });
+  });
+
   describe('getPRsForSession', () => {
     it('returns all PRs for a given session', async () => {
       mockDb.getAllAsync.mockResolvedValue([

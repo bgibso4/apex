@@ -11,7 +11,7 @@ import {
   detectPRs, getPRsForSession,
   getSetLogsForSession,
   getInProgressSession, deleteSession,
-  getFullSessionState, getExerciseNames,
+  getFullSessionState, getExerciseNames, getExerciseInfo,
   shouldShowBackupReminder, exportDatabase,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
@@ -903,17 +903,24 @@ export function useWorkoutSession() {
   const recalculatePRs = async () => {
     if (!sessionId) return;
     const setLogs = await getSetLogsForSession(sessionId);
+
+    // Look up input_fields for each exercise to determine PR type
+    const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
+    const exerciseInfo = await getExerciseInfo(exerciseIds);
+
     const detectedPRs = await detectPRs(
       sessionId,
       getLocalDateString(),
-      setLogs
-        .filter(s => s.actual_weight != null && s.actual_reps != null)
-        .map(s => ({
-          exercise_id: s.exercise_id,
-          actual_weight: s.actual_weight!,
-          actual_reps: s.actual_reps!,
-          status: s.status,
-        }))
+      setLogs.map(s => ({
+        exercise_id: s.exercise_id,
+        actual_weight: s.actual_weight ?? 0,
+        actual_reps: s.actual_reps ?? 0,
+        actual_duration: s.actual_duration,
+        actual_time: s.actual_time,
+        actual_distance: s.actual_distance,
+        input_fields: exerciseInfo[s.exercise_id]?.inputFields ?? null,
+        status: s.status,
+      }))
     );
     setPRs(detectedPRs);
   };

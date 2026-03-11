@@ -22,6 +22,8 @@ import {
 } from '../utils/program';
 import { Colors } from '../theme';
 import type { Program, ProgramDefinition, ExerciseSlot, SetLog, Session } from '../types';
+import type { InputField } from '../types/fields';
+import { getFieldsForExercise } from '../types/fields';
 import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
 import { useSessionTimer } from './useSessionTimer';
@@ -37,6 +39,7 @@ export interface ExerciseState {
   lastWeight?: number;
   lastReps?: number;
   isAdhoc?: boolean;
+  inputFields?: InputField[];
 }
 
 export function useWorkoutSession() {
@@ -268,13 +271,14 @@ export function useWorkoutSession() {
         expanded: false,
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
+        inputFields: getFieldsForExercise(exerciseDef?.input_fields),
       });
     }
 
     // Restore ad-hoc exercises (logged sets for exercise_ids not in the template)
     const adhocExerciseIds = Object.keys(logsByExercise).filter(id => !templateExerciseIds.has(id));
     if (adhocExerciseIds.length > 0) {
-      const adhocNames = await getExerciseNames(adhocExerciseIds);
+      const adhocInfo = await getExerciseInfo(adhocExerciseIds);
       for (const exerciseId of adhocExerciseIds) {
         const logged = logsByExercise[exerciseId];
         const sets: SetState[] = logged.map(l => ({
@@ -294,16 +298,18 @@ export function useWorkoutSession() {
           id: l.id,
         }));
 
+        const info = adhocInfo[exerciseId];
         exStates.push({
           slot: {
             exercise_id: exerciseId,
             category: 'accessory',
             targets: [],
           },
-          exerciseName: adhocNames[exerciseId] ?? exerciseId.replace(/_/g, ' '),
+          exerciseName: info?.name ?? exerciseId.replace(/_/g, ' '),
           sets,
           expanded: false,
           isAdhoc: true,
+          inputFields: getFieldsForExercise(info?.inputFields),
         });
       }
     }
@@ -494,6 +500,7 @@ export function useWorkoutSession() {
         expanded: exStates.length === 0,
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
+        inputFields: getFieldsForExercise(exerciseDef?.input_fields),
       });
     }
 
@@ -802,6 +809,7 @@ export function useWorkoutSession() {
       sets,
       expanded: false,
       isAdhoc: true,
+      inputFields: getFieldsForExercise(selectedLibraryExercise.inputFields),
     };
 
     setExercises(prev => [...prev, newExercise]);

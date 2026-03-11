@@ -377,6 +377,7 @@ export default function WorkoutScreen() {
                   lastWeight={ex.lastWeight}
                   lastReps={ex.lastReps}
                   blockColor={w.blockColor}
+                  inputFields={ex.inputFields}
                   note={w.exerciseNotes[ex.slot.exercise_id]}
                   onNoteChange={(note) => w.saveExerciseNoteAction(ex.slot.exercise_id, note)}
                   onToggleExpand={() => {
@@ -545,6 +546,7 @@ export default function WorkoutScreen() {
       <AdjustModal
         visible={w.overrideModal !== null}
         values={w.overrideValues}
+        inputFields={w.overrideModal !== null ? w.exercises[w.overrideModal.exerciseIdx]?.inputFields : undefined}
         blockColor={w.blockColor}
         onValueChange={(fieldType, value) => w.setOverrideValues(prev => ({ ...prev, [fieldType]: value }))}
         onSave={w.saveOverride}

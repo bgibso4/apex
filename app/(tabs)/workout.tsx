@@ -293,13 +293,8 @@ export default function WorkoutScreen() {
               </TouchableOpacity>
             </View>
             <WarmupChecklist
-              warmupRope={w.warmupRope}
-              warmupAnkle={w.warmupAnkle}
-              warmupHipIr={w.warmupHipIr}
-              blockColor={w.blockColor}
-              onToggleRope={w.toggleWarmupRope}
-              onToggleAnkle={w.toggleWarmupAnkle}
-              onToggleHipIr={w.toggleWarmupHipIr}
+              protocols={w.protocols}
+              onToggle={w.toggleProtocol}
               onContinue={w.submitWarmup}
               timer={w.timer}
             />
@@ -490,9 +485,7 @@ export default function WorkoutScreen() {
               rpe: ex.rpe,
               note: w.exerciseNotes[ex.slot.exercise_id],
             }))}
-            warmup={{ rope: w.warmupRope, ankle: w.warmupAnkle, hipIr: w.warmupHipIr }}
-            conditioningFinisher={w.conditioningFinisher}
-            conditioningDone={w.conditioningDone}
+            protocols={w.protocols}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}

@@ -1,83 +1,62 @@
 import { View, Text, TextInput, TouchableOpacity, Modal, Pressable, StyleSheet } from 'react-native';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
+import { InputField, FIELD_LABELS, FIELD_STEPS, FIELD_KEYBOARD, FIELD_PROFILES } from '../types/fields';
 
 export interface AdjustModalProps {
   visible: boolean;
-  weight: number;
-  reps: number;
+  values: Record<string, number>;
+  inputFields?: InputField[];
   blockColor: string;
-  onWeightChange: (weight: number) => void;
-  onRepsChange: (reps: number) => void;
+  onValueChange: (fieldType: string, value: number) => void;
   onSave: () => void;
   onClose: () => void;
   onApplyToAll?: () => void;
 }
 
 export function AdjustModal({
-  visible, weight, reps, blockColor,
-  onWeightChange, onRepsChange, onSave, onClose, onApplyToAll,
+  visible, values, inputFields, blockColor,
+  onValueChange, onSave, onClose, onApplyToAll,
 }: AdjustModalProps) {
+  const fields = inputFields ?? FIELD_PROFILES.weight_reps;
+
   return (
     <Modal visible={visible} transparent animationType="fade">
       <Pressable style={styles.overlay} onPress={onClose}>
         <View style={styles.content} onStartShouldSetResponder={() => true}>
           <Text style={styles.title}>Adjust Set</Text>
 
-          <Text style={styles.label}>Weight (lbs)</Text>
-          <View style={styles.adjustRow}>
-            <TouchableOpacity
-              style={styles.adjustButton}
-              onPress={() => onWeightChange(Math.max(0, weight - 5))}
-            >
-              <Text style={styles.adjustButtonText}>-5</Text>
-            </TouchableOpacity>
-            <TextInput
-              testID="weight-input"
-              style={styles.adjustValue}
-              value={String(weight)}
-              keyboardType="decimal-pad"
-              selectTextOnFocus
-              onChangeText={(text) => {
-                const parsed = parseFloat(text);
-                if (isNaN(parsed)) return;
-                onWeightChange(Math.max(0, parsed));
-              }}
-            />
-            <TouchableOpacity
-              style={styles.adjustButton}
-              onPress={() => onWeightChange(weight + 5)}
-            >
-              <Text style={styles.adjustButtonText}>+5</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.label}>Reps</Text>
-          <View style={styles.adjustRow}>
-            <TouchableOpacity
-              style={styles.adjustButton}
-              onPress={() => onRepsChange(Math.max(0, reps - 1))}
-            >
-              <Text style={styles.adjustButtonText}>-1</Text>
-            </TouchableOpacity>
-            <TextInput
-              testID="reps-input"
-              style={styles.adjustValue}
-              value={String(reps)}
-              keyboardType="number-pad"
-              selectTextOnFocus
-              onChangeText={(text) => {
-                const parsed = parseInt(text, 10);
-                if (isNaN(parsed)) return;
-                onRepsChange(Math.max(0, parsed));
-              }}
-            />
-            <TouchableOpacity
-              style={styles.adjustButton}
-              onPress={() => onRepsChange(reps + 1)}
-            >
-              <Text style={styles.adjustButtonText}>+1</Text>
-            </TouchableOpacity>
-          </View>
+          {fields.map((field) => (
+            <View key={field.type}>
+              <Text style={styles.label}>
+                {FIELD_LABELS[field.type]}{field.unit ? ` (${field.unit})` : ''}
+              </Text>
+              <View style={styles.adjustRow}>
+                <TouchableOpacity
+                  style={styles.adjustButton}
+                  onPress={() => onValueChange(field.type, Math.max(0, (values[field.type] ?? 0) - FIELD_STEPS[field.type]))}
+                >
+                  <Text style={styles.adjustButtonText}>-{FIELD_STEPS[field.type]}</Text>
+                </TouchableOpacity>
+                <TextInput
+                  testID={`${field.type}-input`}
+                  style={styles.adjustValue}
+                  value={String(values[field.type] ?? 0)}
+                  keyboardType={FIELD_KEYBOARD[field.type]}
+                  selectTextOnFocus
+                  onChangeText={(text) => {
+                    const parsed = parseFloat(text);
+                    if (!isNaN(parsed)) onValueChange(field.type, Math.max(0, parsed));
+                  }}
+                />
+                <TouchableOpacity
+                  style={styles.adjustButton}
+                  onPress={() => onValueChange(field.type, (values[field.type] ?? 0) + FIELD_STEPS[field.type])}
+                >
+                  <Text style={styles.adjustButtonText}>+{FIELD_STEPS[field.type]}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
 
           <TouchableOpacity
             style={[styles.saveButton, { backgroundColor: blockColor }]}

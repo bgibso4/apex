@@ -544,11 +544,9 @@ export default function WorkoutScreen() {
 
       <AdjustModal
         visible={w.overrideModal !== null}
-        weight={w.overrideWeight}
-        reps={w.overrideReps}
+        values={w.overrideValues}
         blockColor={w.blockColor}
-        onWeightChange={w.setOverrideWeight}
-        onRepsChange={w.setOverrideReps}
+        onValueChange={(fieldType, value) => w.setOverrideValues(prev => ({ ...prev, [fieldType]: value }))}
         onSave={w.saveOverride}
         onClose={w.closeOverride}
         onApplyToAll={w.saveOverrideToAll}

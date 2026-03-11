@@ -676,8 +676,8 @@ describe('useWorkoutSession', () => {
         exerciseIdx: 0,
         setIdx: 0,
       });
-      expect(hookResult.result.current.overrideWeight).toBe(setBeforeOpen.actualWeight);
-      expect(hookResult.result.current.overrideReps).toBe(setBeforeOpen.actualReps);
+      expect(hookResult.result.current.overrideValues.weight).toBe(setBeforeOpen.actualWeight);
+      expect(hookResult.result.current.overrideValues.reps).toBe(setBeforeOpen.actualReps);
       expect(Haptics.impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Light);
     });
   });
@@ -700,8 +700,7 @@ describe('useWorkoutSession', () => {
         hookResult.result.current.openOverride(0, 0);
       });
       act(() => {
-        hookResult.result.current.setOverrideWeight(200);
-        hookResult.result.current.setOverrideReps(6);
+        hookResult.result.current.setOverrideValues({ weight: 200, reps: 6 });
       });
 
       await act(async () => {
@@ -734,8 +733,7 @@ describe('useWorkoutSession', () => {
 
       // Set values below target
       act(() => {
-        hookResult.result.current.setOverrideWeight(targetWeight - 10);
-        hookResult.result.current.setOverrideReps(targetReps - 2);
+        hookResult.result.current.setOverrideValues({ weight: targetWeight - 10, reps: targetReps - 2 });
       });
 
       await act(async () => {
@@ -769,8 +767,7 @@ describe('useWorkoutSession', () => {
 
       // Set values equal to target (should be 'completed')
       act(() => {
-        hookResult.result.current.setOverrideWeight(targetWeight);
-        hookResult.result.current.setOverrideReps(targetReps);
+        hookResult.result.current.setOverrideValues({ weight: targetWeight, reps: targetReps });
       });
 
       await act(async () => {

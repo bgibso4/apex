@@ -65,8 +65,7 @@ export function useWorkoutSession() {
     exerciseIdx: number;
     setIdx: number;
   } | null>(null);
-  const [overrideWeight, setOverrideWeight] = useState(0);
-  const [overrideReps, setOverrideReps] = useState(0);
+  const [overrideValues, setOverrideValues] = useState<Record<string, number>>({});
 
   // Exercise picker
   const [showExercisePicker, setShowExercisePicker] = useState(false);
@@ -578,8 +577,13 @@ export function useWorkoutSession() {
   /** Open override modal (long press) */
   const openOverride = (exIdx: number, setIdx: number) => {
     const set = exercises[exIdx].sets[setIdx];
-    setOverrideWeight(set.actualWeight ?? 0);
-    setOverrideReps(set.actualReps ?? 0);
+    const vals: Record<string, number> = {};
+    if (set.actualWeight != null) vals.weight = set.actualWeight;
+    if (set.actualReps != null) vals.reps = set.actualReps;
+    if (set.actualDistance != null) vals.distance = set.actualDistance;
+    if (set.actualDuration != null) vals.duration = set.actualDuration;
+    if (set.actualTime != null) vals.time = set.actualTime;
+    setOverrideValues(vals);
     setOverrideModal({ exerciseIdx: exIdx, setIdx });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
@@ -591,15 +595,21 @@ export function useWorkoutSession() {
     const ex = exercises[exerciseIdx];
     const set = ex.sets[setIdx];
 
-    const hitTarget = overrideWeight >= (set.targetWeight ?? 0) && overrideReps >= (set.targetReps ?? 0);
+    const ow = overrideValues.weight;
+    const or = overrideValues.reps;
+    const hitTarget = (ow == null || ow >= (set.targetWeight ?? 0)) && (or == null || or >= (set.targetReps ?? 0));
     const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
+    const actualUpdates: Record<string, number | undefined> = {
+      actualWeight: overrideValues.weight,
+      actualReps: overrideValues.reps,
+      actualDistance: overrideValues.distance,
+      actualDuration: overrideValues.duration,
+      actualTime: overrideValues.time,
+    };
+
     if (set.id) {
-      await updateSet(set.id, {
-        actualWeight: overrideWeight,
-        actualReps: overrideReps,
-        status,
-      });
+      await updateSet(set.id, { ...actualUpdates, status });
     } else {
       const setId = await logSet({
         sessionId,
@@ -607,14 +617,14 @@ export function useWorkoutSession() {
         setNumber: set.setNumber,
         targetWeight: set.targetWeight,
         targetReps: set.targetReps,
-        actualWeight: overrideWeight,
-        actualReps: overrideReps,
+        actualWeight: overrideValues.weight ?? set.actualWeight,
+        actualReps: overrideValues.reps ?? set.actualReps,
         targetDistance: set.targetDistance,
-        actualDistance: set.actualDistance,
+        actualDistance: overrideValues.distance ?? set.actualDistance,
         targetDuration: set.targetDuration,
-        actualDuration: set.actualDuration,
+        actualDuration: overrideValues.duration ?? set.actualDuration,
         targetTime: set.targetTime,
-        actualTime: set.actualTime,
+        actualTime: overrideValues.time ?? set.actualTime,
         status,
         isAdhoc: ex.isAdhoc,
       });
@@ -632,8 +642,11 @@ export function useWorkoutSession() {
       const next = [...prev];
       next[exerciseIdx].sets[setIdx] = {
         ...next[exerciseIdx].sets[setIdx],
-        actualWeight: overrideWeight,
-        actualReps: overrideReps,
+        ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
+        ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
+        ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
+        ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
+        ...(overrideValues.time != null && { actualTime: overrideValues.time }),
         status,
       };
       return next;
@@ -648,17 +661,24 @@ export function useWorkoutSession() {
     const { exerciseIdx } = overrideModal;
     const ex = exercises[exerciseIdx];
 
+    const ow = overrideValues.weight;
+    const or = overrideValues.reps;
+
     for (let i = 0; i < ex.sets.length; i++) {
       const set = ex.sets[i];
-      const hitTarget = overrideWeight >= (set.targetWeight ?? 0) && overrideReps >= (set.targetReps ?? 0);
+      const hitTarget = (ow == null || ow >= (set.targetWeight ?? 0)) && (or == null || or >= (set.targetReps ?? 0));
       const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
+      const actualUpdates: Record<string, number | undefined> = {
+        actualWeight: overrideValues.weight,
+        actualReps: overrideValues.reps,
+        actualDistance: overrideValues.distance,
+        actualDuration: overrideValues.duration,
+        actualTime: overrideValues.time,
+      };
+
       if (set.id) {
-        await updateSet(set.id, {
-          actualWeight: overrideWeight,
-          actualReps: overrideReps,
-          status,
-        });
+        await updateSet(set.id, { ...actualUpdates, status });
       } else {
         const setId = await logSet({
           sessionId,
@@ -666,14 +686,14 @@ export function useWorkoutSession() {
           setNumber: set.setNumber,
           targetWeight: set.targetWeight,
           targetReps: set.targetReps,
-          actualWeight: overrideWeight,
-          actualReps: overrideReps,
+          actualWeight: overrideValues.weight ?? set.actualWeight,
+          actualReps: overrideValues.reps ?? set.actualReps,
           targetDistance: set.targetDistance,
-          actualDistance: set.actualDistance,
+          actualDistance: overrideValues.distance ?? set.actualDistance,
           targetDuration: set.targetDuration,
-          actualDuration: set.actualDuration,
+          actualDuration: overrideValues.duration ?? set.actualDuration,
           targetTime: set.targetTime,
-          actualTime: set.actualTime,
+          actualTime: overrideValues.time ?? set.actualTime,
           status,
           isAdhoc: ex.isAdhoc,
         });
@@ -685,13 +705,18 @@ export function useWorkoutSession() {
       const next = [...prev];
       next[exerciseIdx] = {
         ...next[exerciseIdx],
-        sets: next[exerciseIdx].sets.map(s => ({
-          ...s,
-          actualWeight: overrideWeight,
-          actualReps: overrideReps,
-          status: (overrideWeight >= (s.targetWeight ?? 0) && overrideReps >= (s.targetReps ?? 0))
-            ? 'completed' as const : 'completed_below' as const,
-        })),
+        sets: next[exerciseIdx].sets.map(s => {
+          const hitTarget = (ow == null || ow >= (s.targetWeight ?? 0)) && (or == null || or >= (s.targetReps ?? 0));
+          return {
+            ...s,
+            ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
+            ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
+            ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
+            ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
+            ...(overrideValues.time != null && { actualTime: overrideValues.time }),
+            status: hitTarget ? 'completed' as const : 'completed_below' as const,
+          };
+        }),
       };
       return next;
     });
@@ -956,8 +981,7 @@ export function useWorkoutSession() {
 
     // Override modal
     overrideModal,
-    overrideWeight, setOverrideWeight,
-    overrideReps, setOverrideReps,
+    overrideValues, setOverrideValues,
 
     // Exercise picker
     showExercisePicker, setShowExercisePicker,

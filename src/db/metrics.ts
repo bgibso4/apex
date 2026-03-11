@@ -9,6 +9,11 @@ import type { ProgramDefinition, DayTemplate } from '../types';
 import { getBlockForWeek, getTargetForWeek } from '../utils/program';
 import { InputField, getFieldsForExercise, supportsE1RM } from '../types/fields';
 
+const VALID_METRIC_COLUMNS = new Set([
+  'actual_weight', 'actual_reps', 'actual_distance',
+  'actual_duration', 'actual_time',
+]);
+
 /** Epley formula: weight × (1 + reps / 30) */
 export function calculateEpley(weight: number, reps: number): number {
   if (reps <= 0 || weight <= 0) return 0;
@@ -610,6 +615,7 @@ async function getBestValue(
   column: string,
   agg: 'MAX' | 'MIN' = 'MAX'
 ): Promise<number | null> {
+  if (!VALID_METRIC_COLUMNS.has(column)) throw new Error(`Invalid metric column: ${column}`);
   const db = await getDatabase();
   const row = await db.getFirstAsync<{ best: number | null }>(
     `SELECT ${agg}(${column}) as best FROM set_logs
@@ -688,9 +694,10 @@ export async function getMetricHistory(
   agg: 'MAX' | 'MIN' = 'MAX',
   options?: { startDate?: string; programId?: string; limit?: number }
 ): Promise<MetricHistoryPoint[]> {
+  if (!VALID_METRIC_COLUMNS.has(column)) throw new Error(`Invalid metric column: ${column}`);
   const db = await getDatabase();
   const conditions = [`sl.exercise_id = ?`, `sl.status IN ('completed', 'completed_below')`, `sl.${column} IS NOT NULL`];
-  const params: any[] = [exerciseId];
+  const params: (string | number)[] = [exerciseId];
 
   if (options?.startDate) {
     conditions.push('s.date >= ?');

@@ -28,6 +28,21 @@ import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
 import { useSessionTimer } from './useSessionTimer';
 
+/** Check if override values meet or exceed all targets for a set */
+function checkHitTarget(vals: Record<string, number>, set: SetState): boolean {
+  // Weight: actual >= target
+  if (set.targetWeight != null && (vals.weight ?? 0) < set.targetWeight) return false;
+  // Reps: actual >= target
+  if (set.targetReps != null && (vals.reps ?? 0) < set.targetReps) return false;
+  // Distance: actual >= target
+  if (set.targetDistance != null && (vals.distance ?? 0) < set.targetDistance) return false;
+  // Duration: actual >= target
+  if (set.targetDuration != null && (vals.duration ?? 0) < set.targetDuration) return false;
+  // Time: actual <= target (faster is better)
+  if (set.targetTime != null && (vals.time ?? 0) > set.targetTime) return false;
+  return true;
+}
+
 export type WorkoutPhase = 'select' | 'readiness' | 'warmup' | 'logging' | 'complete';
 
 export interface ExerciseState {
@@ -603,9 +618,7 @@ export function useWorkoutSession() {
     const ex = exercises[exerciseIdx];
     const set = ex.sets[setIdx];
 
-    const ow = overrideValues.weight;
-    const or = overrideValues.reps;
-    const hitTarget = (ow == null || ow >= (set.targetWeight ?? 0)) && (or == null || or >= (set.targetReps ?? 0));
+    const hitTarget = checkHitTarget(overrideValues, set);
     const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
     const actualUpdates: Record<string, number | undefined> = {
@@ -669,12 +682,9 @@ export function useWorkoutSession() {
     const { exerciseIdx } = overrideModal;
     const ex = exercises[exerciseIdx];
 
-    const ow = overrideValues.weight;
-    const or = overrideValues.reps;
-
     for (let i = 0; i < ex.sets.length; i++) {
       const set = ex.sets[i];
-      const hitTarget = (ow == null || ow >= (set.targetWeight ?? 0)) && (or == null || or >= (set.targetReps ?? 0));
+      const hitTarget = checkHitTarget(overrideValues, set);
       const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
       const actualUpdates: Record<string, number | undefined> = {
@@ -714,7 +724,7 @@ export function useWorkoutSession() {
       next[exerciseIdx] = {
         ...next[exerciseIdx],
         sets: next[exerciseIdx].sets.map(s => {
-          const hitTarget = (ow == null || ow >= (s.targetWeight ?? 0)) && (or == null || or >= (s.targetReps ?? 0));
+          const hitTarget = checkHitTarget(overrideValues, s);
           return {
             ...s,
             ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
@@ -790,14 +800,33 @@ export function useWorkoutSession() {
       inputFields: selectedLibraryExercise.inputFields,
     });
 
-    const sets: SetState[] = Array.from({ length: adhocSets }, (_, i) => ({
-      setNumber: i + 1,
-      targetWeight: adhocWeight,
-      targetReps: adhocReps,
-      actualWeight: adhocWeight,
-      actualReps: adhocReps,
-      status: 'pending' as const,
-    }));
+    const fields = getFieldsForExercise(selectedLibraryExercise.inputFields);
+    const fieldTypes = fields.map(f => f.type);
+
+    const sets: SetState[] = Array.from({ length: adhocSets }, (_, i) => {
+      const base: SetState = { setNumber: i + 1, status: 'pending' as const };
+      if (fieldTypes.includes('weight')) {
+        base.targetWeight = adhocWeight;
+        base.actualWeight = adhocWeight;
+      }
+      if (fieldTypes.includes('reps')) {
+        base.targetReps = adhocReps;
+        base.actualReps = adhocReps;
+      }
+      if (fieldTypes.includes('distance')) {
+        base.targetDistance = 0;
+        base.actualDistance = 0;
+      }
+      if (fieldTypes.includes('duration')) {
+        base.targetDuration = 0;
+        base.actualDuration = 0;
+      }
+      if (fieldTypes.includes('time')) {
+        base.targetTime = 0;
+        base.actualTime = 0;
+      }
+      return base;
+    });
 
     const newExercise: ExerciseState = {
       slot: {

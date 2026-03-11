@@ -4,7 +4,8 @@ import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
   getActiveProgram, createSession, logSet, updateSet, deleteSet,
-  completeSession, updateReadiness, updateWarmup, updateSessionNotes,
+  completeSession, updateReadiness, updateSessionNotes,
+  insertSessionProtocols, getSessionProtocols, updateProtocolCompletion,
   getLastSessionForExercise, calculateTargetWeight,
   ensureExerciseExists,
   saveExerciseNote, getExerciseNotesForSession,
@@ -21,7 +22,7 @@ import {
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
 } from '../utils/program';
 import { Colors } from '../theme';
-import type { Program, ProgramDefinition, ExerciseSlot, SetLog, Session } from '../types';
+import type { Program, ProgramDefinition, ExerciseSlot, SetLog, Session, SessionProtocol } from '../types';
 import type { InputField } from '../types/fields';
 import { getFieldsForExercise } from '../types/fields';
 import type { SetState } from '../components/ExerciseCard';
@@ -69,14 +70,11 @@ export function useWorkoutSession() {
   const [soreness, setSoreness] = useState(3);
   const [energy, setEnergy] = useState(3);
 
-  // Warmup
-  const [warmupRope, setWarmupRope] = useState(false);
-  const [warmupAnkle, setWarmupAnkle] = useState(false);
-  const [warmupHipIr, setWarmupHipIr] = useState(false);
+  // Protocols (warmup + conditioning)
+  const [protocols, setProtocols] = useState<SessionProtocol[]>([]);
 
   // Exercise logging
   const [exercises, setExercises] = useState<ExerciseState[]>([]);
-  const [conditioningDone, setConditioningDone] = useState(false);
 
   // Override modal
   const [overrideModal, setOverrideModal] = useState<{
@@ -131,7 +129,7 @@ export function useWorkoutSession() {
     const fullState = await getFullSessionState(inProgress.id);
     if (!fullState) return;
 
-    const { session, setLogs, exerciseNotes: restoredNotes } = fullState;
+    const { session, setLogs, exerciseNotes: restoredNotes, protocols: restoredProtocols } = fullState;
 
     // Check if session is stale (>4 hours old)
     const sessionAge = Date.now() - new Date(session.started_at).getTime();
@@ -155,7 +153,7 @@ export function useWorkoutSession() {
             {
               text: 'Complete As-Is',
               onPress: async () => {
-                await completeSession(session.id, !!session.conditioning_done);
+                await completeSession(session.id);
                 resolve();
               },
             },
@@ -348,10 +346,8 @@ export function useWorkoutSession() {
     if (session.soreness) setSoreness(session.soreness);
     if (session.energy) setEnergy(session.energy);
 
-    // Restore warmup flags
-    setWarmupRope(!!session.warmup_rope);
-    setWarmupAnkle(!!session.warmup_ankle);
-    setWarmupHipIr(!!session.warmup_hip_ir);
+    // Restore protocol state
+    setProtocols(restoredProtocols);
 
     // Restore notes
     setExerciseNotes(restoredNotes);
@@ -382,7 +378,7 @@ export function useWorkoutSession() {
       setExerciseNotes({});
       setSessionNotes('');
       setEditMode(false);
-      setConditioningDone(false);
+      setProtocols([]);
       hasAttemptedRestore.current = false;
     }
 
@@ -416,6 +412,9 @@ export function useWorkoutSession() {
 
   // Conditioning finisher from template
   const conditioningFinisher = selectedTemplate?.conditioning_finisher ?? null;
+
+  // Derived from protocols
+  const conditioningDone = protocols.some(p => p.type === 'conditioning' && p.completed);
 
   // Total volume (sum of weight × reps for completed sets)
   const totalVolume = useMemo(() => {
@@ -520,6 +519,29 @@ export function useWorkoutSession() {
     }
 
     setExercises(exStates);
+
+    // Insert warmup + conditioning protocols from day template
+    const protocolItems: { type: string; protocolKey: string | null; protocolName: string }[] = [];
+    if (selectedTemplate.warmup) {
+      for (const key of selectedTemplate.warmup) {
+        const proto = def.warmup_protocols?.[key];
+        const name = proto?.name ?? key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        protocolItems.push({ type: 'warmup', protocolKey: key, protocolName: name });
+      }
+    }
+    if (selectedTemplate.conditioning_finisher) {
+      protocolItems.push({
+        type: 'conditioning',
+        protocolKey: null,
+        protocolName: selectedTemplate.conditioning_finisher,
+      });
+    }
+    if (protocolItems.length > 0) {
+      await insertSessionProtocols(id, protocolItems);
+      const sessionProtocols = await getSessionProtocols(id);
+      setProtocols(sessionProtocols);
+    }
+
     setPhase('warmup');
   };
 
@@ -782,10 +804,19 @@ export function useWorkoutSession() {
 
   /** Submit warmup and move to logging */
   const submitWarmup = async () => {
-    if (sessionId) await updateWarmup(sessionId, {
-      rope: warmupRope, ankle: warmupAnkle, hipIr: warmupHipIr,
-    });
+    // Protocol completions are already persisted on toggle
     setPhase('logging');
+  };
+
+  /** Toggle a protocol's completion state */
+  const toggleProtocol = async (protocolId: number) => {
+    const current = protocols.find(p => p.id === protocolId);
+    if (!current) return;
+    const newCompleted = !current.completed;
+    await updateProtocolCompletion(protocolId, newCompleted);
+    setProtocols(prev => prev.map(p =>
+      p.id === protocolId ? { ...p, completed: newCompleted } : p
+    ));
   };
 
   /** Add an ad-hoc exercise to the current workout */
@@ -935,7 +966,7 @@ export function useWorkoutSession() {
     setExerciseNotes({});
     setSessionNotes('');
     setEditMode(false);
-    setConditioningDone(false);
+    setProtocols([]);
   };
 
   /** Re-detect PRs from current set logs */
@@ -967,7 +998,7 @@ export function useWorkoutSession() {
   /** Complete the session */
   const finishSession = async () => {
     if (!sessionId) return;
-    await completeSession(sessionId, conditioningDone);
+    await completeSession(sessionId);
 
     await recalculatePRs();
 
@@ -1020,10 +1051,9 @@ export function useWorkoutSession() {
     soreness, setSoreness,
     energy, setEnergy,
 
-    // Warmup
-    warmupRope, toggleWarmupRope: () => setWarmupRope(v => !v),
-    warmupAnkle, toggleWarmupAnkle: () => setWarmupAnkle(v => !v),
-    warmupHipIr, toggleWarmupHipIr: () => setWarmupHipIr(v => !v),
+    // Protocols (warmup + conditioning)
+    protocols,
+    toggleProtocol,
 
     // Override modal
     overrideModal,
@@ -1080,7 +1110,6 @@ export function useWorkoutSession() {
     submitReadiness,
     submitWarmup,
     finishSession,
-    setConditioningDone,
     closeOverride: () => setOverrideModal(null),
     addAdhocExercise,
     moveExercise,

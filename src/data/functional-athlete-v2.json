@@ -101,22 +101,22 @@
             "exercise_id": "skierg_intervals",
             "category": "conditioning",
             "targets": [
-              { "weeks": [1, 2, 3, 4], "sets": 5, "reps": 1, "notes": "30s on / 30s off" },
-              { "weeks": [5], "sets": 3, "reps": 1, "notes": "30s on / 30s off" },
-              { "weeks": [6, 7, 8, 9], "sets": 6, "reps": 1, "notes": "30s on / 30s off" },
-              { "weeks": [10], "sets": 3, "reps": 1, "notes": "30s on / 30s off" },
-              { "weeks": [11, 12], "sets": 8, "reps": 1, "notes": "30s on / 30s off" }
+              { "weeks": [1, 2, 3, 4], "sets": 5, "values": { "duration": 30 }, "notes": "30s on / 30s off" },
+              { "weeks": [5], "sets": 3, "values": { "duration": 30 }, "notes": "30s on / 30s off" },
+              { "weeks": [6, 7, 8, 9], "sets": 6, "values": { "duration": 30 }, "notes": "30s on / 30s off" },
+              { "weeks": [10], "sets": 3, "values": { "duration": 30 }, "notes": "30s on / 30s off" },
+              { "weeks": [11, 12], "sets": 8, "values": { "duration": 30 }, "notes": "30s on / 30s off" }
             ]
           },
           {
             "exercise_id": "farmers_carry",
             "category": "conditioning",
             "targets": [
-              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 1, "notes": "40m" },
-              { "weeks": [5], "sets": 2, "reps": 1, "notes": "40m" },
-              { "weeks": [6, 7, 8, 9], "sets": 4, "reps": 1, "notes": "40m" },
-              { "weeks": [10], "sets": 2, "reps": 1, "notes": "40m" },
-              { "weeks": [11, 12], "sets": 4, "reps": 1, "notes": "40m" }
+              { "weeks": [1, 2, 3, 4], "sets": 3, "values": { "distance": 40 }, "notes": "40m" },
+              { "weeks": [5], "sets": 2, "values": { "distance": 40 }, "notes": "40m" },
+              { "weeks": [6, 7, 8, 9], "sets": 4, "values": { "distance": 40 }, "notes": "40m" },
+              { "weeks": [10], "sets": 2, "values": { "distance": 40 }, "notes": "40m" },
+              { "weeks": [11, 12], "sets": 4, "values": { "distance": 40 }, "notes": "40m" }
             ]
           },
           {
@@ -124,11 +124,11 @@
             "category": "conditioning",
             "alternatives": ["kb_swings_heavy"],
             "targets": [
-              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 1, "notes": "30m" },
-              { "weeks": [5], "sets": 2, "reps": 1, "notes": "30m" },
-              { "weeks": [6, 7, 8, 9], "sets": 4, "reps": 1, "notes": "30m" },
-              { "weeks": [10], "sets": 2, "reps": 1, "notes": "30m" },
-              { "weeks": [11, 12], "sets": 4, "reps": 1, "notes": "30m" }
+              { "weeks": [1, 2, 3, 4], "sets": 3, "values": { "distance": 30 }, "notes": "30m" },
+              { "weeks": [5], "sets": 2, "values": { "distance": 30 }, "notes": "30m" },
+              { "weeks": [6, 7, 8, 9], "sets": 4, "values": { "distance": 30 }, "notes": "30m" },
+              { "weeks": [10], "sets": 2, "values": { "distance": 30 }, "notes": "30m" },
+              { "weeks": [11, 12], "sets": 4, "values": { "distance": 30 }, "notes": "30m" }
             ]
           },
           {
@@ -212,7 +212,7 @@
             "exercise_id": "farmers_carry",
             "category": "accessory",
             "targets": [
-              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 3, "reps": 1, "notes": "40m" }
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 3, "values": { "distance": 40 }, "notes": "40m" }
             ]
           },
           {
@@ -246,17 +246,17 @@
             "exercise_id": "easy_run",
             "category": "conditioning",
             "targets": [
-              { "weeks": [1, 2], "sets": 1, "reps": 1, "notes": "15 min easy" },
-              { "weeks": [3], "sets": 1, "reps": 1, "notes": "18 min easy" },
-              { "weeks": [4], "sets": 1, "reps": 1, "notes": "20 min easy" },
-              { "weeks": [5], "sets": 1, "reps": 1, "notes": "12 min very easy" },
-              { "weeks": [6], "sets": 1, "reps": 1, "notes": "20 min easy" },
-              { "weeks": [7], "sets": 1, "reps": 1, "notes": "22 min easy" },
-              { "weeks": [8], "sets": 1, "reps": 1, "notes": "22 min + 3-4 pickups" },
-              { "weeks": [9], "sets": 1, "reps": 1, "notes": "25 min + 4-5 pickups" },
-              { "weeks": [10], "sets": 1, "reps": 1, "notes": "12 min very easy" },
-              { "weeks": [11], "sets": 1, "reps": 1, "notes": "25 min + pickups" },
-              { "weeks": [12], "sets": 1, "reps": 1, "notes": "28-30 min easy (~5K)" }
+              { "weeks": [1, 2], "sets": 1, "values": { "duration": 900 }, "notes": "15 min easy" },
+              { "weeks": [3], "sets": 1, "values": { "duration": 1080 }, "notes": "18 min easy" },
+              { "weeks": [4], "sets": 1, "values": { "duration": 1200 }, "notes": "20 min easy" },
+              { "weeks": [5], "sets": 1, "values": { "duration": 720 }, "notes": "12 min very easy" },
+              { "weeks": [6], "sets": 1, "values": { "duration": 1200 }, "notes": "20 min easy" },
+              { "weeks": [7], "sets": 1, "values": { "duration": 1320 }, "notes": "22 min easy" },
+              { "weeks": [8], "sets": 1, "values": { "duration": 1320 }, "notes": "22 min + 3-4 pickups" },
+              { "weeks": [9], "sets": 1, "values": { "duration": 1500 }, "notes": "25 min + 4-5 pickups" },
+              { "weeks": [10], "sets": 1, "values": { "duration": 720 }, "notes": "12 min very easy" },
+              { "weeks": [11], "sets": 1, "values": { "duration": 1500 }, "notes": "25 min + pickups" },
+              { "weeks": [12], "sets": 1, "values": { "duration": 1800 }, "notes": "28-30 min easy (~5K)" }
             ]
           },
           {
@@ -270,14 +270,14 @@
             "exercise_id": "light_farmers_carry",
             "category": "movement",
             "targets": [
-              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 2, "reps": 1, "notes": "30m" }
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 2, "values": { "distance": 30 }, "notes": "30m" }
             ]
           },
           {
             "exercise_id": "hip_mobility_flow",
             "category": "movement",
             "targets": [
-              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 1, "reps": 1, "notes": "5-8 min" }
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 1, "values": { "duration": 390 }, "notes": "5-8 min" }
             ]
           }
         ],
@@ -514,7 +514,7 @@
             "exercise_id": "agility_drills",
             "category": "movement",
             "targets": [
-              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 1, "reps": 1, "notes": "5-8 min" }
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 1, "values": { "duration": 390 }, "notes": "5-8 min" }
             ]
           }
         ],

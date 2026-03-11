@@ -288,9 +288,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     flex: 1,
+    textAlign: 'center',
   },
   setHeaderCol: {
     flex: 1,
+    alignItems: 'center',
     gap: 1,
   },
   setHeaderUnit: {
@@ -316,6 +318,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '700',
     flex: 1,
+    textAlign: 'center',
   },
   setNumberCurrent: {
     color: Colors.indigo,
@@ -325,6 +328,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     fontWeight: '600',
     flex: 1,
+    textAlign: 'center',
   },
   setValueCompleted: {
     color: Colors.green,

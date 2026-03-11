@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX Font Exploration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Exo+2:wght@700;800&family=Orbitron:wght@700;800&family=Barlow+Condensed:wght@700;800&family=Oswald:wght@700&family=Anton&family=Bebas+Neue&family=Michroma&family=Khand:wght@700&family=Teko:wght@700&family=Chakra+Petch:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    padding: 48px 40px;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    color: #a0a0b8;
+    font-size: 14px;
+    margin-bottom: 48px;
+  }
+  .category {
+    margin-bottom: 48px;
+  }
+  .category-label {
+    font-size: 11px;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .font-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 20px 24px;
+    border: 1px solid #1e1e30;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .font-row:hover {
+    border-color: #2a2a3e;
+  }
+  .font-name {
+    width: 180px;
+    flex-shrink: 0;
+  }
+  .font-name .name {
+    font-size: 13px;
+    color: #a0a0b8;
+    font-weight: 500;
+  }
+  .font-name .weight {
+    font-size: 11px;
+    color: #4a4a5e;
+    margin-top: 2px;
+  }
+  .wordmark {
+    font-size: 48px;
+    letter-spacing: 6px;
+    flex: 1;
+  }
+  .wordmark-small {
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: #a0a0b8;
+    flex-shrink: 0;
+  }
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: #1e1e30;
+    margin: 48px 0;
+  }
+
+  /* Splash preview */
+  .splash-preview {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 32px;
+  }
+  .splash-card {
+    width: 220px;
+    height: 380px;
+    background: #0a0a0f;
+    border: 1px solid #1e1e30;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    position: relative;
+  }
+  .splash-card .splash-wordmark {
+    font-size: 36px;
+    letter-spacing: 5px;
+    margin-bottom: 16px;
+  }
+  .splash-card .splash-creed {
+    color: #6a6a80;
+    font-size: 10px;
+    font-style: italic;
+    text-align: center;
+    line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .splash-card .splash-label {
+    position: absolute;
+    bottom: 12px;
+    font-size: 10px;
+    color: #4a4a5e;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .section-title {
+    font-size: 14px;
+    color: #6a6a80;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .section-subtitle {
+    font-size: 13px;
+    color: #4a4a5e;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  /* Bonus row */
+  .bonus-label {
+    font-size: 11px;
+    color: #f59e0b;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>APEX Wordmark Font Exploration</h1>
+<p class="subtitle">All fonts shown from Google Fonts (free, open source). Shown at 48px with 6px letter-spacing.</p>
+
+<!-- Category 1: Geometric Sans -->
+<div class="category">
+  <div class="category-label">1. Geometric Sans-Serif — Clean, precise, engineered</div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Rajdhani</div>
+      <div class="weight">700 Bold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Rajdhani', sans-serif; font-weight: 700;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Rajdhani', sans-serif; font-weight: 700;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Exo 2</div>
+      <div class="weight">800 ExtraBold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Exo 2', sans-serif; font-weight: 800;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Exo 2', sans-serif; font-weight: 800;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Orbitron</div>
+      <div class="weight">800 ExtraBold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Orbitron', sans-serif; font-weight: 800;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Orbitron', sans-serif; font-weight: 800;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Chakra Petch</div>
+      <div class="weight">700 Bold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Chakra Petch', sans-serif; font-weight: 700;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Chakra Petch', sans-serif; font-weight: 700;">APEX</div>
+  </div>
+</div>
+
+<!-- Category 2: Condensed/Narrow -->
+<div class="category">
+  <div class="category-label">2. Condensed / Narrow — Tall, tight, authoritative</div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Barlow Condensed</div>
+      <div class="weight">800 ExtraBold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Barlow Condensed', sans-serif; font-weight: 800;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Barlow Condensed', sans-serif; font-weight: 800;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Oswald</div>
+      <div class="weight">700 Bold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Oswald', sans-serif; font-weight: 700;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Oswald', sans-serif; font-weight: 700;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Anton</div>
+      <div class="weight">400 Regular</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Anton', sans-serif; font-weight: 400;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Anton', sans-serif; font-weight: 400;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Teko</div>
+      <div class="weight">700 Bold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Teko', sans-serif; font-weight: 700;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Teko', sans-serif; font-weight: 700;">APEX</div>
+  </div>
+</div>
+
+<!-- Category 3: Wide/Extended -->
+<div class="category">
+  <div class="category-label">3. Wide / Extended — Heavy, dominant, statement</div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Bebas Neue</div>
+      <div class="weight">400 Regular</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Bebas Neue', sans-serif; font-weight: 400;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Bebas Neue', sans-serif; font-weight: 400;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Michroma</div>
+      <div class="weight">400 Regular</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Michroma', sans-serif; font-weight: 400;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Michroma', sans-serif; font-weight: 400;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Khand</div>
+      <div class="weight">700 Bold</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Khand', sans-serif; font-weight: 700;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Khand', sans-serif; font-weight: 700;">APEX</div>
+  </div>
+
+  <div class="font-row">
+    <div class="font-name">
+      <div class="name">Share Tech Mono</div>
+      <div class="weight">400 Regular</div>
+    </div>
+    <div class="wordmark" style="font-family: 'Share Tech Mono', monospace; font-weight: 400;">APEX</div>
+    <div class="wordmark-small" style="font-family: 'Share Tech Mono', monospace; font-weight: 400;">APEX</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Splash screen previews for top picks -->
+<p class="section-title">Splash Screen Preview</p>
+<p class="section-subtitle">How each font feels in context on the splash screen</p>
+
+<div class="splash-preview">
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Rajdhani', sans-serif; font-weight: 700;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Rajdhani</div>
+  </div>
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Exo 2', sans-serif; font-weight: 800;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Exo 2</div>
+  </div>
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Orbitron', sans-serif; font-weight: 800;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Orbitron</div>
+  </div>
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Barlow Condensed', sans-serif; font-weight: 800;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Barlow Condensed</div>
+  </div>
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Bebas Neue', sans-serif; font-weight: 400;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Bebas Neue</div>
+  </div>
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Michroma', sans-serif; font-weight: 400;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Michroma</div>
+  </div>
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Chakra Petch', sans-serif; font-weight: 700;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Chakra Petch</div>
+  </div>
+  <div class="splash-card">
+    <div class="splash-wordmark" style="font-family: 'Share Tech Mono', monospace; font-weight: 400;">APEX</div>
+    <div class="splash-creed">Mastery is a process,<br>not a destination.</div>
+    <div class="splash-label">Share Tech Mono</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<p style="text-align:center; color:#4a4a5e; font-size:12px;">All fonts available free via Google Fonts. The creed text always uses the system font (SF Pro).</p>
+
+</body>
+</html>

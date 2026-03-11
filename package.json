@@ -41,7 +41,8 @@
           "**/__tests__/db/**"
         ],
         "moduleNameMapper": {
-          "^expo-file-system/legacy$": "expo-file-system"
+          "^expo-file-system/legacy$": "expo-file-system",
+          "\\.(ttf|otf|woff|woff2)$": "<rootDir>/__mocks__/fileMock.js"
         },
         "transform": {
           "^.+\\.(ts|tsx)$": [
@@ -65,7 +66,8 @@
           "<rootDir>/.worktrees/"
         ],
         "moduleNameMapper": {
-          "^react-native-svg$": "<rootDir>/__mocks__/react-native-svg.ts"
+          "^react-native-svg$": "<rootDir>/__mocks__/react-native-svg.ts",
+          "\\.(ttf|otf|woff|woff2)$": "<rootDir>/__mocks__/fileMock.js"
         },
         "testMatch": [
           "**/__tests__/components/**",

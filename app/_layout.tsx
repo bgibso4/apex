@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
+import { Asset } from 'expo-asset';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { Colors } from '../src/theme';
 import { CUSTOM_FONTS } from '../src/theme/fonts';
@@ -24,12 +25,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     (async () => {
-      // Run DB init and font loading in parallel
+      // Run DB init, font loading, and asset preloading in parallel
       await Promise.all([
         getDatabase(),
         Object.keys(CUSTOM_FONTS).length > 0
           ? Font.loadAsync(CUSTOM_FONTS)
           : Promise.resolve(),
+        Asset.loadAsync(require('../assets/logo-mark-small.png')),
       ]);
 
       // Hide the native splash screen (our custom one takes over)

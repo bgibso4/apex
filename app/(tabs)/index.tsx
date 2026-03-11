@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
+  View, Text, Image, ScrollView, TouchableOpacity,
   StyleSheet, RefreshControl
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -38,6 +38,7 @@ function getMonthDateRange(year: number, month: number): { startDate: string; en
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [program, setProgram] = useState<(Program & { definition: ProgramDefinition }) | null>(null);
   const [weekSessions, setWeekSessions] = useState<Session[]>([]);
   const [monthSessions, setMonthSessions] = useState<Session[]>([]);
@@ -93,7 +94,7 @@ export default function HomeScreen() {
   }, [displayYear, displayMonth]);
 
   useFocusEffect(useCallback(() => {
-    loadData();
+    loadData().finally(() => setLoading(false));
   }, [loadData]));
 
   const onRefresh = async () => {
@@ -175,6 +176,10 @@ export default function HomeScreen() {
     }
   }, []);
 
+  if (loading) {
+    return <View style={styles.container} />;
+  }
+
   if (!program || !def) {
     return (
       <View style={styles.container}>
@@ -187,10 +192,17 @@ export default function HomeScreen() {
         >
           {/* Header: APEX title + gear */}
           <View style={styles.header}>
-            <Text style={[
-              styles.apexTitle,
-              APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
-            ]}>APEX</Text>
+            <View style={styles.apexTitleRow}>
+              <Image
+                source={require('../../assets/logo-mark-small.png')}
+                style={styles.apexLogoMark}
+                resizeMode="contain"
+              />
+              <Text style={[
+                styles.apexTitle,
+                APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
+              ]}>PEX</Text>
+            </View>
             <TouchableOpacity
               style={styles.gearIcon}
               onPress={() => router.push('/settings')}
@@ -261,10 +273,17 @@ export default function HomeScreen() {
       >
         {/* Header: APEX title + gear */}
         <View style={styles.header}>
-          <Text style={[
-            styles.apexTitle,
-            APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
-          ]}>APEX</Text>
+          <View style={styles.apexTitleRow}>
+            <Image
+              source={require('../../assets/logo-mark-small.png')}
+              style={styles.apexLogoMark}
+              resizeMode="contain"
+            />
+            <Text style={[
+              styles.apexTitle,
+              APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
+            ]}>PEX</Text>
+          </View>
           <TouchableOpacity
             style={styles.gearIcon}
             onPress={() => router.push('/settings')}
@@ -379,10 +398,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.sm,
   },
+  apexTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  apexLogoMark: {
+    width: 28,
+    height: 32,
+    marginRight: 1,
+  },
   apexTitle: {
     color: Colors.text,
-    fontSize: FontSize.screenTitle,
+    fontSize: 46,
     fontWeight: '800',
+    marginTop: -4,
     letterSpacing: 3,
   },
   gearIcon: {

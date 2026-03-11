@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -104,9 +104,14 @@ export function SplashScreen({ isReady, onFinished }: SplashScreenProps) {
   return (
     <Animated.View style={[styles.container, containerAnimatedStyle]}>
       <View style={styles.content}>
-        <Animated.View style={wordmarkAnimatedStyle}>
+        <Animated.View style={[wordmarkAnimatedStyle, styles.wordmarkRow]}>
+          <Image
+            source={require('../../assets/logo-mark-small.png')}
+            style={styles.logoMark}
+            resizeMode="contain"
+          />
           <Text style={[styles.wordmark, fontFamily && { fontFamily }]}>
-            APEX
+            PEX
           </Text>
         </Animated.View>
         <Animated.View style={quoteAnimatedStyle}>
@@ -130,12 +135,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xxxl,
   },
+  wordmarkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  logoMark: {
+    width: 38,
+    height: 44,
+    marginRight: 2,
+  },
   wordmark: {
     color: Colors.text,
-    fontSize: 44,
+    fontSize: 62,
     fontWeight: '800',
-    letterSpacing: 4,
-    marginBottom: Spacing.xl,
+    letterSpacing: 3,
+    marginTop: -5,
   },
   creed: {
     color: Colors.textDim,

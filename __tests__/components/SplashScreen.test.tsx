@@ -13,7 +13,7 @@ describe('SplashScreen', () => {
 
   it('renders APEX wordmark', () => {
     render(<SplashScreen isReady={false} onFinished={jest.fn()} />);
-    expect(screen.getByText('APEX')).toBeTruthy();
+    expect(screen.getByText('PEX')).toBeTruthy();
   });
 
   it('renders the creed quote', () => {

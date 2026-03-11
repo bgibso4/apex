@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX App Icon Concepts</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    padding: 40px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    color: #a0a0b8;
+    font-size: 15px;
+    margin-bottom: 48px;
+  }
+  .concepts {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .concept {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .concept h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .concept .tag {
+    font-size: 12px;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+  }
+  .icon-container {
+    width: 200px;
+    height: 200px;
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .sizes {
+    display: flex;
+    gap: 16px;
+    align-items: end;
+  }
+  .size-label {
+    font-size: 11px;
+    color: #6a6a80;
+    text-align: center;
+    margin-top: 6px;
+  }
+  .small-icon {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .tiny-icon {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .description {
+    max-width: 260px;
+    text-align: center;
+    font-size: 13px;
+    color: #a0a0b8;
+    line-height: 1.5;
+  }
+  .recommended {
+    border: 1px solid #6366f130;
+    background: #6366f108;
+    border-radius: 20px;
+    padding: 32px;
+  }
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: #2a2a3e;
+    margin: 48px 0;
+  }
+  .section-title {
+    font-size: 14px;
+    color: #6a6a80;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>APEX App Icon Concepts</h1>
+<p class="subtitle">Monochrome lettermark / clean & precise / flat dark background</p>
+
+<div class="concepts">
+
+  <!-- Concept A: Peak Letterform -->
+  <div class="concept">
+    <span class="tag">Concept A</span>
+    <h2>Peak Letterform</h2>
+    <div class="icon-container">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="#0a0a0f"/>
+        <!-- A as mountain peak - triangular with minimal crossbar -->
+        <polygon points="100,38 148,155 138,155 115,90 108,112 128,155 72,155 92,112 85,90 62,155 52,155"
+                 fill="#ffffff"/>
+        <!-- Subtle thin crossbar -->
+        <rect x="78" y="118" width="44" height="5" fill="#ffffff"/>
+      </svg>
+    </div>
+    <div class="sizes">
+      <div>
+        <div class="small-icon">
+          <svg viewBox="0 0 200 200" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#0a0a0f"/>
+            <polygon points="100,38 148,155 138,155 115,90 108,112 128,155 72,155 92,112 85,90 62,155 52,155" fill="#ffffff"/>
+            <rect x="78" y="118" width="44" height="5" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="size-label">60px</div>
+      </div>
+      <div>
+        <div class="tiny-icon">
+          <svg viewBox="0 0 200 200" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#0a0a0f"/>
+            <polygon points="100,38 148,155 138,155 115,90 108,112 128,155 72,155 92,112 85,90 62,155 52,155" fill="#ffffff"/>
+            <rect x="78" y="118" width="44" height="5" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="size-label">32px</div>
+      </div>
+    </div>
+    <p class="description">The "A" as a pure mountain peak. Triangular silhouette with a minimal crossbar. Reads as both letter and summit.</p>
+  </div>
+
+  <!-- Concept B: Tactical Stencil -->
+  <div class="concept">
+    <span class="tag">Concept B</span>
+    <h2>Tactical Stencil</h2>
+    <div class="icon-container">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="#0a0a0f"/>
+        <!-- Stencil-cut A - bold, squared, military feel -->
+        <!-- Left leg -->
+        <polygon points="58,155 82,155 100,56 94,56" fill="#ffffff"/>
+        <!-- Right leg -->
+        <polygon points="142,155 118,155 100,56 106,56" fill="#ffffff"/>
+        <!-- Crossbar with stencil gap -->
+        <rect x="72" y="112" width="24" height="10" fill="#ffffff"/>
+        <rect x="104" y="112" width="24" height="10" fill="#ffffff"/>
+        <!-- Flat top / squared apex -->
+        <rect x="90" y="52" width="20" height="10" fill="#ffffff"/>
+        <!-- Squared feet -->
+        <rect x="52" y="148" width="36" height="10" fill="#ffffff"/>
+        <rect x="112" y="148" width="36" height="10" fill="#ffffff"/>
+      </svg>
+    </div>
+    <div class="sizes">
+      <div>
+        <div class="small-icon">
+          <svg viewBox="0 0 200 200" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#0a0a0f"/>
+            <polygon points="58,155 82,155 100,56 94,56" fill="#ffffff"/>
+            <polygon points="142,155 118,155 100,56 106,56" fill="#ffffff"/>
+            <rect x="72" y="112" width="24" height="10" fill="#ffffff"/>
+            <rect x="104" y="112" width="24" height="10" fill="#ffffff"/>
+            <rect x="90" y="52" width="20" height="10" fill="#ffffff"/>
+            <rect x="52" y="148" width="36" height="10" fill="#ffffff"/>
+            <rect x="112" y="148" width="36" height="10" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="size-label">60px</div>
+      </div>
+      <div>
+        <div class="tiny-icon">
+          <svg viewBox="0 0 200 200" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#0a0a0f"/>
+            <polygon points="58,155 82,155 100,56 94,56" fill="#ffffff"/>
+            <polygon points="142,155 118,155 100,56 106,56" fill="#ffffff"/>
+            <rect x="72" y="112" width="24" height="10" fill="#ffffff"/>
+            <rect x="104" y="112" width="24" height="10" fill="#ffffff"/>
+            <rect x="90" y="52" width="20" height="10" fill="#ffffff"/>
+            <rect x="52" y="148" width="36" height="10" fill="#ffffff"/>
+            <rect x="112" y="148" width="36" height="10" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="size-label">32px</div>
+      </div>
+    </div>
+    <p class="description">Bold stencil-cut "A" with squared terminals and a split crossbar. Military equipment stamp aesthetic. Direct and legible.</p>
+  </div>
+
+  <!-- Concept C: Chevron Shield (Recommended) -->
+  <div class="concept recommended">
+    <span class="tag">Recommended</span>
+    <h2>Chevron Shield</h2>
+    <div class="icon-container">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="#0a0a0f"/>
+        <!-- Chevron-based A: angular strokes forming A with upward momentum -->
+        <!-- Outer chevron / legs of A -->
+        <polygon points="100,36 155,158 141,158 100,60 59,158 45,158" fill="#ffffff"/>
+        <!-- Inner cutout to create the A shape -->
+        <polygon points="100,82 126,148 74,148" fill="#0a0a0f"/>
+        <!-- Crossbar as a clean horizontal slice -->
+        <rect x="70" y="118" width="60" height="9" fill="#ffffff"/>
+        <!-- Small upward chevron accent above (rank insignia nod) -->
+        <polygon points="100,28 108,36 100,33 92,36" fill="#ffffff" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="sizes">
+      <div>
+        <div class="small-icon">
+          <svg viewBox="0 0 200 200" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#0a0a0f"/>
+            <polygon points="100,36 155,158 141,158 100,60 59,158 45,158" fill="#ffffff"/>
+            <polygon points="100,82 126,148 74,148" fill="#0a0a0f"/>
+            <rect x="70" y="118" width="60" height="9" fill="#ffffff"/>
+            <polygon points="100,28 108,36 100,33 92,36" fill="#ffffff" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="size-label">60px</div>
+      </div>
+      <div>
+        <div class="tiny-icon">
+          <svg viewBox="0 0 200 200" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" fill="#0a0a0f"/>
+            <polygon points="100,36 155,158 141,158 100,60 59,158 45,158" fill="#ffffff"/>
+            <polygon points="100,82 126,148 74,148" fill="#0a0a0f"/>
+            <rect x="70" y="118" width="60" height="9" fill="#ffffff"/>
+            <polygon points="100,28 108,36 100,33 92,36" fill="#ffffff" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="size-label">32px</div>
+      </div>
+    </div>
+    <p class="description">Angular chevron geometry forming an "A" with upward momentum. Subtle rank insignia accent. Precision-engineered feel that evokes progression and peak performance.</p>
+  </div>
+
+</div>
+
+<div class="divider"></div>
+
+<p class="section-title">Design Parameters</p>
+<div style="display:flex; gap:40px; justify-content:center; flex-wrap:wrap; color:#a0a0b8; font-size:13px;">
+  <div><strong style="color:#fff">Background:</strong> #0a0a0f (flat)</div>
+  <div><strong style="color:#fff">Mark:</strong> #ffffff (white)</div>
+  <div><strong style="color:#fff">Style:</strong> Monochrome</div>
+  <div><strong style="color:#fff">Feel:</strong> Clean, precise, tactical</div>
+  <div><strong style="color:#fff">Output:</strong> 1024x1024 PNG</div>
+</div>
+
+</body>
+</html>

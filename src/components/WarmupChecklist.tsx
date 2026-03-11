@@ -48,7 +48,7 @@ export function WarmupChecklist({
             key={protocol.id}
             style={[
               styles.warmupItem,
-              protocol.completed && styles.warmupItemChecked,
+              !!protocol.completed && styles.warmupItemChecked,
             ]}
             onPress={() => {
               onToggle(protocol.id);
@@ -58,13 +58,13 @@ export function WarmupChecklist({
           >
             <View style={[
               styles.warmupCheck,
-              protocol.completed && styles.warmupCheckChecked,
+              !!protocol.completed && styles.warmupCheckChecked,
             ]}>
-              {protocol.completed && <Text style={styles.warmupCheckText}>{'\u2713'}</Text>}
+              {!!protocol.completed && <Text style={styles.warmupCheckText}>{'\u2713'}</Text>}
             </View>
             <Text style={[
               styles.warmupLabel,
-              protocol.completed && styles.warmupLabelChecked,
+              !!protocol.completed && styles.warmupLabelChecked,
             ]}>{protocol.protocol_name}</Text>
           </TouchableOpacity>
         ))}

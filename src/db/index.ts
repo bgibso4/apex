@@ -2,7 +2,8 @@ export { getDatabase, generateId, clearAllData, clearSampleData, closeDatabase }
 export { exportDatabase, importDatabase, getLastExportTimestamp, shouldShowBackupReminder } from './backup';
 export { getActiveProgram, getAllPrograms, importProgram, refreshBundledProgram, activateProgram, getOneRmValues, stopProgram } from './programs';
 export {
-  createSession, updateReadiness, updateWarmup,
+  createSession, updateReadiness,
+  insertSessionProtocols, getSessionProtocols, updateProtocolCompletion,
   logSet, updateSet, deleteSet, completeSession, updateSessionNotes,
   getSessionsForWeek, getSessionsForDateRange, getSetLogsForSession, getLastSessionForExercise,
   getSessionById, getCompletedSessionForDay, getExerciseNames, getExerciseInfo, ensureExerciseExists,

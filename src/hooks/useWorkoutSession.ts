@@ -229,6 +229,12 @@ export function useWorkoutSession() {
             targetReps: loggedSet.target_reps,
             actualWeight: loggedSet.actual_weight ?? loggedSet.target_weight,
             actualReps: loggedSet.actual_reps ?? loggedSet.target_reps,
+            targetDistance: loggedSet.target_distance,
+            actualDistance: loggedSet.actual_distance ?? loggedSet.target_distance,
+            targetDuration: loggedSet.target_duration,
+            actualDuration: loggedSet.actual_duration ?? loggedSet.target_duration,
+            targetTime: loggedSet.target_time,
+            actualTime: loggedSet.actual_time ?? loggedSet.target_time,
             rpe: loggedSet.rpe ?? undefined,
             status: loggedSet.status,
             id: loggedSet.id,
@@ -236,10 +242,22 @@ export function useWorkoutSession() {
         }
         return {
           setNumber: setNum,
-          targetWeight: weight,
-          targetReps: reps,
-          actualWeight: weight,
-          actualReps: reps,
+          targetWeight: weight || undefined,
+          targetReps: reps || undefined,
+          actualWeight: weight || undefined,
+          actualReps: reps || undefined,
+          ...(target.values?.distance != null && {
+            targetDistance: target.values.distance,
+            actualDistance: target.values.distance,
+          }),
+          ...(target.values?.duration != null && {
+            targetDuration: target.values.duration,
+            actualDuration: target.values.duration,
+          }),
+          ...(target.values?.time != null && {
+            targetTime: target.values.time,
+            actualTime: target.values.time,
+          }),
           status: 'pending' as const,
         };
       });
@@ -266,6 +284,12 @@ export function useWorkoutSession() {
           targetReps: l.target_reps,
           actualWeight: l.actual_weight ?? l.target_weight,
           actualReps: l.actual_reps ?? l.target_reps,
+          targetDistance: l.target_distance,
+          actualDistance: l.actual_distance ?? l.target_distance,
+          targetDuration: l.target_duration,
+          actualDuration: l.actual_duration ?? l.target_duration,
+          targetTime: l.target_time,
+          actualTime: l.actual_time ?? l.target_time,
           rpe: l.rpe ?? undefined,
           status: l.status,
           id: l.id,
@@ -379,7 +403,7 @@ export function useWorkoutSession() {
     for (const ex of exercises) {
       for (const set of ex.sets) {
         if (set.status === 'completed' || set.status === 'completed_below') {
-          vol += set.actualWeight * set.actualReps;
+          vol += (set.actualWeight ?? 0) * (set.actualReps ?? 0);
         }
       }
     }
@@ -444,10 +468,22 @@ export function useWorkoutSession() {
 
       const sets: SetState[] = Array.from({ length: target.sets }, (_, i) => ({
         setNumber: i + 1,
-        targetWeight: weight,
-        targetReps: reps,
-        actualWeight: weight,
-        actualReps: reps,
+        targetWeight: weight || undefined,
+        targetReps: reps || undefined,
+        actualWeight: weight || undefined,
+        actualReps: reps || undefined,
+        ...(target.values?.distance != null && {
+          targetDistance: target.values.distance,
+          actualDistance: target.values.distance,
+        }),
+        ...(target.values?.duration != null && {
+          targetDuration: target.values.duration,
+          actualDuration: target.values.duration,
+        }),
+        ...(target.values?.time != null && {
+          targetTime: target.values.time,
+          actualTime: target.values.time,
+        }),
         status: 'pending' as const,
       }));
 
@@ -500,6 +536,12 @@ export function useWorkoutSession() {
       targetReps: set.targetReps,
       actualWeight: set.actualWeight,
       actualReps: set.actualReps,
+      targetDistance: set.targetDistance,
+      actualDistance: set.actualDistance ?? set.targetDistance,
+      targetDuration: set.targetDuration,
+      actualDuration: set.actualDuration ?? set.targetDuration,
+      targetTime: set.targetTime,
+      actualTime: set.actualTime ?? set.targetTime,
       status: 'completed',
       isAdhoc: ex.isAdhoc,
     });
@@ -509,7 +551,15 @@ export function useWorkoutSession() {
       next[exIdx] = {
         ...next[exIdx],
         sets: next[exIdx].sets.map((s, i) =>
-          i === setIdx ? { ...s, status: 'completed' as const, id: setId } : s
+          i === setIdx ? {
+            ...s,
+            status: 'completed' as const,
+            id: setId,
+            // Fill actual values from target if not yet set
+            actualDistance: s.actualDistance ?? s.targetDistance,
+            actualDuration: s.actualDuration ?? s.targetDuration,
+            actualTime: s.actualTime ?? s.targetTime,
+          } : s
         ),
       };
       return next;
@@ -528,8 +578,8 @@ export function useWorkoutSession() {
   /** Open override modal (long press) */
   const openOverride = (exIdx: number, setIdx: number) => {
     const set = exercises[exIdx].sets[setIdx];
-    setOverrideWeight(set.actualWeight);
-    setOverrideReps(set.actualReps);
+    setOverrideWeight(set.actualWeight ?? 0);
+    setOverrideReps(set.actualReps ?? 0);
     setOverrideModal({ exerciseIdx: exIdx, setIdx });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
@@ -541,7 +591,7 @@ export function useWorkoutSession() {
     const ex = exercises[exerciseIdx];
     const set = ex.sets[setIdx];
 
-    const hitTarget = overrideWeight >= set.targetWeight && overrideReps >= set.targetReps;
+    const hitTarget = overrideWeight >= (set.targetWeight ?? 0) && overrideReps >= (set.targetReps ?? 0);
     const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
     if (set.id) {
@@ -559,6 +609,12 @@ export function useWorkoutSession() {
         targetReps: set.targetReps,
         actualWeight: overrideWeight,
         actualReps: overrideReps,
+        targetDistance: set.targetDistance,
+        actualDistance: set.actualDistance,
+        targetDuration: set.targetDuration,
+        actualDuration: set.actualDuration,
+        targetTime: set.targetTime,
+        actualTime: set.actualTime,
         status,
         isAdhoc: ex.isAdhoc,
       });
@@ -594,7 +650,7 @@ export function useWorkoutSession() {
 
     for (let i = 0; i < ex.sets.length; i++) {
       const set = ex.sets[i];
-      const hitTarget = overrideWeight >= set.targetWeight && overrideReps >= set.targetReps;
+      const hitTarget = overrideWeight >= (set.targetWeight ?? 0) && overrideReps >= (set.targetReps ?? 0);
       const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
       if (set.id) {
@@ -612,6 +668,12 @@ export function useWorkoutSession() {
           targetReps: set.targetReps,
           actualWeight: overrideWeight,
           actualReps: overrideReps,
+          targetDistance: set.targetDistance,
+          actualDistance: set.actualDistance,
+          targetDuration: set.targetDuration,
+          actualDuration: set.actualDuration,
+          targetTime: set.targetTime,
+          actualTime: set.actualTime,
           status,
           isAdhoc: ex.isAdhoc,
         });
@@ -627,7 +689,7 @@ export function useWorkoutSession() {
           ...s,
           actualWeight: overrideWeight,
           actualReps: overrideReps,
-          status: (overrideWeight >= s.targetWeight && overrideReps >= s.targetReps)
+          status: (overrideWeight >= (s.targetWeight ?? 0) && overrideReps >= (s.targetReps ?? 0))
             ? 'completed' as const : 'completed_below' as const,
         })),
       };

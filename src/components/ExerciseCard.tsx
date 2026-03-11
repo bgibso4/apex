@@ -5,10 +5,16 @@ import type { SetLog, ExerciseTarget } from '../types';
 
 export interface SetState {
   setNumber: number;
-  targetWeight: number;
-  targetReps: number;
-  actualWeight: number;
-  actualReps: number;
+  targetWeight?: number;
+  targetReps?: number;
+  actualWeight?: number;
+  actualReps?: number;
+  targetDistance?: number;
+  actualDistance?: number;
+  targetDuration?: number;
+  actualDuration?: number;
+  targetTime?: number;
+  actualTime?: number;
   rpe?: number;
   status: SetLog['status'];
   id?: string;
@@ -124,7 +130,7 @@ export function ExerciseCard({
                 ]}
                 onPress={() => onLongPressSet(setIdx)}
               >
-                {set.actualWeight} lbs
+                {set.actualWeight ?? 0} lbs
               </Text>
               <Text
                 style={[
@@ -134,7 +140,7 @@ export function ExerciseCard({
                 ]}
                 onPress={() => onLongPressSet(setIdx)}
               >
-                {set.actualReps}
+                {set.actualReps ?? 0}
               </Text>
               <View style={styles.setAction}>
                 <TouchableOpacity

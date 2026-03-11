@@ -33,8 +33,8 @@ describe('SplashScreen', () => {
     const onFinished = jest.fn();
     render(<SplashScreen isReady={true} onFinished={onFinished} />);
 
-    // 1500ms min duration + 400ms transition
-    act(() => { jest.advanceTimersByTime(1900); });
+    // 2000ms min duration + 400ms transition
+    act(() => { jest.advanceTimersByTime(2400); });
     expect(onFinished).toHaveBeenCalledTimes(1);
   });
 
@@ -42,7 +42,7 @@ describe('SplashScreen', () => {
     const onFinished = jest.fn();
     const { rerender } = render(<SplashScreen isReady={false} onFinished={onFinished} />);
 
-    act(() => { jest.advanceTimersByTime(2000); });
+    act(() => { jest.advanceTimersByTime(2500); });
     expect(onFinished).not.toHaveBeenCalled();
 
     rerender(<SplashScreen isReady={true} onFinished={onFinished} />);

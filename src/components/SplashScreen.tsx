@@ -20,7 +20,7 @@ export type TransitionStyle = 'fade' | 'scale-fade' | 'crossfade';
 const TRANSITION_STYLE: TransitionStyle = 'scale-fade';
 
 /** Minimum time the splash screen is visible (ms) */
-const SPLASH_MIN_DURATION_MS = 1500;
+const SPLASH_MIN_DURATION_MS = 2000;
 
 /** Transition animation duration (ms) */
 const TRANSITION_DURATION_MS = 400;
@@ -147,8 +147,7 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     color: Colors.text,
-    fontSize: 62,
-    fontWeight: '800',
+    fontSize: 66,
     letterSpacing: 3,
     marginTop: -5,
   },

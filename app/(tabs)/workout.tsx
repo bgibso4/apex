@@ -420,7 +420,10 @@ export default function WorkoutScreen() {
                 {w.conditioningFinisher && (
                   <TouchableOpacity
                     style={styles.conditioningCard}
-                    onPress={() => w.setConditioningDone(!w.conditioningDone)}
+                    onPress={() => {
+                      const cp = w.protocols.find(p => p.type === 'conditioning');
+                      if (cp) w.toggleProtocol(cp.id);
+                    }}
                     activeOpacity={0.7}
                   >
                     <View style={styles.conditioningLeft}>

@@ -782,7 +782,7 @@ describe('getPlannedWeeklyVolume', () => {
           monday: {
             name: 'Upper',
             locked: false,
-            warmup: 'standard',
+            warmup: ['standard'],
             exercises: [
               {
                 exercise_id: 'bench',
@@ -800,7 +800,7 @@ describe('getPlannedWeeklyVolume', () => {
           friday: {
             name: 'Lower',
             locked: false,
-            warmup: 'standard',
+            warmup: ['standard'],
             exercises: [
               {
                 exercise_id: 'squat',
@@ -841,7 +841,7 @@ describe('getPlannedWeeklyVolume', () => {
           tuesday: {
             name: 'Main Day',
             locked: false,
-            warmup: 'standard',
+            warmup: ['standard'],
             exercises: [
               {
                 exercise_id: 'deadlift',

@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { Colors } from '../src/theme';
@@ -43,7 +44,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bg }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.bg }}>
       <StatusBar style="light" />
       {splashDone && (
         <Stack
@@ -84,6 +85,6 @@ export default function RootLayout() {
           onFinished={handleSplashFinished}
         />
       )}
-    </View>
+    </GestureHandlerRootView>
   );
 }

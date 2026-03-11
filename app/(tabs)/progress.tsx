@@ -9,15 +9,16 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } 
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getActiveProgram, getAllPrograms, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getProgramBoundaries } from '../../src/db';
+import { getActiveProgram, getAllPrograms, getEstimated1RM, get1RMHistoryWithBlocks, getWeeklyVolume, getPlannedWeeklyVolume, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getProgramBoundaries, getExerciseInfo, getExercisePrimaryMetric, getMetricHistory } from '../../src/db';
 import { getTrainingDays, getCurrentWeek } from '../../src/utils/program';
 import { getBlockColorMap, buildBands } from '../../src/utils/blockColors';
-import type { E1RMHistoryPoint, ProgramBoundary } from '../../src/db';
+import type { E1RMHistoryPoint, ProgramBoundary, MetricHistoryPoint, ExercisePrimaryMetric } from '../../src/db';
 import { ProgressBar } from '../../src/components/ProgressBar';
 import TrendLineChart, { SparkLine } from '../../src/components/TrendLineChart';
 import type { Estimated1RM } from '../../src/types';
 import type { WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume } from '../../src/db';
 import { getDeltaExcludingDeload } from '../../src/utils/deltaCalculation';
+import { getFieldsForExercise, supportsE1RM } from '../../src/types/fields';
 
 const TOP_LIFTS = [
   { id: 'back_squat', name: 'Back Squat' },
@@ -33,6 +34,36 @@ const COMPACT_LIFTS = [
 
 const ALL_LIFTS = [...TOP_LIFTS, ...COMPACT_LIFTS];
 
+/** Determine the DB column and aggregation for a non-e1RM exercise's history */
+function getMetricColumnForFields(fields: { type: string }[]): { column: string | null; agg: 'MAX' | 'MIN' } {
+  const types = fields.map(f => f.type);
+  if (types.includes('duration')) return { column: 'actual_duration', agg: 'MAX' };
+  if (types.includes('time')) return { column: 'actual_time', agg: 'MIN' };
+  if (types.includes('reps') && !types.includes('weight')) return { column: 'actual_reps', agg: 'MAX' };
+  if (types.includes('distance')) return { column: 'actual_distance', agg: 'MAX' };
+  return { column: null, agg: 'MAX' };
+}
+
+/** Format a metric value for display */
+function formatMetricValue(value: number, unit?: string): string {
+  if (unit === 'sec' || unit === 'm:ss') {
+    const mins = Math.floor(value / 60);
+    const secs = value % 60;
+    if (mins > 0) return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${value}`;
+  }
+  return `${value}`;
+}
+
+/** Get display unit for a metric */
+function getMetricDisplayUnit(unit?: string): string {
+  if (unit === 'lbs' || unit === 'kg') return unit;
+  if (unit === 'reps') return 'reps';
+  if (unit === 'sec' || unit === 'm:ss') return 'sec';
+  if (unit === 'm') return 'm';
+  return unit ?? '';
+}
+
 type TimeRange = 'program' | 'all';
 
 interface ProgramVolumeData {
@@ -45,6 +76,10 @@ interface ProgramVolumeData {
 interface LiftData {
   e1rm: Estimated1RM | null;
   history: E1RMHistoryPoint[];
+  /** For non-e1RM exercises */
+  metric: ExercisePrimaryMetric | null;
+  metricHistory: MetricHistoryPoint[];
+  isE1RM: boolean;
 }
 
 export default function ProgressScreen() {
@@ -67,16 +102,36 @@ export default function ProgressScreen() {
     setShowAllPrograms(false);
     const program = await getActiveProgram();
 
-    // Load 1RMs and history for all lifts
+    // Load exercise info to determine field types
+    const exerciseIds = ALL_LIFTS.map(l => l.id);
+    const exerciseInfoMap = await getExerciseInfo(exerciseIds);
+
+    // Load metrics and history for all lifts (type-aware)
     const entries = await Promise.all(
       ALL_LIFTS.map(async (lift) => {
-        const [e1rm, history] = await Promise.all([
-          getEstimated1RM(lift.id),
-          timeRange === 'all'
-            ? get1RMHistoryWithBlocks(lift.id, { limit: 50 })
-            : get1RMHistoryWithBlocks(lift.id, { limit: 12 }),
-        ]);
-        return [lift.id, { e1rm, history }] as [string, LiftData];
+        const info = exerciseInfoMap[lift.id];
+        const fields = getFieldsForExercise(info?.inputFields ?? null);
+        const isE1RM = supportsE1RM(fields);
+
+        if (isE1RM) {
+          const [e1rm, history] = await Promise.all([
+            getEstimated1RM(lift.id),
+            timeRange === 'all'
+              ? get1RMHistoryWithBlocks(lift.id, { limit: 50 })
+              : get1RMHistoryWithBlocks(lift.id, { limit: 12 }),
+          ]);
+          return [lift.id, { e1rm, history, metric: null, metricHistory: [], isE1RM: true }] as [string, LiftData];
+        } else {
+          // Non-e1RM: use type-aware metric queries
+          const metric = await getExercisePrimaryMetric(lift.id, info?.inputFields ?? null);
+          const { column, agg } = getMetricColumnForFields(fields);
+          const metricHistory = column
+            ? await getMetricHistory(lift.id, column, agg, {
+                limit: timeRange === 'all' ? 50 : 12,
+              })
+            : [];
+          return [lift.id, { e1rm: null, history: [], metric, metricHistory, isE1RM: false }] as [string, LiftData];
+        }
       })
     );
     setLiftData(new Map(entries));
@@ -202,63 +257,14 @@ export default function ProgressScreen() {
           ))}
         </View>
 
-        {/* Estimated 1RMs — Top lifts with full charts */}
+        {/* Lift Metrics — Top lifts with full charts */}
         <Text style={styles.sectionLabel}>Estimated 1RM</Text>
         <View style={styles.rmTrends}>
           {TOP_LIFTS.map((lift) => {
             const data = liftData.get(lift.id);
-            const e1rm = data?.e1rm;
-            const history = data?.history ?? [];
-            const delta = getDelta(history);
+            const isE1RM = data?.isE1RM ?? true;
 
-            return (
-              <TouchableOpacity
-                key={lift.id}
-                style={styles.rmTrendCard}
-                activeOpacity={0.7}
-                onPress={() => router.push(`/exercise/${lift.id}`)}
-              >
-                <View style={styles.rmTrendHeader}>
-                  <Text style={styles.rmTrendName}>{lift.name}</Text>
-                  <View style={styles.rmTrendCurrent}>
-                    <Text style={styles.rmTrendValue}>
-                      {e1rm ? `${e1rm.value}` : '\u2014'}
-                    </Text>
-                    {e1rm && <Text style={styles.rmTrendUnit}>lbs</Text>}
-                    {delta != null && delta !== 0 && (
-                      <Text style={[styles.rmTrendDelta, delta > 0 && styles.rmTrendDeltaUp]}>
-                        {delta > 0 ? '\u2191' : '\u2193'} {delta > 0 ? '+' : ''}{delta}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-                {history.length >= 2 ? (
-                  <TrendLineChart
-                    lines={[{
-                      data: history.map(h => ({ value: h.e1rm })),
-                      color: Colors.indigo,
-                    }]}
-                    height={60}
-                    viewBoxHeight={60}
-                    areaOpacity={0.1}
-                    bands={buildBands(history, blockColorMap)}
-                    xLabels={history.length > 0
-                      ? history.map((_, i) => i === history.length - 1 ? `W${history.length}` : (i === 0 ? 'W1' : ''))
-                        .filter(l => l !== '')
-                      : []
-                    }
-                  />
-                ) : (
-                  <Text style={styles.noDataText}>Not enough data for chart</Text>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-
-          {/* Compact grid for remaining lifts */}
-          <View style={styles.rmCompactGrid}>
-            {COMPACT_LIFTS.map((lift) => {
-              const data = liftData.get(lift.id);
+            if (isE1RM) {
               const e1rm = data?.e1rm;
               const history = data?.history ?? [];
               const delta = getDelta(history);
@@ -266,34 +272,166 @@ export default function ProgressScreen() {
               return (
                 <TouchableOpacity
                   key={lift.id}
-                  style={styles.rmCompactCard}
+                  style={styles.rmTrendCard}
                   activeOpacity={0.7}
                   onPress={() => router.push(`/exercise/${lift.id}`)}
                 >
-                  <Text style={styles.rmCompactName}>{lift.name}</Text>
-                  <View style={styles.rmCompactRow}>
-                    <Text style={styles.rmCompactValue}>
-                      {e1rm ? `${e1rm.value}` : '\u2014'}
-                    </Text>
-                    {e1rm && <Text style={styles.rmCompactUnit}>lbs</Text>}
-                    {delta != null && delta !== 0 && (
-                      <Text style={[styles.rmCompactDelta, delta > 0 && styles.rmCompactDeltaUp]}>
-                        {delta > 0 ? '\u2191' : ''}{delta > 0 ? '+' : ''}{delta}
+                  <View style={styles.rmTrendHeader}>
+                    <Text style={styles.rmTrendName}>{lift.name}</Text>
+                    <View style={styles.rmTrendCurrent}>
+                      <Text style={styles.rmTrendValue}>
+                        {e1rm ? `${e1rm.value}` : '\u2014'}
                       </Text>
-                    )}
-                  </View>
-                  {history.length >= 2 && (
-                    <View style={styles.rmCompactMiniChart}>
-                      <SparkLine
-                        data={history.map(h => h.e1rm)}
-                        color={Colors.indigo}
-                        height={24}
-                        opacity={0.25}
-                      />
+                      {e1rm && <Text style={styles.rmTrendUnit}>lbs</Text>}
+                      {delta != null && delta !== 0 && (
+                        <Text style={[styles.rmTrendDelta, delta > 0 && styles.rmTrendDeltaUp]}>
+                          {delta > 0 ? '\u2191' : '\u2193'} {delta > 0 ? '+' : ''}{delta}
+                        </Text>
+                      )}
                     </View>
+                  </View>
+                  {history.length >= 2 ? (
+                    <TrendLineChart
+                      lines={[{
+                        data: history.map(h => ({ value: h.e1rm })),
+                        color: Colors.indigo,
+                      }]}
+                      height={60}
+                      viewBoxHeight={60}
+                      areaOpacity={0.1}
+                      bands={buildBands(history, blockColorMap)}
+                      xLabels={history.length > 0
+                        ? history.map((_, i) => i === history.length - 1 ? `W${history.length}` : (i === 0 ? 'W1' : ''))
+                          .filter(l => l !== '')
+                        : []
+                      }
+                    />
+                  ) : (
+                    <Text style={styles.noDataText}>Not enough data for chart</Text>
                   )}
                 </TouchableOpacity>
               );
+            } else {
+              const metric = data?.metric;
+              const metricHistory = data?.metricHistory ?? [];
+
+              return (
+                <TouchableOpacity
+                  key={lift.id}
+                  style={styles.rmTrendCard}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(`/exercise/${lift.id}`)}
+                >
+                  <View style={styles.rmTrendHeader}>
+                    <View>
+                      <Text style={styles.rmTrendName}>{lift.name}</Text>
+                      {metric && <Text style={styles.rmTrendSubtitle}>{metric.label}</Text>}
+                    </View>
+                    <View style={styles.rmTrendCurrent}>
+                      <Text style={styles.rmTrendValue}>
+                        {metric ? formatMetricValue(metric.value, metric.unit) : '\u2014'}
+                      </Text>
+                      {metric && <Text style={styles.rmTrendUnit}>{getMetricDisplayUnit(metric.unit)}</Text>}
+                    </View>
+                  </View>
+                  {metricHistory.length >= 2 ? (
+                    <TrendLineChart
+                      lines={[{
+                        data: metricHistory.map(h => ({ value: h.value })),
+                        color: Colors.indigo,
+                      }]}
+                      height={60}
+                      viewBoxHeight={60}
+                      areaOpacity={0.1}
+                      bands={buildBands(metricHistory, blockColorMap)}
+                      xLabels={metricHistory.length > 0
+                        ? metricHistory.map((_, i) => i === metricHistory.length - 1 ? `W${metricHistory.length}` : (i === 0 ? 'W1' : ''))
+                          .filter(l => l !== '')
+                        : []
+                      }
+                    />
+                  ) : (
+                    <Text style={styles.noDataText}>Not enough data for chart</Text>
+                  )}
+                </TouchableOpacity>
+              );
+            }
+          })}
+
+          {/* Compact grid for remaining lifts */}
+          <View style={styles.rmCompactGrid}>
+            {COMPACT_LIFTS.map((lift) => {
+              const data = liftData.get(lift.id);
+              const isE1RM = data?.isE1RM ?? true;
+
+              if (isE1RM) {
+                const e1rm = data?.e1rm;
+                const history = data?.history ?? [];
+                const delta = getDelta(history);
+
+                return (
+                  <TouchableOpacity
+                    key={lift.id}
+                    style={styles.rmCompactCard}
+                    activeOpacity={0.7}
+                    onPress={() => router.push(`/exercise/${lift.id}`)}
+                  >
+                    <Text style={styles.rmCompactName}>{lift.name}</Text>
+                    <View style={styles.rmCompactRow}>
+                      <Text style={styles.rmCompactValue}>
+                        {e1rm ? `${e1rm.value}` : '\u2014'}
+                      </Text>
+                      {e1rm && <Text style={styles.rmCompactUnit}>lbs</Text>}
+                      {delta != null && delta !== 0 && (
+                        <Text style={[styles.rmCompactDelta, delta > 0 && styles.rmCompactDeltaUp]}>
+                          {delta > 0 ? '\u2191' : ''}{delta > 0 ? '+' : ''}{delta}
+                        </Text>
+                      )}
+                    </View>
+                    {history.length >= 2 && (
+                      <View style={styles.rmCompactMiniChart}>
+                        <SparkLine
+                          data={history.map(h => h.e1rm)}
+                          color={Colors.indigo}
+                          height={24}
+                          opacity={0.25}
+                        />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              } else {
+                const metric = data?.metric;
+                const metricHistory = data?.metricHistory ?? [];
+
+                return (
+                  <TouchableOpacity
+                    key={lift.id}
+                    style={styles.rmCompactCard}
+                    activeOpacity={0.7}
+                    onPress={() => router.push(`/exercise/${lift.id}`)}
+                  >
+                    <Text style={styles.rmCompactName}>{lift.name}</Text>
+                    {metric && <Text style={styles.rmCompactSubtitle}>{metric.label}</Text>}
+                    <View style={styles.rmCompactRow}>
+                      <Text style={styles.rmCompactValue}>
+                        {metric ? formatMetricValue(metric.value, metric.unit) : '\u2014'}
+                      </Text>
+                      {metric && <Text style={styles.rmCompactUnit}>{getMetricDisplayUnit(metric.unit)}</Text>}
+                    </View>
+                    {metricHistory.length >= 2 && (
+                      <View style={styles.rmCompactMiniChart}>
+                        <SparkLine
+                          data={metricHistory.map(h => h.value)}
+                          color={Colors.indigo}
+                          height={24}
+                          opacity={0.25}
+                        />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              }
             })}
           </View>
 
@@ -666,6 +804,12 @@ const styles = StyleSheet.create({
   rmTrendDeltaUp: {
     color: Colors.green,
   },
+  rmTrendSubtitle: {
+    color: Colors.textDim,
+    fontSize: FontSize.sectionLabel,
+    fontWeight: '600',
+    marginTop: 2,
+  },
 
   // Compact 1RM grid (2x2)
   rmCompactGrid: {
@@ -686,6 +830,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sectionLabel,
     fontWeight: '600',
     marginBottom: Spacing.xs,
+  },
+  rmCompactSubtitle: {
+    color: Colors.textDim,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    marginBottom: 2,
   },
   rmCompactRow: {
     flexDirection: 'row',

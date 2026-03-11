@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { ExerciseCard } from '../../src/components/ExerciseCard';
 import type { SetState } from '../../src/components/ExerciseCard';
+import { FIELD_PROFILES } from '../../src/types/fields';
 
 const makeSets = (count: number, status: SetState['status'] = 'pending'): SetState[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -146,7 +147,7 @@ describe('ExerciseCard', () => {
         onLongPressSet={onLongPressSet}
       />,
     );
-    const weightTexts = screen.getAllByText('135 lbs');
+    const weightTexts = screen.getAllByText('135');
     fireEvent.press(weightTexts[0]);
     expect(onLongPressSet).toHaveBeenCalledWith(0);
   });
@@ -179,7 +180,7 @@ describe('ExerciseCard', () => {
         onLongPressSet={onLongPressSet}
       />,
     );
-    const weightTexts = screen.getAllByText('135 lbs');
+    const weightTexts = screen.getAllByText('135');
     fireEvent.press(weightTexts[0]);
     expect(onLongPressSet).toHaveBeenCalledWith(0);
   });
@@ -199,7 +200,7 @@ describe('ExerciseCard', () => {
     // We need to find the TouchableOpacity buttons in the set action area.
     // The set row has: setNumber, weight text, reps text, and the action button.
     // Since pending sets show a circle View (no text), we target by the parent structure.
-    // The "135 lbs" text and its siblings are in each set row.
+    // The "135" text and its siblings are in each set row.
     // Each set row's action button is a TouchableOpacity.
     // We can use getAllByText to find set numbers and navigate from there,
     // but it's easier to just check that the callback was wired correctly
@@ -272,7 +273,7 @@ describe('ExerciseCard', () => {
         onLongPressSet={onLongPressSet}
       />,
     );
-    const weightTexts = screen.getAllByText('135 lbs');
+    const weightTexts = screen.getAllByText('135');
     fireEvent.press(weightTexts[0]);
     expect(onLongPressSet).toHaveBeenCalledWith(0);
   });
@@ -324,8 +325,81 @@ describe('ExerciseCard', () => {
       />,
     );
 
-    // Press the weight text for set 2 (140 lbs)
-    fireEvent.press(screen.getByText('140 lbs'));
+    // Press the weight text for set 2 (140)
+    fireEvent.press(screen.getByText('140'));
     expect(onLongPressSet).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('ExerciseCard with input_fields', () => {
+  const defaultInputFieldsProps = {
+    ...defaultProps,
+    expanded: true,
+  };
+
+  it('renders Weight and Reps headers for default (no inputFields)', () => {
+    render(<ExerciseCard {...defaultInputFieldsProps} />);
+    expect(screen.getByText('Weight')).toBeTruthy();
+    expect(screen.getByText('Reps')).toBeTruthy();
+  });
+
+  it('renders only Reps header for reps_only', () => {
+    render(<ExerciseCard {...defaultInputFieldsProps} inputFields={FIELD_PROFILES.reps_only} />);
+    expect(screen.getByText('Reps')).toBeTruthy();
+    expect(screen.queryByText('Weight')).toBeNull();
+  });
+
+  it('renders Weight and Distance headers for weight_distance', () => {
+    render(<ExerciseCard {...defaultInputFieldsProps} inputFields={FIELD_PROFILES.weight_distance} />);
+    expect(screen.getByText('Weight')).toBeTruthy();
+    expect(screen.getByText('Distance')).toBeTruthy();
+  });
+
+  it('renders Duration header for duration', () => {
+    render(<ExerciseCard {...defaultInputFieldsProps} inputFields={FIELD_PROFILES.duration} />);
+    expect(screen.getByText('Duration')).toBeTruthy();
+    expect(screen.queryByText('Weight')).toBeNull();
+  });
+
+  it('shows unit under column header', () => {
+    render(<ExerciseCard {...defaultInputFieldsProps} inputFields={FIELD_PROFILES.weight_distance} />);
+    expect(screen.getByText('lbs')).toBeTruthy();
+    expect(screen.getByText('m')).toBeTruthy();
+  });
+
+  it('renders set values without inline units', () => {
+    render(<ExerciseCard {...defaultInputFieldsProps} />);
+    // Should show "135" not "135 lbs" — units are in the header now
+    expect(screen.getAllByText('135').length).toBeGreaterThan(0);
+    expect(screen.queryAllByText('135 lbs').length).toBe(0);
+  });
+
+  it('renders dynamic values for distance fields', () => {
+    const distanceSets: SetState[] = [
+      { setNumber: 1, targetWeight: 50, targetDistance: 40, actualWeight: 50, actualDistance: 40, status: 'pending' },
+    ];
+    render(
+      <ExerciseCard
+        {...defaultInputFieldsProps}
+        sets={distanceSets}
+        inputFields={FIELD_PROFILES.weight_distance}
+      />,
+    );
+    expect(screen.getByText('50')).toBeTruthy();
+    expect(screen.getByText('40')).toBeTruthy();
+  });
+
+  it('shows dash for missing field values', () => {
+    const emptySets: SetState[] = [
+      { setNumber: 1, status: 'pending' },
+    ];
+    render(
+      <ExerciseCard
+        {...defaultInputFieldsProps}
+        sets={emptySets}
+        inputFields={FIELD_PROFILES.duration}
+      />,
+    );
+    expect(screen.getByText('\u2014')).toBeTruthy();
   });
 });

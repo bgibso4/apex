@@ -3,6 +3,8 @@
  * These match the JSON schema used for program import.
  */
 
+import type { InputField } from './fields';
+
 export interface ProgramDefinition {
   program: {
     name: string;
@@ -68,10 +70,11 @@ export interface ExerciseSlot {
 export interface ExerciseTarget {
   weeks: number[];
   sets: number;
-  reps: number | string;
+  reps?: number | string;
   percent?: number | string;
   rpe_target?: string;
   notes?: string;
+  values?: Record<string, number>;
 }
 
 export interface RunTarget {
@@ -87,6 +90,7 @@ export interface ExerciseDefinition {
   muscle_groups: string[];
   alternatives?: string[];
   uses_1rm?: boolean;
+  input_fields?: InputField[];
 }
 
 export interface WarmupProtocol {

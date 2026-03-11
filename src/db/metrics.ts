@@ -7,6 +7,12 @@ import { getDatabase } from './database';
 import type { Estimated1RM } from '../types';
 import type { ProgramDefinition, DayTemplate } from '../types';
 import { getBlockForWeek, getTargetForWeek } from '../utils/program';
+import { InputField, getFieldsForExercise, supportsE1RM } from '../types/fields';
+
+const VALID_METRIC_COLUMNS = new Set([
+  'actual_weight', 'actual_reps', 'actual_distance',
+  'actual_duration', 'actual_time',
+]);
 
 /** Epley formula: weight × (1 + reps / 30) */
 export function calculateEpley(weight: number, reps: number): number {
@@ -599,4 +605,227 @@ export async function getProgramBoundaries(): Promise<ProgramBoundary[]> {
     startDate: row.activated_date,
     durationWeeks: row.duration_weeks,
   }));
+}
+
+/**
+ * Get the best value for a column from completed sets.
+ */
+async function getBestValue(
+  exerciseId: string,
+  column: string,
+  agg: 'MAX' | 'MIN' = 'MAX'
+): Promise<number | null> {
+  if (!VALID_METRIC_COLUMNS.has(column)) throw new Error(`Invalid metric column: ${column}`);
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<{ best: number | null }>(
+    `SELECT ${agg}(${column}) as best FROM set_logs
+     WHERE exercise_id = ? AND status IN ('completed', 'completed_below')
+     AND ${column} IS NOT NULL`,
+    [exerciseId]
+  );
+  return row?.best ?? null;
+}
+
+/** Primary metric result for an exercise */
+export interface ExercisePrimaryMetric {
+  value: number;
+  label: string;
+  unit?: string;
+  detail?: string;
+}
+
+/**
+ * Get the primary metric for an exercise based on its field types.
+ */
+export async function getExercisePrimaryMetric(
+  exerciseId: string,
+  inputFieldsJson: string | null
+): Promise<ExercisePrimaryMetric | null> {
+  const fields = getFieldsForExercise(inputFieldsJson);
+
+  if (supportsE1RM(fields)) {
+    const e1rm = await getEstimated1RM(exerciseId);
+    return e1rm ? {
+      value: e1rm.value,
+      label: 'Estimated 1RM',
+      unit: 'lbs',
+      detail: `Based on ${e1rm.from_weight} \u00D7 ${e1rm.from_reps} on ${e1rm.date}`,
+    } : null;
+  }
+
+  const types = fields.map(f => f.type);
+
+  if (types.includes('duration')) {
+    const best = await getBestValue(exerciseId, 'actual_duration');
+    return best ? { value: best, label: 'Best Duration', unit: 'sec' } : null;
+  }
+
+  if (types.includes('time')) {
+    const best = await getBestValue(exerciseId, 'actual_time', 'MIN');
+    return best ? { value: best, label: 'Best Time', unit: 'sec' } : null;
+  }
+
+  if (types.includes('reps') && !types.includes('weight')) {
+    const best = await getBestValue(exerciseId, 'actual_reps');
+    return best ? { value: best, label: 'Best Reps', unit: 'reps' } : null;
+  }
+
+  if (types.includes('distance')) {
+    const best = await getBestValue(exerciseId, 'actual_distance');
+    return best ? { value: best, label: 'Best Distance', unit: 'm' } : null;
+  }
+
+  return null;
+}
+
+/** Metric history data point */
+export interface MetricHistoryPoint {
+  date: string;
+  value: number;
+  blockName: string;
+}
+
+/**
+ * Get history of a metric value per session for charting.
+ */
+export async function getMetricHistory(
+  exerciseId: string,
+  column: string,
+  agg: 'MAX' | 'MIN' = 'MAX',
+  options?: { startDate?: string; programId?: string; limit?: number }
+): Promise<MetricHistoryPoint[]> {
+  if (!VALID_METRIC_COLUMNS.has(column)) throw new Error(`Invalid metric column: ${column}`);
+  const db = await getDatabase();
+  const conditions = [`sl.exercise_id = ?`, `sl.status IN ('completed', 'completed_below')`, `sl.${column} IS NOT NULL`];
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    conditions.push('s.date >= ?');
+    params.push(options.startDate);
+  }
+  if (options?.programId) {
+    conditions.push('s.program_id = ?');
+    params.push(options.programId);
+  }
+
+  const rows = await db.getAllAsync<{ date: string; value: number; block_name: string }>(
+    `SELECT s.date, ${agg}(sl.${column}) as value, s.block_name
+     FROM set_logs sl JOIN sessions s ON sl.session_id = s.id
+     WHERE ${conditions.join(' AND ')}
+     GROUP BY s.id
+     ORDER BY s.date ASC
+     ${options?.limit ? `LIMIT ${options.limit}` : ''}`,
+    params
+  );
+
+  return rows.map(r => ({ date: r.date, value: r.value, blockName: r.block_name }));
+}
+
+/** Session set history for non-weight exercises */
+export interface GenericSessionSetHistory {
+  date: string;
+  blockName: string;
+  bestMetricValue: number | null;
+  avgRpe: number | null;
+  sets: {
+    setNumber: number;
+    weight: number | null;
+    reps: number | null;
+    duration: number | null;
+    time: number | null;
+    distance: number | null;
+    rpe: number | null;
+  }[];
+}
+
+/** Get exercise set history with all field values (generic, not weight-only) */
+export async function getGenericExerciseSetHistory(
+  exerciseId: string,
+  options?: { startDate?: string; programId?: string; limit?: number }
+): Promise<GenericSessionSetHistory[]> {
+  const db = await getDatabase();
+  const limit = options?.limit ?? 5;
+
+  let sql = `SELECT s.date, sl.session_id, sl.set_number,
+       sl.actual_weight, sl.actual_reps, sl.actual_duration, sl.actual_time, sl.actual_distance,
+       sl.rpe, s.block_name
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND s.completed_at IS NOT NULL`;
+
+  const params: (string | number)[] = [exerciseId];
+
+  if (options?.startDate) {
+    sql += `\n       AND s.date >= ?`;
+    params.push(options.startDate);
+  }
+
+  if (options?.programId) {
+    sql += `\n       AND s.program_id = ?`;
+    params.push(options.programId);
+  }
+
+  sql += `\n     ORDER BY s.date DESC, sl.set_number ASC`;
+
+  const rows = await db.getAllAsync<{
+    date: string;
+    session_id: string;
+    set_number: number;
+    actual_weight: number | null;
+    actual_reps: number | null;
+    actual_duration: number | null;
+    actual_time: number | null;
+    actual_distance: number | null;
+    rpe: number | null;
+    block_name: string;
+  }>(sql, params);
+
+  // Group by session
+  const sessionMap = new Map<string, {
+    date: string;
+    blockName: string;
+    rpeValues: number[];
+    sets: GenericSessionSetHistory['sets'];
+  }>();
+
+  for (const row of rows) {
+    const key = row.session_id;
+    if (!sessionMap.has(key)) {
+      sessionMap.set(key, {
+        date: row.date,
+        blockName: row.block_name,
+        rpeValues: [],
+        sets: [],
+      });
+    }
+    const session = sessionMap.get(key)!;
+
+    if (row.rpe !== null) {
+      session.rpeValues.push(row.rpe);
+    }
+
+    session.sets.push({
+      setNumber: row.set_number,
+      weight: row.actual_weight,
+      reps: row.actual_reps,
+      duration: row.actual_duration,
+      time: row.actual_time,
+      distance: row.actual_distance,
+      rpe: row.rpe,
+    });
+  }
+
+  const results: GenericSessionSetHistory[] = Array.from(sessionMap.values()).map(s => ({
+    date: s.date,
+    blockName: s.blockName,
+    bestMetricValue: null, // computed by caller based on exercise type
+    avgRpe: s.rpeValues.length > 0
+      ? Math.round((s.rpeValues.reduce((a, b) => a + b, 0) / s.rpeValues.length) * 10) / 10
+      : null,
+    sets: s.sets,
+  }));
+
+  return results.slice(0, limit);
 }

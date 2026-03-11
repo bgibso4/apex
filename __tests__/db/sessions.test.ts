@@ -159,10 +159,11 @@ describe('sessions', () => {
       expect(params[5]).toBe(5);              // target_reps
       expect(params[6]).toBe(230);            // actual_weight
       expect(params[7]).toBe(4);              // actual_reps
-      expect(params[8]).toBe(8.5);            // rpe
-      expect(params[9]).toBe('completed');    // status
-      expect(typeof params[10]).toBe('string'); // timestamp
-      expect(params[11]).toBe(0);             // is_adhoc
+      // params[8..13] = distance/duration/time targets+actuals (all null)
+      expect(params[14]).toBe(8.5);            // rpe
+      expect(params[15]).toBe('completed');    // status
+      expect(typeof params[16]).toBe('string'); // timestamp
+      expect(params[17]).toBe(0);             // is_adhoc
     });
 
     it('defaults actualWeight and actualReps to target values', async () => {
@@ -178,8 +179,8 @@ describe('sessions', () => {
       const [, params] = mockDb.runAsync.mock.calls[0];
       expect(params[6]).toBe(185); // actual_weight defaults to target
       expect(params[7]).toBe(8);   // actual_reps defaults to target
-      expect(params[8]).toBeNull(); // rpe defaults to null
-      expect(params[11]).toBe(0);   // isAdhoc defaults to 0
+      expect(params[14]).toBeNull(); // rpe defaults to null
+      expect(params[17]).toBe(0);   // isAdhoc defaults to 0
     });
 
     it('sets is_adhoc to 1 when true', async () => {
@@ -194,7 +195,97 @@ describe('sessions', () => {
       });
 
       const [, params] = mockDb.runAsync.mock.calls[0];
-      expect(params[11]).toBe(1); // is_adhoc → 1
+      expect(params[17]).toBe(1); // is_adhoc → 1
+    });
+
+    it('inserts with targetDistance and actualDistance', async () => {
+      await logSet({
+        sessionId: 'sess-1',
+        exerciseId: 'farmers-carry',
+        setNumber: 1,
+        status: 'completed',
+        targetDistance: 40,
+        actualDistance: 45,
+      });
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('target_distance');
+      expect(sql).toContain('actual_distance');
+      // target_weight and target_reps should be null when not provided
+      expect(params).toContain(null); // target_weight
+      expect(params).toContain(40);   // target_distance
+      expect(params).toContain(45);   // actual_distance
+    });
+
+    it('inserts with targetDuration and actualDuration', async () => {
+      await logSet({
+        sessionId: 'sess-1',
+        exerciseId: 'plank',
+        setNumber: 1,
+        status: 'completed',
+        targetDuration: 60,
+        actualDuration: 55,
+      });
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('target_duration');
+      expect(sql).toContain('actual_duration');
+      expect(params).toContain(60);  // target_duration
+      expect(params).toContain(55);  // actual_duration
+    });
+
+    it('inserts with targetTime and actualTime', async () => {
+      await logSet({
+        sessionId: 'sess-1',
+        exerciseId: 'sprint',
+        setNumber: 1,
+        status: 'completed',
+        targetTime: 12.5,
+        actualTime: 13.1,
+      });
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('target_time');
+      expect(sql).toContain('actual_time');
+      expect(params).toContain(12.5);  // target_time
+      expect(params).toContain(13.1);  // actual_time
+    });
+
+    it('falls back actual values to target values for new fields', async () => {
+      await logSet({
+        sessionId: 'sess-1',
+        exerciseId: 'farmers-carry',
+        setNumber: 1,
+        status: 'completed',
+        targetDistance: 40,
+        targetDuration: 60,
+        targetTime: 12.5,
+      });
+
+      const [, params] = mockDb.runAsync.mock.calls[0];
+      // actual_distance falls back to target_distance
+      expect(params).toContain(40);   // actual_distance = target_distance
+      expect(params).toContain(60);   // actual_duration = target_duration
+      expect(params).toContain(12.5); // actual_time = target_time
+    });
+
+    it('handles logSet with no weight/reps (distance-only exercise)', async () => {
+      const id = await logSet({
+        sessionId: 'sess-1',
+        exerciseId: 'farmers-carry',
+        setNumber: 1,
+        status: 'completed',
+        targetDistance: 40,
+      });
+
+      expect(id).toBe('test-id-123');
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('INSERT INTO set_logs');
+      // target_weight and target_reps should be null
+      const targetWeightIdx = 4;
+      const targetRepsIdx = 5;
+      expect(params[targetWeightIdx]).toBeNull();
+      expect(params[targetRepsIdx]).toBeNull();
     });
   });
 
@@ -236,6 +327,40 @@ describe('sessions', () => {
       await updateSet('set-3', {});
 
       expect(mockDb.runAsync).not.toHaveBeenCalled();
+    });
+
+    it('updates actualDistance', async () => {
+      await updateSet('set-4', { actualDistance: 50 });
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('actual_distance = ?');
+      expect(params).toEqual([50, 'set-4']);
+    });
+
+    it('updates actualDuration', async () => {
+      await updateSet('set-5', { actualDuration: 45 });
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('actual_duration = ?');
+      expect(params).toEqual([45, 'set-5']);
+    });
+
+    it('updates actualTime', async () => {
+      await updateSet('set-6', { actualTime: 11.8 });
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('actual_time = ?');
+      expect(params).toEqual([11.8, 'set-6']);
+    });
+
+    it('updates multiple new fields together', async () => {
+      await updateSet('set-7', { actualDistance: 50, actualDuration: 45, actualTime: 11.8 });
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('actual_distance = ?');
+      expect(sql).toContain('actual_duration = ?');
+      expect(sql).toContain('actual_time = ?');
+      expect(params).toEqual([50, 45, 11.8, 'set-7']);
     });
   });
 
@@ -455,7 +580,7 @@ describe('sessions', () => {
   // ensureExerciseExists
   // ---------------------------------------------------------------------------
   describe('ensureExerciseExists', () => {
-    it('uses INSERT OR IGNORE with serialized muscle groups', async () => {
+    it('uses INSERT OR REPLACE with serialized muscle groups', async () => {
       await ensureExerciseExists({
         id: 'lateral-raise',
         name: 'Lateral Raise',
@@ -465,11 +590,29 @@ describe('sessions', () => {
 
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
-      expect(sql).toContain('INSERT OR IGNORE INTO exercises');
+      expect(sql).toContain('INSERT OR REPLACE INTO exercises');
+      expect(sql).toContain('input_fields');
       expect(params[0]).toBe('lateral-raise');
       expect(params[1]).toBe('Lateral Raise');
       expect(params[2]).toBe('accessory');
       expect(params[3]).toBe(JSON.stringify(['shoulders', 'deltoids']));
+      expect(params[4]).toBe('[]'); // alternatives default
+      expect(params[5]).toBeNull(); // input_fields default
+    });
+
+    it('stores input_fields when provided', async () => {
+      const inputFields = [{ type: 'reps' as const }];
+      await ensureExerciseExists({
+        id: 'hanging-leg-raise',
+        name: 'Hanging Leg Raise',
+        type: 'core',
+        muscleGroups: ['core'],
+        inputFields,
+      });
+
+      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
+      const [, params] = mockDb.runAsync.mock.calls[0];
+      expect(params[5]).toBe(JSON.stringify(inputFields));
     });
   });
 

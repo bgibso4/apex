@@ -100,25 +100,25 @@ export async function seedHistoricalProgram(): Promise<number> {
 
   // Ensure exercises exist
   const exercises = [
-    { id: 'back_squat', name: 'Back Squat', type: 'compound', muscle_groups: '["Legs"]' },
-    { id: 'bench_press', name: 'Bench Press', type: 'compound', muscle_groups: '["Chest"]' },
-    { id: 'overhead_press', name: 'Overhead Press', type: 'compound', muscle_groups: '["Shoulders"]' },
-    { id: 'weighted_pullup', name: 'Weighted Pull-up', type: 'compound', muscle_groups: '["Back"]' },
-    { id: 'romanian_deadlift', name: 'Romanian Deadlift', type: 'compound', muscle_groups: '["Legs"]' },
-    { id: 'zercher_squat', name: 'Zercher Squat', type: 'compound', muscle_groups: '["Legs"]' },
-    { id: 'barbell_curl', name: 'Barbell Curl', type: 'isolation', muscle_groups: '["Arms"]' },
-    { id: 'lateral_raises', name: 'Lateral Raises', type: 'isolation', muscle_groups: '["Shoulders"]' },
-    { id: 'leg_curl', name: 'Leg Curl', type: 'isolation', muscle_groups: '["Legs"]' },
-    { id: 'face_pulls', name: 'Face Pulls', type: 'isolation', muscle_groups: '["Back"]' },
-    { id: 'hanging_leg_raise', name: 'Hanging Leg Raise', type: 'isolation', muscle_groups: '["Core"]' },
-    { id: 'dumbbell_row', name: 'Dumbbell Row', type: 'compound', muscle_groups: '["Back"]' },
+    { id: 'back_squat', name: 'Back Squat', type: 'compound', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'bench_press', name: 'Bench Press', type: 'compound', muscle_groups: '["Chest"]', input_fields: null },
+    { id: 'overhead_press', name: 'Overhead Press', type: 'compound', muscle_groups: '["Shoulders"]', input_fields: null },
+    { id: 'weighted_pullup', name: 'Weighted Pull-up', type: 'compound', muscle_groups: '["Back"]', input_fields: null },
+    { id: 'romanian_deadlift', name: 'Romanian Deadlift', type: 'compound', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'zercher_squat', name: 'Zercher Squat', type: 'compound', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'barbell_curl', name: 'Barbell Curl', type: 'isolation', muscle_groups: '["Arms"]', input_fields: null },
+    { id: 'lateral_raises', name: 'Lateral Raises', type: 'isolation', muscle_groups: '["Shoulders"]', input_fields: null },
+    { id: 'leg_curl', name: 'Leg Curl', type: 'isolation', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'face_pulls', name: 'Face Pulls', type: 'isolation', muscle_groups: '["Back"]', input_fields: null },
+    { id: 'hanging_leg_raise', name: 'Hanging Leg Raise', type: 'core', muscle_groups: '["Core"]', input_fields: JSON.stringify([{ type: 'reps' }]) },
+    { id: 'dumbbell_row', name: 'Dumbbell Row', type: 'compound', muscle_groups: '["Back"]', input_fields: null },
   ];
 
   for (const ex of exercises) {
     await db.runAsync(
-      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives, is_sample)
-       VALUES (?, ?, ?, ?, '[]', ?)`,
-      [ex.id, ex.name, ex.type, ex.muscle_groups, 1]
+      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields, is_sample)
+       VALUES (?, ?, ?, ?, '[]', ?, ?)`,
+      [ex.id, ex.name, ex.type, ex.muscle_groups, ex.input_fields, 1]
     );
   }
 
@@ -430,25 +430,25 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
 
   // Ensure exercises exist — main lifts + accessories
   const exercises = [
-    { id: 'back_squat', name: 'Back Squat', type: 'compound', muscle_groups: '["Legs"]' },
-    { id: 'bench_press', name: 'Bench Press', type: 'compound', muscle_groups: '["Chest"]' },
-    { id: 'overhead_press', name: 'Overhead Press', type: 'compound', muscle_groups: '["Shoulders"]' },
-    { id: 'weighted_pullup', name: 'Weighted Pull-up', type: 'compound', muscle_groups: '["Back"]' },
-    { id: 'romanian_deadlift', name: 'Romanian Deadlift', type: 'compound', muscle_groups: '["Legs"]' },
-    { id: 'zercher_squat', name: 'Zercher Squat', type: 'compound', muscle_groups: '["Legs"]' },
-    { id: 'barbell_curl', name: 'Barbell Curl', type: 'isolation', muscle_groups: '["Arms"]' },
-    { id: 'lateral_raises', name: 'Lateral Raises', type: 'isolation', muscle_groups: '["Shoulders"]' },
-    { id: 'leg_curl', name: 'Leg Curl', type: 'isolation', muscle_groups: '["Legs"]' },
-    { id: 'face_pulls', name: 'Face Pulls', type: 'isolation', muscle_groups: '["Back"]' },
-    { id: 'hanging_leg_raise', name: 'Hanging Leg Raise', type: 'isolation', muscle_groups: '["Core"]' },
-    { id: 'dumbbell_row', name: 'Dumbbell Row', type: 'compound', muscle_groups: '["Back"]' },
+    { id: 'back_squat', name: 'Back Squat', type: 'compound', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'bench_press', name: 'Bench Press', type: 'compound', muscle_groups: '["Chest"]', input_fields: null },
+    { id: 'overhead_press', name: 'Overhead Press', type: 'compound', muscle_groups: '["Shoulders"]', input_fields: null },
+    { id: 'weighted_pullup', name: 'Weighted Pull-up', type: 'compound', muscle_groups: '["Back"]', input_fields: null },
+    { id: 'romanian_deadlift', name: 'Romanian Deadlift', type: 'compound', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'zercher_squat', name: 'Zercher Squat', type: 'compound', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'barbell_curl', name: 'Barbell Curl', type: 'isolation', muscle_groups: '["Arms"]', input_fields: null },
+    { id: 'lateral_raises', name: 'Lateral Raises', type: 'isolation', muscle_groups: '["Shoulders"]', input_fields: null },
+    { id: 'leg_curl', name: 'Leg Curl', type: 'isolation', muscle_groups: '["Legs"]', input_fields: null },
+    { id: 'face_pulls', name: 'Face Pulls', type: 'isolation', muscle_groups: '["Back"]', input_fields: null },
+    { id: 'hanging_leg_raise', name: 'Hanging Leg Raise', type: 'core', muscle_groups: '["Core"]', input_fields: JSON.stringify([{ type: 'reps' }]) },
+    { id: 'dumbbell_row', name: 'Dumbbell Row', type: 'compound', muscle_groups: '["Back"]', input_fields: null },
   ];
 
   for (const ex of exercises) {
     await db.runAsync(
-      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives, is_sample)
-       VALUES (?, ?, ?, ?, '[]', ?)`,
-      [ex.id, ex.name, ex.type, ex.muscle_groups, 1]
+      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields, is_sample)
+       VALUES (?, ?, ?, ?, '[]', ?, ?)`,
+      [ex.id, ex.name, ex.type, ex.muscle_groups, ex.input_fields, 1]
     );
   }
 

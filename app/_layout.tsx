@@ -13,7 +13,9 @@ import { Asset } from 'expo-asset';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { Colors } from '../src/theme';
 import { CUSTOM_FONTS } from '../src/theme/fonts';
-import { getDatabase } from '../src/db';
+import { getDatabase, refreshBundledProgram } from '../src/db';
+import type { ProgramDefinition } from '../src/types';
+import FA_V2 from '../src/data/functional-athlete-v2.json';
 import { SplashScreen } from '../src/components/SplashScreen';
 
 // Prevent the native splash from auto-hiding — we control it
@@ -27,7 +29,9 @@ export default function RootLayout() {
     (async () => {
       // Run DB init, font loading, and asset preloading in parallel
       await Promise.all([
-        getDatabase(),
+        getDatabase().then(() =>
+          refreshBundledProgram(FA_V2 as unknown as ProgramDefinition)
+        ),
         Object.keys(CUSTOM_FONTS).length > 0
           ? Font.loadAsync(CUSTOM_FONTS)
           : Promise.resolve(),

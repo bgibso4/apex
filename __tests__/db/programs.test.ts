@@ -166,11 +166,13 @@ describe('programs', () => {
       // First exercise: squat
       const [sql1, params1] = mockDb.runAsync.mock.calls[1];
       expect(sql1).toContain('INSERT OR REPLACE INTO exercises');
+      expect(sql1).toContain('input_fields');
       expect(params1[0]).toBe('squat');
       expect(params1[1]).toBe('Back Squat');
       expect(params1[2]).toBe('main');
       expect(params1[3]).toBe(JSON.stringify(['quads', 'glutes']));
       expect(params1[4]).toBe(JSON.stringify(['front-squat']));
+      expect(params1[5]).toBeNull(); // no input_fields
 
       // Second exercise: bench
       const [sql2, params2] = mockDb.runAsync.mock.calls[2];
@@ -178,6 +180,27 @@ describe('programs', () => {
       expect(params2[0]).toBe('bench');
       expect(params2[1]).toBe('Bench Press');
       expect(params2[4]).toBe(JSON.stringify([])); // no alternatives → []
+      expect(params2[5]).toBeNull(); // no input_fields
+    });
+
+    it('stores input_fields when exercise definition includes them', async () => {
+      const definition = makeProgramDef({
+        exercise_definitions: [
+          {
+            id: 'plank',
+            name: 'Plank',
+            type: 'core',
+            muscle_groups: ['core'],
+            input_fields: [{ type: 'duration', unit: 'sec' }],
+          },
+        ],
+      });
+
+      await importProgram(definition);
+
+      const [, params] = mockDb.runAsync.mock.calls[1];
+      expect(params[0]).toBe('plank');
+      expect(params[5]).toBe(JSON.stringify([{ type: 'duration', unit: 'sec' }]));
     });
 
     it('handles program with no exercises', async () => {

@@ -1,16 +1,16 @@
 export { getDatabase, generateId, clearAllData, clearSampleData, closeDatabase } from './database';
 export { exportDatabase, importDatabase, getLastExportTimestamp, shouldShowBackupReminder } from './backup';
-export { getActiveProgram, getAllPrograms, importProgram, activateProgram, getOneRmValues, stopProgram } from './programs';
+export { getActiveProgram, getAllPrograms, importProgram, refreshBundledProgram, activateProgram, getOneRmValues, stopProgram } from './programs';
 export {
   createSession, updateReadiness, updateWarmup,
   logSet, updateSet, deleteSet, completeSession, updateSessionNotes,
   getSessionsForWeek, getSessionsForDateRange, getSetLogsForSession, getLastSessionForExercise,
-  getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists,
+  getSessionById, getCompletedSessionForDay, getExerciseNames, getExerciseInfo, ensureExerciseExists,
   deleteSession, getInProgressSession, getRecentCompletedSessions, getAllSessionsForDateRange, getAllCompletedSessions,
   getFullSessionState
 } from './sessions';
-export { calculateEpley, getEstimated1RM, get1RMHistory, get1RMHistoryWithBlocks, getWeeklyVolume, calculateTargetWeight, getExerciseSetHistory, getExerciseSetHistoryWithBlocks, getExerciseSessionCount, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getPlannedWeeklyVolume, getLoggedExercises, getProgramBoundaries } from './metrics';
-export type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume, LoggedExercise, ProgramBoundary } from './metrics';
+export { calculateEpley, getEstimated1RM, get1RMHistory, get1RMHistoryWithBlocks, getWeeklyVolume, calculateTargetWeight, getExerciseSetHistory, getExerciseSetHistoryWithBlocks, getExerciseSessionCount, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getPlannedWeeklyVolume, getLoggedExercises, getProgramBoundaries, getExercisePrimaryMetric, getMetricHistory, getGenericExerciseSetHistory } from './metrics';
+export type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume, LoggedExercise, ProgramBoundary, ExercisePrimaryMetric, MetricHistoryPoint, GenericSessionSetHistory } from './metrics';
 export type { Estimated1RM } from '../types/training';
 export { logRun, getRunLogs, getPainTrend, getRunStats, updateRunPain24h, getPendingPainFollowUp, deleteRun, updateRun } from './runs';
 export { saveExerciseNote, getExerciseNotesForSession, deleteExerciseNote } from './notes';

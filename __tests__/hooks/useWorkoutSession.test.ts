@@ -38,6 +38,7 @@ jest.mock('../../src/db', () => ({
   getCompletedSessionForDay: jest.fn(),
   getSetLogsForSession: jest.fn(),
   getExerciseNames: jest.fn(),
+  getExerciseInfo: jest.fn(),
   getExerciseNotesForSession: jest.fn(),
   getPRsForSession: jest.fn(),
   detectPRs: jest.fn(),
@@ -73,7 +74,7 @@ import {
   completeSession, updateReadiness, updateWarmup, updateSessionNotes,
   getLastSessionForExercise, calculateTargetWeight,
   ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
-  getExerciseNames, getExerciseNotesForSession, getPRsForSession, detectPRs,
+  getExerciseNames, getExerciseInfo, getExerciseNotesForSession, getPRsForSession, detectPRs,
   getInProgressSession, getFullSessionState, deleteSession,
 } from '../../src/db';
 import {
@@ -97,6 +98,7 @@ const mockedEnsureExerciseExists = ensureExerciseExists as jest.Mock;
 const mockedGetCompletedSessionForDay = getCompletedSessionForDay as jest.Mock;
 const mockedGetSetLogsForSession = getSetLogsForSession as jest.Mock;
 const mockedGetExerciseNames = getExerciseNames as jest.Mock;
+const mockedGetExerciseInfo = getExerciseInfo as jest.Mock;
 const mockedGetExerciseNotesForSession = getExerciseNotesForSession as jest.Mock;
 const mockedGetPRsForSession = getPRsForSession as jest.Mock;
 const mockedDetectPRs = detectPRs as jest.Mock;
@@ -206,6 +208,7 @@ function setupDefaultMocks() {
   mockedEnsureExerciseExists.mockResolvedValue(undefined);
   mockedGetSetLogsForSession.mockResolvedValue([]);
   mockedGetExerciseNames.mockResolvedValue({});
+  mockedGetExerciseInfo.mockResolvedValue({});
   mockedGetExerciseNotesForSession.mockResolvedValue({});
   mockedGetPRsForSession.mockResolvedValue([]);
   mockedDetectPRs.mockResolvedValue([]);
@@ -676,8 +679,8 @@ describe('useWorkoutSession', () => {
         exerciseIdx: 0,
         setIdx: 0,
       });
-      expect(hookResult.result.current.overrideWeight).toBe(setBeforeOpen.actualWeight);
-      expect(hookResult.result.current.overrideReps).toBe(setBeforeOpen.actualReps);
+      expect(hookResult.result.current.overrideValues.weight).toBe(setBeforeOpen.actualWeight);
+      expect(hookResult.result.current.overrideValues.reps).toBe(setBeforeOpen.actualReps);
       expect(Haptics.impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Light);
     });
   });
@@ -700,8 +703,7 @@ describe('useWorkoutSession', () => {
         hookResult.result.current.openOverride(0, 0);
       });
       act(() => {
-        hookResult.result.current.setOverrideWeight(200);
-        hookResult.result.current.setOverrideReps(6);
+        hookResult.result.current.setOverrideValues({ weight: 200, reps: 6 });
       });
 
       await act(async () => {
@@ -734,8 +736,7 @@ describe('useWorkoutSession', () => {
 
       // Set values below target
       act(() => {
-        hookResult.result.current.setOverrideWeight(targetWeight - 10);
-        hookResult.result.current.setOverrideReps(targetReps - 2);
+        hookResult.result.current.setOverrideValues({ weight: (targetWeight ?? 0) - 10, reps: (targetReps ?? 0) - 2 });
       });
 
       await act(async () => {
@@ -746,8 +747,8 @@ describe('useWorkoutSession', () => {
         expect.objectContaining({
           sessionId: 'session-1',
           status: 'completed_below',
-          actualWeight: targetWeight - 10,
-          actualReps: targetReps - 2,
+          actualWeight: (targetWeight ?? 0) - 10,
+          actualReps: (targetReps ?? 0) - 2,
         }),
       );
 
@@ -769,8 +770,7 @@ describe('useWorkoutSession', () => {
 
       // Set values equal to target (should be 'completed')
       act(() => {
-        hookResult.result.current.setOverrideWeight(targetWeight);
-        hookResult.result.current.setOverrideReps(targetReps);
+        hookResult.result.current.setOverrideValues({ weight: targetWeight ?? 0, reps: targetReps ?? 0 });
       });
 
       await act(async () => {

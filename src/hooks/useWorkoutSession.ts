@@ -11,7 +11,7 @@ import {
   detectPRs, getPRsForSession,
   getSetLogsForSession,
   getInProgressSession, deleteSession,
-  getFullSessionState, getExerciseNames,
+  getFullSessionState, getExerciseNames, getExerciseInfo,
   shouldShowBackupReminder, exportDatabase,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
@@ -22,9 +22,26 @@ import {
 } from '../utils/program';
 import { Colors } from '../theme';
 import type { Program, ProgramDefinition, ExerciseSlot, SetLog, Session } from '../types';
+import type { InputField } from '../types/fields';
+import { getFieldsForExercise } from '../types/fields';
 import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
 import { useSessionTimer } from './useSessionTimer';
+
+/** Check if override values meet or exceed all targets for a set */
+function checkHitTarget(vals: Record<string, number>, set: SetState): boolean {
+  // Weight: actual >= target
+  if (set.targetWeight != null && (vals.weight ?? 0) < set.targetWeight) return false;
+  // Reps: actual >= target
+  if (set.targetReps != null && (vals.reps ?? 0) < set.targetReps) return false;
+  // Distance: actual >= target
+  if (set.targetDistance != null && (vals.distance ?? 0) < set.targetDistance) return false;
+  // Duration: actual >= target
+  if (set.targetDuration != null && (vals.duration ?? 0) < set.targetDuration) return false;
+  // Time: actual <= target (faster is better)
+  if (set.targetTime != null && (vals.time ?? 0) > set.targetTime) return false;
+  return true;
+}
 
 export type WorkoutPhase = 'select' | 'readiness' | 'warmup' | 'logging' | 'complete';
 
@@ -37,6 +54,7 @@ export interface ExerciseState {
   lastWeight?: number;
   lastReps?: number;
   isAdhoc?: boolean;
+  inputFields?: InputField[];
 }
 
 export function useWorkoutSession() {
@@ -65,8 +83,7 @@ export function useWorkoutSession() {
     exerciseIdx: number;
     setIdx: number;
   } | null>(null);
-  const [overrideWeight, setOverrideWeight] = useState(0);
-  const [overrideReps, setOverrideReps] = useState(0);
+  const [overrideValues, setOverrideValues] = useState<Record<string, number>>({});
 
   // Exercise picker
   const [showExercisePicker, setShowExercisePicker] = useState(false);
@@ -204,7 +221,7 @@ export function useWorkoutSession() {
       if (!target) continue;
 
       const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
-      const reps = typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
+      const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;
       if (target.percent && orm[slot.exercise_id]) {
@@ -229,6 +246,12 @@ export function useWorkoutSession() {
             targetReps: loggedSet.target_reps,
             actualWeight: loggedSet.actual_weight ?? loggedSet.target_weight,
             actualReps: loggedSet.actual_reps ?? loggedSet.target_reps,
+            targetDistance: loggedSet.target_distance,
+            actualDistance: loggedSet.actual_distance ?? loggedSet.target_distance,
+            targetDuration: loggedSet.target_duration,
+            actualDuration: loggedSet.actual_duration ?? loggedSet.target_duration,
+            targetTime: loggedSet.target_time,
+            actualTime: loggedSet.actual_time ?? loggedSet.target_time,
             rpe: loggedSet.rpe ?? undefined,
             status: loggedSet.status,
             id: loggedSet.id,
@@ -236,10 +259,22 @@ export function useWorkoutSession() {
         }
         return {
           setNumber: setNum,
-          targetWeight: weight,
-          targetReps: reps,
-          actualWeight: weight,
-          actualReps: reps,
+          targetWeight: weight || undefined,
+          targetReps: reps || undefined,
+          actualWeight: weight || undefined,
+          actualReps: reps || undefined,
+          ...(target.values?.distance != null && {
+            targetDistance: target.values.distance,
+            actualDistance: target.values.distance,
+          }),
+          ...(target.values?.duration != null && {
+            targetDuration: target.values.duration,
+            actualDuration: target.values.duration,
+          }),
+          ...(target.values?.time != null && {
+            targetTime: target.values.time,
+            actualTime: target.values.time,
+          }),
           status: 'pending' as const,
         };
       });
@@ -251,13 +286,14 @@ export function useWorkoutSession() {
         expanded: false,
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
+        inputFields: getFieldsForExercise(exerciseDef?.input_fields),
       });
     }
 
     // Restore ad-hoc exercises (logged sets for exercise_ids not in the template)
     const adhocExerciseIds = Object.keys(logsByExercise).filter(id => !templateExerciseIds.has(id));
     if (adhocExerciseIds.length > 0) {
-      const adhocNames = await getExerciseNames(adhocExerciseIds);
+      const adhocInfo = await getExerciseInfo(adhocExerciseIds);
       for (const exerciseId of adhocExerciseIds) {
         const logged = logsByExercise[exerciseId];
         const sets: SetState[] = logged.map(l => ({
@@ -266,21 +302,29 @@ export function useWorkoutSession() {
           targetReps: l.target_reps,
           actualWeight: l.actual_weight ?? l.target_weight,
           actualReps: l.actual_reps ?? l.target_reps,
+          targetDistance: l.target_distance,
+          actualDistance: l.actual_distance ?? l.target_distance,
+          targetDuration: l.target_duration,
+          actualDuration: l.actual_duration ?? l.target_duration,
+          targetTime: l.target_time,
+          actualTime: l.actual_time ?? l.target_time,
           rpe: l.rpe ?? undefined,
           status: l.status,
           id: l.id,
         }));
 
+        const info = adhocInfo[exerciseId];
         exStates.push({
           slot: {
             exercise_id: exerciseId,
             category: 'accessory',
             targets: [],
           },
-          exerciseName: adhocNames[exerciseId] ?? exerciseId.replace(/_/g, ' '),
+          exerciseName: info?.name ?? exerciseId.replace(/_/g, ' '),
           sets,
           expanded: false,
           isAdhoc: true,
+          inputFields: getFieldsForExercise(info?.inputFields),
         });
       }
     }
@@ -379,7 +423,7 @@ export function useWorkoutSession() {
     for (const ex of exercises) {
       for (const set of ex.sets) {
         if (set.status === 'completed' || set.status === 'completed_below') {
-          vol += set.actualWeight * set.actualReps;
+          vol += (set.actualWeight ?? 0) * (set.actualReps ?? 0);
         }
       }
     }
@@ -427,9 +471,10 @@ export function useWorkoutSession() {
         name: exerciseDef?.name ?? slot.exercise_id.replace(/_/g, ' '),
         type: slot.category ?? 'accessory',
         muscleGroups: exerciseDef?.muscle_groups ?? [],
+        inputFields: exerciseDef?.input_fields,
       });
 
-      const reps = typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
+      const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;
       if (target.percent && oneRmValues[slot.exercise_id]) {
@@ -444,10 +489,22 @@ export function useWorkoutSession() {
 
       const sets: SetState[] = Array.from({ length: target.sets }, (_, i) => ({
         setNumber: i + 1,
-        targetWeight: weight,
-        targetReps: reps,
-        actualWeight: weight,
-        actualReps: reps,
+        targetWeight: weight || undefined,
+        targetReps: reps || undefined,
+        actualWeight: weight || undefined,
+        actualReps: reps || undefined,
+        ...(target.values?.distance != null && {
+          targetDistance: target.values.distance,
+          actualDistance: target.values.distance,
+        }),
+        ...(target.values?.duration != null && {
+          targetDuration: target.values.duration,
+          actualDuration: target.values.duration,
+        }),
+        ...(target.values?.time != null && {
+          targetTime: target.values.time,
+          actualTime: target.values.time,
+        }),
         status: 'pending' as const,
       }));
 
@@ -458,6 +515,7 @@ export function useWorkoutSession() {
         expanded: exStates.length === 0,
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
+        inputFields: getFieldsForExercise(exerciseDef?.input_fields),
       });
     }
 
@@ -500,6 +558,12 @@ export function useWorkoutSession() {
       targetReps: set.targetReps,
       actualWeight: set.actualWeight,
       actualReps: set.actualReps,
+      targetDistance: set.targetDistance,
+      actualDistance: set.actualDistance ?? set.targetDistance,
+      targetDuration: set.targetDuration,
+      actualDuration: set.actualDuration ?? set.targetDuration,
+      targetTime: set.targetTime,
+      actualTime: set.actualTime ?? set.targetTime,
       status: 'completed',
       isAdhoc: ex.isAdhoc,
     });
@@ -509,7 +573,15 @@ export function useWorkoutSession() {
       next[exIdx] = {
         ...next[exIdx],
         sets: next[exIdx].sets.map((s, i) =>
-          i === setIdx ? { ...s, status: 'completed' as const, id: setId } : s
+          i === setIdx ? {
+            ...s,
+            status: 'completed' as const,
+            id: setId,
+            // Fill actual values from target if not yet set
+            actualDistance: s.actualDistance ?? s.targetDistance,
+            actualDuration: s.actualDuration ?? s.targetDuration,
+            actualTime: s.actualTime ?? s.targetTime,
+          } : s
         ),
       };
       return next;
@@ -528,8 +600,13 @@ export function useWorkoutSession() {
   /** Open override modal (long press) */
   const openOverride = (exIdx: number, setIdx: number) => {
     const set = exercises[exIdx].sets[setIdx];
-    setOverrideWeight(set.actualWeight);
-    setOverrideReps(set.actualReps);
+    const vals: Record<string, number> = {};
+    if (set.actualWeight != null) vals.weight = set.actualWeight;
+    if (set.actualReps != null) vals.reps = set.actualReps;
+    if (set.actualDistance != null) vals.distance = set.actualDistance;
+    if (set.actualDuration != null) vals.duration = set.actualDuration;
+    if (set.actualTime != null) vals.time = set.actualTime;
+    setOverrideValues(vals);
     setOverrideModal({ exerciseIdx: exIdx, setIdx });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
@@ -541,15 +618,19 @@ export function useWorkoutSession() {
     const ex = exercises[exerciseIdx];
     const set = ex.sets[setIdx];
 
-    const hitTarget = overrideWeight >= set.targetWeight && overrideReps >= set.targetReps;
+    const hitTarget = checkHitTarget(overrideValues, set);
     const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
+    const actualUpdates: Record<string, number | undefined> = {
+      actualWeight: overrideValues.weight,
+      actualReps: overrideValues.reps,
+      actualDistance: overrideValues.distance,
+      actualDuration: overrideValues.duration,
+      actualTime: overrideValues.time,
+    };
+
     if (set.id) {
-      await updateSet(set.id, {
-        actualWeight: overrideWeight,
-        actualReps: overrideReps,
-        status,
-      });
+      await updateSet(set.id, { ...actualUpdates, status });
     } else {
       const setId = await logSet({
         sessionId,
@@ -557,8 +638,14 @@ export function useWorkoutSession() {
         setNumber: set.setNumber,
         targetWeight: set.targetWeight,
         targetReps: set.targetReps,
-        actualWeight: overrideWeight,
-        actualReps: overrideReps,
+        actualWeight: overrideValues.weight ?? set.actualWeight,
+        actualReps: overrideValues.reps ?? set.actualReps,
+        targetDistance: set.targetDistance,
+        actualDistance: overrideValues.distance ?? set.actualDistance,
+        targetDuration: set.targetDuration,
+        actualDuration: overrideValues.duration ?? set.actualDuration,
+        targetTime: set.targetTime,
+        actualTime: overrideValues.time ?? set.actualTime,
         status,
         isAdhoc: ex.isAdhoc,
       });
@@ -576,8 +663,11 @@ export function useWorkoutSession() {
       const next = [...prev];
       next[exerciseIdx].sets[setIdx] = {
         ...next[exerciseIdx].sets[setIdx],
-        actualWeight: overrideWeight,
-        actualReps: overrideReps,
+        ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
+        ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
+        ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
+        ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
+        ...(overrideValues.time != null && { actualTime: overrideValues.time }),
         status,
       };
       return next;
@@ -594,15 +684,19 @@ export function useWorkoutSession() {
 
     for (let i = 0; i < ex.sets.length; i++) {
       const set = ex.sets[i];
-      const hitTarget = overrideWeight >= set.targetWeight && overrideReps >= set.targetReps;
+      const hitTarget = checkHitTarget(overrideValues, set);
       const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
 
+      const actualUpdates: Record<string, number | undefined> = {
+        actualWeight: overrideValues.weight,
+        actualReps: overrideValues.reps,
+        actualDistance: overrideValues.distance,
+        actualDuration: overrideValues.duration,
+        actualTime: overrideValues.time,
+      };
+
       if (set.id) {
-        await updateSet(set.id, {
-          actualWeight: overrideWeight,
-          actualReps: overrideReps,
-          status,
-        });
+        await updateSet(set.id, { ...actualUpdates, status });
       } else {
         const setId = await logSet({
           sessionId,
@@ -610,8 +704,14 @@ export function useWorkoutSession() {
           setNumber: set.setNumber,
           targetWeight: set.targetWeight,
           targetReps: set.targetReps,
-          actualWeight: overrideWeight,
-          actualReps: overrideReps,
+          actualWeight: overrideValues.weight ?? set.actualWeight,
+          actualReps: overrideValues.reps ?? set.actualReps,
+          targetDistance: set.targetDistance,
+          actualDistance: overrideValues.distance ?? set.actualDistance,
+          targetDuration: set.targetDuration,
+          actualDuration: overrideValues.duration ?? set.actualDuration,
+          targetTime: set.targetTime,
+          actualTime: overrideValues.time ?? set.actualTime,
           status,
           isAdhoc: ex.isAdhoc,
         });
@@ -623,13 +723,18 @@ export function useWorkoutSession() {
       const next = [...prev];
       next[exerciseIdx] = {
         ...next[exerciseIdx],
-        sets: next[exerciseIdx].sets.map(s => ({
-          ...s,
-          actualWeight: overrideWeight,
-          actualReps: overrideReps,
-          status: (overrideWeight >= s.targetWeight && overrideReps >= s.targetReps)
-            ? 'completed' as const : 'completed_below' as const,
-        })),
+        sets: next[exerciseIdx].sets.map(s => {
+          const hitTarget = checkHitTarget(overrideValues, s);
+          return {
+            ...s,
+            ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
+            ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
+            ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
+            ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
+            ...(overrideValues.time != null && { actualTime: overrideValues.time }),
+            status: hitTarget ? 'completed' as const : 'completed_below' as const,
+          };
+        }),
       };
       return next;
     });
@@ -692,16 +797,36 @@ export function useWorkoutSession() {
       name: selectedLibraryExercise.name,
       type: selectedLibraryExercise.type,
       muscleGroups: [selectedLibraryExercise.muscleGroup],
+      inputFields: selectedLibraryExercise.inputFields,
     });
 
-    const sets: SetState[] = Array.from({ length: adhocSets }, (_, i) => ({
-      setNumber: i + 1,
-      targetWeight: adhocWeight,
-      targetReps: adhocReps,
-      actualWeight: adhocWeight,
-      actualReps: adhocReps,
-      status: 'pending' as const,
-    }));
+    const fields = getFieldsForExercise(selectedLibraryExercise.inputFields);
+    const fieldTypes = fields.map(f => f.type);
+
+    const sets: SetState[] = Array.from({ length: adhocSets }, (_, i) => {
+      const base: SetState = { setNumber: i + 1, status: 'pending' as const };
+      if (fieldTypes.includes('weight')) {
+        base.targetWeight = adhocWeight;
+        base.actualWeight = adhocWeight;
+      }
+      if (fieldTypes.includes('reps')) {
+        base.targetReps = adhocReps;
+        base.actualReps = adhocReps;
+      }
+      if (fieldTypes.includes('distance')) {
+        base.targetDistance = 0;
+        base.actualDistance = 0;
+      }
+      if (fieldTypes.includes('duration')) {
+        base.targetDuration = 0;
+        base.actualDuration = 0;
+      }
+      if (fieldTypes.includes('time')) {
+        base.targetTime = 0;
+        base.actualTime = 0;
+      }
+      return base;
+    });
 
     const newExercise: ExerciseState = {
       slot: {
@@ -713,6 +838,7 @@ export function useWorkoutSession() {
       sets,
       expanded: false,
       isAdhoc: true,
+      inputFields: getFieldsForExercise(selectedLibraryExercise.inputFields),
     };
 
     setExercises(prev => [...prev, newExercise]);
@@ -816,17 +942,24 @@ export function useWorkoutSession() {
   const recalculatePRs = async () => {
     if (!sessionId) return;
     const setLogs = await getSetLogsForSession(sessionId);
+
+    // Look up input_fields for each exercise to determine PR type
+    const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
+    const exerciseInfo = await getExerciseInfo(exerciseIds);
+
     const detectedPRs = await detectPRs(
       sessionId,
       getLocalDateString(),
-      setLogs
-        .filter(s => s.actual_weight != null && s.actual_reps != null)
-        .map(s => ({
-          exercise_id: s.exercise_id,
-          actual_weight: s.actual_weight!,
-          actual_reps: s.actual_reps!,
-          status: s.status,
-        }))
+      setLogs.map(s => ({
+        exercise_id: s.exercise_id,
+        actual_weight: s.actual_weight ?? 0,
+        actual_reps: s.actual_reps ?? 0,
+        actual_duration: s.actual_duration,
+        actual_time: s.actual_time,
+        actual_distance: s.actual_distance,
+        input_fields: exerciseInfo[s.exercise_id]?.inputFields ?? null,
+        status: s.status,
+      }))
     );
     setPRs(detectedPRs);
   };
@@ -894,8 +1027,7 @@ export function useWorkoutSession() {
 
     // Override modal
     overrideModal,
-    overrideWeight, setOverrideWeight,
-    overrideReps, setOverrideReps,
+    overrideValues, setOverrideValues,
 
     // Exercise picker
     showExercisePicker, setShowExercisePicker,

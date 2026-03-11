@@ -215,7 +215,7 @@ export default function WorkoutScreen() {
                   <View key={i} style={styles.previewExerciseRow}>
                     <Text style={styles.previewExerciseName}>{ex.exercise_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
                     <Text style={styles.previewExerciseDetail}>
-                      {target ? `${target.sets} \u00D7 ${target.reps}` : ''}
+                      {target ? `${target.sets}${target.reps != null ? ` \u00D7 ${target.reps}` : ''}` : ''}
                     </Text>
                   </View>
                 );
@@ -377,6 +377,7 @@ export default function WorkoutScreen() {
                   lastWeight={ex.lastWeight}
                   lastReps={ex.lastReps}
                   blockColor={w.blockColor}
+                  inputFields={ex.inputFields}
                   note={w.exerciseNotes[ex.slot.exercise_id]}
                   onNoteChange={(note) => w.saveExerciseNoteAction(ex.slot.exercise_id, note)}
                   onToggleExpand={() => {
@@ -482,8 +483,8 @@ export default function WorkoutScreen() {
               exerciseName: ex.exerciseName,
               sets: ex.sets.map(s => ({
                 setNumber: s.setNumber,
-                actualWeight: s.actualWeight,
-                actualReps: s.actualReps,
+                actualWeight: s.actualWeight ?? 0,
+                actualReps: s.actualReps ?? 0,
                 status: s.status,
               })),
               rpe: ex.rpe,
@@ -544,11 +545,10 @@ export default function WorkoutScreen() {
 
       <AdjustModal
         visible={w.overrideModal !== null}
-        weight={w.overrideWeight}
-        reps={w.overrideReps}
+        values={w.overrideValues}
+        inputFields={w.overrideModal !== null ? w.exercises[w.overrideModal.exerciseIdx]?.inputFields : undefined}
         blockColor={w.blockColor}
-        onWeightChange={w.setOverrideWeight}
-        onRepsChange={w.setOverrideReps}
+        onValueChange={(fieldType, value) => w.setOverrideValues(prev => ({ ...prev, [fieldType]: value }))}
         onSave={w.saveOverride}
         onClose={w.closeOverride}
         onApplyToAll={w.saveOverrideToAll}

@@ -2,13 +2,20 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
 import type { SetLog, ExerciseTarget } from '../types';
+import { InputField, FieldType, FIELD_PROFILES, FIELD_LABELS } from '../types/fields';
 
 export interface SetState {
   setNumber: number;
-  targetWeight: number;
-  targetReps: number;
-  actualWeight: number;
-  actualReps: number;
+  targetWeight?: number;
+  targetReps?: number;
+  actualWeight?: number;
+  actualReps?: number;
+  targetDistance?: number;
+  actualDistance?: number;
+  targetDuration?: number;
+  actualDuration?: number;
+  targetTime?: number;
+  actualTime?: number;
   rpe?: number;
   status: SetLog['status'];
   id?: string;
@@ -31,17 +38,26 @@ export interface ExerciseCardProps {
   onLongPressCard?: () => void;
   note?: string;
   onNoteChange?: (note: string) => void;
+  inputFields?: InputField[];
+}
+
+function getSetValue(set: SetState, fieldType: FieldType): number | string {
+  const key = fieldType.charAt(0).toUpperCase() + fieldType.slice(1);
+  const actual = set[`actual${key}` as keyof SetState] as number | undefined;
+  const target = set[`target${key}` as keyof SetState] as number | undefined;
+  return actual ?? target ?? '\u2014';
 }
 
 export function ExerciseCard({
   exerciseName, category, target, sets, rpe, expanded,
   lastWeight, lastReps, blockColor,
   onToggleExpand, onCompleteSet, onLongPressSet, onSetRPE,
-  onLongPressCard, note, onNoteChange,
+  onLongPressCard, note, onNoteChange, inputFields,
 }: ExerciseCardProps) {
   const allDone = sets.every(s => s.status !== 'pending');
   const completedCount = sets.filter(s => s.status !== 'pending').length;
   const [noteVisible, setNoteVisible] = useState(!!note);
+  const fields = inputFields ?? FIELD_PROFILES.weight_reps;
 
   // Collapsed view
   if (!expanded) {
@@ -90,8 +106,12 @@ export function ExerciseCard({
         {/* Set header */}
         <View style={styles.setHeader}>
           <Text style={styles.setHeaderText}>Set</Text>
-          <Text style={styles.setHeaderText}>Weight</Text>
-          <Text style={styles.setHeaderText}>Reps</Text>
+          {fields.map((field) => (
+            <View key={field.type} style={styles.setHeaderCol}>
+              <Text style={styles.setHeaderText}>{FIELD_LABELS[field.type]}</Text>
+              {field.unit && <Text style={styles.setHeaderUnit}>{field.unit}</Text>}
+            </View>
+          ))}
           <Text style={styles.setHeaderText}>{''}</Text>
         </View>
 
@@ -116,26 +136,19 @@ export function ExerciseCard({
               ]}>
                 {set.setNumber}
               </Text>
-              <Text
-                style={[
-                  styles.setWeight,
-                  isCompleted && styles.setValueCompleted,
-                  isFuture && styles.setValueFuture,
-                ]}
-                onPress={() => onLongPressSet(setIdx)}
-              >
-                {set.actualWeight} lbs
-              </Text>
-              <Text
-                style={[
-                  styles.setReps,
-                  isCompleted && styles.setValueCompleted,
-                  isFuture && styles.setValueFuture,
-                ]}
-                onPress={() => onLongPressSet(setIdx)}
-              >
-                {set.actualReps}
-              </Text>
+              {fields.map((field) => (
+                <Text
+                  key={field.type}
+                  style={[
+                    styles.setValue,
+                    isCompleted && styles.setValueCompleted,
+                    isFuture && styles.setValueFuture,
+                  ]}
+                  onPress={() => onLongPressSet(setIdx)}
+                >
+                  {getSetValue(set, field.type)}
+                </Text>
+              ))}
               <View style={styles.setAction}>
                 <TouchableOpacity
                   style={[
@@ -276,6 +289,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     flex: 1,
   },
+  setHeaderCol: {
+    flex: 1,
+    gap: 1,
+  },
+  setHeaderUnit: {
+    color: Colors.textDim,
+    fontSize: 9,
+    fontWeight: '600' as const,
+  },
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -298,13 +320,7 @@ const styles = StyleSheet.create({
   setNumberCurrent: {
     color: Colors.indigo,
   },
-  setWeight: {
-    color: Colors.text,
-    fontSize: FontSize.base,
-    fontWeight: '600',
-    flex: 1,
-  },
-  setReps: {
+  setValue: {
     color: Colors.text,
     fontSize: FontSize.base,
     fontWeight: '600',

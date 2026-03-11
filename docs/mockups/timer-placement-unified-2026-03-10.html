@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Unified Timer Placement</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #141420;
+    --surface: #1e1e30;
+    --border: #2a2a3e;
+    --border-light: #3a3a4e;
+    --text: #ffffff;
+    --text-secondary: #a0a0b8;
+    --text-dim: #6a6a80;
+    --text-muted: #4a4a5e;
+    --green: #22c55e;
+    --green-muted: rgba(34, 197, 94, 0.125);
+    --green-border: rgba(34, 197, 94, 0.19);
+    --indigo: #6366f1;
+    --indigo-muted: rgba(99, 102, 241, 0.125);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #050508;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .page {
+    width: 390px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .page-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: -40px;
+  }
+
+  /* Section */
+  .section {
+    background: var(--bg);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .section-badge.before {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .section-badge.after {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--green);
+  }
+
+  .section-badge.warmup {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--indigo);
+  }
+
+  .section-name {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Phone screen */
+  .screen {
+    margin: 16px 12px;
+    background: var(--bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- Logging Header --- */
+  .logging-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .logging-header-left {
+    flex: 1;
+  }
+
+  .logging-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.1;
+  }
+
+  .logging-subtitle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logging-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .timer-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer-display.dim {
+    font-size: 16px;
+    color: var(--text-dim);
+  }
+
+  .overflow-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 18px;
+    letter-spacing: 2px;
+    border-radius: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Old layout: timer jammed with title */
+  .logging-header-old {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .logging-header-right-old {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 6px;
+  }
+
+  /* Progress bar */
+  .progress-bar-container {
+    margin-bottom: 16px;
+  }
+
+  .progress-bar-bg {
+    height: 4px;
+    background: var(--surface);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--indigo);
+    border-radius: 2px;
+  }
+
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Exercise cards (simplified) */
+  .exercise-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .exercise-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .exercise-sets {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Action row */
+  .action-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .action-link {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .action-link.accent {
+    color: var(--indigo);
+  }
+
+  /* --- Warmup --- */
+  .warmup-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+  }
+
+  .warmup-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .warmup-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+
+  .warmup-item.checked {
+    border-color: var(--green-border);
+  }
+
+  .warmup-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .warmup-check.checked {
+    background: var(--green-muted);
+    border-color: var(--green);
+    color: var(--green);
+    font-size: 14px;
+  }
+
+  .warmup-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .warmup-label.checked {
+    color: var(--text-secondary);
+  }
+
+  .continue-btn {
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--indigo);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Warmup header */
+  .warmup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .warmup-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Annotation */
+  .annotation {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .annotation-text {
+    color: var(--text-dim);
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  .annotation-text strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* Comparison label */
+  .comparison {
+    display: flex;
+    gap: 16px;
+    padding: 0 12px;
+    margin-bottom: -8px;
+  }
+
+  .vs-divider {
+    width: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* Highlight box for the timer */
+  .timer-highlight {
+    position: relative;
+  }
+
+  .timer-highlight::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -8px;
+    right: -8px;
+    bottom: -4px;
+    border: 1.5px dashed rgba(99, 102, 241, 0.4);
+    border-radius: 6px;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <p class="page-title">Timer Placement — Unified Design</p>
+  <p class="page-subtitle">Move timer to subtitle line on both logging and warmup screens</p>
+
+  <!-- BEFORE: Current logging layout -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-badge before">Current</span>
+      <span class="section-name">Logging phase — timer jammed with title</span>
+    </div>
+    <div class="screen">
+      <div class="logging-header-old">
+        <div class="logging-header-left">
+          <div class="logging-title">Upper Strength — Heavy Pull</div>
+          <div class="logging-subtitle">Week 1 — Hypertrophy</div>
+        </div>
+        <div class="logging-header-right-old">
+          <span class="timer-display" style="opacity: 0.7;">0:21</span>
+          <span class="overflow-btn">···</span>
+        </div>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+        <div class="progress-labels">
+          <span class="progress-label">0 of 7 exercises</span>
+          <span class="progress-label">0 / 22 sets</span>
+        </div>
+      </div>
+
+      <div class="exercise-card"><span class="exercise-name">Weighted Pull-up</span><span class="exercise-sets">0/4</span></div>
+      <div class="exercise-card"><span class="exercise-name">Bench Press</span><span class="exercise-sets">0/4</span></div>
+    </div>
+    <div class="annotation">
+      <span class="annotation-text">Timer competes with the title for space. When the title wraps (like "Upper Strength — Heavy Pull"), the timer floats awkwardly at the top-right. Feels cramped.</span>
+    </div>
+  </div>
+
+  <!-- AFTER: New logging layout -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-badge after">Proposed</span>
+      <span class="section-name">Logging phase — timer on subtitle line</span>
+    </div>
+    <div class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="flex: 1;">
+          <div class="logging-title">Upper Strength — Heavy Pull</div>
+          <div class="logging-subtitle-row">
+            <span class="logging-subtitle">Week 1 — Hypertrophy</span>
+            <span class="timer-display timer-highlight">0:21</span>
+          </div>
+        </div>
+        <span class="overflow-btn">···</span>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+        <div class="progress-labels">
+          <span class="progress-label">0 of 7 exercises</span>
+          <span class="progress-label">0 / 22 sets</span>
+        </div>
+      </div>
+
+      <div class="exercise-card"><span class="exercise-name">Weighted Pull-up</span><span class="exercise-sets">0/4</span></div>
+      <div class="exercise-card"><span class="exercise-name">Bench Press</span><span class="exercise-sets">0/4</span></div>
+    </div>
+    <div class="annotation">
+      <span class="annotation-text">
+        Title gets full width — no crowding. Timer drops to the <strong>subtitle line</strong>, right-aligned opposite "Week 1 — Hypertrophy".
+        The <strong>···</strong> menu stays top-right. Clean separation of concerns: title row is the workout name, subtitle row is context + timer.
+      </span>
+    </div>
+  </div>
+
+  <!-- AFTER: Short title example -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-badge after">Proposed</span>
+      <span class="section-name">Short title — still looks clean</span>
+    </div>
+    <div class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="flex: 1;">
+          <div class="logging-title">Run + Movement</div>
+          <div class="logging-subtitle-row">
+            <span class="logging-subtitle">Week 1 — Hypertrophy</span>
+            <span class="timer-display timer-highlight">21:18:43</span>
+          </div>
+        </div>
+        <span class="overflow-btn">···</span>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 0%;"></div></div>
+        <div class="progress-labels">
+          <span class="progress-label">0 of 4 exercises</span>
+          <span class="progress-label">0 / 6 sets</span>
+        </div>
+      </div>
+
+      <div class="exercise-card"><span class="exercise-name">Easy Run</span><span class="exercise-sets">0/1</span></div>
+      <div class="exercise-card"><span class="exercise-name">Cossack Squat (BW)</span><span class="exercise-sets">0/2</span></div>
+    </div>
+    <div class="annotation">
+      <span class="annotation-text">
+        Even with a short title and a long timer value (21:18:43), the layout holds. No overlap, no awkward spacing.
+      </span>
+    </div>
+  </div>
+
+  <!-- WARMUP: Option C style with timer -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-badge warmup">Warmup</span>
+      <span class="section-name">Warmup phase — timer inline with "Warm Up"</span>
+    </div>
+    <div class="screen">
+      <!-- Header bar from workout.tsx -->
+      <div class="warmup-header">
+        <span class="warmup-header-title">Run + Movement</span>
+        <span class="overflow-btn">···</span>
+      </div>
+
+      <!-- WarmupChecklist with timer -->
+      <div class="warmup-title-row">
+        <span class="warmup-title">Warm Up</span>
+        <span class="timer-display dim timer-highlight">02:34</span>
+      </div>
+
+      <div class="warmup-item checked">
+        <div class="warmup-check checked">✓</div>
+        <span class="warmup-label checked">Jump Rope — 3 min</span>
+      </div>
+      <div class="warmup-item">
+        <div class="warmup-check"></div>
+        <span class="warmup-label">Ankle Dorsiflexion Protocol</span>
+      </div>
+      <div class="warmup-item">
+        <div class="warmup-check"></div>
+        <span class="warmup-label">Hip IR Mobility Work</span>
+      </div>
+
+      <div class="continue-btn">Continue to Exercises →</div>
+    </div>
+    <div class="annotation">
+      <span class="annotation-text">
+        Timer right-aligned on the "Warm Up" title line, dimmer than the logging timer (<strong>textDim</strong> vs <strong>textSecondary</strong>) — visible but secondary to the checklist.
+        Same pattern as logging: timer sits opposite the section title. Consistent across both phases.
+      </span>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="section">
+    <div class="annotation" style="border-top: none;">
+      <span class="annotation-text" style="line-height: 1.8;">
+        <strong>The unified rule:</strong> Timer always sits right-aligned on the secondary line — opposite "Week N — Block" during logging, opposite "Warm Up" during warmup. Title gets the full width. The <strong>···</strong> overflow stays top-right of the header.<br><br>
+        <strong>Changes needed:</strong><br>
+        &nbsp;&nbsp;1. Move timer from title-row to subtitle-row in logging header (<strong>workout.tsx</strong>)<br>
+        &nbsp;&nbsp;2. Add timer prop to WarmupChecklist, render inline with "Warm Up" title (<strong>WarmupChecklist.tsx</strong>)<br>
+        &nbsp;&nbsp;3. Pass <code>w.timer</code> to WarmupChecklist from workout screen
+      </span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

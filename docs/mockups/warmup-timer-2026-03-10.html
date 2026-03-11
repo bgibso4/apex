@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Warmup Timer Placement Options</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #141420;
+    --surface: #1e1e30;
+    --border: #2a2a3e;
+    --border-light: #3a3a4e;
+    --text: #ffffff;
+    --text-secondary: #a0a0b8;
+    --text-dim: #6a6a80;
+    --text-muted: #4a4a5e;
+    --green: #22c55e;
+    --green-muted: rgba(34, 197, 94, 0.125);
+    --green-border: rgba(34, 197, 94, 0.19);
+    --indigo: #6366f1;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #050508;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .page {
+    width: 390px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .page-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: -40px;
+  }
+
+  /* Section wrapper */
+  .option {
+    background: var(--bg);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .option-header {
+    padding: 16px 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .option-badge {
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .option-badge.recommended {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--indigo);
+  }
+
+  .option-name {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Phone screen mockup */
+  .screen {
+    margin: 16px 12px 0;
+    background: var(--bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- Warmup Header (outside component) --- */
+  .warmup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .warmup-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .warmup-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .warmup-header-timer {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .overflow-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 18px;
+    letter-spacing: 2px;
+    border-radius: 18px;
+  }
+
+  /* --- WarmupChecklist component --- */
+  .warmup-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .warmup-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+  }
+
+  .warmup-inline-timer {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .warmup-subtitle-timer {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    margin-top: -14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .timer-icon {
+    font-size: 13px;
+    opacity: 0.6;
+  }
+
+  .warmup-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .warmup-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .warmup-item.checked {
+    border-color: var(--green-border);
+  }
+
+  .warmup-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .warmup-check.checked {
+    background: var(--green-muted);
+    border-color: var(--green);
+    color: var(--green);
+    font-size: 14px;
+  }
+
+  .warmup-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .warmup-label.checked {
+    color: var(--text-secondary);
+  }
+
+  .continue-btn {
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--indigo);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Annotation */
+  .annotation {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    background: rgba(99, 102, 241, 0.03);
+  }
+
+  .annotation-text {
+    color: var(--text-dim);
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .annotation-text strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  /* Callout arrow */
+  .callout {
+    position: relative;
+    margin: 8px 12px;
+    padding: 10px 14px;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 8px;
+  }
+
+  .callout-text {
+    color: var(--text-dim);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .callout-arrow {
+    color: var(--indigo);
+    font-weight: 700;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <p class="page-title">Warmup Timer — Placement Options</p>
+  <p class="page-subtitle">Where should the running timer appear during warmup?</p>
+
+  <!-- Option A: Timer in the header bar -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-badge recommended">Recommended</span>
+      <span class="option-name">Option A — Timer in header bar</span>
+    </div>
+    <div class="screen">
+      <!-- Header bar (from workout.tsx, outside WarmupChecklist) -->
+      <div class="warmup-header">
+        <div class="warmup-header-left">
+          <span class="warmup-header-title">Upper Body Push</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="warmup-header-timer">02:34</span>
+          <span class="overflow-btn">···</span>
+        </div>
+      </div>
+
+      <!-- WarmupChecklist component (unchanged) -->
+      <div class="warmup-title">Warm Up</div>
+      <div class="warmup-items">
+        <div class="warmup-item checked">
+          <div class="warmup-check checked">✓</div>
+          <span class="warmup-label checked">Jump Rope — 3 min</span>
+        </div>
+        <div class="warmup-item">
+          <div class="warmup-check"></div>
+          <span class="warmup-label">Ankle Dorsiflexion Protocol</span>
+        </div>
+        <div class="warmup-item">
+          <div class="warmup-check"></div>
+          <span class="warmup-label">Hip IR Mobility Work</span>
+        </div>
+      </div>
+      <div class="continue-btn">Continue to Exercises →</div>
+    </div>
+
+    <div class="callout">
+      <span class="callout-text">
+        <span class="callout-arrow">→</span>
+        Timer sits next to the <strong>···</strong> menu in the header, exactly like the logging phase.
+        Consistent placement. WarmupChecklist component stays unchanged — timer lives in the parent screen.
+      </span>
+    </div>
+
+    <div class="annotation">
+      <span class="annotation-text">
+        <strong>Pros:</strong> Consistent with logging phase. No changes to WarmupChecklist component. Timer is visible but not dominant.<br>
+        <strong>Cons:</strong> Timer is at the top edge — slightly less visible if scrolled (though warmup screen doesn't scroll).
+      </span>
+    </div>
+  </div>
+
+  <!-- Option B: Timer below "Warm Up" title -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-badge">Alternative</span>
+      <span class="option-name">Option B — Timer below title, inside component</span>
+    </div>
+    <div class="screen">
+      <!-- Header bar -->
+      <div class="warmup-header">
+        <div class="warmup-header-left">
+          <span class="warmup-header-title">Upper Body Push</span>
+        </div>
+        <span class="overflow-btn">···</span>
+      </div>
+
+      <!-- WarmupChecklist component (modified) -->
+      <div class="warmup-title" style="margin-bottom: 6px;">Warm Up</div>
+      <div class="warmup-subtitle-timer">
+        <span class="timer-icon">⏱</span>
+        <span>02:34</span>
+      </div>
+      <div class="warmup-items">
+        <div class="warmup-item checked">
+          <div class="warmup-check checked">✓</div>
+          <span class="warmup-label checked">Jump Rope — 3 min</span>
+        </div>
+        <div class="warmup-item">
+          <div class="warmup-check"></div>
+          <span class="warmup-label">Ankle Dorsiflexion Protocol</span>
+        </div>
+        <div class="warmup-item">
+          <div class="warmup-check"></div>
+          <span class="warmup-label">Hip IR Mobility Work</span>
+        </div>
+      </div>
+      <div class="continue-btn">Continue to Exercises →</div>
+    </div>
+
+    <div class="callout">
+      <span class="callout-text">
+        <span class="callout-arrow">→</span>
+        Timer is a subtle line below "Warm Up" with a small timer icon. Dimmer color so it doesn't compete with the checklist items.
+      </span>
+    </div>
+
+    <div class="annotation">
+      <span class="annotation-text">
+        <strong>Pros:</strong> More prominent, centered in the content area. Clearly associated with the warmup phase.<br>
+        <strong>Cons:</strong> Requires modifying WarmupChecklist component (new prop). Different placement than logging phase timer.
+      </span>
+    </div>
+  </div>
+
+  <!-- Option C: Timer inline with title -->
+  <div class="option">
+    <div class="option-header">
+      <span class="option-badge">Alternative</span>
+      <span class="option-name">Option C — Timer inline with "Warm Up" title</span>
+    </div>
+    <div class="screen">
+      <!-- Header bar -->
+      <div class="warmup-header">
+        <div class="warmup-header-left">
+          <span class="warmup-header-title">Upper Body Push</span>
+        </div>
+        <span class="overflow-btn">···</span>
+      </div>
+
+      <!-- WarmupChecklist component (modified) -->
+      <div class="warmup-title-row">
+        <span class="warmup-title" style="margin-bottom: 0;">Warm Up</span>
+        <span class="warmup-inline-timer">02:34</span>
+      </div>
+      <div class="warmup-items">
+        <div class="warmup-item checked">
+          <div class="warmup-check checked">✓</div>
+          <span class="warmup-label checked">Jump Rope — 3 min</span>
+        </div>
+        <div class="warmup-item">
+          <div class="warmup-check"></div>
+          <span class="warmup-label">Ankle Dorsiflexion Protocol</span>
+        </div>
+        <div class="warmup-item">
+          <div class="warmup-check"></div>
+          <span class="warmup-label">Hip IR Mobility Work</span>
+        </div>
+      </div>
+      <div class="continue-btn">Continue to Exercises →</div>
+    </div>
+
+    <div class="callout">
+      <span class="callout-text">
+        <span class="callout-arrow">→</span>
+        Timer sits right-aligned on the same line as "Warm Up". Compact, no extra vertical space used.
+      </span>
+    </div>
+
+    <div class="annotation">
+      <span class="annotation-text">
+        <strong>Pros:</strong> Compact, uses no extra space. Timer is contextually next to the title.<br>
+        <strong>Cons:</strong> Modifies WarmupChecklist. The size difference between 32px title and 16px timer might look unbalanced.
+      </span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

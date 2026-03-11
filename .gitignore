@@ -9,6 +9,7 @@ dist/
 *.mobileprovision
 *.orig.*
 web-build/
+coverage/
 .env
 ios/
 android/

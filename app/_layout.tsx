@@ -31,7 +31,7 @@ export default function RootLayout() {
         Object.keys(CUSTOM_FONTS).length > 0
           ? Font.loadAsync(CUSTOM_FONTS)
           : Promise.resolve(),
-        Asset.loadAsync(require('../assets/logo-mark.png')),
+        Asset.loadAsync(require('../assets/logo-mark-small.png')),
       ]);
 
       // Hide the native splash screen (our custom one takes over)

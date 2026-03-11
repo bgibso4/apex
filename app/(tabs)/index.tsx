@@ -194,7 +194,7 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <View style={styles.apexTitleRow}>
               <Image
-                source={require('../../assets/logo-mark.png')}
+                source={require('../../assets/logo-mark-small.png')}
                 style={styles.apexLogoMark}
                 resizeMode="contain"
               />
@@ -275,7 +275,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.apexTitleRow}>
             <Image
-              source={require('../../assets/logo-mark.png')}
+              source={require('../../assets/logo-mark-small.png')}
               style={styles.apexLogoMark}
               resizeMode="contain"
             />
@@ -409,8 +409,9 @@ const styles = StyleSheet.create({
   },
   apexTitle: {
     color: Colors.text,
-    fontSize: 38,
+    fontSize: 46,
     fontWeight: '800',
+    marginTop: -4,
     letterSpacing: 3,
   },
   gearIcon: {

@@ -106,7 +106,7 @@ export function SplashScreen({ isReady, onFinished }: SplashScreenProps) {
       <View style={styles.content}>
         <Animated.View style={[wordmarkAnimatedStyle, styles.wordmarkRow]}>
           <Image
-            source={require('../../assets/logo-mark.png')}
+            source={require('../../assets/logo-mark-small.png')}
             style={styles.logoMark}
             resizeMode="contain"
           />
@@ -147,9 +147,10 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     color: Colors.text,
-    fontSize: 52,
+    fontSize: 62,
     fontWeight: '800',
     letterSpacing: 3,
+    marginTop: -5,
   },
   creed: {
     color: Colors.textDim,

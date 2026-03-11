@@ -161,7 +161,7 @@ export function useWorkoutSession() {
               text: 'Resume',
               style: 'default',
               onPress: () => {
-                performRestore(active, session, setLogs, restoredNotes);
+                performRestore(active, session, setLogs, restoredNotes, restoredProtocols);
                 resolve();
               },
             },
@@ -173,7 +173,7 @@ export function useWorkoutSession() {
     }
 
     // Not stale — restore directly
-    performRestore(active, session, setLogs, restoredNotes);
+    performRestore(active, session, setLogs, restoredNotes, restoredProtocols);
   };
 
   /** Perform the actual state restoration from session data */
@@ -181,7 +181,8 @@ export function useWorkoutSession() {
     active: Program & { definition: ProgramDefinition },
     session: Session,
     setLogs: SetLog[],
-    restoredNotes: Record<string, string>
+    restoredNotes: Record<string, string>,
+    restoredProtocols: SessionProtocol[]
   ) => {
     const def = active.definition.program;
     const week = session.week_number;

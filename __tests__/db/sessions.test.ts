@@ -6,7 +6,9 @@ import { getDatabase, generateId } from '../../src/db/database';
 import {
   createSession,
   updateReadiness,
-  updateWarmup,
+  insertSessionProtocols,
+  getSessionProtocols,
+  updateProtocolCompletion,
   logSet,
   updateSet,
   deleteSet,
@@ -95,35 +97,74 @@ describe('sessions', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // updateWarmup
+  // insertSessionProtocols
   // ---------------------------------------------------------------------------
-  describe('updateWarmup', () => {
-    it('builds dynamic SET clause for all warmup fields', async () => {
-      await updateWarmup('sess-1', { rope: true, ankle: false, hipIr: true });
+  describe('insertSessionProtocols', () => {
+    it('inserts each protocol item with correct sort_order', async () => {
+      await insertSessionProtocols('sess-1', [
+        { type: 'warmup', protocolKey: 'rope', protocolName: 'Jump Rope' },
+        { type: 'warmup', protocolKey: 'ankle', protocolName: 'Ankle Protocol' },
+        { type: 'conditioning', protocolKey: null, protocolName: 'EMOM 10min' },
+      ]);
 
-      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
-      const [sql, params] = mockDb.runAsync.mock.calls[0];
-      expect(sql).toContain('warmup_rope = ?');
-      expect(sql).toContain('warmup_ankle = ?');
-      expect(sql).toContain('warmup_hip_ir = ?');
-      expect(sql).toContain('WHERE id = ?');
-      expect(params).toEqual([1, 0, 1, 'sess-1']);
+      expect(mockDb.runAsync).toHaveBeenCalledTimes(3);
+
+      const [sql0, params0] = mockDb.runAsync.mock.calls[0];
+      expect(sql0).toContain('INSERT INTO session_protocols');
+      expect(params0).toEqual(['sess-1', 'warmup', 'rope', 'Jump Rope', 0]);
+
+      const [, params1] = mockDb.runAsync.mock.calls[1];
+      expect(params1).toEqual(['sess-1', 'warmup', 'ankle', 'Ankle Protocol', 1]);
+
+      const [, params2] = mockDb.runAsync.mock.calls[2];
+      expect(params2).toEqual(['sess-1', 'conditioning', null, 'EMOM 10min', 2]);
     });
 
-    it('handles partial updates (only rope)', async () => {
-      await updateWarmup('sess-2', { rope: true });
-
-      const [sql, params] = mockDb.runAsync.mock.calls[0];
-      expect(sql).toContain('warmup_rope = ?');
-      expect(sql).not.toContain('warmup_ankle');
-      expect(sql).not.toContain('warmup_hip_ir');
-      expect(params).toEqual([1, 'sess-2']);
-    });
-
-    it('does nothing when warmups object is empty', async () => {
-      await updateWarmup('sess-3', {});
+    it('does nothing when protocols array is empty', async () => {
+      await insertSessionProtocols('sess-2', []);
 
       expect(mockDb.runAsync).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getSessionProtocols
+  // ---------------------------------------------------------------------------
+  describe('getSessionProtocols', () => {
+    it('queries protocols ordered by sort_order', async () => {
+      const mockProtocols = [
+        { id: 1, session_id: 'sess-1', type: 'warmup', protocol_key: 'rope', protocol_name: 'Jump Rope', completed: false, sort_order: 0 },
+      ];
+      mockDb.getAllAsync.mockResolvedValue(mockProtocols);
+
+      const result = await getSessionProtocols('sess-1');
+
+      const [sql, params] = mockDb.getAllAsync.mock.calls[0];
+      expect(sql).toContain('SELECT * FROM session_protocols');
+      expect(sql).toContain('ORDER BY sort_order');
+      expect(params).toEqual(['sess-1']);
+      expect(result).toEqual(mockProtocols);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // updateProtocolCompletion
+  // ---------------------------------------------------------------------------
+  describe('updateProtocolCompletion', () => {
+    it('sets completed = 1 when true', async () => {
+      await updateProtocolCompletion(42, true);
+
+      const [sql, params] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('UPDATE session_protocols SET completed = ?');
+      expect(sql).toContain('WHERE id = ?');
+      expect(params).toEqual([1, 42]);
+    });
+
+    it('sets completed = 0 when false', async () => {
+      await updateProtocolCompletion(42, false);
+
+      const [, params] = mockDb.runAsync.mock.calls[0];
+      expect(params).toEqual([0, 42]);
     });
   });
 
@@ -382,23 +423,15 @@ describe('sessions', () => {
   // completeSession
   // ---------------------------------------------------------------------------
   describe('completeSession', () => {
-    it('sets completed_at and conditioning_done = 1', async () => {
-      await completeSession('sess-1', true);
+    it('sets completed_at timestamp', async () => {
+      await completeSession('sess-1');
 
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
-      expect(sql).toContain('UPDATE sessions SET completed_at = ?, conditioning_done = ?');
+      expect(sql).toContain('UPDATE sessions SET completed_at = ?');
       expect(sql).toContain('WHERE id = ?');
       expect(typeof params[0]).toBe('string'); // ISO timestamp
-      expect(params[1]).toBe(1); // conditioning_done true → 1
-      expect(params[2]).toBe('sess-1');
-    });
-
-    it('sets conditioning_done = 0 when false', async () => {
-      await completeSession('sess-2', false);
-
-      const [, params] = mockDb.runAsync.mock.calls[0];
-      expect(params[1]).toBe(0);
+      expect(params[1]).toBe('sess-1');
     });
   });
 
@@ -693,7 +726,7 @@ describe('sessions', () => {
       expect(mockDb.getAllAsync).not.toHaveBeenCalled();
     });
 
-    it('returns session, set logs, and exercise notes', async () => {
+    it('returns session, set logs, exercise notes, and protocols', async () => {
       const mockSession = {
         id: 'sess-1',
         program_id: 'prog-1',
@@ -710,11 +743,15 @@ describe('sessions', () => {
         { exercise_id: 'squat', note: 'Felt strong' },
         { exercise_id: 'bench', note: 'Slight pain' },
       ];
+      const mockProtocols = [
+        { id: 1, session_id: 'sess-1', type: 'warmup', protocol_key: 'rope', protocol_name: 'Jump Rope', completed: true, sort_order: 0 },
+      ];
 
       mockDb.getFirstAsync.mockResolvedValue(mockSession);
       mockDb.getAllAsync
         .mockResolvedValueOnce(mockSetLogs)
-        .mockResolvedValueOnce(mockNoteRows);
+        .mockResolvedValueOnce(mockNoteRows)
+        .mockResolvedValueOnce(mockProtocols);
 
       const result = await getFullSessionState('sess-1');
 
@@ -725,6 +762,7 @@ describe('sessions', () => {
         squat: 'Felt strong',
         bench: 'Slight pain',
       });
+      expect(result!.protocols).toEqual(mockProtocols);
 
       // Verify queries
       const [sessionSql, sessionParams] = mockDb.getFirstAsync.mock.calls[0];
@@ -741,7 +779,7 @@ describe('sessions', () => {
       expect(notesParams).toEqual(['sess-1']);
     });
 
-    it('returns empty set logs and notes when session has none', async () => {
+    it('returns empty set logs, notes, and protocols when session has none', async () => {
       const mockSession = {
         id: 'sess-2',
         program_id: 'prog-1',
@@ -750,7 +788,8 @@ describe('sessions', () => {
       mockDb.getFirstAsync.mockResolvedValue(mockSession);
       mockDb.getAllAsync
         .mockResolvedValueOnce([])  // no set logs
-        .mockResolvedValueOnce([]); // no notes
+        .mockResolvedValueOnce([])  // no notes
+        .mockResolvedValueOnce([]); // no protocols
 
       const result = await getFullSessionState('sess-2');
 
@@ -758,6 +797,7 @@ describe('sessions', () => {
       expect(result!.session).toEqual(mockSession);
       expect(result!.setLogs).toEqual([]);
       expect(result!.exerciseNotes).toEqual({});
+      expect(result!.protocols).toEqual([]);
     });
   });
 });

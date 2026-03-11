@@ -30,7 +30,9 @@ jest.mock('../../src/db', () => ({
   deleteSet: jest.fn(),
   completeSession: jest.fn(),
   updateReadiness: jest.fn(),
-  updateWarmup: jest.fn(),
+  insertSessionProtocols: jest.fn(),
+  getSessionProtocols: jest.fn(),
+  updateProtocolCompletion: jest.fn(),
   updateSessionNotes: jest.fn(),
   getLastSessionForExercise: jest.fn(),
   calculateTargetWeight: jest.fn(),
@@ -71,7 +73,8 @@ import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
 import * as Haptics from 'expo-haptics';
 import {
   getActiveProgram, createSession, logSet, updateSet, deleteSet,
-  completeSession, updateReadiness, updateWarmup, updateSessionNotes,
+  completeSession, updateReadiness, insertSessionProtocols, getSessionProtocols, updateProtocolCompletion,
+  updateSessionNotes,
   getLastSessionForExercise, calculateTargetWeight,
   ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
   getExerciseNames, getExerciseInfo, getExerciseNotesForSession, getPRsForSession, detectPRs,
@@ -90,7 +93,9 @@ const mockedUpdateSet = updateSet as jest.Mock;
 const mockedDeleteSet = deleteSet as jest.Mock;
 const mockedCompleteSession = completeSession as jest.Mock;
 const mockedUpdateReadiness = updateReadiness as jest.Mock;
-const mockedUpdateWarmup = updateWarmup as jest.Mock;
+const mockedInsertSessionProtocols = insertSessionProtocols as jest.Mock;
+const mockedGetSessionProtocols = getSessionProtocols as jest.Mock;
+const mockedUpdateProtocolCompletion = updateProtocolCompletion as jest.Mock;
 const mockedUpdateSessionNotes = updateSessionNotes as jest.Mock;
 const mockedGetLastSessionForExercise = getLastSessionForExercise as jest.Mock;
 const mockedCalculateTargetWeight = calculateTargetWeight as jest.Mock;
@@ -136,7 +141,7 @@ function makeProgram(overrides: Record<string, unknown> = {}) {
         weekly_template: {
           monday: {
             name: 'Upper A',
-            warmup: 'default',
+            warmup: ['rope', 'ankle'],
             exercises: [
               {
                 exercise_id: 'bench_press',
@@ -152,7 +157,7 @@ function makeProgram(overrides: Record<string, unknown> = {}) {
           },
           wednesday: {
             name: 'Lower A',
-            warmup: 'default',
+            warmup: ['rope'],
             exercises: [
               {
                 exercise_id: 'squat',
@@ -199,7 +204,9 @@ function setupDefaultMocks() {
   mockedDeleteSet.mockResolvedValue(undefined);
   mockedCompleteSession.mockResolvedValue(undefined);
   mockedUpdateReadiness.mockResolvedValue(undefined);
-  mockedUpdateWarmup.mockResolvedValue(undefined);
+  mockedInsertSessionProtocols.mockResolvedValue(undefined);
+  mockedGetSessionProtocols.mockResolvedValue([]);
+  mockedUpdateProtocolCompletion.mockResolvedValue(undefined);
   mockedUpdateSessionNotes.mockResolvedValue(undefined);
   mockedGetLastSessionForExercise.mockResolvedValue([]);
   mockedCalculateTargetWeight.mockImplementation(
@@ -291,9 +298,7 @@ describe('useWorkoutSession', () => {
       expect(result.current.sleep).toBe(3);
       expect(result.current.soreness).toBe(3);
       expect(result.current.energy).toBe(3);
-      expect(result.current.warmupRope).toBe(false);
-      expect(result.current.warmupAnkle).toBe(false);
-      expect(result.current.warmupHipIr).toBe(false);
+      expect(result.current.protocols).toEqual([]);
       expect(result.current.exercises).toEqual([]);
       expect(result.current.conditioningDone).toBe(false);
       expect(result.current.overrideModal).toBeNull();
@@ -889,7 +894,7 @@ describe('useWorkoutSession', () => {
   // 15. submitWarmup
   // -----------------------------------------------------------------------
   describe('submitWarmup', () => {
-    it('calls updateWarmup with warmup state and moves to logging phase', async () => {
+    it('moves to logging phase (protocol completions are persisted on toggle)', async () => {
       const hookResult = await renderAndLoad();
 
       // Start session
@@ -897,21 +902,12 @@ describe('useWorkoutSession', () => {
         await hookResult.result.current.startSession();
       });
 
-      // Toggle warmup items
-      act(() => {
-        hookResult.result.current.toggleWarmupRope();
-        hookResult.result.current.toggleWarmupAnkle();
-      });
-
       await act(async () => {
         await hookResult.result.current.submitWarmup();
       });
 
-      expect(mockedUpdateWarmup).toHaveBeenCalledWith('session-1', {
-        rope: true,
-        ankle: true,
-        hipIr: false,
-      });
+      // submitWarmup just sets phase to logging; protocol completions
+      // are already persisted individually via toggleProtocol
       expect(hookResult.result.current.phase).toBe('logging');
     });
   });
@@ -1145,26 +1141,10 @@ describe('useWorkoutSession', () => {
         await hookResult.result.current.finishSession();
       });
 
-      expect(mockedCompleteSession).toHaveBeenCalledWith('session-1', false);
+      expect(mockedCompleteSession).toHaveBeenCalledWith('session-1');
       expect(mockedDetectPRs).toHaveBeenCalled();
       expect(Haptics.notificationAsync).toHaveBeenCalledWith(Haptics.NotificationFeedbackType.Success);
       expect(hookResult.result.current.phase).toBe('complete');
-    });
-
-    it('passes conditioningDone flag to completeSession', async () => {
-      const hookResult = await setupWithSession();
-      mockedGetSetLogsForSession.mockResolvedValue([]);
-      mockedDetectPRs.mockResolvedValue([]);
-
-      act(() => {
-        hookResult.result.current.setConditioningDone(true);
-      });
-
-      await act(async () => {
-        await hookResult.result.current.finishSession();
-      });
-
-      expect(mockedCompleteSession).toHaveBeenCalledWith('session-1', true);
     });
 
     it('does nothing without a sessionId', async () => {
@@ -1224,42 +1204,43 @@ describe('useWorkoutSession', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 23. Warmup toggles
+  // 23. Protocol toggles
   // -----------------------------------------------------------------------
-  describe('warmup toggles', () => {
-    it('toggleWarmupRope toggles rope state', async () => {
-      const hookResult = await renderAndLoad();
-      expect(hookResult.result.current.warmupRope).toBe(false);
+  describe('protocol toggles', () => {
+    it('toggleProtocol calls updateProtocolCompletion and updates local state', async () => {
+      const mockProtocols = [
+        { id: 1, session_id: 'session-1', type: 'warmup', protocol_key: 'rope', protocol_name: 'Jump Rope', completed: false, sort_order: 0 },
+        { id: 2, session_id: 'session-1', type: 'warmup', protocol_key: 'ankle', protocol_name: 'Ankle Protocol', completed: false, sort_order: 1 },
+      ];
+      setupDefaultMocks();
+      mockedGetSessionProtocols.mockResolvedValue(mockProtocols);
 
-      act(() => {
-        hookResult.result.current.toggleWarmupRope();
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
       });
-      expect(hookResult.result.current.warmupRope).toBe(true);
 
-      act(() => {
-        hookResult.result.current.toggleWarmupRope();
+      // Start session to populate protocols
+      await act(async () => {
+        await hookResult.result.current.startSession();
       });
-      expect(hookResult.result.current.warmupRope).toBe(false);
+
+      // Verify protocols are populated
+      expect(hookResult.result.current.protocols).toHaveLength(2);
+      expect(hookResult.result.current.protocols[0].completed).toBe(false);
+
+      // Toggle first protocol
+      await act(async () => {
+        await hookResult.result.current.toggleProtocol(1);
+      });
+
+      expect(mockedUpdateProtocolCompletion).toHaveBeenCalledWith(1, true);
+      expect(hookResult.result.current.protocols[0].completed).toBe(true);
     });
 
-    it('toggleWarmupAnkle toggles ankle state', async () => {
+    it('protocols array is empty when no protocols exist', async () => {
       const hookResult = await renderAndLoad();
-      expect(hookResult.result.current.warmupAnkle).toBe(false);
-
-      act(() => {
-        hookResult.result.current.toggleWarmupAnkle();
-      });
-      expect(hookResult.result.current.warmupAnkle).toBe(true);
-    });
-
-    it('toggleWarmupHipIr toggles hip IR state', async () => {
-      const hookResult = await renderAndLoad();
-      expect(hookResult.result.current.warmupHipIr).toBe(false);
-
-      act(() => {
-        hookResult.result.current.toggleWarmupHipIr();
-      });
-      expect(hookResult.result.current.warmupHipIr).toBe(true);
+      expect(hookResult.result.current.protocols).toEqual([]);
     });
   });
 
@@ -1317,10 +1298,6 @@ describe('useWorkoutSession', () => {
         sleep: 4,
         soreness: 2,
         energy: 5,
-        warmup_rope: true,
-        warmup_ankle: false,
-        warmup_hip_ir: true,
-        conditioning_done: false,
         notes: 'Feeling strong',
         started_at: new Date().toISOString(),
         ...overrides,
@@ -1331,8 +1308,9 @@ describe('useWorkoutSession', () => {
       session: ReturnType<typeof makeInProgressSession>,
       setLogs: Array<Record<string, unknown>> = [],
       exerciseNotes: Record<string, string> = {},
+      protocols: Array<Record<string, unknown>> = [],
     ) {
-      return { session, setLogs, exerciseNotes };
+      return { session, setLogs, exerciseNotes, protocols };
     }
 
     it('restores session with logged sets — phase is logging and exercises are rebuilt', async () => {
@@ -1458,7 +1436,7 @@ describe('useWorkoutSession', () => {
 
       // Should transition to complete phase
       expect(result.current.phase).toBe('complete');
-      expect(mockedCompleteSession).toHaveBeenCalledWith('session-1', false);
+      expect(mockedCompleteSession).toHaveBeenCalledWith('session-1');
     });
 
     it('works even with no sets logged (from warmup → logging)', async () => {

@@ -1,28 +1,19 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
+import type { SessionProtocol } from '../types';
 
 export interface WarmupChecklistProps {
-  warmupRope: boolean;
-  warmupAnkle: boolean;
-  warmupHipIr: boolean;
-  blockColor: string;
-  onToggleRope: () => void;
-  onToggleAnkle: () => void;
-  onToggleHipIr: () => void;
+  protocols: SessionProtocol[];
+  onToggle: (protocolId: number) => void;
   onContinue: () => void;
   timer?: string;
 }
 
 export function WarmupChecklist({
-  warmupRope, warmupAnkle, warmupHipIr, blockColor,
-  onToggleRope, onToggleAnkle, onToggleHipIr, onContinue, timer,
+  protocols, onToggle, onContinue, timer,
 }: WarmupChecklistProps) {
-  const items = [
-    { label: 'Jump Rope \u2014 3 min', value: warmupRope, toggle: onToggleRope },
-    { label: 'Ankle Dorsiflexion Protocol', value: warmupAnkle, toggle: onToggleAnkle },
-    { label: 'Hip IR Mobility Work', value: warmupHipIr, toggle: onToggleHipIr },
-  ];
+  const warmupProtocols = protocols.filter(p => p.type === 'warmup');
 
   return (
     <View style={styles.container}>
@@ -33,29 +24,29 @@ export function WarmupChecklist({
         )}
       </View>
       <View style={styles.items}>
-        {items.map(({ label, value, toggle }) => (
+        {warmupProtocols.map((protocol) => (
           <TouchableOpacity
-            key={label}
+            key={protocol.id}
             style={[
               styles.warmupItem,
-              value && styles.warmupItemChecked,
+              protocol.completed && styles.warmupItemChecked,
             ]}
             onPress={() => {
-              toggle();
+              onToggle(protocol.id);
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
             activeOpacity={0.7}
           >
             <View style={[
               styles.warmupCheck,
-              value && styles.warmupCheckChecked,
+              protocol.completed && styles.warmupCheckChecked,
             ]}>
-              {value && <Text style={styles.warmupCheckText}>{'\u2713'}</Text>}
+              {protocol.completed && <Text style={styles.warmupCheckText}>{'\u2713'}</Text>}
             </View>
             <Text style={[
               styles.warmupLabel,
-              value && styles.warmupLabelChecked,
-            ]}>{label}</Text>
+              protocol.completed && styles.warmupLabelChecked,
+            ]}>{protocol.protocol_name}</Text>
           </TouchableOpacity>
         ))}
       </View>

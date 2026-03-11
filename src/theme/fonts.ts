@@ -1,18 +1,20 @@
 /**
  * APEX Design System -- Font Tokens
  *
- * To add a custom font for the APEX wordmark:
- * 1. Drop the .ttf file into assets/fonts/
- * 2. Update APEX_FONT_FAMILY to match the font's PostScript name
- * 3. Add the file to CUSTOM_FONTS map below
+ * To swap the APEX wordmark font, change APEX_FONT_FAMILY below.
+ * Available options: 'Orbitron-ExtraBold', 'Anton-Regular', 'Oswald-Bold', 'BarlowCondensed-ExtraBold', 'System'
  */
 
 /** Font family for the APEX wordmark. 'System' = platform default. */
-export const APEX_FONT_FAMILY = 'System';
+export const APEX_FONT_FAMILY: string = 'Orbitron-ExtraBold';
 
 /**
  * Custom fonts to load via expo-font.
  * Key = font name used in styles, Value = require() path.
- * Leave empty until a custom font is added.
  */
-export const CUSTOM_FONTS: Record<string, any> = {};
+export const CUSTOM_FONTS: Record<string, any> = {
+  'Orbitron-ExtraBold': require('../../assets/fonts/Orbitron-ExtraBold.ttf'),
+  'Anton-Regular': require('../../assets/fonts/Anton-Regular.ttf'),
+  'Oswald-Bold': require('../../assets/fonts/Oswald-Bold.ttf'),
+  'BarlowCondensed-ExtraBold': require('../../assets/fonts/BarlowCondensed-ExtraBold.ttf'),
+};

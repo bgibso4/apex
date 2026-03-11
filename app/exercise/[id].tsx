@@ -1,7 +1,8 @@
 /**
  * APEX — Exercise Detail Screen
- * Shows 1RM trend chart with block bands, time range chips,
- * current estimated 1RM, and compact session history rows.
+ * Shows metric trend chart with block bands, time range chips,
+ * primary metric hero card, and compact session history rows.
+ * Adapts display based on exercise type (weight+reps, duration, distance+time, etc.).
  * Navigated from Progress screen lift cards.
  */
 
@@ -14,11 +15,16 @@ import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../sr
 import {
   getEstimated1RM,
   get1RMHistoryWithBlocks,
-  getExerciseSetHistoryWithBlocks,
   getExerciseSessionCount,
   getActiveProgram,
+  getExercisePrimaryMetric,
+  getMetricHistory,
+  getGenericExerciseSetHistory,
+  getExerciseInfo,
+  calculateEpley,
 } from '../../src/db';
-import type { Estimated1RM, E1RMHistoryPoint, SessionSetHistory } from '../../src/db';
+import type { E1RMHistoryPoint, ExercisePrimaryMetric, MetricHistoryPoint, GenericSessionSetHistory } from '../../src/db';
+import { getFieldsForExercise, supportsE1RM, InputField } from '../../src/types/fields';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import { getBlockColorMap, buildBands, getBlockColorOpaque } from '../../src/utils/blockColors';
 import { getDeltaExcludingDeload } from '../../src/utils/deltaCalculation';
@@ -32,9 +38,16 @@ const TIME_RANGE_LABELS: [TimeRange, string][] = [
   ['all', 'All'],
 ];
 
-function generateYLabels(history: E1RMHistoryPoint[]): string[] {
-  if (history.length === 0) return [];
-  const values = history.map(h => h.e1rm);
+/** Unified chart data point — works for both e1RM history and generic metric history */
+interface ChartPoint {
+  date: string;
+  value: number;
+  blockName: string;
+}
+
+function generateYLabels(points: ChartPoint[]): string[] {
+  if (points.length === 0) return [];
+  const values = points.map(h => h.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   if (min === max) return [String(Math.round(min))];
@@ -66,24 +79,79 @@ function getStartDate(range: TimeRange, activatedDate?: string): string | undefi
   }
 }
 
+/** Format seconds as m:ss */
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.round(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+/** Format a metric value for display */
+function formatMetricValue(value: number, unit?: string): string {
+  if (unit === 'sec') {
+    return formatTime(value);
+  }
+  return String(Math.round(value));
+}
+
+/** Get chart config for a given exercise type */
+function getChartConfig(fields: InputField[]): {
+  column: string;
+  agg: 'MAX' | 'MIN';
+  title: string;
+} | null {
+  const types = fields.map(f => f.type);
+
+  if (types.includes('duration')) {
+    return { column: 'actual_duration', agg: 'MAX', title: 'Duration Progression' };
+  }
+  if (types.includes('time')) {
+    return { column: 'actual_time', agg: 'MIN', title: 'Time Progression' };
+  }
+  if (types.includes('reps') && !types.includes('weight')) {
+    return { column: 'actual_reps', agg: 'MAX', title: 'Reps Progression' };
+  }
+  if (types.includes('distance')) {
+    return { column: 'actual_distance', agg: 'MAX', title: 'Distance Progression' };
+  }
+  return null;
+}
+
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
   const [timeRange, setTimeRange] = useState<TimeRange>('program');
-  const [e1rm, setE1rm] = useState<Estimated1RM | null>(null);
-  const [history, setHistory] = useState<E1RMHistoryPoint[]>([]);
-  const [recentSessions, setRecentSessions] = useState<SessionSetHistory[]>([]);
+  const [primaryMetric, setPrimaryMetric] = useState<ExercisePrimaryMetric | null>(null);
+  const [chartHistory, setChartHistory] = useState<ChartPoint[]>([]);
+  const [chartTitle, setChartTitle] = useState('1RM Progression');
+  const [recentSessions, setRecentSessions] = useState<GenericSessionSetHistory[]>([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [showCount, setShowCount] = useState(5);
   const [activatedDate, setActivatedDate] = useState<string | undefined>();
   const [blocks, setBlocks] = useState<{ name: string }[]>([]);
+  const [exerciseName, setExerciseName] = useState<string>('');
+  const [exerciseFields, setExerciseFields] = useState<InputField[]>([]);
+  const [isE1RMExercise, setIsE1RMExercise] = useState(true);
 
   const loadData = useCallback(async () => {
     if (!id) return;
 
-    // Load program info first (needed for date calculation)
-    const program = await getActiveProgram();
+    // Load exercise info and program info in parallel
+    const [exerciseInfoMap, program] = await Promise.all([
+      getExerciseInfo([id]),
+      getActiveProgram(),
+    ]);
+
+    const info = exerciseInfoMap[id];
+    const name = info?.name ?? id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    setExerciseName(name);
+
+    const fields = getFieldsForExercise(info?.inputFields ?? null);
+    setExerciseFields(fields);
+    const isE1RM = supportsE1RM(fields);
+    setIsE1RMExercise(isE1RM);
+
     const progId = program?.id;
     const actDate = program?.activated_date;
     const progBlocks = program?.definition?.program?.blocks ?? [];
@@ -93,30 +161,52 @@ export default function ExerciseDetailScreen() {
     const startDate = getStartDate(timeRange, actDate);
     const filterProgramId = timeRange === 'program' ? progId : undefined;
 
-    const [rm, hist, sets, count] = await Promise.all([
-      getEstimated1RM(id),
-      get1RMHistoryWithBlocks(id, { startDate, programId: filterProgramId }),
-      getExerciseSetHistoryWithBlocks(id, { startDate, programId: filterProgramId, limit: showCount }),
+    // Load primary metric
+    const metric = await getExercisePrimaryMetric(id, info?.inputFields ?? null);
+    setPrimaryMetric(metric);
+
+    // Load chart history based on type
+    if (isE1RM) {
+      setChartTitle('1RM Progression');
+      const hist = await get1RMHistoryWithBlocks(id, { startDate, programId: filterProgramId });
+      setChartHistory(hist.map(h => ({ date: h.date, value: h.e1rm, blockName: h.blockName })));
+    } else {
+      const config = getChartConfig(fields);
+      if (config) {
+        setChartTitle(config.title);
+        const hist = await getMetricHistory(id, config.column, config.agg, {
+          startDate,
+          programId: filterProgramId,
+        });
+        setChartHistory(hist);
+      } else {
+        setChartTitle('Progression');
+        setChartHistory([]);
+      }
+    }
+
+    // Load session history and count
+    const [sets, count] = await Promise.all([
+      getGenericExerciseSetHistory(id, { startDate, programId: filterProgramId, limit: showCount }),
       getExerciseSessionCount(id, { startDate, programId: filterProgramId }),
     ]);
-    setE1rm(rm);
-    setHistory(hist);
     setRecentSessions(sets);
     setTotalSessions(count);
   }, [id, timeRange, showCount]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
-  const delta = getDeltaExcludingDeload(history);
-
-  const exerciseName = e1rm?.exercise_name ?? id?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ?? 'Exercise';
+  // Delta only makes sense for e1RM exercises with the e1rm history format
+  const delta = isE1RMExercise
+    ? getDeltaExcludingDeload(chartHistory.map(p => ({ date: p.date, e1rm: p.value, blockName: p.blockName })))
+    : null;
 
   const colorMap = useMemo(
     () => getBlockColorMap(blocks as { name: string; weeks: number[]; main_lift_scheme: any }[]),
     [blocks]
   );
-  const bands = useMemo(() => buildBands(history, colorMap), [history, colorMap]);
-  const yLabels = useMemo(() => generateYLabels(history), [history]);
+  const bands = useMemo(() => buildBands(chartHistory.map(p => ({ date: p.date, e1rm: p.value, blockName: p.blockName })), colorMap), [chartHistory, colorMap]);
+  const yLabels = useMemo(() => generateYLabels(chartHistory), [chartHistory]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T12:00:00');
@@ -131,13 +221,69 @@ export default function ExerciseDetailScreen() {
     return `${months[d.getMonth()]} ${d.getDate()}`;
   };
 
-  const formatSessionSummary = (session: SessionSetHistory) => {
+  const formatSessionSummary = (session: GenericSessionSetHistory) => {
     if (session.sets.length === 0) return '';
     const first = session.sets[0];
-    return `${first.weight} \u00D7 ${first.reps} \u00D7 ${session.sets.length} sets`;
+    const types = exerciseFields.map(f => f.type);
+
+    if (types.includes('weight') && types.includes('reps')) {
+      return `${first.weight} \u00D7 ${first.reps} \u00D7 ${session.sets.length} sets`;
+    }
+    if (types.includes('duration')) {
+      return `${formatTime(first.duration ?? 0)} \u00D7 ${session.sets.length} sets`;
+    }
+    if (types.includes('distance') && types.includes('time')) {
+      return `${first.distance}m in ${formatTime(first.time ?? 0)} \u00D7 ${session.sets.length} sets`;
+    }
+    if (types.includes('reps') && !types.includes('weight')) {
+      return `${first.reps} reps \u00D7 ${session.sets.length} sets`;
+    }
+    if (types.includes('distance')) {
+      return `${first.distance}m \u00D7 ${session.sets.length} sets`;
+    }
+    // Fallback
+    return `${session.sets.length} sets`;
+  };
+
+  /** Get per-session metric value for session history rows */
+  const getSessionMetricValue = (session: GenericSessionSetHistory): string | null => {
+    const types = exerciseFields.map(f => f.type);
+
+    if (types.includes('weight') && types.includes('reps')) {
+      // Calculate best e1RM for the session
+      let bestE1rm = 0;
+      for (const set of session.sets) {
+        if (set.weight && set.reps) {
+          const e1rm = calculateEpley(set.weight, set.reps);
+          if (e1rm > bestE1rm) bestE1rm = e1rm;
+        }
+      }
+      return bestE1rm > 0 ? String(Math.round(bestE1rm)) : null;
+    }
+    if (types.includes('duration')) {
+      const best = Math.max(...session.sets.map(s => s.duration ?? 0));
+      return best > 0 ? formatTime(best) : null;
+    }
+    if (types.includes('time')) {
+      const best = Math.min(...session.sets.filter(s => s.time != null && s.time > 0).map(s => s.time!));
+      return isFinite(best) ? formatTime(best) : null;
+    }
+    if (types.includes('reps') && !types.includes('weight')) {
+      const best = Math.max(...session.sets.map(s => s.reps ?? 0));
+      return best > 0 ? String(best) : null;
+    }
+    return null;
   };
 
   const isDeload = (blockName: string) => /deload/i.test(blockName);
+
+  // Format the hero value for display
+  const heroDisplayValue = primaryMetric
+    ? formatMetricValue(primaryMetric.value, primaryMetric.unit)
+    : '\u2014';
+
+  // For e1RM we show "lbs", for time-based we don't show unit (it's in the formatted value)
+  const showHeroUnit = primaryMetric && primaryMetric.unit !== 'sec';
 
   return (
     <View style={styles.container}>
@@ -150,22 +296,20 @@ export default function ExerciseDetailScreen() {
           <Text style={styles.headerTitle}>{exerciseName}</Text>
         </View>
 
-        {/* Current 1RM Hero */}
+        {/* Primary Metric Hero */}
         <View style={styles.heroCard}>
-          <Text style={styles.heroLabel}>Estimated 1RM</Text>
+          <Text style={styles.heroLabel}>{primaryMetric?.label ?? 'No Data'}</Text>
           <View style={styles.heroRow}>
-            <Text style={styles.heroValue}>{e1rm ? `${e1rm.value}` : '\u2014'}</Text>
-            {e1rm && <Text style={styles.heroUnit}>lbs</Text>}
+            <Text style={styles.heroValue}>{heroDisplayValue}</Text>
+            {showHeroUnit && <Text style={styles.heroUnit}>{primaryMetric!.unit}</Text>}
             {delta != null && delta !== 0 && (
               <Text style={[styles.heroDelta, delta > 0 && styles.heroDeltaUp]}>
                 {delta > 0 ? '\u2191 +' : '\u2193 '}{delta} lbs
               </Text>
             )}
           </View>
-          {e1rm && (
-            <Text style={styles.heroDetail}>
-              Based on {e1rm.from_weight} {'\u00D7'} {e1rm.from_reps} on {formatDate(e1rm.date)}
-            </Text>
+          {primaryMetric?.detail && (
+            <Text style={styles.heroDetail}>{primaryMetric.detail}</Text>
           )}
         </View>
 
@@ -184,9 +328,9 @@ export default function ExerciseDetailScreen() {
           ))}
         </View>
 
-        {/* 1RM Trend Chart */}
+        {/* Metric Trend Chart */}
         <View style={styles.chartCard}>
-          <Text style={styles.cardTitle}>1RM Progression</Text>
+          <Text style={styles.cardTitle}>{chartTitle}</Text>
           {bands.length > 0 && (
             <View style={styles.bandLabelRow}>
               {bands.map((band, i) => (
@@ -206,22 +350,22 @@ export default function ExerciseDetailScreen() {
               ))}
             </View>
           )}
-          {history.length >= 2 ? (
+          {chartHistory.length >= 2 ? (
             <TrendLineChart
               lines={[{
-                data: history.map(h => ({ value: h.e1rm })),
+                data: chartHistory.map(h => ({ value: h.value })),
                 color: Colors.indigo,
               }]}
               height={140}
               viewBoxHeight={100}
               areaOpacity={0.1}
               xLabels={(() => {
-                if (history.length <= 3) return history.map(h => formatShortDate(h.date));
-                const mid = Math.floor(history.length / 2);
+                if (chartHistory.length <= 3) return chartHistory.map(h => formatShortDate(h.date));
+                const mid = Math.floor(chartHistory.length / 2);
                 return [
-                  formatShortDate(history[0].date),
-                  formatShortDate(history[mid].date),
-                  formatShortDate(history[history.length - 1].date),
+                  formatShortDate(chartHistory[0].date),
+                  formatShortDate(chartHistory[mid].date),
+                  formatShortDate(chartHistory[chartHistory.length - 1].date),
                 ];
               })()}
               yLabels={yLabels}
@@ -231,7 +375,7 @@ export default function ExerciseDetailScreen() {
           ) : (
             <View style={styles.chartEmpty}>
               <Text style={styles.chartEmptyText}>
-                {history.length === 0
+                {chartHistory.length === 0
                   ? 'No sessions in this time range'
                   : 'Need at least 2 sessions for a chart'}
               </Text>
@@ -243,24 +387,29 @@ export default function ExerciseDetailScreen() {
         <Text style={styles.sectionLabel}>Recent Sessions</Text>
         {recentSessions.length > 0 ? (
           <View style={styles.sessionsCard}>
-            {recentSessions.map((session, si) => (
-              <View key={si}>
-                {si > 0 && <View style={styles.sessionDivider} />}
-                <View style={styles.sessionRow}>
-                  <View style={styles.sessionLeft}>
-                    <Text style={styles.sessionDate}>{formatCompactDate(session.date)}</Text>
-                    {isDeload(session.blockName) && (
-                      <Text style={styles.deloadTag}>(deload)</Text>
+            {recentSessions.map((session, si) => {
+              const metricValue = getSessionMetricValue(session);
+              return (
+                <View key={si}>
+                  {si > 0 && <View style={styles.sessionDivider} />}
+                  <View style={styles.sessionRow}>
+                    <View style={styles.sessionLeft}>
+                      <Text style={styles.sessionDate}>{formatCompactDate(session.date)}</Text>
+                      {isDeload(session.blockName) && (
+                        <Text style={styles.deloadTag}>(deload)</Text>
+                      )}
+                    </View>
+                    <Text style={styles.sessionSummary}>{formatSessionSummary(session)}</Text>
+                    {metricValue && (
+                      <Text style={styles.sessionE1rm}>{metricValue}</Text>
+                    )}
+                    {session.avgRpe != null && (
+                      <Text style={styles.sessionRpe}>RPE {session.avgRpe.toFixed(1)}</Text>
                     )}
                   </View>
-                  <Text style={styles.sessionSummary}>{formatSessionSummary(session)}</Text>
-                  <Text style={styles.sessionE1rm}>{Math.round(session.sessionE1rm)}</Text>
-                  {session.avgRpe != null && (
-                    <Text style={styles.sessionRpe}>RPE {session.avgRpe.toFixed(1)}</Text>
-                  )}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         ) : (
           <View style={styles.emptyState}>
@@ -484,7 +633,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSize.sm,
     fontWeight: '700',
-    width: 40,
+    width: 48,
     textAlign: 'right',
   },
   sessionRpe: {

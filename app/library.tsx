@@ -8,7 +8,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
-import { getAllPrograms, importProgram, refreshBundledProgram, getActiveProgram } from '../src/db';
+import { getAllPrograms, importProgram, getActiveProgram } from '../src/db';
 import { getBlockColor } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
 
@@ -27,15 +27,11 @@ export default function LibraryScreen() {
     const active = await getActiveProgram();
     setHasActive(!!active);
 
-    const bundled = FA_V2 as unknown as ProgramDefinition;
+    // Auto-import bundled program if nothing exists
     if (all.length === 0) {
-      // Auto-import bundled program if nothing exists
-      await importProgram(bundled);
+      await importProgram(FA_V2 as unknown as ProgramDefinition);
       const refreshed = await getAllPrograms();
       setPrograms(refreshed);
-    } else {
-      // Refresh definition + exercise metadata for bundled program (picks up input_fields changes etc.)
-      await refreshBundledProgram(bundled);
     }
   }, []);
 

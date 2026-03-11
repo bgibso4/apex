@@ -14,7 +14,4 @@ export const APEX_FONT_FAMILY: string = 'Orbitron-ExtraBold';
  */
 export const CUSTOM_FONTS: Record<string, any> = {
   'Orbitron-ExtraBold': require('../../assets/fonts/Orbitron-ExtraBold.ttf'),
-  'Anton-Regular': require('../../assets/fonts/Anton-Regular.ttf'),
-  'Oswald-Bold': require('../../assets/fonts/Oswald-Bold.ttf'),
-  'BarlowCondensed-ExtraBold': require('../../assets/fonts/BarlowCondensed-ExtraBold.ttf'),
 };

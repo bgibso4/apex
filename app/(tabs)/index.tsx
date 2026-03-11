@@ -410,7 +410,6 @@ const styles = StyleSheet.create({
   apexTitle: {
     color: Colors.text,
     fontSize: 46,
-    fontWeight: '800',
     marginTop: -4,
     letterSpacing: 3,
   },

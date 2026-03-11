@@ -10,6 +10,7 @@ import {
   InputField,
   FieldType,
 } from '../../src/types/fields';
+import { EXERCISE_LIBRARY } from '../../src/data/exercise-library';
 
 describe('FIELD_PROFILES', () => {
   it('weight_reps has weight and reps fields', () => {
@@ -139,5 +140,58 @@ describe('supportsE1RM', () => {
 
   it('returns false for distance_time', () => {
     expect(supportsE1RM(FIELD_PROFILES.distance_time)).toBe(false);
+  });
+});
+
+// ── Exercise Library integration with InputFields ──
+
+describe('Exercise library inputFields integration', () => {
+  it('bodyweight exercises have reps-only inputFields', () => {
+    const bodyweightIds = ['push_ups', 'pull_ups', 'dips', 'broad_jump'];
+    for (const id of bodyweightIds) {
+      const ex = EXERCISE_LIBRARY.find(e => e.id === id);
+      expect(ex).toBeDefined();
+      expect(ex!.inputFields).toEqual([{ type: 'reps' }]);
+    }
+  });
+
+  it('weighted pull-up does NOT have inputFields (defaults to weight+reps)', () => {
+    const ex = EXERCISE_LIBRARY.find(e => e.id === 'weighted_pullup');
+    expect(ex).toBeDefined();
+    expect(ex!.inputFields).toBeUndefined();
+  });
+
+  it('plank has duration inputFields', () => {
+    const ex = EXERCISE_LIBRARY.find(e => e.id === 'plank');
+    expect(ex).toBeDefined();
+    expect(ex!.inputFields).toEqual([{ type: 'duration', unit: 'sec' }]);
+  });
+
+  it('core bodyweight exercises have reps-only inputFields', () => {
+    const coreBodyweight = ['hanging_leg_raise', 'ab_wheel', 'russian_twist', 'dead_bug'];
+    for (const id of coreBodyweight) {
+      const ex = EXERCISE_LIBRARY.find(e => e.id === id);
+      expect(ex).toBeDefined();
+      expect(ex!.inputFields).toEqual([{ type: 'reps' }]);
+    }
+  });
+
+  it('main/accessory exercises without inputFields default to weight+reps via getFieldsForExercise', () => {
+    const standardExercises = ['bench_press', 'back_squat', 'barbell_row', 'overhead_press'];
+    for (const id of standardExercises) {
+      const ex = EXERCISE_LIBRARY.find(e => e.id === id);
+      expect(ex).toBeDefined();
+      expect(ex!.inputFields).toBeUndefined();
+      // getFieldsForExercise returns weight+reps default for undefined
+      const fields = getFieldsForExercise(ex!.inputFields);
+      expect(fields).toEqual(FIELD_PROFILES.weight_reps);
+    }
+  });
+
+  it('exercises with inputFields are returned as-is by getFieldsForExercise', () => {
+    const ex = EXERCISE_LIBRARY.find(e => e.id === 'plank');
+    expect(ex).toBeDefined();
+    const fields = getFieldsForExercise(ex!.inputFields);
+    expect(fields).toEqual([{ type: 'duration', unit: 'sec' }]);
   });
 });

@@ -204,7 +204,7 @@ export function useWorkoutSession() {
       if (!target) continue;
 
       const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
-      const reps = typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
+      const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;
       if (target.percent && orm[slot.exercise_id]) {
@@ -429,7 +429,7 @@ export function useWorkoutSession() {
         muscleGroups: exerciseDef?.muscle_groups ?? [],
       });
 
-      const reps = typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
+      const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;
       if (target.percent && oneRmValues[slot.exercise_id]) {

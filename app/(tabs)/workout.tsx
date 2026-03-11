@@ -215,7 +215,7 @@ export default function WorkoutScreen() {
                   <View key={i} style={styles.previewExerciseRow}>
                     <Text style={styles.previewExerciseName}>{ex.exercise_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
                     <Text style={styles.previewExerciseDetail}>
-                      {target ? `${target.sets} \u00D7 ${target.reps}` : ''}
+                      {target ? `${target.sets}${target.reps != null ? ` \u00D7 ${target.reps}` : ''}` : ''}
                     </Text>
                   </View>
                 );

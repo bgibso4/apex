@@ -1008,13 +1008,20 @@ const styles = StyleSheet.create({
   swipeActions: {
     flexDirection: 'row',
     alignItems: 'stretch',
+    backgroundColor: Colors.card,
+    borderTopRightRadius: BorderRadius.md,
+    borderBottomRightRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderColor: Colors.border,
   },
   swipeActionEdit: {
-    width: 76,
-    backgroundColor: Colors.surface,
+    width: 72,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 4,
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.border,
   },
   swipeActionEditText: {
     color: Colors.textSecondary,
@@ -1022,11 +1029,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   swipeActionDelete: {
-    width: 76,
-    backgroundColor: Colors.redMuted,
+    width: 72,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 4,
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.border,
   },
   swipeActionDeleteText: {
     color: Colors.red,

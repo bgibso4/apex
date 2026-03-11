@@ -1,4 +1,4 @@
-export { getDatabase, generateId, clearAllData, closeDatabase } from './database';
+export { getDatabase, generateId, clearAllData, clearSampleData, closeDatabase } from './database';
 export { exportDatabase, importDatabase, getLastExportTimestamp, shouldShowBackupReminder } from './backup';
 export { getActiveProgram, getAllPrograms, importProgram, activateProgram, getOneRmValues, stopProgram } from './programs';
 export {
@@ -12,7 +12,7 @@ export {
 export { calculateEpley, getEstimated1RM, get1RMHistory, get1RMHistoryWithBlocks, getWeeklyVolume, calculateTargetWeight, getExerciseSetHistory, getExerciseSetHistoryWithBlocks, getExerciseSessionCount, getTrainingConsistency, getAllTimeConsistency, getProtocolConsistency, getPlannedWeeklyVolume, getLoggedExercises, getProgramBoundaries } from './metrics';
 export type { E1RMHistoryPoint, SessionSetHistory, WeekConsistency, ProgramConsistency, ProtocolItem, PlannedWeekVolume, LoggedExercise, ProgramBoundary } from './metrics';
 export type { Estimated1RM } from '../types/training';
-export { logRun, getRunLogs, getPainTrend, getRunStats, updateRunPain24h, getPendingPainFollowUp } from './runs';
+export { logRun, getRunLogs, getPainTrend, getRunStats, updateRunPain24h, getPendingPainFollowUp, deleteRun, updateRun } from './runs';
 export { saveExerciseNote, getExerciseNotesForSession, deleteExerciseNote } from './notes';
 export { detectPRs, getPRsForSession, deletePRsForSession, PR_REP_COUNTS } from './personal-records';
 export type { PRRecord } from './personal-records';

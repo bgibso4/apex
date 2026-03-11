@@ -4,14 +4,16 @@
  * Tabs: Log | Trends
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput, Switch,
-  StyleSheet, RefreshControl, KeyboardAvoidingView, Platform
+  StyleSheet, RefreshControl, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { Swipeable } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { getRunLogs, logRun, getPainTrend, getRunStats } from '../../src/db';
+import { getRunLogs, logRun, getPainTrend, getRunStats, deleteRun, updateRun } from '../../src/db';
 import { getLocalDateString } from '../../src/utils/date';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import type { RunLog } from '../../src/types';
@@ -51,6 +53,9 @@ export default function RunningScreen() {
   const [stats, setStats] = useState<RunStats | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Edit mode
+  const [editingRun, setEditingRun] = useState<RunLog | null>(null);
+
   // New run form
   const [duration, setDuration] = useState('');
   const [distance, setDistance] = useState('');
@@ -82,14 +87,25 @@ export default function RunningScreen() {
 
     const dist = parseFloat(distance);
 
-    await logRun({
-      date: getLocalDateString(),
-      durationMin: durMin,
-      distance: !isNaN(dist) && dist > 0 ? dist : undefined,
-      painLevel: pain,
-      notes: notes || undefined,
-      includedPickups: pickups,
-    });
+    if (editingRun) {
+      await updateRun(editingRun.id, {
+        durationMin: durMin,
+        distance: !isNaN(dist) && dist > 0 ? dist : undefined,
+        painLevel: pain,
+        notes: notes || undefined,
+        includedPickups: pickups,
+      });
+      setEditingRun(null);
+    } else {
+      await logRun({
+        date: getLocalDateString(),
+        durationMin: durMin,
+        distance: !isNaN(dist) && dist > 0 ? dist : undefined,
+        painLevel: pain,
+        notes: notes || undefined,
+        includedPickups: pickups,
+      });
+    }
 
     setDuration('');
     setDistance('');
@@ -98,6 +114,44 @@ export default function RunningScreen() {
     setShowNotes(false);
     setPickups(false);
     await loadData();
+  };
+
+  const cancelEdit = () => {
+    setEditingRun(null);
+    setDuration('');
+    setDistance('');
+    setPain(0);
+    setNotes('');
+    setShowNotes(false);
+    setPickups(false);
+  };
+
+  const startEdit = (run: RunLog) => {
+    setEditingRun(run);
+    setDuration(String(run.duration_min));
+    setDistance(run.distance != null && run.distance > 0 ? String(run.distance) : '');
+    setPain(run.pain_level);
+    setNotes(run.notes ?? '');
+    setShowNotes(!!run.notes);
+    setPickups(!!run.included_pickups);
+  };
+
+  const handleDelete = (run: RunLog) => {
+    Alert.alert(
+      'Delete Run',
+      'This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteRun(run.id);
+            await loadData();
+          },
+        },
+      ]
+    );
   };
 
   // Calculate pace
@@ -168,6 +222,10 @@ export default function RunningScreen() {
             runLogs={runLogs}
             getPainBadgeStyle={getPainBadgeStyle}
             formatPace={formatPace}
+            editingRun={editingRun}
+            cancelEdit={cancelEdit}
+            startEdit={startEdit}
+            handleDelete={handleDelete}
           />
         ) : (
           <TrendsTab
@@ -189,6 +247,7 @@ function LogTab({
   pain, setPain, notes, setNotes, showNotes, setShowNotes,
   pickups, setPickups, pace, submitRun, runLogs,
   getPainBadgeStyle, formatPace,
+  editingRun, cancelEdit, startEdit, handleDelete,
 }: {
   duration: string; setDuration: (v: string) => void;
   distance: string; setDistance: (v: string) => void;
@@ -201,11 +260,27 @@ function LogTab({
   runLogs: RunLog[];
   getPainBadgeStyle: (l: number) => { bg: string; color: string };
   formatPace: (p: number) => string;
+  editingRun: RunLog | null;
+  cancelEdit: () => void;
+  startEdit: (run: RunLog) => void;
+  handleDelete: (run: RunLog) => void;
 }) {
+  const openSwipeableRef = useRef<Swipeable | null>(null);
+  const swipeableRefs = useRef<Record<string, Swipeable>>({});
   return (
     <>
       {/* Log Form */}
       <View style={styles.logForm}>
+        {/* Form header */}
+        <View style={styles.formHeader}>
+          <Text style={styles.formHeaderText}>{editingRun ? 'Edit Run' : 'Log a Run'}</Text>
+          {editingRun && (
+            <TouchableOpacity onPress={cancelEdit}>
+              <Text style={styles.cancelEditBtn}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Duration + Distance side by side */}
         <View style={styles.formInputsRow}>
           <View style={styles.formField}>
@@ -315,7 +390,7 @@ function LogTab({
           onPress={submitRun}
           activeOpacity={0.8}
         >
-          <Text style={styles.logBtnText}>Log Run</Text>
+          <Text style={styles.logBtnText}>{editingRun ? 'Save Changes' : 'Log Run'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -327,55 +402,97 @@ function LogTab({
           const runPace = run.distance && run.distance > 0
             ? formatPace(run.duration_min / run.distance)
             : null;
+
+          const renderRightActions = () => (
+            <View style={styles.swipeActions}>
+              <TouchableOpacity
+                style={styles.swipeActionEdit}
+                onPress={() => {
+                  openSwipeableRef.current?.close();
+                  startEdit(run);
+                }}
+              >
+                <Ionicons name="pencil" size={20} color={Colors.textSecondary} />
+                <Text style={styles.swipeActionEditText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.swipeActionDelete}
+                onPress={() => {
+                  openSwipeableRef.current?.close();
+                  handleDelete(run);
+                }}
+              >
+                <Ionicons name="trash-outline" size={20} color={Colors.red} />
+                <Text style={styles.swipeActionDeleteText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          );
+
           return (
-            <View key={run.id} style={styles.runItem}>
-              <View style={styles.runLeft}>
-                <Text style={styles.runDate}>{formatRunDate(run.date)}</Text>
-                <View style={styles.runDetails}>
-                  <Text style={styles.runDetailText}>{run.duration_min} min</Text>
-                  {run.distance != null && run.distance > 0 && (
-                    <>
-                      <Text style={styles.runDetailSep}>{'\u00B7'}</Text>
-                      <Text style={styles.runDetailText}>{run.distance} mi</Text>
-                    </>
-                  )}
-                  {runPace && (
-                    <>
-                      <Text style={styles.runDetailSep}>{'\u00B7'}</Text>
-                      <Text style={styles.runDetailText}>{runPace}/mi</Text>
-                    </>
-                  )}
-                  {!!run.included_pickups && (
-                    <View style={styles.runPickupBadge}>
-                      <Text style={styles.runPickupText}>Pickups</Text>
+            <View key={run.id} style={styles.runItemWrapper}>
+            <Swipeable
+              renderRightActions={renderRightActions}
+              overshootRight={false}
+              onSwipeableWillOpen={() => {
+                if (openSwipeableRef.current && openSwipeableRef.current !== swipeableRefs.current[run.id]) {
+                  openSwipeableRef.current.close();
+                }
+                openSwipeableRef.current = swipeableRefs.current[run.id] ?? null;
+              }}
+              ref={(ref) => {
+                if (ref) swipeableRefs.current[run.id] = ref;
+              }}
+            >
+              <View style={styles.runItem}>
+                <View style={styles.runLeft}>
+                  <Text style={styles.runDate}>{formatRunDate(run.date)}</Text>
+                  <View style={styles.runDetails}>
+                    <Text style={styles.runDetailText}>{run.duration_min} min</Text>
+                    {run.distance != null && run.distance > 0 && (
+                      <>
+                        <Text style={styles.runDetailSep}>{'\u00B7'}</Text>
+                        <Text style={styles.runDetailText}>{run.distance} mi</Text>
+                      </>
+                    )}
+                    {runPace && (
+                      <>
+                        <Text style={styles.runDetailSep}>{'\u00B7'}</Text>
+                        <Text style={styles.runDetailText}>{runPace}/mi</Text>
+                      </>
+                    )}
+                    {!!run.included_pickups && (
+                      <View style={styles.runPickupBadge}>
+                        <Text style={styles.runPickupText}>Pickups</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.runRight}>
+                  <View style={[styles.painBadge, { backgroundColor: badge.bg }]}>
+                    <Text style={[styles.painBadgeValue, { color: badge.color }]}>
+                      {run.pain_level}
+                    </Text>
+                    <Text style={[styles.painBadgeLabel, { color: badge.color }]}>
+                      Acute
+                    </Text>
+                  </View>
+                  {run.pain_level_24h != null && (
+                    <View style={[
+                      styles.followupBadge,
+                      { borderColor: getPainBadgeStyle(run.pain_level_24h).color + '40',
+                        backgroundColor: getPainBadgeStyle(run.pain_level_24h).bg.replace('18', '08') },
+                    ]}>
+                      <Text style={[styles.painBadgeValue, { color: getPainBadgeStyle(run.pain_level_24h).color }]}>
+                        {run.pain_level_24h}
+                      </Text>
+                      <Text style={[styles.painBadgeLabel, { color: getPainBadgeStyle(run.pain_level_24h).color }]}>
+                        +24h
+                      </Text>
                     </View>
                   )}
                 </View>
               </View>
-              <View style={styles.runRight}>
-                <View style={[styles.painBadge, { backgroundColor: badge.bg }]}>
-                  <Text style={[styles.painBadgeValue, { color: badge.color }]}>
-                    {run.pain_level}
-                  </Text>
-                  <Text style={[styles.painBadgeLabel, { color: badge.color }]}>
-                    Acute
-                  </Text>
-                </View>
-                {run.pain_level_24h != null && (
-                  <View style={[
-                    styles.followupBadge,
-                    { borderColor: getPainBadgeStyle(run.pain_level_24h).color + '40',
-                      backgroundColor: getPainBadgeStyle(run.pain_level_24h).bg.replace('18', '08') },
-                  ]}>
-                    <Text style={[styles.painBadgeValue, { color: getPainBadgeStyle(run.pain_level_24h).color }]}>
-                      {run.pain_level_24h}
-                    </Text>
-                    <Text style={[styles.painBadgeLabel, { color: getPainBadgeStyle(run.pain_level_24h).color }]}>
-                      +24h
-                    </Text>
-                  </View>
-                )}
-              </View>
+            </Swipeable>
             </View>
           );
         })}
@@ -615,6 +732,23 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
 
+  // Form header
+  formHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  formHeaderText: {
+    color: Colors.text,
+    fontSize: FontSize.body,
+    fontWeight: '700',
+  },
+  cancelEditBtn: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+
   // Log form
   logForm: {
     backgroundColor: Colors.card,
@@ -791,11 +925,15 @@ const styles = StyleSheet.create({
   runList: {
     gap: Spacing.sm - 2,
   },
-  runItem: {
+  runItemWrapper: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+  },
+  runItem: {
+    backgroundColor: Colors.card,
     paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.lg,
     flexDirection: 'row',
@@ -869,6 +1007,38 @@ const styles = StyleSheet.create({
     minWidth: 36,
     borderWidth: 1,
     borderStyle: 'dashed',
+  },
+
+  // Swipe actions
+  swipeActions: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  swipeActionEdit: {
+    width: 72,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.border,
+  },
+  swipeActionEditText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+  },
+  swipeActionDelete: {
+    width: 72,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.border,
+  },
+  swipeActionDeleteText: {
+    color: Colors.red,
+    fontSize: FontSize.xs,
+    fontWeight: '600',
   },
 
   // Trends

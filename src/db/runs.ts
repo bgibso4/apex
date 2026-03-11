@@ -104,6 +104,27 @@ export async function getRunStats(): Promise<{
   };
 }
 
+/** Delete a run log entry */
+export async function deleteRun(runId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync('DELETE FROM run_logs WHERE id = ?', [runId]);
+}
+
+/** Update a run log entry */
+export async function updateRun(runId: string, params: {
+  durationMin: number;
+  distance?: number;
+  painLevel: number;
+  notes?: string;
+  includedPickups: boolean;
+}): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `UPDATE run_logs SET duration_min = ?, distance = ?, pain_level = ?, notes = ?, included_pickups = ? WHERE id = ?`,
+    [params.durationMin, params.distance ?? null, params.painLevel, params.notes ?? null, params.includedPickups ? 1 : 0, runId]
+  );
+}
+
 /** Update the 24h follow-up pain level for a run */
 export async function updateRunPain24h(runId: string, painLevel: number): Promise<void> {
   const db = await getDatabase();

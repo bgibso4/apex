@@ -79,6 +79,17 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         await db.execAsync('ALTER TABLE sessions ADD COLUMN notes TEXT');
       } catch { /* already exists */ }
     }
+    if (currentVersion < 6) {
+      await db.execAsync(`
+        ALTER TABLE sessions ADD COLUMN is_sample INTEGER DEFAULT 0;
+        ALTER TABLE set_logs ADD COLUMN is_sample INTEGER DEFAULT 0;
+        ALTER TABLE run_logs ADD COLUMN is_sample INTEGER DEFAULT 0;
+        ALTER TABLE programs ADD COLUMN is_sample INTEGER DEFAULT 0;
+        ALTER TABLE exercises ADD COLUMN is_sample INTEGER DEFAULT 0;
+        ALTER TABLE personal_records ADD COLUMN is_sample INTEGER DEFAULT 0;
+        ALTER TABLE exercise_notes ADD COLUMN is_sample INTEGER DEFAULT 0;
+      `);
+    }
     if (currentVersion < SCHEMA_VERSION) {
       await db.runAsync(
         "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",
@@ -111,6 +122,20 @@ export async function clearAllData(): Promise<void> {
     DELETE FROM run_logs;
     DELETE FROM weekly_checkins;
     DELETE FROM exercises;
+  `);
+}
+
+/** Delete only sample/test data, preserving real user data */
+export async function clearSampleData(): Promise<void> {
+  const db = await getDatabase();
+  await db.execAsync(`
+    DELETE FROM personal_records WHERE is_sample = 1;
+    DELETE FROM exercise_notes WHERE is_sample = 1;
+    DELETE FROM set_logs WHERE is_sample = 1;
+    DELETE FROM sessions WHERE is_sample = 1;
+    DELETE FROM run_logs WHERE is_sample = 1;
+    DELETE FROM programs WHERE is_sample = 1;
+    DELETE FROM exercises WHERE is_sample = 1;
   `);
 }
 

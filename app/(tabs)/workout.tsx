@@ -134,6 +134,39 @@ export default function WorkoutScreen() {
     e.sets.every(s => s.status !== 'pending')
   ).length;
 
+  const hasSetsLogged = setCount > 0;
+
+  /** Show overflow menu for warmup/logging phases */
+  const showWorkoutMenu = () => {
+    const buttons: Array<{ text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }> = [];
+
+    if (hasSetsLogged) {
+      buttons.push({
+        text: 'End Early',
+        onPress: w.endEarlyAction,
+      });
+    }
+
+    buttons.push({
+      text: 'Delete Workout',
+      style: 'destructive',
+      onPress: () => {
+        Alert.alert(
+          'Delete Workout',
+          'All logged sets will be lost. This cannot be undone.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete', style: 'destructive', onPress: w.deleteSessionAction },
+          ],
+        );
+      },
+    });
+
+    buttons.push({ text: 'Cancel', style: 'cancel' });
+
+    Alert.alert('Workout Options', undefined, buttons);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -248,16 +281,29 @@ export default function WorkoutScreen() {
 
         {/* Phase: Warmup */}
         {w.phase === 'warmup' && (
-          <WarmupChecklist
-            warmupRope={w.warmupRope}
-            warmupAnkle={w.warmupAnkle}
-            warmupHipIr={w.warmupHipIr}
-            blockColor={w.blockColor}
-            onToggleRope={w.toggleWarmupRope}
-            onToggleAnkle={w.toggleWarmupAnkle}
-            onToggleHipIr={w.toggleWarmupHipIr}
-            onContinue={w.submitWarmup}
-          />
+          <>
+            <View style={styles.warmupHeader}>
+              <Text style={styles.warmupHeaderTitle}>{w.selectedTemplate?.name ?? 'Warmup'}</Text>
+              <TouchableOpacity
+                onPress={showWorkoutMenu}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={styles.overflowButton}
+              >
+                <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <WarmupChecklist
+              warmupRope={w.warmupRope}
+              warmupAnkle={w.warmupAnkle}
+              warmupHipIr={w.warmupHipIr}
+              blockColor={w.blockColor}
+              onToggleRope={w.toggleWarmupRope}
+              onToggleAnkle={w.toggleWarmupAnkle}
+              onToggleHipIr={w.toggleWarmupHipIr}
+              onContinue={w.submitWarmup}
+              timer={w.timer}
+            />
+          </>
         )}
 
         {/* Phase: Logging */}
@@ -267,11 +313,20 @@ export default function WorkoutScreen() {
             <View style={styles.loggingHeader}>
               <View style={styles.loggingHeaderLeft}>
                 <Text style={styles.loggingTitle}>{w.selectedTemplate?.name ?? 'Workout'}</Text>
-                <Text style={styles.loggingSubtitle}>
-                  Week {w.currentWeek} — {w.block?.name ?? ''}
-                </Text>
+                <View style={styles.loggingSubtitleRow}>
+                  <Text style={styles.loggingSubtitle}>
+                    Week {w.currentWeek} — {w.block?.name ?? ''}
+                  </Text>
+                  <Text style={styles.timerDisplay}>{w.timer}</Text>
+                </View>
               </View>
-              <Text style={styles.timerDisplay}>{w.timer}</Text>
+              <TouchableOpacity
+                onPress={showWorkoutMenu}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={styles.overflowButton}
+              >
+                <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
             </View>
 
             {/* Progress bar */}
@@ -416,7 +471,7 @@ export default function WorkoutScreen() {
             onDelete={() => {
               Alert.alert(
                 'Delete Workout',
-                'Are you sure you want to delete this workout? This cannot be undone.',
+                'All logged sets will be lost. This cannot be undone.',
                 [
                   { text: 'Cancel', style: 'cancel' },
                   { text: 'Delete', style: 'destructive', onPress: w.deleteSessionAction },
@@ -798,6 +853,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  // Warmup header
+  warmupHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  warmupHeaderTitle: {
+    color: Colors.text,
+    fontSize: FontSize.screenTitle,
+    fontWeight: '800',
+  },
+
+  // Overflow menu button
+  overflowButton: {
+    width: ComponentSize.buttonMedium,
+    height: ComponentSize.buttonMedium,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: ComponentSize.buttonMedium / 2,
+  },
+
   // Logging header
   loggingHeader: {
     flexDirection: 'row',
@@ -807,6 +884,11 @@ const styles = StyleSheet.create({
   },
   loggingHeaderLeft: {
     flex: 1,
+  },
+  loggingSubtitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   loggingTitle: {
     color: Colors.text,

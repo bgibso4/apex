@@ -51,7 +51,7 @@ export interface WeeklyTemplate {
 export interface DayTemplate {
   name: string;
   locked?: boolean;
-  warmup: string;
+  warmup: string[];
   exercises: ExerciseSlot[];
   conditioning_finisher?: string;
   run_progression?: Record<string, RunTarget>;
@@ -94,6 +94,7 @@ export interface ExerciseDefinition {
 }
 
 export interface WarmupProtocol {
+  name: string;
   duration_min: number;
   steps: WarmupStep[];
   note?: string;

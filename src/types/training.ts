@@ -36,13 +36,19 @@ export interface Session {
   sleep: number;         // 1-5
   soreness: number;      // 1-5
   energy: number;        // 1-5
-  warmup_rope: boolean;
-  warmup_ankle: boolean;
-  warmup_hip_ir: boolean;
-  conditioning_done: boolean;
   notes?: string;
   started_at: string;
   completed_at?: string;
+}
+
+export interface SessionProtocol {
+  id: number;
+  session_id: string;
+  type: 'warmup' | 'conditioning';
+  protocol_key: string | null;
+  protocol_name: string;
+  completed: boolean;
+  sort_order: number;
 }
 
 export interface SetLog {

@@ -35,7 +35,11 @@ export function getFieldsForExercise(inputFields: string | InputField[] | null |
     return DEFAULT_FIELDS;
   }
   if (typeof inputFields === 'string') {
-    return JSON.parse(inputFields) as InputField[];
+    try {
+      return JSON.parse(inputFields) as InputField[];
+    } catch {
+      return DEFAULT_FIELDS;
+    }
   }
   return inputFields;
 }

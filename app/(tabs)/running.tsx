@@ -429,8 +429,8 @@ function LogTab({
           );
 
           return (
+            <View key={run.id} style={styles.runItemWrapper}>
             <Swipeable
-              key={run.id}
               renderRightActions={renderRightActions}
               overshootRight={false}
               onSwipeableWillOpen={() => {
@@ -493,6 +493,7 @@ function LogTab({
                 </View>
               </View>
             </Swipeable>
+            </View>
           );
         })}
         {runLogs.length === 0 && (
@@ -924,11 +925,15 @@ const styles = StyleSheet.create({
   runList: {
     gap: Spacing.sm - 2,
   },
-  runItem: {
+  runItemWrapper: {
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+  },
+  runItem: {
+    backgroundColor: Colors.card,
     paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.lg,
     flexDirection: 'row',
@@ -1008,12 +1013,6 @@ const styles = StyleSheet.create({
   swipeActions: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    backgroundColor: Colors.card,
-    borderTopRightRadius: BorderRadius.md,
-    borderBottomRightRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderLeftWidth: 0,
-    borderColor: Colors.border,
   },
   swipeActionEdit: {
     width: 72,

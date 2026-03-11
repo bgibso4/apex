@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
+  View, Text, Image, ScrollView, TouchableOpacity,
   StyleSheet, RefreshControl
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -187,10 +187,17 @@ export default function HomeScreen() {
         >
           {/* Header: APEX title + gear */}
           <View style={styles.header}>
-            <Text style={[
-              styles.apexTitle,
-              APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
-            ]}>APEX</Text>
+            <View style={styles.apexTitleRow}>
+              <Image
+                source={require('../../assets/logo-mark.png')}
+                style={styles.apexLogoMark}
+                resizeMode="contain"
+              />
+              <Text style={[
+                styles.apexTitle,
+                APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
+              ]}>PEX</Text>
+            </View>
             <TouchableOpacity
               style={styles.gearIcon}
               onPress={() => router.push('/settings')}
@@ -261,10 +268,17 @@ export default function HomeScreen() {
       >
         {/* Header: APEX title + gear */}
         <View style={styles.header}>
-          <Text style={[
-            styles.apexTitle,
-            APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
-          ]}>APEX</Text>
+          <View style={styles.apexTitleRow}>
+            <Image
+              source={require('../../assets/logo-mark.png')}
+              style={styles.apexLogoMark}
+              resizeMode="contain"
+            />
+            <Text style={[
+              styles.apexTitle,
+              APEX_FONT_FAMILY !== 'System' && { fontFamily: APEX_FONT_FAMILY },
+            ]}>PEX</Text>
+          </View>
           <TouchableOpacity
             style={styles.gearIcon}
             onPress={() => router.push('/settings')}
@@ -378,6 +392,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
+  },
+  apexTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  apexLogoMark: {
+    width: 28,
+    height: 32,
+    marginRight: 1,
   },
   apexTitle: {
     color: Colors.text,

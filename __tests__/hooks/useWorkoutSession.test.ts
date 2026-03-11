@@ -736,7 +736,7 @@ describe('useWorkoutSession', () => {
 
       // Set values below target
       act(() => {
-        hookResult.result.current.setOverrideValues({ weight: targetWeight - 10, reps: targetReps - 2 });
+        hookResult.result.current.setOverrideValues({ weight: (targetWeight ?? 0) - 10, reps: (targetReps ?? 0) - 2 });
       });
 
       await act(async () => {
@@ -747,8 +747,8 @@ describe('useWorkoutSession', () => {
         expect.objectContaining({
           sessionId: 'session-1',
           status: 'completed_below',
-          actualWeight: targetWeight - 10,
-          actualReps: targetReps - 2,
+          actualWeight: (targetWeight ?? 0) - 10,
+          actualReps: (targetReps ?? 0) - 2,
         }),
       );
 
@@ -770,7 +770,7 @@ describe('useWorkoutSession', () => {
 
       // Set values equal to target (should be 'completed')
       act(() => {
-        hookResult.result.current.setOverrideValues({ weight: targetWeight, reps: targetReps });
+        hookResult.result.current.setOverrideValues({ weight: targetWeight ?? 0, reps: targetReps ?? 0 });
       });
 
       await act(async () => {

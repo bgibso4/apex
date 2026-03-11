@@ -483,8 +483,8 @@ export default function WorkoutScreen() {
               exerciseName: ex.exerciseName,
               sets: ex.sets.map(s => ({
                 setNumber: s.setNumber,
-                actualWeight: s.actualWeight,
-                actualReps: s.actualReps,
+                actualWeight: s.actualWeight ?? 0,
+                actualReps: s.actualReps ?? 0,
                 status: s.status,
               })),
               rpe: ex.rpe,

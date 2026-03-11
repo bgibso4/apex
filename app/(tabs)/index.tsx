@@ -38,6 +38,7 @@ function getMonthDateRange(year: number, month: number): { startDate: string; en
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [program, setProgram] = useState<(Program & { definition: ProgramDefinition }) | null>(null);
   const [weekSessions, setWeekSessions] = useState<Session[]>([]);
   const [monthSessions, setMonthSessions] = useState<Session[]>([]);
@@ -93,7 +94,7 @@ export default function HomeScreen() {
   }, [displayYear, displayMonth]);
 
   useFocusEffect(useCallback(() => {
-    loadData();
+    loadData().finally(() => setLoading(false));
   }, [loadData]));
 
   const onRefresh = async () => {
@@ -174,6 +175,10 @@ export default function HomeScreen() {
       hasAnimatedOnce = true;
     }
   }, []);
+
+  if (loading) {
+    return <View style={styles.container} />;
+  }
 
   if (!program || !def) {
     return (
@@ -404,7 +409,7 @@ const styles = StyleSheet.create({
   },
   apexTitle: {
     color: Colors.text,
-    fontSize: FontSize.screenTitle,
+    fontSize: 38,
     fontWeight: '800',
     letterSpacing: 3,
   },

@@ -5,7 +5,7 @@ export {
   createSession, updateReadiness, updateWarmup,
   logSet, updateSet, deleteSet, completeSession, updateSessionNotes,
   getSessionsForWeek, getSessionsForDateRange, getSetLogsForSession, getLastSessionForExercise,
-  getSessionById, getCompletedSessionForDay, getExerciseNames, ensureExerciseExists,
+  getSessionById, getCompletedSessionForDay, getExerciseNames, getExerciseInfo, ensureExerciseExists,
   deleteSession, getInProgressSession, getRecentCompletedSessions, getAllSessionsForDateRange, getAllCompletedSessions,
   getFullSessionState
 } from './sessions';

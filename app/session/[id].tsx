@@ -9,10 +9,12 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import {
-  getSessionById, getSetLogsForSession, getExerciseNames, getActiveProgram,
+  getSessionById, getSetLogsForSession, getExerciseInfo, getActiveProgram,
   getExerciseNotesForSession,
 } from '../../src/db';
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
+import { getFieldsForExercise, FIELD_LABELS } from '../../src/types/fields';
+import type { InputField } from '../../src/types/fields';
 import type { Session, SetLog } from '../../src/types';
 
 const DAY_FULL_NAMES: Record<string, string> = {
@@ -25,6 +27,7 @@ type ExerciseGroup = {
   exerciseName: string;
   isAdhoc: boolean;
   sets: SetLog[];
+  inputFields: InputField[];
 };
 
 export default function SessionDetailScreen() {
@@ -63,18 +66,20 @@ export default function SessionDetailScreen() {
       ]);
       setExerciseNotes(notes);
       const exerciseIds = [...new Set(setLogs.map(sl => sl.exercise_id))];
-      const nameMap = await getExerciseNames(exerciseIds);
+      const infoMap = await getExerciseInfo(exerciseIds);
 
       const groups: ExerciseGroup[] = [];
       const seen = new Set<string>();
       for (const sl of setLogs) {
         if (!seen.has(sl.exercise_id)) {
           seen.add(sl.exercise_id);
+          const info = infoMap[sl.exercise_id];
           groups.push({
             exerciseId: sl.exercise_id,
-            exerciseName: nameMap[sl.exercise_id] ?? sl.exercise_id.replace(/_/g, ' '),
+            exerciseName: info?.name ?? sl.exercise_id.replace(/_/g, ' '),
             isAdhoc: !!(sl as any).is_adhoc,
             sets: setLogs.filter(s2 => s2.exercise_id === sl.exercise_id),
+            inputFields: getFieldsForExercise(info?.inputFields ?? null),
           });
         }
       }
@@ -201,8 +206,12 @@ export default function SessionDetailScreen() {
             {/* Set grid header */}
             <View style={styles.setGridHeader}>
               <Text style={[styles.setGridHeaderText, { width: 36 }]}>Set</Text>
-              <Text style={[styles.setGridHeaderText, { flex: 1 }]}>Weight</Text>
-              <Text style={[styles.setGridHeaderText, { flex: 1 }]}>Reps</Text>
+              {group.inputFields.map((field) => (
+                <View key={field.type} style={{ flex: 1 }}>
+                  <Text style={styles.setGridHeaderText}>{FIELD_LABELS[field.type]}</Text>
+                  {field.unit && <Text style={styles.setGridUnitText}>{field.unit}</Text>}
+                </View>
+              ))}
               <Text style={[styles.setGridHeaderText, { width: 44 }]}>RPE</Text>
               <View style={{ width: 28 }} />
             </View>
@@ -213,12 +222,15 @@ export default function SessionDetailScreen() {
                 <Text style={[styles.setGridValue, { width: 36 }]}>
                   {set.set_number}
                 </Text>
-                <Text style={[styles.setGridValue, { flex: 1 }]}>
-                  {set.actual_weight ?? '—'}
-                </Text>
-                <Text style={[styles.setGridValue, { flex: 1 }]}>
-                  {set.actual_reps ?? '—'}
-                </Text>
+                {group.inputFields.map((field) => {
+                  const key = `actual_${field.type}` as keyof SetLog;
+                  const value = set[key];
+                  return (
+                    <Text key={field.type} style={[styles.setGridValue, { flex: 1 }]}>
+                      {value ?? '—'}
+                    </Text>
+                  );
+                })}
                 <Text style={[styles.setGridValue, { width: 44 }]}>
                   {set.rpe ?? '—'}
                 </Text>
@@ -308,6 +320,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5, borderBottomColor: Colors.border,
   },
   setGridHeaderText: { color: Colors.textDim, fontSize: FontSize.xs, fontWeight: '600' },
+  setGridUnitText: { color: Colors.textDim, fontSize: FontSize.xs - 1, fontWeight: '400', marginTop: 1 },
   setGridRow: {
     flexDirection: 'row', paddingVertical: Spacing.sm, alignItems: 'center',
     borderBottomWidth: 0.5, borderBottomColor: `${Colors.border}40`,

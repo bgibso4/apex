@@ -450,6 +450,7 @@ export function useWorkoutSession() {
         name: exerciseDef?.name ?? slot.exercise_id.replace(/_/g, ' '),
         type: slot.category ?? 'accessory',
         muscleGroups: exerciseDef?.muscle_groups ?? [],
+        inputFields: exerciseDef?.input_fields,
       });
 
       const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
@@ -779,6 +780,7 @@ export function useWorkoutSession() {
       name: selectedLibraryExercise.name,
       type: selectedLibraryExercise.type,
       muscleGroups: [selectedLibraryExercise.muscleGroup],
+      inputFields: selectedLibraryExercise.inputFields,
     });
 
     const sets: SetState[] = Array.from({ length: adhocSets }, (_, i) => ({

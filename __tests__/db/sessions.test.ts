@@ -580,7 +580,7 @@ describe('sessions', () => {
   // ensureExerciseExists
   // ---------------------------------------------------------------------------
   describe('ensureExerciseExists', () => {
-    it('uses INSERT OR IGNORE with serialized muscle groups', async () => {
+    it('uses INSERT OR REPLACE with serialized muscle groups', async () => {
       await ensureExerciseExists({
         id: 'lateral-raise',
         name: 'Lateral Raise',
@@ -590,11 +590,29 @@ describe('sessions', () => {
 
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
-      expect(sql).toContain('INSERT OR IGNORE INTO exercises');
+      expect(sql).toContain('INSERT OR REPLACE INTO exercises');
+      expect(sql).toContain('input_fields');
       expect(params[0]).toBe('lateral-raise');
       expect(params[1]).toBe('Lateral Raise');
       expect(params[2]).toBe('accessory');
       expect(params[3]).toBe(JSON.stringify(['shoulders', 'deltoids']));
+      expect(params[4]).toBe('[]'); // alternatives default
+      expect(params[5]).toBeNull(); // input_fields default
+    });
+
+    it('stores input_fields when provided', async () => {
+      const inputFields = [{ type: 'reps' as const }];
+      await ensureExerciseExists({
+        id: 'hanging-leg-raise',
+        name: 'Hanging Leg Raise',
+        type: 'core',
+        muscleGroups: ['core'],
+        inputFields,
+      });
+
+      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
+      const [, params] = mockDb.runAsync.mock.calls[0];
+      expect(params[5]).toBe(JSON.stringify(inputFields));
     });
   });
 

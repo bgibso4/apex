@@ -4,6 +4,7 @@
 
 import { getDatabase, generateId } from './database';
 import type { Session, SetLog } from '../types';
+import type { InputField } from '../types/fields';
 
 /** Create a new session (when user starts a workout) */
 export async function createSession(params: {
@@ -289,13 +290,20 @@ export async function ensureExerciseExists(exercise: {
   id: string;
   name: string;
   type: string;
-  muscleGroups: string[];
+  muscleGroups?: string[];
+  alternatives?: string[];
+  inputFields?: InputField[];
 }): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives)
-     VALUES (?, ?, ?, ?, '[]')`,
-    [exercise.id, exercise.name, exercise.type, JSON.stringify(exercise.muscleGroups)]
+    `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      exercise.id, exercise.name, exercise.type,
+      JSON.stringify(exercise.muscleGroups ?? []),
+      JSON.stringify(exercise.alternatives ?? []),
+      exercise.inputFields ? JSON.stringify(exercise.inputFields) : null,
+    ]
   );
 }
 

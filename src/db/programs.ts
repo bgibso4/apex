@@ -42,9 +42,14 @@ export async function importProgram(definition: ProgramDefinition): Promise<stri
   // Upsert exercise definitions into global library
   for (const ex of definition.program.exercise_definitions) {
     await db.runAsync(
-      `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives)
-       VALUES (?, ?, ?, ?, ?)`,
-      [ex.id, ex.name, ex.type, JSON.stringify(ex.muscle_groups), JSON.stringify(ex.alternatives || [])]
+      `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        ex.id, ex.name, ex.type,
+        JSON.stringify(ex.muscle_groups),
+        JSON.stringify(ex.alternatives || []),
+        ex.input_fields ? JSON.stringify(ex.input_fields) : null,
+      ]
     );
   }
 

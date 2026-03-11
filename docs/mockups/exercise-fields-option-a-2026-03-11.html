@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Exercise-Specific Fields: Option A (Units in Headers)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .sublabel {
+    color: #6a6a80;
+    font-size: 11px;
+    text-align: center;
+    margin-bottom: 16px;
+    max-width: 360px;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .screen-header {
+    padding: 8px 24px 16px;
+    flex-shrink: 0;
+  }
+
+  .screen-title {
+    color: #fff;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .screen-subtitle {
+    color: #6a6a80;
+    font-size: 13px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px 100px;
+  }
+
+  /* Cards */
+  .card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .card.active {
+    border-color: #6366f130;
+  }
+
+  /* Collapsed */
+  .card-collapsed {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+  }
+  .card-collapsed .name {
+    color: #a0a0b8;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .card-collapsed .status {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .card-collapsed .status.done {
+    color: #22c55e;
+  }
+
+  /* Expanded */
+  .card-expanded {
+    padding: 24px;
+  }
+  .card-expanded .exercise-name {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .card-expanded .reference {
+    color: #4a4a5e;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  /* Set grid header — unit goes under the label */
+  .set-header {
+    display: flex;
+    padding: 0 4px 8px;
+  }
+  .set-header .col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .set-header .col:last-child {
+    flex: 0 0 44px;
+  }
+  .set-header .col-label {
+    color: #4a4a5e;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+  .set-header .col-unit {
+    color: #3a3a4e;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: lowercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Set rows */
+  .set-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 4px;
+    border-top: 1px solid #1e1e30;
+  }
+  .set-row.current {
+    background: #6366f108;
+    border-radius: 10px;
+    border-top-color: transparent;
+  }
+  .set-row .set-num {
+    color: #4a4a5e;
+    font-size: 15px;
+    font-weight: 700;
+    flex: 1;
+  }
+  .set-row.current .set-num {
+    color: #6366f1;
+  }
+  .set-row .set-val {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .set-row .set-val.completed {
+    color: #22c55e;
+  }
+  .set-row .set-val.future {
+    color: #6a6a80;
+  }
+
+  .set-btn {
+    flex: 0 0 44px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .set-btn .btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 2px solid #2a2a3e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .set-btn .btn.current {
+    border-color: #6366f1;
+    background: #6366f115;
+  }
+  .set-btn .btn.done {
+    border-color: #22c55e40;
+    background: #22c55e15;
+  }
+  .set-btn .btn .circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+    border: 2px solid #4a4a5e;
+  }
+  .set-btn .btn.current .circle {
+    border-color: #6366f1;
+  }
+  .set-btn .btn .check {
+    color: #22c55e;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 88px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding-top: 10px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #4a4a5e;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .tab.active { color: #6366f1; }
+  .tab-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: currentColor;
+    opacity: 0.3;
+  }
+  .tab.active .tab-icon { opacity: 0.8; }
+
+  /* RPE section */
+  .rpe-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #1e1e30;
+  }
+  .rpe-label {
+    color: #4a4a5e;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .rpe-row {
+    display: flex;
+    gap: 8px;
+  }
+  .rpe-btn {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 10px;
+    border: 1px solid #2a2a3e;
+    text-align: center;
+    color: #a0a0b8;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .rpe-btn.selected {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== STANDARD: Weight + Reps ==================== -->
+<div class="phone-wrapper">
+  <div class="label">Standard Exercises</div>
+  <div class="sublabel">Weight/reps cards work exactly as today. Units in column headers, raw numbers in rows.</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="letter-spacing: 1px;">●●●●● ⚡</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Upper A</div>
+      <div class="screen-subtitle">Week 5 · Strength · Tuesday</div>
+    </div>
+
+    <div class="content">
+      <!-- Bench Press — standard weight+reps, expanded with RPE -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Bench Press</div>
+          <div class="reference">80% 1RM  ·  RPE 8  ·  Last 185 lbs</div>
+
+          <div class="set-header">
+            <div class="col"><span class="col-label">Set</span></div>
+            <div class="col"><span class="col-label">Weight</span><span class="col-unit">lbs</span></div>
+            <div class="col"><span class="col-label">Reps</span></div>
+            <div class="col"></div>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <span class="set-val completed">185</span>
+            <span class="set-val completed">5</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <span class="set-val completed">185</span>
+            <span class="set-val completed">5</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <span class="set-val completed">185</span>
+            <span class="set-val completed">5</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">4</span>
+            <span class="set-val completed">185</span>
+            <span class="set-val completed">4</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+
+          <div class="rpe-section">
+            <div class="rpe-label">How hard was this?</div>
+            <div class="rpe-row">
+              <div class="rpe-btn">6</div>
+              <div class="rpe-btn">7</div>
+              <div class="rpe-btn selected">8</div>
+              <div class="rpe-btn">9</div>
+              <div class="rpe-btn">10</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OHP — collapsed, done -->
+      <div class="card">
+        <div class="card-collapsed">
+          <span class="name">Overhead Press</span>
+          <span class="status done">4/4 ✓</span>
+        </div>
+      </div>
+
+      <!-- Pull-ups — bodyweight, reps only -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Pull-ups</div>
+          <div class="reference">Bodyweight  ·  Last 12 reps</div>
+
+          <div class="set-header">
+            <div class="col"><span class="col-label">Set</span></div>
+            <div class="col"><span class="col-label">Reps</span></div>
+            <div class="col"></div>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <span class="set-val completed">12</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <span class="set-val completed">10</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">3</span>
+            <span class="set-val">10</span>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">4</span>
+            <span class="set-val future">8</span>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weighted Pull-ups — bodyweight + added weight -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Weighted Pull-ups</div>
+          <div class="reference">65% 1RM  ·  Last +35 lbs</div>
+
+          <div class="set-header">
+            <div class="col"><span class="col-label">Set</span></div>
+            <div class="col"><span class="col-label">Weight</span><span class="col-unit">+ lbs</span></div>
+            <div class="col"><span class="col-label">Reps</span></div>
+            <div class="col"></div>
+          </div>
+
+          <div class="set-row current">
+            <span class="set-num">1</span>
+            <span class="set-val">35</span>
+            <span class="set-val">5</span>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <span class="set-val future">35</span>
+            <span class="set-val future">5</span>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <span class="set-val future">35</span>
+            <span class="set-val future">5</span>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Face Pulls — cable with reps -->
+      <div class="card">
+        <div class="card-collapsed">
+          <span class="name">Face Pulls</span>
+          <span class="status">0/3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab"><div class="tab-icon"></div>Home</div>
+      <div class="tab active"><div class="tab-icon"></div>Workout</div>
+      <div class="tab"><div class="tab-icon"></div>Progress</div>
+      <div class="tab"><div class="tab-icon"></div>Running</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NON-STANDARD EXERCISES ==================== -->
+<div class="phone-wrapper">
+  <div class="label">Non-Standard Exercises</div>
+  <div class="sublabel">Same card layout — just different column headers. Units always in headers, never in row values.</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="letter-spacing: 1px;">●●●●● ⚡</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Lower B</div>
+      <div class="screen-subtitle">Week 5 · Strength · Thursday</div>
+    </div>
+
+    <div class="content">
+      <!-- Zercher Squat — standard, collapsed -->
+      <div class="card">
+        <div class="card-collapsed">
+          <span class="name">Zercher Squat</span>
+          <span class="status done">4/4 ✓</span>
+        </div>
+      </div>
+
+      <!-- RDL — standard, collapsed -->
+      <div class="card">
+        <div class="card-collapsed">
+          <span class="name">Romanian Deadlift</span>
+          <span class="status done">3/3 ✓</span>
+        </div>
+      </div>
+
+      <!-- Farmer's Carries — weight + distance -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Farmer's Carries</div>
+          <div class="reference">Last 70 lbs × 40 yd</div>
+
+          <div class="set-header">
+            <div class="col"><span class="col-label">Set</span></div>
+            <div class="col"><span class="col-label">Weight</span><span class="col-unit">lbs</span></div>
+            <div class="col"><span class="col-label">Distance</span><span class="col-unit">yards</span></div>
+            <div class="col"></div>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <span class="set-val completed">70</span>
+            <span class="set-val completed">40</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">2</span>
+            <span class="set-val">70</span>
+            <span class="set-val">40</span>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <span class="set-val future">70</span>
+            <span class="set-val future">40</span>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ski Erg — distance + time -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Ski Erg</div>
+          <div class="reference">3 × 500m  ·  Last avg 1:48</div>
+
+          <div class="set-header">
+            <div class="col"><span class="col-label">Set</span></div>
+            <div class="col"><span class="col-label">Distance</span><span class="col-unit">meters</span></div>
+            <div class="col"><span class="col-label">Time</span><span class="col-unit">m:ss</span></div>
+            <div class="col"></div>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <span class="set-val completed">500</span>
+            <span class="set-val completed">1:46</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">2</span>
+            <span class="set-val">500</span>
+            <span class="set-val" style="color: #4a4a5e">—</span>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <span class="set-val future">500</span>
+            <span class="set-val future">—</span>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plank — duration only -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Plank</div>
+          <div class="reference">Last 45 sec</div>
+
+          <div class="set-header">
+            <div class="col"><span class="col-label">Set</span></div>
+            <div class="col"><span class="col-label">Duration</span><span class="col-unit">seconds</span></div>
+            <div class="col"></div>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <span class="set-val completed">45</span>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">2</span>
+            <span class="set-val">45</span>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <span class="set-val future">45</span>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sled Push — weight + distance -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Sled Push</div>
+          <div class="reference">Last 90 lbs × 30 yd</div>
+
+          <div class="set-header">
+            <div class="col"><span class="col-label">Set</span></div>
+            <div class="col"><span class="col-label">Weight</span><span class="col-unit">lbs</span></div>
+            <div class="col"><span class="col-label">Distance</span><span class="col-unit">yards</span></div>
+            <div class="col"></div>
+          </div>
+
+          <div class="set-row current">
+            <span class="set-num">1</span>
+            <span class="set-val">90</span>
+            <span class="set-val">30</span>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <span class="set-val future">90</span>
+            <span class="set-val future">30</span>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab"><div class="tab-icon"></div>Home</div>
+      <div class="tab active"><div class="tab-icon"></div>Workout</div>
+      <div class="tab"><div class="tab-icon"></div>Progress</div>
+      <div class="tab"><div class="tab-icon"></div>Running</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

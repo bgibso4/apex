@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Exercise-Specific Fields: Option A vs Option B</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .sublabel {
+    color: #6a6a80;
+    font-size: 11px;
+    text-align: center;
+    margin-bottom: 16px;
+    max-width: 360px;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .screen-header {
+    padding: 8px 24px 16px;
+    flex-shrink: 0;
+  }
+
+  .screen-title {
+    color: #fff;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .screen-subtitle {
+    color: #6a6a80;
+    font-size: 13px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px 100px;
+  }
+
+  /* Section divider */
+  .section-label {
+    color: #4a4a5e;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 16px 8px 8px;
+  }
+
+  /* ============ OPTION A — Unified cards ============ */
+  .card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .card.active {
+    border-color: #6366f130;
+  }
+
+  /* Collapsed */
+  .card-collapsed {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+  }
+  .card-collapsed .name {
+    color: #a0a0b8;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .card-collapsed .status {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .card-collapsed .status.done {
+    color: #22c55e;
+  }
+
+  /* Expanded */
+  .card-expanded {
+    padding: 24px;
+  }
+  .card-expanded .exercise-name {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .card-expanded .reference {
+    color: #4a4a5e;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  /* Set grid */
+  .set-header {
+    display: flex;
+    padding: 0 4px 8px;
+  }
+  .set-header span {
+    color: #4a4a5e;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex: 1;
+  }
+  .set-header span:last-child {
+    flex: 0 0 44px;
+    text-align: right;
+  }
+
+  .set-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 4px;
+    border-top: 1px solid #1e1e30;
+  }
+  .set-row.current {
+    background: #6366f108;
+    border-radius: 10px;
+    border-top-color: transparent;
+  }
+  .set-row .set-num {
+    color: #4a4a5e;
+    font-size: 15px;
+    font-weight: 700;
+    flex: 1;
+  }
+  .set-row.current .set-num {
+    color: #6366f1;
+  }
+  .set-row .set-val {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .set-row .set-val.completed {
+    color: #22c55e;
+  }
+  .set-row .set-val.future {
+    color: #6a6a80;
+  }
+  .set-row .set-val.unit {
+    color: #6a6a80;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 2px;
+  }
+
+  .set-btn {
+    flex: 0 0 44px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .set-btn .btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 2px solid #2a2a3e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .set-btn .btn.current {
+    border-color: #6366f1;
+    background: #6366f115;
+  }
+  .set-btn .btn.done {
+    border-color: #22c55e40;
+    background: #22c55e15;
+  }
+  .set-btn .btn .circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+    border: 2px solid #4a4a5e;
+  }
+  .set-btn .btn.current .circle {
+    border-color: #6366f1;
+  }
+  .set-btn .btn .check {
+    color: #22c55e;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* ============ OPTION B — Specialized cards ============ */
+
+  /* Duration card — big timer style */
+  .duration-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 0;
+    margin-bottom: 12px;
+  }
+  .duration-display .time-value {
+    color: #fff;
+    font-size: 48px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .duration-display .time-label {
+    color: #4a4a5e;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .duration-display .time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Carry card — weight + distance with visual */
+  .carry-display {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px 0;
+    margin-bottom: 12px;
+  }
+  .carry-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .carry-stat .stat-value {
+    color: #fff;
+    font-size: 32px;
+    font-weight: 700;
+  }
+  .carry-stat .stat-unit {
+    color: #4a4a5e;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .carry-divider {
+    width: 1px;
+    background: #2a2a3e;
+    align-self: stretch;
+  }
+
+  /* Erg / distance card */
+  .erg-display {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px 0;
+    margin-bottom: 12px;
+  }
+  .erg-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .erg-stat .stat-value {
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .erg-stat .stat-unit {
+    color: #4a4a5e;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Big single-tap button for option B non-set exercises */
+  .complete-btn-large {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    border-radius: 12px;
+    border: 2px solid #6366f1;
+    background: #6366f115;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .complete-btn-large .btn-text {
+    color: #6366f1;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .complete-btn-large.done {
+    border-color: #22c55e40;
+    background: #22c55e15;
+  }
+  .complete-btn-large.done .btn-text {
+    color: #22c55e;
+  }
+
+  /* Bodyweight badge */
+  .bw-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #1e1e30;
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin-bottom: 12px;
+  }
+  .bw-badge span {
+    color: #6a6a80;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 88px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding-top: 10px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #4a4a5e;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .tab.active { color: #6366f1; }
+  .tab-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: currentColor;
+    opacity: 0.3;
+  }
+  .tab.active .tab-icon { opacity: 0.8; }
+
+  /* Inline unit for option A */
+  .val-with-unit {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    flex: 1;
+  }
+  .val-with-unit .unit {
+    color: #6a6a80;
+    font-size: 11px;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== OPTION A ==================== -->
+<div class="phone-wrapper">
+  <div class="label">Option A — Unified Layout</div>
+  <div class="sublabel">Same card structure, columns adapt to exercise type. Consistent & simple.</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="letter-spacing: 1px;">●●●●● ⚡</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Upper A</div>
+      <div class="screen-subtitle">Week 5 · Strength · Tuesday</div>
+    </div>
+
+    <div class="content">
+      <!-- 1. Standard: Weight + Reps (Bench Press) — completed -->
+      <div class="card">
+        <div class="card-collapsed">
+          <span class="name">Bench Press</span>
+          <span class="status done">4/4 ✓</span>
+        </div>
+      </div>
+
+      <!-- 2. Bodyweight + Reps (Pull-ups) — expanded, current -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Pull-ups</div>
+          <div class="reference">Bodyweight  ·  Last 12 reps</div>
+
+          <div class="set-header">
+            <span>Set</span>
+            <span>Reps</span>
+            <span></span>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <div class="val-with-unit"><span class="set-val completed">12</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <div class="val-with-unit"><span class="set-val completed">10</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">3</span>
+            <div class="val-with-unit"><span class="set-val">10</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">4</span>
+            <div class="val-with-unit"><span class="set-val future">8</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Weight + Distance (Farmer's Carries) -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Farmer's Carries</div>
+          <div class="reference">Last 70 lbs × 40 yd</div>
+
+          <div class="set-header">
+            <span>Set</span>
+            <span>Weight</span>
+            <span>Distance</span>
+            <span></span>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <div class="val-with-unit"><span class="set-val completed">70</span><span class="unit">lbs</span></div>
+            <div class="val-with-unit"><span class="set-val completed">40</span><span class="unit">yd</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">2</span>
+            <div class="val-with-unit"><span class="set-val">70</span><span class="unit">lbs</span></div>
+            <div class="val-with-unit"><span class="set-val">40</span><span class="unit">yd</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <div class="val-with-unit"><span class="set-val future">70</span><span class="unit">lbs</span></div>
+            <div class="val-with-unit"><span class="set-val future">40</span><span class="unit">yd</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Distance (Ski Erg) -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Ski Erg</div>
+          <div class="reference">Last 500 m in 1:48</div>
+
+          <div class="set-header">
+            <span>Set</span>
+            <span>Distance</span>
+            <span>Time</span>
+            <span></span>
+          </div>
+
+          <div class="set-row current">
+            <span class="set-num">1</span>
+            <div class="val-with-unit"><span class="set-val">500</span><span class="unit">m</span></div>
+            <div class="val-with-unit"><span class="set-val">—</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <div class="val-with-unit"><span class="set-val future">500</span><span class="unit">m</span></div>
+            <div class="val-with-unit"><span class="set-val future">—</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <div class="val-with-unit"><span class="set-val future">500</span><span class="unit">m</span></div>
+            <div class="val-with-unit"><span class="set-val future">—</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Duration (Plank) -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Plank</div>
+          <div class="reference">Last 45 sec</div>
+
+          <div class="set-header">
+            <span>Set</span>
+            <span>Duration</span>
+            <span></span>
+          </div>
+
+          <div class="set-row current">
+            <span class="set-num">1</span>
+            <div class="val-with-unit"><span class="set-val">45</span><span class="unit">sec</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <div class="val-with-unit"><span class="set-val future">45</span><span class="unit">sec</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <div class="val-with-unit"><span class="set-val future">45</span><span class="unit">sec</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab"><div class="tab-icon"></div>Home</div>
+      <div class="tab active"><div class="tab-icon"></div>Workout</div>
+      <div class="tab"><div class="tab-icon"></div>Progress</div>
+      <div class="tab"><div class="tab-icon"></div>Running</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== OPTION B ==================== -->
+<div class="phone-wrapper">
+  <div class="label">Option B — Specialized Cards</div>
+  <div class="sublabel">Different card layouts per exercise category. More tailored, more visual variety.</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="letter-spacing: 1px;">●●●●● ⚡</span>
+    </div>
+
+    <div class="screen-header">
+      <div class="screen-title">Upper A</div>
+      <div class="screen-subtitle">Week 5 · Strength · Tuesday</div>
+    </div>
+
+    <div class="content">
+      <!-- 1. Standard: Weight + Reps (Bench Press) — completed/collapsed -->
+      <div class="card">
+        <div class="card-collapsed">
+          <span class="name">Bench Press</span>
+          <span class="status done">4/4 ✓</span>
+        </div>
+      </div>
+
+      <!-- 2. Bodyweight + Reps (Pull-ups) — same as option A but with BW badge -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Pull-ups</div>
+          <div class="bw-badge"><span>Bodyweight</span></div>
+
+          <div class="set-header">
+            <span>Set</span>
+            <span>Reps</span>
+            <span></span>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <div class="val-with-unit"><span class="set-val completed">12</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">2</span>
+            <div class="val-with-unit"><span class="set-val completed">10</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">3</span>
+            <div class="val-with-unit"><span class="set-val">10</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">4</span>
+            <div class="val-with-unit"><span class="set-val future">8</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Carry card — big stat display -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Farmer's Carries</div>
+          <div class="reference">3 sets  ·  Last 70 lbs × 40 yd</div>
+
+          <div class="carry-display">
+            <div class="carry-stat">
+              <span class="stat-value">70</span>
+              <span class="stat-unit">lbs / hand</span>
+            </div>
+            <div class="carry-divider"></div>
+            <div class="carry-stat">
+              <span class="stat-value">40</span>
+              <span class="stat-unit">yards</span>
+            </div>
+          </div>
+
+          <!-- Per-set completion, simplified -->
+          <div class="set-row">
+            <span class="set-num">1</span>
+            <div class="val-with-unit" style="flex:3"><span class="set-val completed">70 lbs × 40 yd</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num">2</span>
+            <div class="val-with-unit" style="flex:3"><span class="set-val">70 lbs × 40 yd</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num">3</span>
+            <div class="val-with-unit" style="flex:3"><span class="set-val future">70 lbs × 40 yd</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Erg card — stat pods with large complete button -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Ski Erg</div>
+          <div class="reference">3 × 500m intervals</div>
+
+          <div class="erg-display">
+            <div class="erg-stat">
+              <span class="stat-value">500</span>
+              <span class="stat-unit">meters</span>
+            </div>
+            <div class="carry-divider"></div>
+            <div class="erg-stat">
+              <span class="stat-value" style="color: #4a4a5e;">—</span>
+              <span class="stat-unit">time</span>
+            </div>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num" style="flex:0 0 28px;">1</span>
+            <div class="val-with-unit" style="flex:2"><span class="set-val completed">500m</span></div>
+            <div class="val-with-unit" style="flex:2"><span class="set-val completed">1:46</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num" style="flex:0 0 28px;">2</span>
+            <div class="val-with-unit" style="flex:2"><span class="set-val">500m</span></div>
+            <div class="val-with-unit" style="flex:2"><span class="set-val" style="color:#4a4a5e">—</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num" style="flex:0 0 28px;">3</span>
+            <div class="val-with-unit" style="flex:2"><span class="set-val future">500m</span></div>
+            <div class="val-with-unit" style="flex:2"><span class="set-val future">—</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Duration / Isometric card — timer-centric -->
+      <div class="card active">
+        <div class="card-expanded">
+          <div class="exercise-name">Plank</div>
+          <div class="reference">3 × 45 sec hold</div>
+
+          <div class="duration-display">
+            <div class="time-unit">
+              <span class="time-value">0:45</span>
+              <span class="time-label">target hold</span>
+            </div>
+          </div>
+
+          <div class="set-row">
+            <span class="set-num" style="flex:0 0 28px;">1</span>
+            <div class="val-with-unit" style="flex:3"><span class="set-val completed">0:45</span></div>
+            <div class="set-btn"><div class="btn done"><span class="check">✓</span></div></div>
+          </div>
+          <div class="set-row current">
+            <span class="set-num" style="flex:0 0 28px;">2</span>
+            <div class="val-with-unit" style="flex:3"><span class="set-val">0:45</span></div>
+            <div class="set-btn"><div class="btn current"><div class="circle"></div></div></div>
+          </div>
+          <div class="set-row">
+            <span class="set-num" style="flex:0 0 28px;">3</span>
+            <div class="val-with-unit" style="flex:3"><span class="set-val future">0:45</span></div>
+            <div class="set-btn"><div class="btn"><div class="circle"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab"><div class="tab-icon"></div>Home</div>
+      <div class="tab active"><div class="tab-icon"></div>Workout</div>
+      <div class="tab"><div class="tab-icon"></div>Progress</div>
+      <div class="tab"><div class="tab-icon"></div>Running</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

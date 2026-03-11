@@ -11,7 +11,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
-import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData, stopProgram } from '../src/db';
+import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData, clearSampleData, stopProgram } from '../src/db';
 import { exportDatabase, importDatabase, getLastExportTimestamp } from '../src/db';
 
 type WeightUnit = 'lbs' | 'kg';
@@ -81,6 +81,23 @@ export default function SettingsScreen() {
     } catch (err: any) {
       Alert.alert('Error', err.message ?? 'Failed to load sample data');
     }
+  };
+
+  const handleClearSampleData = async () => {
+    Alert.alert(
+      'Clear Sample Data',
+      'This removes only test data. Your real workouts and runs are safe.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Sample Data',
+          onPress: async () => {
+            await clearSampleData();
+            Alert.alert('Done', 'Sample data cleared.');
+          },
+        },
+      ]
+    );
   };
 
   const handleStopProgram = () => {
@@ -332,6 +349,23 @@ export default function SettingsScreen() {
                 <Text style={styles.rowLabel}>Load Sample Data</Text>
                 <Text style={styles.rowHint}>
                   Pre-populate runs and sessions for testing
+                </Text>
+              </View>
+              <Ionicons name="flask-outline" size={18} color={Colors.cyan} />
+            </TouchableOpacity>
+
+            <View style={styles.rowDivider} />
+
+            {/* Clear Sample Data */}
+            <TouchableOpacity
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={handleClearSampleData}
+            >
+              <View style={styles.rowLeft}>
+                <Text style={styles.rowLabel}>Clear Sample Data</Text>
+                <Text style={styles.rowHint}>
+                  Remove test data only — your real data is safe
                 </Text>
               </View>
               <Ionicons name="flask-outline" size={18} color={Colors.cyan} />

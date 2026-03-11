@@ -20,11 +20,11 @@ export async function seedRunLogs(): Promise<number> {
   const runs = generateRunData();
   for (const run of runs) {
     await db.runAsync(
-      `INSERT INTO run_logs (id, date, duration_min, distance, pain_level, pain_level_24h, notes, included_pickups)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO run_logs (id, date, duration_min, distance, pain_level, pain_level_24h, notes, included_pickups, is_sample)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         generateId(), run.date, run.durationMin, run.distance,
-        run.painLevel, run.painLevel24h, run.notes ?? null, run.pickups ? 1 : 0,
+        run.painLevel, run.painLevel24h, run.notes ?? null, run.pickups ? 1 : 0, 1,
       ]
     );
   }
@@ -116,9 +116,9 @@ export async function seedHistoricalProgram(): Promise<number> {
 
   for (const ex of exercises) {
     await db.runAsync(
-      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives)
-       VALUES (?, ?, ?, ?, '[]')`,
-      [ex.id, ex.name, ex.type, ex.muscle_groups]
+      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives, is_sample)
+       VALUES (?, ?, ?, ?, '[]', ?)`,
+      [ex.id, ex.name, ex.type, ex.muscle_groups, 1]
     );
   }
 
@@ -210,9 +210,9 @@ export async function seedHistoricalProgram(): Promise<number> {
 
   const programId = generateId();
   await db.runAsync(
-    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, one_rm_values, activated_date)
-     VALUES (?, ?, ?, ?, 'completed', ?, ?, ?)`,
-    [programId, 'Foundation Builder', 8, activatedDateStr, definitionJson, oneRmValues, activatedDateStr]
+    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, one_rm_values, activated_date, is_sample)
+     VALUES (?, ?, ?, ?, 'completed', ?, ?, ?, ?)`,
+    [programId, 'Foundation Builder', 8, activatedDateStr, definitionJson, oneRmValues, activatedDateStr, 1]
   );
 
   // Generate sessions
@@ -223,8 +223,8 @@ export async function seedHistoricalProgram(): Promise<number> {
       `INSERT INTO sessions (id, program_id, week_number, block_name, day_template_id,
         scheduled_day, actual_day, date, sleep, soreness, energy,
         warmup_rope, warmup_ankle, warmup_hip_ir, conditioning_done,
-        started_at, completed_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        started_at, completed_at, is_sample)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
         s.day, s.day, s.date,
@@ -235,19 +235,19 @@ export async function seedHistoricalProgram(): Promise<number> {
         s.warmupAnkle ? 1 : 0,
         s.warmupHipIr ? 1 : 0,
         s.conditioningDone ? 1 : 0,
-        s.startedAt, s.completedAt,
+        s.startedAt, s.completedAt, 1,
       ]
     );
 
     for (const set of s.sets) {
       await db.runAsync(
         `INSERT INTO set_logs (id, session_id, exercise_id, set_number,
-          target_weight, target_reps, actual_weight, actual_reps, rpe, status, timestamp)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?)`,
+          target_weight, target_reps, actual_weight, actual_reps, rpe, status, timestamp, is_sample)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?, ?)`,
         [
           generateId(), s.id, set.exerciseId, set.setNumber,
           set.weight, set.reps, set.weight, set.reps, set.rpe,
-          s.startedAt,
+          s.startedAt, 1,
         ]
       );
     }
@@ -446,9 +446,9 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
 
   for (const ex of exercises) {
     await db.runAsync(
-      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives)
-       VALUES (?, ?, ?, ?, '[]')`,
-      [ex.id, ex.name, ex.type, ex.muscle_groups]
+      `INSERT OR IGNORE INTO exercises (id, name, type, muscle_groups, alternatives, is_sample)
+       VALUES (?, ?, ?, ?, '[]', ?)`,
+      [ex.id, ex.name, ex.type, ex.muscle_groups, 1]
     );
   }
 
@@ -459,8 +459,8 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
       `INSERT INTO sessions (id, program_id, week_number, block_name, day_template_id,
         scheduled_day, actual_day, date, sleep, soreness, energy,
         warmup_rope, warmup_ankle, warmup_hip_ir, conditioning_done,
-        started_at, completed_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        started_at, completed_at, is_sample)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
         s.day, s.day, s.date,
@@ -471,19 +471,19 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
         s.warmupAnkle ? 1 : 0,
         s.warmupHipIr ? 1 : 0,
         s.conditioningDone ? 1 : 0,
-        s.startedAt, s.completedAt,
+        s.startedAt, s.completedAt, 1,
       ]
     );
 
     for (const set of s.sets) {
       await db.runAsync(
         `INSERT INTO set_logs (id, session_id, exercise_id, set_number,
-          target_weight, target_reps, actual_weight, actual_reps, rpe, status, timestamp)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?)`,
+          target_weight, target_reps, actual_weight, actual_reps, rpe, status, timestamp, is_sample)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?, ?)`,
         [
           generateId(), s.id, set.exerciseId, set.setNumber,
           set.weight, set.reps, set.weight, set.reps, set.rpe,
-          s.startedAt,
+          s.startedAt, 1,
         ]
       );
     }

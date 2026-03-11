@@ -1,4 +1,4 @@
-export { getDatabase, generateId, clearAllData, closeDatabase } from './database';
+export { getDatabase, generateId, clearAllData, clearSampleData, closeDatabase } from './database';
 export { exportDatabase, importDatabase, getLastExportTimestamp, shouldShowBackupReminder } from './backup';
 export { getActiveProgram, getAllPrograms, importProgram, activateProgram, getOneRmValues, stopProgram } from './programs';
 export {

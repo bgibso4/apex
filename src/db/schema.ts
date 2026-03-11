@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS programs (
   status TEXT NOT NULL DEFAULT 'inactive',
   definition_json TEXT NOT NULL,
   one_rm_values TEXT,
-  activated_date TEXT
+  activated_date TEXT,
+  is_sample INTEGER DEFAULT 0
 );
 
 -- Global exercise library (cross-program)
@@ -24,7 +25,8 @@ CREATE TABLE IF NOT EXISTS exercises (
   name TEXT NOT NULL,
   type TEXT NOT NULL,
   muscle_groups TEXT NOT NULL DEFAULT '[]',
-  alternatives TEXT NOT NULL DEFAULT '[]'
+  alternatives TEXT NOT NULL DEFAULT '[]',
+  is_sample INTEGER DEFAULT 0
 );
 
 -- Session logs
@@ -47,6 +49,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   notes TEXT,
   started_at TEXT,
   completed_at TEXT,
+  is_sample INTEGER DEFAULT 0,
   FOREIGN KEY (program_id) REFERENCES programs(id)
 );
 
@@ -64,6 +67,7 @@ CREATE TABLE IF NOT EXISTS set_logs (
   status TEXT NOT NULL DEFAULT 'pending',
   timestamp TEXT,
   is_adhoc INTEGER DEFAULT 0,
+  is_sample INTEGER DEFAULT 0,
   FOREIGN KEY (session_id) REFERENCES sessions(id),
   FOREIGN KEY (exercise_id) REFERENCES exercises(id)
 );
@@ -79,6 +83,7 @@ CREATE TABLE IF NOT EXISTS run_logs (
   distance REAL,
   notes TEXT,
   included_pickups INTEGER DEFAULT 0,
+  is_sample INTEGER DEFAULT 0,
   FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
 
@@ -108,6 +113,7 @@ CREATE TABLE IF NOT EXISTS exercise_notes (
   exercise_id TEXT NOT NULL,
   note TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
+  is_sample INTEGER DEFAULT 0,
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
   UNIQUE(session_id, exercise_id)
 );
@@ -122,6 +128,7 @@ CREATE TABLE IF NOT EXISTS personal_records (
   previous_value REAL,
   session_id TEXT NOT NULL,
   date TEXT NOT NULL,
+  is_sample INTEGER DEFAULT 0,
   FOREIGN KEY (exercise_id) REFERENCES exercises(id),
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );

@@ -65,9 +65,9 @@ describe('getBlockColor', () => {
 describe('getTrainingDays', () => {
   it('returns only non-rest days in order', () => {
     const template = {
-      monday: { name: 'Upper', locked: false, warmup: 'general', exercises: [], conditioning_finisher: '' },
+      monday: { name: 'Upper', locked: false, warmup: ['general'], exercises: [], conditioning_finisher: '' },
       tuesday: { type: 'rest' as const },
-      wednesday: { name: 'Lower', locked: false, warmup: 'general', exercises: [], conditioning_finisher: '' },
+      wednesday: { name: 'Lower', locked: false, warmup: ['general'], exercises: [], conditioning_finisher: '' },
     };
     const result = getTrainingDays(template);
     expect(result).toHaveLength(2);

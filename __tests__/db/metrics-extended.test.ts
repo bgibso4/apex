@@ -592,25 +592,24 @@ describe('getAllTimeConsistency', () => {
 
 describe('getProtocolConsistency', () => {
   let mockDb: {
-    getFirstAsync: jest.Mock;
+    getAllAsync: jest.Mock;
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockDb = {
-      getFirstAsync: jest.fn(),
+      getAllAsync: jest.fn(),
     };
     (getDatabase as jest.Mock).mockResolvedValue(mockDb);
   });
 
-  it('returns completion rate per protocol item', async () => {
-    mockDb.getFirstAsync.mockResolvedValue({
-      total: 10,
-      warmup_rope_count: 8,
-      warmup_ankle_count: 6,
-      warmup_hip_ir_count: 7,
-      conditioning_done_count: 5,
-    });
+  it('returns completion rate per protocol item grouped by protocol_name', async () => {
+    mockDb.getAllAsync.mockResolvedValue([
+      { name: 'Jump Rope', total: 10, completed: 8 },
+      { name: 'Ankle Protocol', total: 10, completed: 6 },
+      { name: 'Hip IR Work', total: 10, completed: 7 },
+      { name: 'Conditioning', total: 10, completed: 5 },
+    ]);
 
     const result = await getProtocolConsistency('prog-1');
 
@@ -623,52 +622,29 @@ describe('getProtocolConsistency', () => {
   });
 
   it('queries all programs when programId is null (SQL should NOT contain program_id)', async () => {
-    mockDb.getFirstAsync.mockResolvedValue({
-      total: 5,
-      warmup_rope_count: 3,
-      warmup_ankle_count: 2,
-      warmup_hip_ir_count: 4,
-      conditioning_done_count: 1,
-    });
+    mockDb.getAllAsync.mockResolvedValue([]);
 
     await getProtocolConsistency(null);
 
-    const call = mockDb.getFirstAsync.mock.calls[0];
+    const call = mockDb.getAllAsync.mock.calls[0];
     const sql = call[0] as string;
     expect(sql).not.toContain('program_id');
   });
 
   it('handles zero sessions gracefully', async () => {
-    mockDb.getFirstAsync.mockResolvedValue({
-      total: 0,
-      warmup_rope_count: 0,
-      warmup_ankle_count: 0,
-      warmup_hip_ir_count: 0,
-      conditioning_done_count: 0,
-    });
+    mockDb.getAllAsync.mockResolvedValue([]);
 
     const result = await getProtocolConsistency('prog-1');
 
-    expect(result).toEqual([
-      { name: 'Jump Rope', completed: 0, total: 0 },
-      { name: 'Ankle Protocol', completed: 0, total: 0 },
-      { name: 'Hip IR Work', completed: 0, total: 0 },
-      { name: 'Conditioning', completed: 0, total: 0 },
-    ]);
+    expect(result).toEqual([]);
   });
 
   it('filters by programId when provided', async () => {
-    mockDb.getFirstAsync.mockResolvedValue({
-      total: 3,
-      warmup_rope_count: 2,
-      warmup_ankle_count: 1,
-      warmup_hip_ir_count: 3,
-      conditioning_done_count: 0,
-    });
+    mockDb.getAllAsync.mockResolvedValue([]);
 
     await getProtocolConsistency('prog-abc');
 
-    const call = mockDb.getFirstAsync.mock.calls[0];
+    const call = mockDb.getAllAsync.mock.calls[0];
     const sql = call[0] as string;
     expect(sql).toContain('program_id');
     expect(call[1]).toContain('prog-abc');
@@ -806,7 +782,7 @@ describe('getPlannedWeeklyVolume', () => {
           monday: {
             name: 'Upper',
             locked: false,
-            warmup: 'standard',
+            warmup: ['standard'],
             exercises: [
               {
                 exercise_id: 'bench',
@@ -824,7 +800,7 @@ describe('getPlannedWeeklyVolume', () => {
           friday: {
             name: 'Lower',
             locked: false,
-            warmup: 'standard',
+            warmup: ['standard'],
             exercises: [
               {
                 exercise_id: 'squat',
@@ -865,7 +841,7 @@ describe('getPlannedWeeklyVolume', () => {
           tuesday: {
             name: 'Main Day',
             locked: false,
-            warmup: 'standard',
+            warmup: ['standard'],
             exercises: [
               {
                 exercise_id: 'deadlift',

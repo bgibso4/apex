@@ -328,20 +328,21 @@ describe('programs', () => {
 
       // Should have multiple DELETE calls + one UPDATE
       const calls = mockDb.runAsync.mock.calls;
-      expect(calls.length).toBeGreaterThanOrEqual(6);
+      expect(calls.length).toBeGreaterThanOrEqual(7);
 
-      // Verify cascade order: personal_records, exercise_notes, set_logs, unlink run_logs, sessions, weekly_checkins
+      // Verify cascade order: personal_records, exercise_notes, set_logs, unlink run_logs, session_protocols, sessions, weekly_checkins
       const sqls = calls.map(([sql]: [string]) => sql);
 
       expect(sqls[0]).toContain('DELETE FROM personal_records');
       expect(sqls[1]).toContain('DELETE FROM exercise_notes');
       expect(sqls[2]).toContain('DELETE FROM set_logs');
       expect(sqls[3]).toContain('UPDATE run_logs SET session_id = NULL');
-      expect(sqls[4]).toContain('DELETE FROM sessions');
-      expect(sqls[5]).toContain('DELETE FROM weekly_checkins');
+      expect(sqls[4]).toContain('DELETE FROM session_protocols');
+      expect(sqls[5]).toContain('DELETE FROM sessions');
+      expect(sqls[6]).toContain('DELETE FROM weekly_checkins');
 
       // All statements reference the program_id
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 7; i++) {
         const params = calls[i][1];
         expect(params).toEqual(['prog-1']);
       }

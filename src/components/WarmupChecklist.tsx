@@ -1,61 +1,71 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../theme';
+import type { SessionProtocol } from '../types';
 
 export interface WarmupChecklistProps {
-  warmupRope: boolean;
-  warmupAnkle: boolean;
-  warmupHipIr: boolean;
-  blockColor: string;
-  onToggleRope: () => void;
-  onToggleAnkle: () => void;
-  onToggleHipIr: () => void;
+  protocols: SessionProtocol[];
+  onToggle: (protocolId: number) => void;
   onContinue: () => void;
   timer?: string;
+  sessionName?: string;
+  onMenu?: () => void;
 }
 
 export function WarmupChecklist({
-  warmupRope, warmupAnkle, warmupHipIr, blockColor,
-  onToggleRope, onToggleAnkle, onToggleHipIr, onContinue, timer,
+  protocols, onToggle, onContinue, timer, sessionName, onMenu,
 }: WarmupChecklistProps) {
-  const items = [
-    { label: 'Jump Rope \u2014 3 min', value: warmupRope, toggle: onToggleRope },
-    { label: 'Ankle Dorsiflexion Protocol', value: warmupAnkle, toggle: onToggleAnkle },
-    { label: 'Hip IR Mobility Work', value: warmupHipIr, toggle: onToggleHipIr },
-  ];
+  const warmupProtocols = protocols.filter(p => p.type === 'warmup');
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <Text style={styles.title}>Warm Up</Text>
-        {timer && (
-          <Text style={styles.timerDisplay}>{timer}</Text>
-        )}
+      <View style={styles.headerRow}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>Warm Up</Text>
+          {sessionName && (
+            <Text style={styles.subtitle}>{sessionName}</Text>
+          )}
+        </View>
+        <View style={styles.headerRight}>
+          {timer && (
+            <Text style={styles.timerDisplay}>{timer}</Text>
+          )}
+          {onMenu && (
+            <TouchableOpacity
+              onPress={onMenu}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={styles.menuButton}
+            >
+              <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       <View style={styles.items}>
-        {items.map(({ label, value, toggle }) => (
+        {warmupProtocols.map((protocol) => (
           <TouchableOpacity
-            key={label}
+            key={protocol.id}
             style={[
               styles.warmupItem,
-              value && styles.warmupItemChecked,
+              !!protocol.completed && styles.warmupItemChecked,
             ]}
             onPress={() => {
-              toggle();
+              onToggle(protocol.id);
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }}
             activeOpacity={0.7}
           >
             <View style={[
               styles.warmupCheck,
-              value && styles.warmupCheckChecked,
+              !!protocol.completed && styles.warmupCheckChecked,
             ]}>
-              {value && <Text style={styles.warmupCheckText}>{'\u2713'}</Text>}
+              {!!protocol.completed && <Text style={styles.warmupCheckText}>{'\u2713'}</Text>}
             </View>
             <Text style={[
               styles.warmupLabel,
-              value && styles.warmupLabelChecked,
-            ]}>{label}</Text>
+              !!protocol.completed && styles.warmupLabelChecked,
+            ]}>{protocol.protocol_name}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -75,22 +85,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  titleRow: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
+    alignItems: 'flex-start',
     marginBottom: Spacing.xl,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    flexShrink: 0,
   },
   title: {
     color: Colors.text,
     fontSize: FontSize.screenTitle,
     fontWeight: '800',
   },
+  subtitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    marginTop: Spacing.xs,
+  },
   timerDisplay: {
     fontSize: FontSize.lg,
     fontWeight: '600',
     color: Colors.textDim,
     fontVariant: ['tabular-nums'],
+  },
+  menuButton: {
+    padding: Spacing.xs,
   },
   items: {
     gap: Spacing.sm,

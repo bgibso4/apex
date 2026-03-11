@@ -1,26 +1,32 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { WarmupChecklist } from '../../src/components/WarmupChecklist';
+import type { SessionProtocol } from '../../src/types';
+
+const mockProtocols: SessionProtocol[] = [
+  { id: 1, session_id: 's1', type: 'warmup', protocol_key: 'jump_rope', protocol_name: 'Jump Rope — 3 min', completed: false, sort_order: 0 },
+  { id: 2, session_id: 's1', type: 'warmup', protocol_key: 'full_ankle', protocol_name: 'Full Ankle Protocol — 10 min', completed: false, sort_order: 1 },
+  { id: 3, session_id: 's1', type: 'conditioning', protocol_key: null, protocol_name: 'Assault Bike', completed: false, sort_order: 2 },
+];
 
 const defaultProps = {
-  warmupRope: false,
-  warmupAnkle: false,
-  warmupHipIr: false,
-  blockColor: '#6366f1',
-  onToggleRope: jest.fn(),
-  onToggleAnkle: jest.fn(),
-  onToggleHipIr: jest.fn(),
+  protocols: mockProtocols,
+  onToggle: jest.fn(),
   onContinue: jest.fn(),
 };
 
 describe('WarmupChecklist', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('renders all warmup items', () => {
+  it('renders warmup protocol items from data', () => {
     render(<WarmupChecklist {...defaultProps} />);
-    expect(screen.getByText(/Jump Rope/)).toBeTruthy();
-    expect(screen.getByText(/Ankle Dorsiflexion/)).toBeTruthy();
-    expect(screen.getByText(/Hip IR/)).toBeTruthy();
+    expect(screen.getByText('Jump Rope — 3 min')).toBeTruthy();
+    expect(screen.getByText('Full Ankle Protocol — 10 min')).toBeTruthy();
+  });
+
+  it('does not render conditioning items', () => {
+    render(<WarmupChecklist {...defaultProps} />);
+    expect(screen.queryByText('Assault Bike')).toBeNull();
   });
 
   it('renders continue button', () => {
@@ -28,25 +34,17 @@ describe('WarmupChecklist', () => {
     expect(screen.getByText(/Continue to Exercises/)).toBeTruthy();
   });
 
-  it('calls onToggleRope when Jump Rope is pressed', () => {
-    const onToggleRope = jest.fn();
-    render(<WarmupChecklist {...defaultProps} onToggleRope={onToggleRope} />);
-    fireEvent.press(screen.getByText(/Jump Rope/));
-    expect(onToggleRope).toHaveBeenCalledTimes(1);
+  it('calls onToggle with protocol id when pressed', () => {
+    const onToggle = jest.fn();
+    render(<WarmupChecklist {...defaultProps} onToggle={onToggle} />);
+    fireEvent.press(screen.getByText('Jump Rope — 3 min'));
+    expect(onToggle).toHaveBeenCalledWith(1);
   });
 
-  it('calls onToggleAnkle when Ankle Protocol is pressed', () => {
-    const onToggleAnkle = jest.fn();
-    render(<WarmupChecklist {...defaultProps} onToggleAnkle={onToggleAnkle} />);
-    fireEvent.press(screen.getByText(/Ankle Dorsiflexion/));
-    expect(onToggleAnkle).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onToggleHipIr when Hip IR Work is pressed', () => {
-    const onToggleHipIr = jest.fn();
-    render(<WarmupChecklist {...defaultProps} onToggleHipIr={onToggleHipIr} />);
-    fireEvent.press(screen.getByText(/Hip IR/));
-    expect(onToggleHipIr).toHaveBeenCalledTimes(1);
+  it('shows checked state for completed protocols', () => {
+    const completed = mockProtocols.map((p, i) => i === 0 ? { ...p, completed: true } : p);
+    render(<WarmupChecklist {...defaultProps} protocols={completed} />);
+    expect(screen.getByText('\u2713')).toBeTruthy();
   });
 
   it('calls onContinue when continue button is pressed', () => {
@@ -56,18 +54,13 @@ describe('WarmupChecklist', () => {
     expect(onContinue).toHaveBeenCalledTimes(1);
   });
 
-  it('should display the workout timer when provided', () => {
-    const { getByText } = render(
-      <WarmupChecklist {...defaultProps} timer="03:45" />
-    );
-    expect(getByText('03:45')).toBeTruthy();
+  it('renders with empty protocols list', () => {
+    render(<WarmupChecklist protocols={[]} onToggle={jest.fn()} onContinue={jest.fn()} />);
+    expect(screen.getByText(/Continue to Exercises/)).toBeTruthy();
   });
 
-  it('should not display timer when not provided', () => {
-    const { queryByText } = render(
-      <WarmupChecklist {...defaultProps} />
-    );
-    // Timer text should not be present — just verify the component renders without error
-    expect(queryByText('Warm Up')).toBeTruthy();
+  it('displays the workout timer when provided', () => {
+    render(<WarmupChecklist {...defaultProps} timer="03:45" />);
+    expect(screen.getByText('03:45')).toBeTruthy();
   });
 });

@@ -83,18 +83,22 @@ describe('SessionSummary', () => {
   });
 
   it('shows protocol chips for warmup and conditioning', () => {
+    const protocols = [
+      { id: 1, session_id: 's1', type: 'warmup' as const, protocol_key: 'rope', protocol_name: 'Jump Rope', completed: true, sort_order: 0 },
+      { id: 2, session_id: 's1', type: 'warmup' as const, protocol_key: 'ankle', protocol_name: 'Ankle Protocol', completed: true, sort_order: 1 },
+      { id: 3, session_id: 's1', type: 'warmup' as const, protocol_key: 'hip_ir', protocol_name: 'Hip IR', completed: false, sort_order: 2 },
+      { id: 4, session_id: 's1', type: 'conditioning' as const, protocol_key: null, protocol_name: 'EMOM 10min', completed: true, sort_order: 3 },
+    ];
     render(
       <SessionSummary
         {...defaultProps}
-        warmup={{ rope: true, ankle: true, hipIr: false }}
-        conditioningFinisher="EMOM 10min"
-        conditioningDone={true}
+        protocols={protocols}
       />
     );
     expect(screen.getByText('Protocols')).toBeTruthy();
     expect(screen.getByText(/Jump Rope/)).toBeTruthy();
     expect(screen.getByText(/Hip IR/)).toBeTruthy();
-    expect(screen.getByText(/Conditioning/)).toBeTruthy();
+    expect(screen.getByText(/EMOM 10min/)).toBeTruthy();
   });
 
   it('shows recent workouts section', () => {

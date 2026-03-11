@@ -140,6 +140,7 @@ export async function clearAllData(): Promise<void> {
     DELETE FROM personal_records;
     DELETE FROM exercise_notes;
     DELETE FROM set_logs;
+    DELETE FROM session_protocols;
     DELETE FROM sessions;
     DELETE FROM programs;
     DELETE FROM run_logs;
@@ -155,6 +156,7 @@ export async function clearSampleData(): Promise<void> {
     DELETE FROM personal_records WHERE is_sample = 1;
     DELETE FROM exercise_notes WHERE is_sample = 1;
     DELETE FROM set_logs WHERE is_sample = 1;
+    DELETE FROM session_protocols WHERE session_id IN (SELECT id FROM sessions WHERE is_sample = 1);
     DELETE FROM sessions WHERE is_sample = 1;
     DELETE FROM run_logs WHERE is_sample = 1;
     DELETE FROM programs WHERE is_sample = 1;

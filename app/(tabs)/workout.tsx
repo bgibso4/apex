@@ -282,26 +282,13 @@ export default function WorkoutScreen() {
         {/* Phase: Warmup */}
         {w.phase === 'warmup' && (
           <>
-            <View style={styles.warmupHeader}>
-              <Text style={styles.warmupHeaderTitle}>{w.selectedTemplate?.name ?? 'Warmup'}</Text>
-              <TouchableOpacity
-                onPress={showWorkoutMenu}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                style={styles.overflowButton}
-              >
-                <Ionicons name="ellipsis-horizontal" size={22} color={Colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
             <WarmupChecklist
-              warmupRope={w.warmupRope}
-              warmupAnkle={w.warmupAnkle}
-              warmupHipIr={w.warmupHipIr}
-              blockColor={w.blockColor}
-              onToggleRope={w.toggleWarmupRope}
-              onToggleAnkle={w.toggleWarmupAnkle}
-              onToggleHipIr={w.toggleWarmupHipIr}
+              protocols={w.protocols}
+              onToggle={w.toggleProtocol}
               onContinue={w.submitWarmup}
               timer={w.timer}
+              sessionName={w.selectedTemplate?.name}
+              onMenu={showWorkoutMenu}
             />
           </>
         )}
@@ -425,7 +412,10 @@ export default function WorkoutScreen() {
                 {w.conditioningFinisher && (
                   <TouchableOpacity
                     style={styles.conditioningCard}
-                    onPress={() => w.setConditioningDone(!w.conditioningDone)}
+                    onPress={() => {
+                      const cp = w.protocols.find(p => p.type === 'conditioning');
+                      if (cp) w.toggleProtocol(cp.id);
+                    }}
                     activeOpacity={0.7}
                   >
                     <View style={styles.conditioningLeft}>
@@ -490,9 +480,7 @@ export default function WorkoutScreen() {
               rpe: ex.rpe,
               note: w.exerciseNotes[ex.slot.exercise_id],
             }))}
-            warmup={{ rope: w.warmupRope, ankle: w.warmupAnkle, hipIr: w.warmupHipIr }}
-            conditioningFinisher={w.conditioningFinisher}
-            conditioningDone={w.conditioningDone}
+            protocols={w.protocols}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
             onNotesChange={w.saveNotes}

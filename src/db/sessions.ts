@@ -3,7 +3,7 @@
  */
 
 import { getDatabase, generateId } from './database';
-import type { Session, SetLog } from '../types';
+import type { Session, SetLog, SessionProtocol } from '../types';
 import type { InputField } from '../types/fields';
 
 /** Create a new session (when user starts a workout) */
@@ -48,25 +48,40 @@ export async function updateReadiness(
   );
 }
 
-/** Update warmup completion flags */
-export async function updateWarmup(
+/** Insert protocol items for a session */
+export async function insertSessionProtocols(
   sessionId: string,
-  warmups: { rope?: boolean; ankle?: boolean; hipIr?: boolean }
+  protocols: { type: string; protocolKey: string | null; protocolName: string }[]
 ): Promise<void> {
   const db = await getDatabase();
-  const fields: string[] = [];
-  const values: (number | string)[] = [];
+  for (let i = 0; i < protocols.length; i++) {
+    const p = protocols[i];
+    await db.runAsync(
+      `INSERT INTO session_protocols (session_id, type, protocol_key, protocol_name, sort_order)
+       VALUES (?, ?, ?, ?, ?)`,
+      [sessionId, p.type, p.protocolKey, p.protocolName, i]
+    );
+  }
+}
 
-  if (warmups.rope !== undefined) { fields.push('warmup_rope = ?'); values.push(warmups.rope ? 1 : 0); }
-  if (warmups.ankle !== undefined) { fields.push('warmup_ankle = ?'); values.push(warmups.ankle ? 1 : 0); }
-  if (warmups.hipIr !== undefined) { fields.push('warmup_hip_ir = ?'); values.push(warmups.hipIr ? 1 : 0); }
+/** Get all protocol items for a session */
+export async function getSessionProtocols(sessionId: string): Promise<SessionProtocol[]> {
+  const db = await getDatabase();
+  return db.getAllAsync<SessionProtocol>(
+    'SELECT * FROM session_protocols WHERE session_id = ? ORDER BY sort_order',
+    [sessionId]
+  );
+}
 
-  if (fields.length === 0) return;
-  values.push(sessionId);
-
+/** Toggle completion of a single protocol item */
+export async function updateProtocolCompletion(
+  protocolId: number,
+  completed: boolean
+): Promise<void> {
+  const db = await getDatabase();
   await db.runAsync(
-    `UPDATE sessions SET ${fields.join(', ')} WHERE id = ?`,
-    values
+    'UPDATE session_protocols SET completed = ? WHERE id = ?',
+    [completed ? 1 : 0, protocolId]
   );
 }
 
@@ -161,14 +176,11 @@ export async function deleteSet(setId: string): Promise<void> {
 }
 
 /** Complete a session */
-export async function completeSession(
-  sessionId: string,
-  conditioningDone: boolean
-): Promise<void> {
+export async function completeSession(sessionId: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    "UPDATE sessions SET completed_at = ?, conditioning_done = ? WHERE id = ?",
-    [new Date().toISOString(), conditioningDone ? 1 : 0, sessionId]
+    "UPDATE sessions SET completed_at = ? WHERE id = ?",
+    [new Date().toISOString(), sessionId]
   );
 }
 
@@ -310,6 +322,7 @@ export async function ensureExerciseExists(exercise: {
 /** Delete a session and all related data */
 export async function deleteSession(sessionId: string): Promise<void> {
   const db = await getDatabase();
+  await db.runAsync('DELETE FROM session_protocols WHERE session_id = ?', [sessionId]);
   await db.runAsync('DELETE FROM set_logs WHERE session_id = ?', [sessionId]);
   await db.runAsync('DELETE FROM exercise_notes WHERE session_id = ?', [sessionId]);
   await db.runAsync('DELETE FROM personal_records WHERE session_id = ?', [sessionId]);
@@ -350,11 +363,12 @@ export async function getAllCompletedSessions(): Promise<(Session & { program_na
   );
 }
 
-/** Get full session state (session + set logs + exercise notes) for restoration */
+/** Get full session state (session + set logs + exercise notes + protocols) for restoration */
 export async function getFullSessionState(sessionId: string): Promise<{
   session: Session;
   setLogs: SetLog[];
   exerciseNotes: Record<string, string>;
+  protocols: SessionProtocol[];
 } | null> {
   const db = await getDatabase();
   const session = await db.getFirstAsync<Session>(
@@ -377,7 +391,9 @@ export async function getFullSessionState(sessionId: string): Promise<{
     exerciseNotes[row.exercise_id] = row.note;
   }
 
-  return { session, setLogs, exerciseNotes };
+  const protocols = await getSessionProtocols(sessionId);
+
+  return { session, setLogs, exerciseNotes, protocols };
 }
 
 /** Get the most recent sets for an exercise (for pre-fill) */

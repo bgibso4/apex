@@ -146,6 +146,11 @@ export async function stopProgram(
         [programId]
       );
       await db.runAsync(
+        `DELETE FROM session_protocols WHERE session_id IN
+         (SELECT id FROM sessions WHERE program_id = ?)`,
+        [programId]
+      );
+      await db.runAsync(
         'DELETE FROM sessions WHERE program_id = ?',
         [programId]
       );

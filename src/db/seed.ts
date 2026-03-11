@@ -222,19 +222,14 @@ export async function seedHistoricalProgram(): Promise<number> {
     await db.runAsync(
       `INSERT INTO sessions (id, program_id, week_number, block_name, day_template_id,
         scheduled_day, actual_day, date, sleep, soreness, energy,
-        warmup_rope, warmup_ankle, warmup_hip_ir, conditioning_done,
         started_at, completed_at, is_sample)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
         s.day, s.day, s.date,
         3 + Math.round(Math.random() * 2),
         2 + Math.round(Math.random() * 2),
         3 + Math.round(Math.random() * 2),
-        s.warmupRope ? 1 : 0,
-        s.warmupAnkle ? 1 : 0,
-        s.warmupHipIr ? 1 : 0,
-        s.conditioningDone ? 1 : 0,
         s.startedAt, s.completedAt, 1,
       ]
     );
@@ -251,6 +246,17 @@ export async function seedHistoricalProgram(): Promise<number> {
         ]
       );
     }
+
+    // Insert protocol rows
+    for (let i = 0; i < s.protocols.length; i++) {
+      const p = s.protocols[i];
+      await db.runAsync(
+        `INSERT INTO session_protocols (session_id, type, protocol_key, protocol_name, completed, sort_order, is_sample)
+         VALUES (?, ?, ?, ?, ?, ?, 1)`,
+        [s.id, p.type, p.protocolKey, p.protocolName, p.completed ? 1 : 0, i]
+      );
+    }
+
     count++;
   }
 
@@ -389,10 +395,11 @@ function generateHistoricalSessionData(
         }
       }
 
-      const warmupRope = warmupPattern(sessionIndex, 85);
-      const warmupAnkle = warmupPattern(sessionIndex, 70);
-      const warmupHipIr = warmupPattern(sessionIndex, 60);
-      const conditioningDone = warmupPattern(sessionIndex, 75);
+      const protocols: SessionData['protocols'] = [
+        { type: 'warmup', protocolKey: 'jump_rope', protocolName: 'Jump Rope', completed: warmupPattern(sessionIndex, 85) },
+        { type: 'warmup', protocolKey: 'full_ankle', protocolName: 'Full Ankle Protocol', completed: warmupPattern(sessionIndex, 70) },
+        { type: 'conditioning', protocolKey: null, protocolName: 'Conditioning Finisher', completed: warmupPattern(sessionIndex, 75) },
+      ];
 
       sessions.push({
         id: sessionId,
@@ -403,10 +410,7 @@ function generateHistoricalSessionData(
         date: d.toISOString().split('T')[0],
         startedAt: started.toISOString(),
         completedAt: completed.toISOString(),
-        warmupRope,
-        warmupAnkle,
-        warmupHipIr,
-        conditioningDone,
+        protocols,
         sets,
       });
 
@@ -458,19 +462,14 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
     await db.runAsync(
       `INSERT INTO sessions (id, program_id, week_number, block_name, day_template_id,
         scheduled_day, actual_day, date, sleep, soreness, energy,
-        warmup_rope, warmup_ankle, warmup_hip_ir, conditioning_done,
         started_at, completed_at, is_sample)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
         s.day, s.day, s.date,
         3 + Math.round(Math.random() * 2), // sleep 3-5
         2 + Math.round(Math.random() * 2), // soreness 2-4
         3 + Math.round(Math.random() * 2), // energy 3-5
-        s.warmupRope ? 1 : 0,
-        s.warmupAnkle ? 1 : 0,
-        s.warmupHipIr ? 1 : 0,
-        s.conditioningDone ? 1 : 0,
         s.startedAt, s.completedAt, 1,
       ]
     );
@@ -487,6 +486,17 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
         ]
       );
     }
+
+    // Insert protocol rows
+    for (let i = 0; i < s.protocols.length; i++) {
+      const p = s.protocols[i];
+      await db.runAsync(
+        `INSERT INTO session_protocols (session_id, type, protocol_key, protocol_name, completed, sort_order, is_sample)
+         VALUES (?, ?, ?, ?, ?, ?, 1)`,
+        [s.id, p.type, p.protocolKey, p.protocolName, p.completed ? 1 : 0, i]
+      );
+    }
+
     count++;
   }
 
@@ -515,10 +525,7 @@ interface SessionData {
   date: string;
   startedAt: string;
   completedAt: string;
-  warmupRope: boolean;
-  warmupAnkle: boolean;
-  warmupHipIr: boolean;
-  conditioningDone: boolean;
+  protocols: { type: string; protocolKey: string | null; protocolName: string; completed: boolean }[];
   sets: { exerciseId: string; setNumber: number; weight: number; reps: number; rpe: number }[];
 }
 
@@ -667,10 +674,11 @@ function generateSessionData(programId: string, exercises: { id: string }[]): Se
       }
 
       // Warmup/conditioning variation
-      const warmupRope = warmupPattern(sessionIndex, 85);
-      const warmupAnkle = warmupPattern(sessionIndex, 70);
-      const warmupHipIr = warmupPattern(sessionIndex, 60);
-      const conditioningDone = warmupPattern(sessionIndex, 75);
+      const protocols: SessionData['protocols'] = [
+        { type: 'warmup', protocolKey: 'jump_rope', protocolName: 'Jump Rope', completed: warmupPattern(sessionIndex, 85) },
+        { type: 'warmup', protocolKey: 'full_ankle', protocolName: 'Full Ankle Protocol', completed: warmupPattern(sessionIndex, 70) },
+        { type: 'conditioning', protocolKey: null, protocolName: 'Conditioning Finisher', completed: warmupPattern(sessionIndex, 75) },
+      ];
 
       sessions.push({
         id: sessionId,
@@ -681,10 +689,7 @@ function generateSessionData(programId: string, exercises: { id: string }[]): Se
         date: d.toISOString().split('T')[0],
         startedAt: started.toISOString(),
         completedAt: completed.toISOString(),
-        warmupRope,
-        warmupAnkle,
-        warmupHipIr,
-        conditioningDone,
+        protocols,
         sets,
       });
 

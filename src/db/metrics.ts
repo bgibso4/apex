@@ -421,37 +421,24 @@ export async function getProtocolConsistency(
   const db = await getDatabase();
 
   let sql = `SELECT
+       sp.protocol_name as name,
        COUNT(*) as total,
-       SUM(warmup_rope) as warmup_rope_count,
-       SUM(warmup_ankle) as warmup_ankle_count,
-       SUM(warmup_hip_ir) as warmup_hip_ir_count,
-       SUM(conditioning_done) as conditioning_done_count
-     FROM sessions
-     WHERE completed_at IS NOT NULL`;
+       SUM(sp.completed) as completed
+     FROM session_protocols sp
+     JOIN sessions s ON s.id = sp.session_id
+     WHERE s.completed_at IS NOT NULL`;
 
   const params: string[] = [];
 
   if (programId !== null) {
-    sql += `\n       AND program_id = ?`;
+    sql += `\n       AND s.program_id = ?`;
     params.push(programId);
   }
 
-  const row = await db.getFirstAsync<{
-    total: number;
-    warmup_rope_count: number;
-    warmup_ankle_count: number;
-    warmup_hip_ir_count: number;
-    conditioning_done_count: number;
-  }>(sql, params);
+  sql += `\n     GROUP BY sp.protocol_name ORDER BY MIN(sp.type), MIN(sp.sort_order)`;
 
-  const total = row?.total ?? 0;
-
-  return [
-    { name: 'Jump Rope', completed: row?.warmup_rope_count ?? 0, total },
-    { name: 'Ankle Protocol', completed: row?.warmup_ankle_count ?? 0, total },
-    { name: 'Hip IR Work', completed: row?.warmup_hip_ir_count ?? 0, total },
-    { name: 'Conditioning', completed: row?.conditioning_done_count ?? 0, total },
-  ];
+  const rows = await db.getAllAsync<{ name: string; total: number; completed: number }>(sql, params);
+  return rows.map(r => ({ name: r.name, completed: r.completed, total: r.total }));
 }
 
 /** Get recent set history for an exercise (for exercise detail page) */

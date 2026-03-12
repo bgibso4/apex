@@ -111,9 +111,6 @@ export function useWorkoutSession() {
   // PRs
   const [prs, setPRs] = useState<PRRecord[]>([]);
 
-  // Edit mode
-  const [editMode, setEditMode] = useState(false);
-
   // Debounce timer for session notes
   const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -388,7 +385,6 @@ export function useWorkoutSession() {
       setPRs([]);
       setExerciseNotes({});
       setSessionNotes('');
-      setEditMode(false);
       setProtocols([]);
       hasAttemptedRestore.current = false;
     }
@@ -941,31 +937,6 @@ export function useWorkoutSession() {
     }
   };
 
-  /** Update a set's weight/reps from the summary edit mode */
-  const updateSetInSummary = async (exIdx: number, completedSetIdx: number, weight: number, reps: number) => {
-    const ex = exercises[exIdx];
-    if (!ex) return;
-    // completedSetIdx refers to the index among completed sets only
-    const completedSets = ex.sets
-      .map((s, i) => ({ ...s, originalIdx: i }))
-      .filter(s => s.status !== 'pending');
-    const target = completedSets[completedSetIdx];
-    if (!target?.id) return;
-
-    await updateSet(target.id, { actualWeight: weight, actualReps: reps });
-
-    setExercises(prev => {
-      const next = [...prev];
-      next[exIdx] = {
-        ...next[exIdx],
-        sets: next[exIdx].sets.map((s, i) =>
-          i === target.originalIdx ? { ...s, actualWeight: weight, actualReps: reps } : s
-        ),
-      };
-      return next;
-    });
-  };
-
   /** End the session early (calls finishSession) */
   const endEarlyAction = async () => {
     await finishSession();
@@ -983,19 +954,18 @@ export function useWorkoutSession() {
     setPRs([]);
     setExerciseNotes({});
     setSessionNotes('');
-    setEditMode(false);
     setProtocols([]);
   };
 
-  /** Re-detect PRs from current set logs */
-  const recalculatePRs = async () => {
+  /** Complete the session */
+  const finishSession = async () => {
     if (!sessionId) return;
-    const setLogs = await getSetLogsForSession(sessionId);
+    await completeSession(sessionId);
 
-    // Look up input_fields for each exercise to determine PR type
+    // Detect PRs from current set logs
+    const setLogs = await getSetLogsForSession(sessionId);
     const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
     const exerciseInfo = await getExerciseInfo(exerciseIds);
-
     const detectedPRs = await detectPRs(
       sessionId,
       getLocalDateString(),
@@ -1011,14 +981,6 @@ export function useWorkoutSession() {
       }))
     );
     setPRs(detectedPRs);
-  };
-
-  /** Complete the session */
-  const finishSession = async () => {
-    if (!sessionId) return;
-    await completeSession(sessionId);
-
-    await recalculatePRs();
 
     // Freeze timer before stopping it
     setFinalDuration(timerDisplay);
@@ -1110,9 +1072,6 @@ export function useWorkoutSession() {
     // Session ID (for navigation to session detail)
     sessionId,
 
-    // Edit mode
-    editMode, setEditMode, recalculatePRs,
-
     // Phase control (for Edit Warmup)
     setPhase,
 
@@ -1134,6 +1093,5 @@ export function useWorkoutSession() {
     enterReorderMode,
     deleteSessionAction,
     endEarlyAction,
-    updateSetInSummary,
   };
 }

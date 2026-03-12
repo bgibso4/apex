@@ -17,7 +17,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
 import { getTargetForWeek } from '../../src/utils/program';
-import { getRecentCompletedSessions, getSetLogsForSession } from '../../src/db';
+import { getRecentCompletedSessions, getSetLogsForSession, getActiveProgram } from '../../src/db';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
 import { DaySelector } from '../../src/components/DaySelector';
 import { WarmupChecklist } from '../../src/components/WarmupChecklist';
@@ -35,12 +35,21 @@ export default function WorkoutScreen() {
 
   useFocusEffect(useCallback(() => {
     getRecentCompletedSessions(5).then(async (sessions) => {
+      // Resolve missing names from program template
+      const program = await getActiveProgram();
+      const weeklyTemplate = program?.definition?.program?.weekly_template;
+
       const enriched = await Promise.all(sessions.map(async (s) => {
         const sets = await getSetLogsForSession(s.id);
         const completedSets = sets.filter(sl => sl.status === 'completed' || sl.status === 'completed_below');
         const startedAt = s.started_at ? new Date(s.started_at).getTime() : 0;
         const completedAt = s.completed_at ? new Date(s.completed_at).getTime() : 0;
         const durationMin = startedAt && completedAt ? Math.round((completedAt - startedAt) / 60000) : undefined;
+        // Backfill name from program template if missing
+        if (!s.name && weeklyTemplate) {
+          const tmpl = weeklyTemplate[s.day_template_id];
+          if (tmpl && 'name' in tmpl) s.name = tmpl.name;
+        }
         return { ...s, setCount: completedSets.length, durationMin };
       }));
       setRecentSessions(enriched);

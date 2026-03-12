@@ -3,7 +3,7 @@
  * Read-only view of a completed workout session.
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,6 +49,13 @@ export default function SessionDetailScreen() {
   const [sessionNotes, setSessionNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(true);
   const notesTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    };
+  }, []);
 
   useFocusEffect(useCallback(() => {
     if (!id) return;
@@ -322,7 +329,11 @@ export default function SessionDetailScreen() {
                 {group.inputFields.map((field) => {
                   const key = `actual_${field.type}` as keyof SetLog;
                   const value = set[key];
-                  const updateKey = `actual${field.type.charAt(0).toUpperCase() + field.type.slice(1)}`;
+                  const FIELD_TO_UPDATE_KEY: Record<string, string> = {
+                    weight: 'actualWeight', reps: 'actualReps', duration: 'actualDuration',
+                    time: 'actualTime', distance: 'actualDistance',
+                  };
+                  const updateKey = FIELD_TO_UPDATE_KEY[field.type];
                   return editMode ? (
                     <TextInput
                       key={field.type}

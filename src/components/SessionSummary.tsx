@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
 
   // Recent workouts
   recentWorkoutsCard: {
-    backgroundColor: '#111118',
+    backgroundColor: Colors.cardDeep,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.lg,
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   recentCard: {
-    backgroundColor: '#181824',
+    backgroundColor: Colors.cardInset,
     borderRadius: BorderRadius.cardInner,
     paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.lg,

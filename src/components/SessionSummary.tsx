@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
@@ -36,8 +37,6 @@ export interface SessionSummaryProps {
   notesSaved?: boolean;
   onNotesChange?: (text: string) => void;
   prs?: PRRecord[];
-  editMode?: boolean;
-  onEdit?: () => void;
   onDelete?: () => void;
   exercises?: ExerciseBreakdown[];
   protocols?: SessionProtocol[];
@@ -63,10 +62,11 @@ function formatPRDescription(pr: PRRecord): { name: string; detail: string } {
 export function SessionSummary({
   exerciseCount, setCount, totalSets, duration,
   sessionName, weekLabel, notes, notesSaved, onNotesChange,
-  prs, editMode, onEdit, onDelete, exercises,
+  prs, onDelete, exercises,
   protocols,
   sessionId, onViewSession, onViewAllWorkouts, recentSessions,
 }: SessionSummaryProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const prCount = prs?.length ?? 0;
 
   // Calculate notes count from exercises
@@ -83,20 +83,36 @@ export function SessionSummary({
 
   return (
     <View style={styles.container}>
-      {/* Header with edit button */}
+      {/* Header with menu button */}
       <View style={styles.header}>
-        {onEdit && (
-          <TouchableOpacity
-            style={[styles.editBtn, editMode && styles.editBtnActive]}
-            onPress={onEdit}
-            testID="edit-button"
-          >
-            <Ionicons
-              name={editMode ? 'checkmark' : 'pencil'}
-              size={16}
-              color={editMode ? Colors.green : Colors.textSecondary}
-            />
-          </TouchableOpacity>
+        {onDelete && (
+          <View style={styles.menuContainer}>
+            <TouchableOpacity
+              style={styles.menuBtn}
+              onPress={() => setMenuOpen(!menuOpen)}
+              testID="menu-button"
+            >
+              <Ionicons
+                name="ellipsis-vertical"
+                size={16}
+                color={Colors.textSecondary}
+              />
+            </TouchableOpacity>
+            {menuOpen && (
+              <View style={styles.menuDropdown}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setMenuOpen(false);
+                    onDelete();
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={16} color={Colors.red} />
+                  <Text style={styles.menuItemText}>Delete Workout</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         )}
         <Text style={styles.icon}>{'\uD83D\uDCAA'}</Text>
         <Text style={styles.title}>Workout Complete</Text>
@@ -110,18 +126,18 @@ export function SessionSummary({
       {/* Summary Row — 3 compact cards */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{setsDisplay}</Text>
-          <Text style={styles.summaryLabel}>Sets</Text>
-        </View>
-        <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{duration ?? '--'}</Text>
-          <Text style={styles.summaryLabel}>Duration</Text>
+          <Text style={styles.summaryLabel} testID="summary-label">Duration</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={[styles.summaryValue, prCount > 0 && styles.summaryValueAmber]}>
+          <Text style={styles.summaryValue}>{setsDisplay}</Text>
+          <Text style={styles.summaryLabel} testID="summary-label">Sets</Text>
+        </View>
+        <View style={[styles.summaryItem, prCount > 0 && styles.summaryItemPR]}>
+          <Text style={styles.summaryValue}>
             {prCount}
           </Text>
-          <Text style={styles.summaryLabel}>PRs</Text>
+          <Text style={[styles.summaryLabel, prCount > 0 && styles.summaryLabelAmber]} testID="summary-label">PRs</Text>
         </View>
       </View>
 
@@ -240,12 +256,6 @@ export function SessionSummary({
         </>
       )}
 
-      {/* Delete button (edit mode only) */}
-      {editMode && onDelete && (
-        <TouchableOpacity style={styles.deleteBtn} onPress={onDelete}>
-          <Text style={styles.deleteText}>Delete Workout</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -263,10 +273,13 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     position: 'relative' as const,
   },
-  editBtn: {
+  menuContainer: {
     position: 'absolute' as const,
     top: Spacing.sm,
     right: 0,
+    zIndex: 10,
+  },
+  menuBtn: {
     width: 36,
     height: 36,
     backgroundColor: Colors.card,
@@ -275,10 +288,34 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    zIndex: 1,
   },
-  editBtnActive: {
-    borderColor: Colors.green,
+  menuDropdown: {
+    position: 'absolute' as const,
+    top: 40,
+    right: 0,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.xs,
+    minWidth: 180,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  menuItemText: {
+    color: Colors.red,
+    fontSize: FontSize.md,
+    fontWeight: '600' as const,
   },
   icon: {
     fontSize: 48,
@@ -320,8 +357,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
     marginBottom: 2,
   },
-  summaryValueAmber: {
-    color: Colors.amber,
+  summaryItemPR: {
+    borderColor: `${Colors.amber}33`,
   },
   summaryLabel: {
     color: Colors.textMuted,
@@ -329,6 +366,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  summaryLabelAmber: {
+    color: `${Colors.amber}99`,
   },
 
   // Section label
@@ -527,15 +567,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Delete
-  deleteBtn: {
-    marginTop: Spacing.xxl,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-  },
-  deleteText: {
-    color: Colors.red,
-    fontSize: FontSize.md,
-    fontWeight: '600',
-  },
 });

@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Workout Complete + Session Detail Edit Mockup (2026-03-11)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+  }
+
+  .mockup-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .label {
+    color: #a0a0b8;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0A0A0F;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons span { font-size: 13px; }
+
+  .dynamic-island {
+    width: 126px;
+    height: 36px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 32px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* Header */
+  .complete-header {
+    text-align: center;
+    padding: 8px 0 20px;
+    position: relative;
+  }
+  .menu-btn {
+    position: absolute;
+    top: 8px;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9898A8;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .menu-dots {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+  }
+  .menu-dots span {
+    width: 4px;
+    height: 4px;
+    background: #9898A8;
+    border-radius: 50%;
+    display: block;
+  }
+  .complete-emoji {
+    font-size: 48px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .complete-title {
+    color: #F0F0F5;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+  .complete-subtitle {
+    color: #9898A8;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  /* Summary Row */
+  .summary-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .summary-item {
+    flex: 1;
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+  }
+  .summary-value {
+    color: #F0F0F5;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin-bottom: 2px;
+  }
+  .summary-value.amber { color: #F59E0B; }
+  .summary-label {
+    color: #5A5A6E;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Section headers */
+  .section-label {
+    color: #5A5A6E;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+
+  /* PR Cards */
+  .pr-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+  .pr-card {
+    background: #151520;
+    border: 1px solid #F59E0B33;
+    border-left: 3px solid #F59E0B;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pr-icon { font-size: 20px; flex-shrink: 0; }
+  .pr-info { flex: 1; }
+  .pr-exercise { color: #F0F0F5; font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .pr-detail { color: #F59E0B; font-size: 13px; font-weight: 500; }
+
+  /* Session Review Card */
+  .session-review {
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+  .session-review-left { display: flex; flex-direction: column; gap: 2px; }
+  .session-review-title { color: #F0F0F5; font-size: 15px; font-weight: 600; }
+  .session-review-subtitle { color: #5A5A6E; font-size: 13px; font-weight: 500; }
+  .session-review-chevron { color: #5A5A6E; font-size: 18px; }
+
+  /* Protocol Chips */
+  .protocol-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+  }
+  .chip.done { color: #22C55E; background: #22C55E15; border: 1px solid #22C55E30; }
+  .chip.missed { color: #5A5A6E; background: #5A5A6E10; border: 1px solid #5A5A6E30; }
+
+  /* Session Notes */
+  .notes-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; margin-top: 24px;
+  }
+  .notes-title {
+    color: #5A5A6E; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .notes-saved { color: #22C55E; font-size: 12px; font-weight: 600; }
+  .notes-input {
+    width: 100%; background: #151520; border: 1px solid #2A2A3A;
+    border-radius: 12px; padding: 14px 16px; color: #9898A8;
+    font-size: 14px; font-family: inherit; resize: none; min-height: 44px;
+  }
+
+  /* Recent Workouts */
+  .recent-workouts { display: flex; flex-direction: column; gap: 8px; }
+  .recent-card {
+    background: #151520; border: 1px solid #2A2A3A; border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .recent-left { display: flex; flex-direction: column; gap: 1px; }
+  .recent-name { color: #F0F0F5; font-size: 15px; font-weight: 600; }
+  .recent-meta { color: #5A5A6E; font-size: 12px; font-weight: 500; }
+  .recent-right { text-align: right; display: flex; flex-direction: column; gap: 1px; }
+  .recent-duration { color: #9898A8; font-size: 14px; font-weight: 600; }
+  .recent-sets { color: #5A5A6E; font-size: 12px; font-weight: 500; }
+  .view-all { text-align: center; margin-top: 8px; }
+  .view-all a { color: #6366F1; font-size: 14px; font-weight: 600; text-decoration: none; }
+
+  /* Card container for recent workouts */
+  .separator-card-wrap {
+    background: #111118;
+    border: 1px solid #2A2A3A;
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 28px;
+  }
+  .separator-card-wrap .section-label { margin-top: 0; }
+  .separator-card-wrap .recent-card { border: none; background: #181824; }
+  .separator-card-wrap .view-all { margin-bottom: 0; }
+
+  /* Dropdown menu */
+  .dropdown-menu {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background: #1E1E2E;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 4px;
+    min-width: 160px;
+    z-index: 20;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #EF4444;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .dropdown-item:hover { background: #EF444415; }
+
+  /* Home Indicator */
+  .home-indicator {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .home-indicator-bar {
+    width: 134px;
+    height: 5px;
+    background: #5A5A6E;
+    border-radius: 3px;
+  }
+
+  /* ========== SESSION DETAIL STYLES ========== */
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 4px;
+  }
+  .detail-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-arrow {
+    color: #9898A8;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .detail-title {
+    color: #F0F0F5;
+    font-size: 22px;
+    font-weight: 800;
+    text-transform: capitalize;
+  }
+  .edit-btn {
+    width: 36px;
+    height: 36px;
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9898A8;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .edit-btn.active {
+    background: #22C55E20;
+    border-color: #22C55E40;
+    color: #22C55E;
+  }
+  .date-line {
+    color: #9898A8;
+    font-size: 14px;
+    margin-bottom: 20px;
+    margin-top: 2px;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-item {
+    flex: 1;
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+  }
+  .stat-value { color: #F0F0F5; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 2px; }
+  .stat-label { color: #5A5A6E; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Detail protocol chips */
+  .detail-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .detail-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .detail-chip.done { background: #22C55E15; color: #22C55E; border: 1px solid #22C55E30; }
+  .detail-chip.missed { background: #5A5A6E10; color: #5A5A6E; border: 1px solid #5A5A6E30; }
+  .detail-chip.editable { cursor: pointer; border-style: dashed; }
+
+  /* Session notes in detail */
+  .detail-notes-card {
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .detail-notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .detail-notes-label {
+    color: #5A5A6E;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .detail-notes-saved {
+    color: #22C55E;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .detail-notes-text {
+    color: #9898A8;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .detail-notes-input {
+    width: 100%;
+    background: #0A0A0F;
+    border: 1px solid #6366F140;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #F0F0F5;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    min-height: 44px;
+  }
+
+  /* Exercise card in detail */
+  .detail-exercise-card {
+    background: #151520;
+    border: 1px solid #2A2A3A;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .detail-exercise-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .detail-exercise-name { color: #F0F0F5; font-size: 16px; font-weight: 600; }
+
+  .set-grid-header {
+    display: flex;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid #2A2A3A;
+  }
+  .set-grid-header-text { color: #5A5A6E; font-size: 11px; font-weight: 600; }
+  .set-grid-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 0.5px solid #2A2A3A20;
+  }
+  .set-grid-value { color: #F0F0F5; font-size: 14px; }
+  .set-grid-value.editable {
+    background: #0A0A0F;
+    border: 1px solid #6366F140;
+    border-radius: 6px;
+    padding: 4px 8px;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  .exercise-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 0.5px solid #2A2A3A20;
+  }
+  .exercise-note-icon { color: #5A5A6E; font-size: 12px; }
+  .exercise-note-text { color: #9898A8; font-size: 13px; flex: 1; line-height: 1.4; }
+  .exercise-note-input {
+    flex: 1;
+    background: #0A0A0F;
+    border: 1px solid #6366F140;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #F0F0F5;
+    font-size: 13px;
+    font-family: inherit;
+    resize: none;
+    min-height: 32px;
+  }
+
+  /* Delete button */
+  .delete-btn {
+    margin-top: 24px;
+    padding: 14px;
+    background: #EF444415;
+    border: 1px solid #EF444430;
+    border-radius: 12px;
+    text-align: center;
+    color: #EF4444;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== WORKOUT COMPLETE ==================== -->
+<div class="mockup-group">
+  <div class="label">Workout Complete</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons"><span>●</span><span>wifi</span><span>🔋</span></div>
+    </div>
+    <div class="screen">
+      <div class="complete-header">
+        <div class="menu-btn" onclick="document.getElementById('dropdown1').style.display = document.getElementById('dropdown1').style.display === 'block' ? 'none' : 'block'">
+          <div class="menu-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="dropdown-menu" id="dropdown1" style="display: none;">
+          <div class="dropdown-item">🗑 Delete Workout</div>
+        </div>
+        <span class="complete-emoji">💪</span>
+        <div class="complete-title">Workout Complete</div>
+        <div class="complete-subtitle">Push A — Week 5</div>
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-item">
+          <div class="summary-value">32m</div>
+          <div class="summary-label">Duration</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">12/15</div>
+          <div class="summary-label">Sets</div>
+        </div>
+        <div class="summary-item" style="border-color: #F59E0B33;">
+          <div class="summary-value">2</div>
+          <div class="summary-label" style="color: #F59E0B99;">PRs</div>
+        </div>
+      </div>
+
+      <div class="section-label">Personal Records</div>
+      <div class="pr-cards">
+        <div class="pr-card">
+          <span class="pr-icon">🏆</span>
+          <div class="pr-info">
+            <div class="pr-exercise">Back Squat</div>
+            <div class="pr-detail">New est. 1RM: 315 lbs (+10)</div>
+          </div>
+        </div>
+        <div class="pr-card">
+          <span class="pr-icon">🏆</span>
+          <div class="pr-info">
+            <div class="pr-exercise">Bench Press</div>
+            <div class="pr-detail">225 lbs × 5 (best at 5 reps)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="session-review">
+        <div class="session-review-left">
+          <div class="session-review-title">Session Review</div>
+          <div class="session-review-subtitle">6 exercises · 2 with notes</div>
+        </div>
+        <span class="session-review-chevron">›</span>
+      </div>
+
+      <div class="section-label" style="margin-top: 24px;">Protocols</div>
+      <div class="protocol-chips">
+        <span class="chip done">✓ Jump Rope</span>
+        <span class="chip done">✓ Ankle Protocol</span>
+        <span class="chip missed">✗ Hip IR</span>
+        <span class="chip done">✓ Conditioning</span>
+      </div>
+
+      <div class="notes-header">
+        <span class="notes-title">Session Notes (optional)</span>
+        <span class="notes-saved">✓ Saved</span>
+      </div>
+      <textarea class="notes-input" placeholder="How did the session feel overall?"></textarea>
+
+      <!-- Recent Workouts — Option B: Card container -->
+      <div class="separator-card-wrap">
+        <div class="section-label">Recent Workouts</div>
+        <div class="recent-workouts">
+          <div class="recent-card">
+            <div class="recent-left"><div class="recent-name">Pull A</div><div class="recent-meta">Mar 7 · Strength Block</div></div>
+            <div class="recent-right"><div class="recent-duration">45m</div><div class="recent-sets">18 sets</div></div>
+          </div>
+          <div class="recent-card">
+            <div class="recent-left"><div class="recent-name">Legs A</div><div class="recent-meta">Mar 5 · Strength Block</div></div>
+            <div class="recent-right"><div class="recent-duration">52m</div><div class="recent-sets">20 sets</div></div>
+          </div>
+          <div class="recent-card">
+            <div class="recent-left"><div class="recent-name">Push A</div><div class="recent-meta">Mar 3 · Strength Block</div></div>
+            <div class="recent-right"><div class="recent-duration">38m</div><div class="recent-sets">15 sets</div></div>
+          </div>
+        </div>
+        <div class="view-all"><a href="#">View all workouts →</a></div>
+      </div>
+    </div>
+    <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+  </div>
+</div>
+
+<!-- ==================== SESSION DETAIL — READ MODE ==================== -->
+<div class="mockup-group">
+  <div class="label">Session Detail — Read Mode</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons"><span>●</span><span>wifi</span><span>🔋</span></div>
+    </div>
+    <div class="screen">
+      <div class="detail-header">
+        <div class="detail-header-left">
+          <span class="back-arrow">←</span>
+          <span class="detail-title">Push A</span>
+        </div>
+        <div class="edit-btn">✎</div>
+      </div>
+      <div class="date-line">Wednesday, Mar 11 · Week 5 Strength</div>
+
+      <!-- Stats: Duration, Sets, PRs — same order as workout complete -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value">32m</div>
+          <div class="stat-label">Duration</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">12</div>
+          <div class="stat-label">Sets</div>
+        </div>
+        <div class="stat-item" style="border-color: #F59E0B33;">
+          <div class="stat-value">2</div>
+          <div class="stat-label" style="color: #F59E0B99;">PRs</div>
+        </div>
+      </div>
+
+      <!-- PRs on session detail -->
+      <div class="section-label" style="margin-top: 8px;">Personal Records</div>
+      <div class="pr-cards" style="margin-bottom: 16px;">
+        <div class="pr-card">
+          <span class="pr-icon">🏆</span>
+          <div class="pr-info"><div class="pr-exercise">Back Squat</div><div class="pr-detail">New est. 1RM: 315 lbs (+10)</div></div>
+        </div>
+        <div class="pr-card">
+          <span class="pr-icon">🏆</span>
+          <div class="pr-info"><div class="pr-exercise">Bench Press</div><div class="pr-detail">225 lbs × 5 (best at 5 reps)</div></div>
+        </div>
+      </div>
+
+      <div class="detail-chip-row">
+        <div class="detail-chip done">✓ Jump Rope</div>
+        <div class="detail-chip done">✓ Ankle Protocol</div>
+        <div class="detail-chip missed">✗ Hip IR</div>
+        <div class="detail-chip done">✓ Conditioning</div>
+      </div>
+
+      <div class="detail-notes-card">
+        <div class="detail-notes-header">
+          <span class="detail-notes-label">Session Notes</span>
+        </div>
+        <div class="detail-notes-text">Felt strong today, good energy. Bench was smooth.</div>
+      </div>
+
+      <!-- Exercise cards -->
+      <div class="detail-exercise-card">
+        <div class="detail-exercise-header">
+          <span class="detail-exercise-name">Back Squat</span>
+        </div>
+        <div class="set-grid-header">
+          <span class="set-grid-header-text" style="width: 36px;">Set</span>
+          <span class="set-grid-header-text" style="flex: 1;">Weight</span>
+          <span class="set-grid-header-text" style="flex: 1;">Reps</span>
+          <span class="set-grid-header-text" style="width: 44px;">RPE</span>
+          <span style="width: 28px;"></span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">1</span>
+          <span class="set-grid-value" style="flex: 1;">225</span>
+          <span class="set-grid-value" style="flex: 1;">5</span>
+          <span class="set-grid-value" style="width: 44px;">7</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">2</span>
+          <span class="set-grid-value" style="flex: 1;">245</span>
+          <span class="set-grid-value" style="flex: 1;">5</span>
+          <span class="set-grid-value" style="width: 44px;">8</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">3</span>
+          <span class="set-grid-value" style="flex: 1;">265</span>
+          <span class="set-grid-value" style="flex: 1;">5</span>
+          <span class="set-grid-value" style="width: 44px;">9</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="exercise-note">
+          <span class="exercise-note-icon">💬</span>
+          <span class="exercise-note-text">Felt heavier than expected on set 3</span>
+        </div>
+      </div>
+
+      <div class="detail-exercise-card">
+        <div class="detail-exercise-header">
+          <span class="detail-exercise-name">Bench Press</span>
+        </div>
+        <div class="set-grid-header">
+          <span class="set-grid-header-text" style="width: 36px;">Set</span>
+          <span class="set-grid-header-text" style="flex: 1;">Weight</span>
+          <span class="set-grid-header-text" style="flex: 1;">Reps</span>
+          <span class="set-grid-header-text" style="width: 44px;">RPE</span>
+          <span style="width: 28px;"></span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">1</span>
+          <span class="set-grid-value" style="flex: 1;">185</span>
+          <span class="set-grid-value" style="flex: 1;">5</span>
+          <span class="set-grid-value" style="width: 44px;">7</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">2</span>
+          <span class="set-grid-value" style="flex: 1;">205</span>
+          <span class="set-grid-value" style="flex: 1;">5</span>
+          <span class="set-grid-value" style="width: 44px;">8</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">3</span>
+          <span class="set-grid-value" style="flex: 1;">225</span>
+          <span class="set-grid-value" style="flex: 1;">5</span>
+          <span class="set-grid-value" style="width: 44px;">9</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+  </div>
+</div>
+
+<!-- ==================== SESSION DETAIL — EDIT MODE ==================== -->
+<div class="mockup-group">
+  <div class="label">Session Detail — Edit Mode</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons"><span>●</span><span>wifi</span><span>🔋</span></div>
+    </div>
+    <div class="screen">
+      <div class="detail-header">
+        <div class="detail-header-left">
+          <span class="back-arrow">←</span>
+          <span class="detail-title">Push A</span>
+        </div>
+        <div class="edit-btn active">✓</div>
+      </div>
+      <div class="date-line">Wednesday, Mar 11 · Week 5 Strength</div>
+
+      <!-- Stats: same layout, not editable -->
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value">32m</div>
+          <div class="stat-label">Duration</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">12</div>
+          <div class="stat-label">Sets</div>
+        </div>
+        <div class="stat-item" style="border-color: #F59E0B33;">
+          <div class="stat-value">2</div>
+          <div class="stat-label" style="color: #F59E0B99;">PRs</div>
+        </div>
+      </div>
+
+      <!-- PRs shown during edit too -->
+      <div class="section-label" style="margin-top: 8px;">Personal Records</div>
+      <div class="pr-cards" style="margin-bottom: 16px;">
+        <div class="pr-card">
+          <span class="pr-icon">🏆</span>
+          <div class="pr-info"><div class="pr-exercise">Back Squat</div><div class="pr-detail">New est. 1RM: 315 lbs (+10)</div></div>
+        </div>
+        <div class="pr-card">
+          <span class="pr-icon">🏆</span>
+          <div class="pr-info"><div class="pr-exercise">Bench Press</div><div class="pr-detail">225 lbs × 5 (best at 5 reps)</div></div>
+        </div>
+      </div>
+
+      <!-- Protocols become tappable in edit mode (dashed borders) -->
+      <div class="detail-chip-row">
+        <div class="detail-chip done editable">✓ Jump Rope</div>
+        <div class="detail-chip done editable">✓ Ankle Protocol</div>
+        <div class="detail-chip missed editable">✗ Hip IR</div>
+        <div class="detail-chip done editable">✓ Conditioning</div>
+      </div>
+
+      <!-- Session notes become editable with saved indicator -->
+      <div class="detail-notes-card" style="border-color: #6366F140;">
+        <div class="detail-notes-header">
+          <span class="detail-notes-label">Session Notes</span>
+          <span class="detail-notes-saved">✓ Saved</span>
+        </div>
+        <textarea class="detail-notes-input">Felt strong today, good energy. Bench was smooth.</textarea>
+      </div>
+
+      <!-- Exercise card with editable fields -->
+      <div class="detail-exercise-card" style="border-color: #6366F140;">
+        <div class="detail-exercise-header">
+          <span class="detail-exercise-name">Back Squat</span>
+        </div>
+        <div class="set-grid-header">
+          <span class="set-grid-header-text" style="width: 36px;">Set</span>
+          <span class="set-grid-header-text" style="flex: 1;">Weight</span>
+          <span class="set-grid-header-text" style="flex: 1;">Reps</span>
+          <span class="set-grid-header-text" style="width: 44px;">RPE</span>
+          <span style="width: 28px;"></span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">1</span>
+          <span class="set-grid-value editable" style="flex: 1;">225</span>
+          <span class="set-grid-value editable" style="flex: 1;">5</span>
+          <span class="set-grid-value editable" style="width: 44px;">7</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">2</span>
+          <span class="set-grid-value editable" style="flex: 1;">245</span>
+          <span class="set-grid-value editable" style="flex: 1;">5</span>
+          <span class="set-grid-value editable" style="width: 44px;">8</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">3</span>
+          <span class="set-grid-value editable" style="flex: 1;">265</span>
+          <span class="set-grid-value editable" style="flex: 1;">5</span>
+          <span class="set-grid-value editable" style="width: 44px;">9</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="exercise-note">
+          <span class="exercise-note-icon">💬</span>
+          <textarea class="exercise-note-input">Felt heavier than expected on set 3</textarea>
+        </div>
+      </div>
+
+      <div class="detail-exercise-card" style="border-color: #6366F140;">
+        <div class="detail-exercise-header">
+          <span class="detail-exercise-name">Bench Press</span>
+        </div>
+        <div class="set-grid-header">
+          <span class="set-grid-header-text" style="width: 36px;">Set</span>
+          <span class="set-grid-header-text" style="flex: 1;">Weight</span>
+          <span class="set-grid-header-text" style="flex: 1;">Reps</span>
+          <span class="set-grid-header-text" style="width: 44px;">RPE</span>
+          <span style="width: 28px;"></span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">1</span>
+          <span class="set-grid-value editable" style="flex: 1;">185</span>
+          <span class="set-grid-value editable" style="flex: 1;">5</span>
+          <span class="set-grid-value editable" style="width: 44px;">7</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">2</span>
+          <span class="set-grid-value editable" style="flex: 1;">205</span>
+          <span class="set-grid-value editable" style="flex: 1;">5</span>
+          <span class="set-grid-value editable" style="width: 44px;">8</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+        <div class="set-grid-row">
+          <span class="set-grid-value" style="width: 36px;">3</span>
+          <span class="set-grid-value editable" style="flex: 1;">225</span>
+          <span class="set-grid-value editable" style="flex: 1;">5</span>
+          <span class="set-grid-value editable" style="width: 44px;">9</span>
+          <span style="width: 28px; text-align: center; color: #22C55E;">✓</span>
+        </div>
+      </div>
+
+      <!-- Delete button appears in edit mode -->
+      <div class="delete-btn">Delete Workout</div>
+    </div>
+    <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+  </div>
+</div>
+
+</body>
+</html>

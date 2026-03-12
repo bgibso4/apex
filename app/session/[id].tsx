@@ -10,8 +10,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import {
   getSessionById, getSetLogsForSession, getExerciseInfo, getActiveProgram,
-  getExerciseNotesForSession,
+  getExerciseNotesForSession, getPRsForSession,
 } from '../../src/db';
+import type { PRRecord } from '../../src/db';
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
 import { getFieldsForExercise, FIELD_LABELS } from '../../src/types/fields';
 import type { InputField } from '../../src/types/fields';
@@ -31,6 +32,31 @@ type ExerciseGroup = {
   inputFields: InputField[];
 };
 
+function formatDuration(seconds: number): string {
+  const min = Math.floor(seconds / 60);
+  const sec = Math.round(seconds % 60);
+  return min > 0 ? `${min}m ${sec}s` : `${sec}s`;
+}
+
+function formatPRDetail(pr: PRRecord): string {
+  switch (pr.record_type) {
+    case 'e1rm': {
+      const diff = pr.previous_value != null ? ` (+${Math.round(pr.value - pr.previous_value)} lbs)` : '';
+      return `New est. 1RM: ${Math.round(pr.value)} lbs${diff}`;
+    }
+    case 'rep_best':
+      return `${Math.round(pr.value)} lbs × ${pr.rep_count} (best at ${pr.rep_count} reps)`;
+    case 'best_reps':
+      return `${Math.round(pr.value)} reps (new best)`;
+    case 'best_duration':
+      return `${formatDuration(pr.value)} (new best)`;
+    case 'best_time':
+      return `${formatDuration(pr.value)} (new fastest)`;
+    default:
+      return `${Math.round(pr.value)} (new PR)`;
+  }
+}
+
 export default function SessionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -39,6 +65,8 @@ export default function SessionDetailScreen() {
   const [dateLabel, setDateLabel] = useState('');
   const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
   const [protocols, setProtocols] = useState<SessionProtocol[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [prs, setPRs] = useState<PRRecord[]>([]);
 
   useFocusEffect(useCallback(() => {
     if (!id) return;
@@ -49,6 +77,9 @@ export default function SessionDetailScreen() {
 
       const sessionProtocols = await getSessionProtocols(s.id);
       setProtocols(sessionProtocols);
+
+      const sessionPRs = await getPRsForSession(s.id);
+      setPRs(sessionPRs);
 
       // Build date label: "Wednesday, Mar 4 · Week 6 Strength"
       const sessionDate = new Date(s.date);
@@ -96,9 +127,11 @@ export default function SessionDetailScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -107,7 +140,6 @@ export default function SessionDetailScreen() {
   // Calculate stats
   const allSets = exerciseGroups.flatMap(g => g.sets);
   const completedSets = allSets.filter(s => s.status === 'completed' || s.status === 'completed_below');
-  const totalTonnage = completedSets.reduce((sum, s) => sum + (s.actual_weight ?? 0) * (s.actual_reps ?? 0), 0);
   const duration = session.started_at && session.completed_at
     ? Math.round((new Date(session.completed_at).getTime() - new Date(session.started_at).getTime()) / 60000)
     : 0;
@@ -117,10 +149,23 @@ export default function SessionDetailScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backArrow}>←</Text>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{session.day_template_id.replace(/_/g, ' ')}</Text>
+          </View>
+          <TouchableOpacity
+            testID="edit-button"
+            style={[styles.editBtn, editMode && styles.editBtnActive]}
+            onPress={() => setEditMode(!editMode)}
+          >
+            <Ionicons
+              name={editMode ? 'checkmark' : 'pencil'}
+              size={16}
+              color={editMode ? Colors.green : Colors.textSecondary}
+            />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{session.day_template_id.replace(/_/g, ' ')}</Text>
         </View>
 
         {/* Date line */}
@@ -136,37 +181,43 @@ export default function SessionDetailScreen() {
             <Text style={styles.statValue}>{completedSets.length}</Text>
             <Text style={styles.statLabel}>Sets</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>
-              {totalTonnage >= 1000 ? `${(totalTonnage / 1000).toFixed(1)}k` : totalTonnage}
-            </Text>
-            <Text style={styles.statLabel}>Tonnage</Text>
+          <View style={[styles.statItem, prs.length > 0 && { borderColor: `${Colors.amber}33` }]}>
+            <Text style={styles.statValue}>{prs.length}</Text>
+            <Text style={[styles.statLabel, prs.length > 0 && { color: `${Colors.amber}99` }]}>PRs</Text>
           </View>
         </View>
 
-        {/* Readiness */}
-        <View style={styles.readinessRow}>
-          <View style={styles.readinessItem}>
-            <Text style={styles.readinessValue}>{session.sleep}</Text>
-            <Text style={styles.readinessLabel}>Sleep</Text>
-          </View>
-          <View style={styles.readinessItem}>
-            <Text style={styles.readinessValue}>{session.soreness}</Text>
-            <Text style={styles.readinessLabel}>Soreness</Text>
-          </View>
-          <View style={styles.readinessItem}>
-            <Text style={styles.readinessValue}>{session.energy}</Text>
-            <Text style={styles.readinessLabel}>Energy</Text>
-          </View>
-        </View>
+        {/* Personal Records */}
+        {prs.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>Personal Records</Text>
+            <View style={styles.prCards}>
+              {prs.map(pr => (
+                <View key={pr.id} style={styles.prCard}>
+                  <Text style={styles.prIcon}>🏆</Text>
+                  <View style={styles.prInfo}>
+                    <Text style={styles.prExercise}>{pr.exercise_name ?? pr.exercise_id.replace(/_/g, ' ')}</Text>
+                    <Text style={styles.prDetail}>{formatPRDetail(pr)}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Protocol chips */}
-        {protocols.filter(p => p.completed).length > 0 && (
+        {protocols.length > 0 && (
           <View style={styles.chipRow}>
-            {protocols.filter(p => p.completed).map(p => (
-              <View key={p.id} style={styles.chip}>
-                <Ionicons name="checkmark" size={12} color={Colors.green} />
-                <Text style={styles.chipText}>{p.protocol_name}</Text>
+            {protocols.map(p => (
+              <View key={p.id} style={[styles.chip, p.completed ? styles.chipDone : styles.chipMissed]}>
+                <Ionicons
+                  name={p.completed ? 'checkmark' : 'close'}
+                  size={12}
+                  color={p.completed ? Colors.green : Colors.textDim}
+                />
+                <Text style={[styles.chipText, !p.completed && styles.chipTextMissed]}>
+                  {p.protocol_name}
+                </Text>
               </View>
             ))}
           </View>
@@ -256,11 +307,21 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingTop: Spacing.screenTop, paddingHorizontal: Spacing.screenHorizontal, paddingBottom: Spacing.screenBottom },
 
-  header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, flex: 1 },
   backButton: { padding: Spacing.xs },
   backArrow: { color: Colors.textDim, fontSize: FontSize.xxl },
   headerTitle: {
     color: Colors.text, fontSize: FontSize.xxxl, fontWeight: '800', textTransform: 'capitalize',
+  },
+
+  editBtn: {
+    width: 36, height: 36, backgroundColor: Colors.card,
+    borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.sm,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  editBtnActive: {
+    backgroundColor: `${Colors.green}20`, borderColor: `${Colors.green}40`,
   },
 
   dateLine: { color: Colors.textSecondary, fontSize: FontSize.md, marginBottom: Spacing.xl },
@@ -268,26 +329,42 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.lg },
   statItem: {
     flex: 1, backgroundColor: Colors.card, borderRadius: BorderRadius.md,
+    borderWidth: 1, borderColor: Colors.border,
     padding: Spacing.md, alignItems: 'center',
   },
   statValue: { color: Colors.text, fontSize: FontSize.lg, fontWeight: '700' },
   statLabel: { color: Colors.textDim, fontSize: FontSize.xs, marginTop: 2 },
 
-  readinessRow: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.lg },
-  readinessItem: {
-    flex: 1, backgroundColor: Colors.card, borderRadius: BorderRadius.md,
-    padding: Spacing.md, alignItems: 'center',
+  sectionLabel: {
+    color: Colors.textDim, fontSize: FontSize.xs, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.sm, marginTop: Spacing.sm,
   },
-  readinessValue: { color: Colors.text, fontSize: FontSize.lg, fontWeight: '600' },
-  readinessLabel: { color: Colors.textDim, fontSize: FontSize.xs, marginTop: 2 },
+  prCards: { gap: Spacing.sm, marginBottom: Spacing.lg },
+  prCard: {
+    backgroundColor: Colors.card, borderWidth: 1, borderColor: `${Colors.amber}33`,
+    borderLeftWidth: 3, borderLeftColor: Colors.amber, borderRadius: BorderRadius.md,
+    padding: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
+  },
+  prIcon: { fontSize: 20 },
+  prInfo: { flex: 1 },
+  prExercise: { color: Colors.text, fontSize: FontSize.md, fontWeight: '600', marginBottom: 2 },
+  prDetail: { color: Colors.amber, fontSize: FontSize.sm, fontWeight: '500' },
 
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.xl },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: Colors.greenMuted, borderRadius: BorderRadius.sm,
     paddingVertical: 4, paddingHorizontal: Spacing.sm,
   },
+  chipDone: {
+    backgroundColor: Colors.greenMuted, borderRadius: BorderRadius.pill ?? 20,
+    borderWidth: 1, borderColor: `${Colors.green}30`,
+  },
+  chipMissed: {
+    backgroundColor: `${Colors.textDim}10`, borderRadius: BorderRadius.pill ?? 20,
+    borderWidth: 1, borderColor: `${Colors.textDim}30`,
+  },
   chipText: { color: Colors.green, fontSize: FontSize.xs, fontWeight: '600' },
+  chipTextMissed: { color: Colors.textDim },
 
   exerciseCard: {
     backgroundColor: Colors.card, borderRadius: BorderRadius.lg,

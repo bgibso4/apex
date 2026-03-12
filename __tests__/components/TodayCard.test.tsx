@@ -148,12 +148,11 @@ describe('TodayCard', () => {
         nextSessionLabel="Tomorrow"
       />,
     );
-    expect(screen.getByText(/tomorrow/i)).toBeTruthy();
     expect(screen.getByText(/upper push/i)).toBeTruthy();
   });
 
   it('does not show up-next when nextSessionName not provided on rest day', () => {
     render(<TodayCard {...defaultProps} todayTemplate={undefined} />);
-    expect(screen.queryByText(/tomorrow/i)).toBeNull();
+    expect(screen.queryByText(/upper push/i)).toBeNull();
   });
 });

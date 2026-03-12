@@ -8,6 +8,8 @@ export const Colors = {
   bg: '#0a0a0f',
   card: '#141420',
   cardHover: '#1a1a2e',
+  cardInset: '#181824',
+  cardDeep: '#111118',
   surface: '#1e1e30',
 
   // Borders

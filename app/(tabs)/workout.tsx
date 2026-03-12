@@ -451,14 +451,6 @@ export default function WorkoutScreen() {
             sessionName={w.selectedTemplate?.name}
             weekLabel={`Week ${w.currentWeek}`}
             prs={w.prs}
-            editMode={w.editMode}
-            onEdit={() => {
-              if (w.editMode) {
-                // Exiting edit mode — recalculate PRs with updated values
-                w.recalculatePRs();
-              }
-              w.setEditMode(!w.editMode);
-            }}
             onDelete={() => {
               Alert.alert(
                 'Delete Workout',
@@ -483,7 +475,7 @@ export default function WorkoutScreen() {
             protocols={w.protocols}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
-            onNotesChange={w.saveNotes}
+            onNotesChange={w.onNotesChange}
             sessionId={w.sessionId ?? undefined}
             onViewSession={(id) => router.push(`/session/${id}`)}
             onViewAllWorkouts={() => router.push('/history')}

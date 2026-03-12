@@ -5,12 +5,14 @@ import { renderHook, act, waitFor } from '@testing-library/react-native';
 // the state updates, but we properly wait for them with waitFor(). This is a known testing pattern.
 const originalConsoleError = console.error;
 beforeAll(() => {
+  jest.useFakeTimers();
   console.error = (...args: unknown[]) => {
     if (typeof args[0] === 'string' && args[0].includes('not wrapped in act')) return;
     originalConsoleError(...args);
   };
 });
 afterAll(() => {
+  jest.useRealTimers();
   console.error = originalConsoleError;
 });
 
@@ -1093,17 +1095,25 @@ describe('useWorkoutSession', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 19. saveNotes
+  // 19. onNotesChange (debounced save)
   // -----------------------------------------------------------------------
-  describe('saveNotes', () => {
-    it('persists notes to DB and sets notesSaved', async () => {
+  describe('onNotesChange', () => {
+    it('updates notes text immediately and debounces DB save', async () => {
       const hookResult = await setupWithSession();
 
       await act(async () => {
-        await hookResult.result.current.saveNotes('Felt strong today');
+        hookResult.result.current.onNotesChange('Felt strong today');
       });
 
+      // Text updates immediately, notesSaved is false until debounce fires
       expect(hookResult.result.current.sessionNotes).toBe('Felt strong today');
+      expect(hookResult.result.current.notesSaved).toBe(false);
+
+      // Fast-forward the debounce timer
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
       expect(hookResult.result.current.notesSaved).toBe(true);
       expect(mockedUpdateSessionNotes).toHaveBeenCalledWith('session-1', 'Felt strong today');
     });
@@ -1119,7 +1129,12 @@ describe('useWorkoutSession', () => {
       });
 
       await act(async () => {
-        await hookResult.result.current.saveNotes('No session');
+        hookResult.result.current.onNotesChange('No session');
+      });
+
+      // Fast-forward the debounce timer
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
       });
 
       expect(hookResult.result.current.sessionNotes).toBe('No session');

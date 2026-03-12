@@ -54,18 +54,34 @@ describe('SessionSummary', () => {
     expect(screen.getByText('Personal Records')).toBeTruthy();
   });
 
-  it('shows Edit button and calls onEdit on press', () => {
-    const onEdit = jest.fn();
-    render(<SessionSummary {...defaultProps} onEdit={onEdit} />);
-    const editBtn = screen.getByTestId('edit-button');
-    fireEvent.press(editBtn);
-    expect(onEdit).toHaveBeenCalled();
+  it('shows hamburger menu button', () => {
+    const onDelete = jest.fn();
+    render(<SessionSummary {...defaultProps} onDelete={onDelete} />);
+    expect(screen.getByTestId('menu-button')).toBeTruthy();
   });
 
-  it('shows Delete button in edit mode', () => {
+  it('shows delete option when menu is pressed', () => {
     const onDelete = jest.fn();
-    render(<SessionSummary {...defaultProps} editMode={true} onDelete={onDelete} />);
+    render(<SessionSummary {...defaultProps} onDelete={onDelete} />);
+    fireEvent.press(screen.getByTestId('menu-button'));
     expect(screen.getByText('Delete Workout')).toBeTruthy();
+  });
+
+  it('calls onDelete when delete option is pressed', () => {
+    const onDelete = jest.fn();
+    render(<SessionSummary {...defaultProps} onDelete={onDelete} />);
+    fireEvent.press(screen.getByTestId('menu-button'));
+    fireEvent.press(screen.getByText('Delete Workout'));
+    expect(onDelete).toHaveBeenCalled();
+  });
+
+  it('shows stats in order: Duration, Sets, PRs', () => {
+    render(<SessionSummary {...defaultProps} duration="45:00" />);
+    const labels = screen.getAllByTestId('summary-label');
+    expect(labels).toHaveLength(3);
+    expect(labels[0]).toHaveTextContent('Duration');
+    expect(labels[1]).toHaveTextContent('Sets');
+    expect(labels[2]).toHaveTextContent('PRs');
   });
 
   it('shows Session Review card when sessionId and onViewSession provided', () => {
@@ -99,6 +115,19 @@ describe('SessionSummary', () => {
     expect(screen.getByText(/Jump Rope/)).toBeTruthy();
     expect(screen.getByText(/Hip IR/)).toBeTruthy();
     expect(screen.getByText(/EMOM 10min/)).toBeTruthy();
+  });
+
+  it('wraps recent workouts in a card container', () => {
+    const recentSessions = [
+      { id: 's1', name: 'Pull A', dateLabel: 'Mar 7', blockName: 'Strength Block', durationMin: 45, setCount: 18 },
+    ];
+    render(
+      <SessionSummary
+        {...defaultProps}
+        recentSessions={recentSessions}
+      />
+    );
+    expect(screen.getByTestId('recent-workouts-card')).toBeTruthy();
   });
 
   it('shows recent workouts section', () => {

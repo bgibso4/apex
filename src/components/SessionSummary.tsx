@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 import type { PRRecord } from '../db/personal-records';
 import type { SessionProtocol } from '../types';
+import { formatPRDescription, formatPRName } from '../utils/formatPR';
 
 export interface ExerciseBreakdown {
   exerciseName: string;
@@ -36,8 +38,6 @@ export interface SessionSummaryProps {
   notesSaved?: boolean;
   onNotesChange?: (text: string) => void;
   prs?: PRRecord[];
-  editMode?: boolean;
-  onEdit?: () => void;
   onDelete?: () => void;
   exercises?: ExerciseBreakdown[];
   protocols?: SessionProtocol[];
@@ -47,26 +47,14 @@ export interface SessionSummaryProps {
   recentSessions?: RecentSession[];
 }
 
-function humanizeId(id: string): string {
-  return id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function formatPRDescription(pr: PRRecord): { name: string; detail: string } {
-  const name = pr.exercise_name ?? humanizeId(pr.exercise_id);
-  if (pr.record_type === 'e1rm') {
-    const diff = pr.previous_value != null ? ` (+${Math.round(pr.value - pr.previous_value)} lbs)` : '';
-    return { name, detail: `New est. 1RM: ${Math.round(pr.value)} lbs${diff}` };
-  }
-  return { name, detail: `${Math.round(pr.value)} lbs \u00D7 ${pr.rep_count} (best at ${pr.rep_count} reps)` };
-}
-
 export function SessionSummary({
   exerciseCount, setCount, totalSets, duration,
   sessionName, weekLabel, notes, notesSaved, onNotesChange,
-  prs, editMode, onEdit, onDelete, exercises,
+  prs, onDelete, exercises,
   protocols,
   sessionId, onViewSession, onViewAllWorkouts, recentSessions,
 }: SessionSummaryProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const prCount = prs?.length ?? 0;
 
   // Calculate notes count from exercises
@@ -83,20 +71,36 @@ export function SessionSummary({
 
   return (
     <View style={styles.container}>
-      {/* Header with edit button */}
+      {/* Header with menu button */}
       <View style={styles.header}>
-        {onEdit && (
-          <TouchableOpacity
-            style={[styles.editBtn, editMode && styles.editBtnActive]}
-            onPress={onEdit}
-            testID="edit-button"
-          >
-            <Ionicons
-              name={editMode ? 'checkmark' : 'pencil'}
-              size={16}
-              color={editMode ? Colors.green : Colors.textSecondary}
-            />
-          </TouchableOpacity>
+        {onDelete && (
+          <View style={styles.menuContainer}>
+            <TouchableOpacity
+              style={styles.menuBtn}
+              onPress={() => setMenuOpen(!menuOpen)}
+              testID="menu-button"
+            >
+              <Ionicons
+                name="ellipsis-vertical"
+                size={16}
+                color={Colors.textSecondary}
+              />
+            </TouchableOpacity>
+            {menuOpen && (
+              <View style={styles.menuDropdown}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setMenuOpen(false);
+                    onDelete();
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={16} color={Colors.red} />
+                  <Text style={styles.menuItemText}>Delete Workout</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         )}
         <Text style={styles.icon}>{'\uD83D\uDCAA'}</Text>
         <Text style={styles.title}>Workout Complete</Text>
@@ -110,18 +114,18 @@ export function SessionSummary({
       {/* Summary Row — 3 compact cards */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{setsDisplay}</Text>
-          <Text style={styles.summaryLabel}>Sets</Text>
-        </View>
-        <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{duration ?? '--'}</Text>
-          <Text style={styles.summaryLabel}>Duration</Text>
+          <Text style={styles.summaryLabel} testID="summary-label">Duration</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={[styles.summaryValue, prCount > 0 && styles.summaryValueAmber]}>
+          <Text style={styles.summaryValue}>{setsDisplay}</Text>
+          <Text style={styles.summaryLabel} testID="summary-label">Sets</Text>
+        </View>
+        <View style={[styles.summaryItem, prCount > 0 && styles.summaryItemPR]}>
+          <Text style={styles.summaryValue}>
             {prCount}
           </Text>
-          <Text style={styles.summaryLabel}>PRs</Text>
+          <Text style={[styles.summaryLabel, prCount > 0 && styles.summaryLabelAmber]} testID="summary-label">PRs</Text>
         </View>
       </View>
 
@@ -130,18 +134,15 @@ export function SessionSummary({
         <>
           <Text style={styles.sectionLabel}>Personal Records</Text>
           <View style={styles.prCards}>
-            {prs.map(pr => {
-              const { name, detail } = formatPRDescription(pr);
-              return (
+            {prs.map(pr => (
                 <View key={pr.id} style={styles.prCard}>
                   <Text style={styles.prIcon}>{'\uD83C\uDFC6'}</Text>
                   <View style={styles.prInfo}>
-                    <Text style={styles.prName}>{name}</Text>
-                    <Text style={styles.prDetail}>{detail}</Text>
+                    <Text style={styles.prName}>{formatPRName(pr)}</Text>
+                    <Text style={styles.prDetail}>{formatPRDescription(pr)}</Text>
                   </View>
                 </View>
-              );
-            })}
+            ))}
           </View>
         </>
       )}
@@ -205,8 +206,8 @@ export function SessionSummary({
 
       {/* Recent Workouts */}
       {recentSessions && recentSessions.length > 0 && (
-        <>
-          <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Recent Workouts</Text>
+        <View style={styles.recentWorkoutsCard} testID="recent-workouts-card">
+          <Text style={[styles.sectionLabel, { marginTop: 0 }]}>Recent Workouts</Text>
           <View style={styles.recentWorkouts}>
             {recentSessions.map(s => (
               <TouchableOpacity
@@ -237,15 +238,9 @@ export function SessionSummary({
               <Text style={styles.viewAllText}>View all workouts {'\u2192'}</Text>
             </TouchableOpacity>
           )}
-        </>
+        </View>
       )}
 
-      {/* Delete button (edit mode only) */}
-      {editMode && onDelete && (
-        <TouchableOpacity style={styles.deleteBtn} onPress={onDelete}>
-          <Text style={styles.deleteText}>Delete Workout</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -263,10 +258,13 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     position: 'relative' as const,
   },
-  editBtn: {
+  menuContainer: {
     position: 'absolute' as const,
     top: Spacing.sm,
     right: 0,
+    zIndex: 10,
+  },
+  menuBtn: {
     width: 36,
     height: 36,
     backgroundColor: Colors.card,
@@ -275,10 +273,34 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    zIndex: 1,
   },
-  editBtnActive: {
-    borderColor: Colors.green,
+  menuDropdown: {
+    position: 'absolute' as const,
+    top: 40,
+    right: 0,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.xs,
+    minWidth: 180,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  menuItem: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  menuItemText: {
+    color: Colors.red,
+    fontSize: FontSize.md,
+    fontWeight: '600' as const,
   },
   icon: {
     fontSize: 48,
@@ -320,8 +342,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
     marginBottom: 2,
   },
-  summaryValueAmber: {
-    color: Colors.amber,
+  summaryItemPR: {
+    borderColor: `${Colors.amber}33`,
   },
   summaryLabel: {
     color: Colors.textMuted,
@@ -329,6 +351,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  summaryLabelAmber: {
+    color: `${Colors.amber}99`,
   },
 
   // Section label
@@ -476,13 +501,19 @@ const styles = StyleSheet.create({
   },
 
   // Recent workouts
+  recentWorkoutsCard: {
+    backgroundColor: Colors.cardDeep,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginTop: Spacing.xxl,
+  },
   recentWorkouts: {
     gap: Spacing.sm,
   },
   recentCard: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: Colors.cardInset,
     borderRadius: BorderRadius.cardInner,
     paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.lg,
@@ -527,15 +558,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Delete
-  deleteBtn: {
-    marginTop: Spacing.xxl,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-  },
-  deleteText: {
-    color: Colors.red,
-    fontSize: FontSize.md,
-    fontWeight: '600',
-  },
 });

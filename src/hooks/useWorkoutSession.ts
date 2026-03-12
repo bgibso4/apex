@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -111,8 +111,15 @@ export function useWorkoutSession() {
   // PRs
   const [prs, setPRs] = useState<PRRecord[]>([]);
 
-  // Edit mode
-  const [editMode, setEditMode] = useState(false);
+  // Debounce timer for session notes
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up notes debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    };
+  }, []);
 
   // Prevent re-running restoration on every tab focus
   const hasAttemptedRestore = useRef(false);
@@ -378,7 +385,6 @@ export function useWorkoutSession() {
       setPRs([]);
       setExerciseNotes({});
       setSessionNotes('');
-      setEditMode(false);
       setProtocols([]);
       hasAttemptedRestore.current = false;
     }
@@ -910,15 +916,18 @@ export function useWorkoutSession() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   };
 
-  /** Save session notes */
-  const saveNotes = async (text: string) => {
+  /** Save session notes (debounced — saves after 1s of inactivity) */
+  const handleNotesChange = useCallback((text: string) => {
     setSessionNotes(text);
     setNotesSaved(false);
-    if (sessionId) {
-      await updateSessionNotes(sessionId, text);
-      setNotesSaved(true);
-    }
-  };
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    notesTimerRef.current = setTimeout(async () => {
+      if (sessionId) {
+        await updateSessionNotes(sessionId, text);
+        setNotesSaved(true);
+      }
+    }, 1000);
+  }, [sessionId]);
 
   /** Save an exercise note */
   const saveExerciseNoteAction = async (exerciseId: string, note: string) => {
@@ -926,31 +935,6 @@ export function useWorkoutSession() {
     if (sessionId) {
       await saveExerciseNote(sessionId, exerciseId, note);
     }
-  };
-
-  /** Update a set's weight/reps from the summary edit mode */
-  const updateSetInSummary = async (exIdx: number, completedSetIdx: number, weight: number, reps: number) => {
-    const ex = exercises[exIdx];
-    if (!ex) return;
-    // completedSetIdx refers to the index among completed sets only
-    const completedSets = ex.sets
-      .map((s, i) => ({ ...s, originalIdx: i }))
-      .filter(s => s.status !== 'pending');
-    const target = completedSets[completedSetIdx];
-    if (!target?.id) return;
-
-    await updateSet(target.id, { actualWeight: weight, actualReps: reps });
-
-    setExercises(prev => {
-      const next = [...prev];
-      next[exIdx] = {
-        ...next[exIdx],
-        sets: next[exIdx].sets.map((s, i) =>
-          i === target.originalIdx ? { ...s, actualWeight: weight, actualReps: reps } : s
-        ),
-      };
-      return next;
-    });
   };
 
   /** End the session early (calls finishSession) */
@@ -970,19 +954,18 @@ export function useWorkoutSession() {
     setPRs([]);
     setExerciseNotes({});
     setSessionNotes('');
-    setEditMode(false);
     setProtocols([]);
   };
 
-  /** Re-detect PRs from current set logs */
-  const recalculatePRs = async () => {
+  /** Complete the session */
+  const finishSession = async () => {
     if (!sessionId) return;
-    const setLogs = await getSetLogsForSession(sessionId);
+    await completeSession(sessionId);
 
-    // Look up input_fields for each exercise to determine PR type
+    // Detect PRs from current set logs
+    const setLogs = await getSetLogsForSession(sessionId);
     const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
     const exerciseInfo = await getExerciseInfo(exerciseIds);
-
     const detectedPRs = await detectPRs(
       sessionId,
       getLocalDateString(),
@@ -998,14 +981,6 @@ export function useWorkoutSession() {
       }))
     );
     setPRs(detectedPRs);
-  };
-
-  /** Complete the session */
-  const finishSession = async () => {
-    if (!sessionId) return;
-    await completeSession(sessionId);
-
-    await recalculatePRs();
 
     // Freeze timer before stopping it
     setFinalDuration(timerDisplay);
@@ -1077,7 +1052,7 @@ export function useWorkoutSession() {
     reorderMode, setReorderMode,
 
     // Session notes
-    sessionNotes, notesSaved, saveNotes,
+    sessionNotes, notesSaved, onNotesChange: handleNotesChange,
 
     // Timer
     timer, timerSeconds, startedAt,
@@ -1096,9 +1071,6 @@ export function useWorkoutSession() {
 
     // Session ID (for navigation to session detail)
     sessionId,
-
-    // Edit mode
-    editMode, setEditMode, recalculatePRs,
 
     // Phase control (for Edit Warmup)
     setPhase,
@@ -1121,6 +1093,5 @@ export function useWorkoutSession() {
     enterReorderMode,
     deleteSessionAction,
     endEarlyAction,
-    updateSetInSummary,
   };
 }

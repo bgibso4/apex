@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 import type { PRRecord } from '../db/personal-records';
 import type { SessionProtocol } from '../types';
+import { formatPRDescription, formatPRName } from '../utils/formatPR';
 
 export interface ExerciseBreakdown {
   exerciseName: string;
@@ -44,19 +45,6 @@ export interface SessionSummaryProps {
   onViewSession?: (id: string) => void;
   onViewAllWorkouts?: () => void;
   recentSessions?: RecentSession[];
-}
-
-function humanizeId(id: string): string {
-  return id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function formatPRDescription(pr: PRRecord): { name: string; detail: string } {
-  const name = pr.exercise_name ?? humanizeId(pr.exercise_id);
-  if (pr.record_type === 'e1rm') {
-    const diff = pr.previous_value != null ? ` (+${Math.round(pr.value - pr.previous_value)} lbs)` : '';
-    return { name, detail: `New est. 1RM: ${Math.round(pr.value)} lbs${diff}` };
-  }
-  return { name, detail: `${Math.round(pr.value)} lbs \u00D7 ${pr.rep_count} (best at ${pr.rep_count} reps)` };
 }
 
 export function SessionSummary({
@@ -146,18 +134,15 @@ export function SessionSummary({
         <>
           <Text style={styles.sectionLabel}>Personal Records</Text>
           <View style={styles.prCards}>
-            {prs.map(pr => {
-              const { name, detail } = formatPRDescription(pr);
-              return (
+            {prs.map(pr => (
                 <View key={pr.id} style={styles.prCard}>
                   <Text style={styles.prIcon}>{'\uD83C\uDFC6'}</Text>
                   <View style={styles.prInfo}>
-                    <Text style={styles.prName}>{name}</Text>
-                    <Text style={styles.prDetail}>{detail}</Text>
+                    <Text style={styles.prName}>{formatPRName(pr)}</Text>
+                    <Text style={styles.prDetail}>{formatPRDescription(pr)}</Text>
                   </View>
                 </View>
-              );
-            })}
+            ))}
           </View>
         </>
       )}

@@ -17,6 +17,7 @@ import {
 } from '../../src/db';
 import type { PRRecord } from '../../src/db';
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
+import { formatPRDescription, formatPRName } from '../../src/utils/formatPR';
 import { getFieldsForExercise, FIELD_LABELS } from '../../src/types/fields';
 import type { InputField } from '../../src/types/fields';
 import type { Session, SetLog, SessionProtocol } from '../../src/types';
@@ -34,31 +35,6 @@ type ExerciseGroup = {
   sets: SetLog[];
   inputFields: InputField[];
 };
-
-function formatDuration(seconds: number): string {
-  const min = Math.floor(seconds / 60);
-  const sec = Math.round(seconds % 60);
-  return min > 0 ? `${min}m ${sec}s` : `${sec}s`;
-}
-
-function formatPRDetail(pr: PRRecord): string {
-  switch (pr.record_type) {
-    case 'e1rm': {
-      const diff = pr.previous_value != null ? ` (+${Math.round(pr.value - pr.previous_value)} lbs)` : '';
-      return `New est. 1RM: ${Math.round(pr.value)} lbs${diff}`;
-    }
-    case 'rep_best':
-      return `${Math.round(pr.value)} lbs × ${pr.rep_count} (best at ${pr.rep_count} reps)`;
-    case 'best_reps':
-      return `${Math.round(pr.value)} reps (new best)`;
-    case 'best_duration':
-      return `${formatDuration(pr.value)} (new best)`;
-    case 'best_time':
-      return `${formatDuration(pr.value)} (new fastest)`;
-    default:
-      return `${Math.round(pr.value)} (new PR)`;
-  }
-}
 
 export default function SessionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -238,8 +214,8 @@ export default function SessionDetailScreen() {
                 <View key={pr.id} style={styles.prCard}>
                   <Text style={styles.prIcon}>🏆</Text>
                   <View style={styles.prInfo}>
-                    <Text style={styles.prExercise}>{pr.exercise_name ?? pr.exercise_id.replace(/_/g, ' ')}</Text>
-                    <Text style={styles.prDetail}>{formatPRDetail(pr)}</Text>
+                    <Text style={styles.prExercise}>{formatPRName(pr)}</Text>
+                    <Text style={styles.prDetail}>{formatPRDescription(pr)}</Text>
                   </View>
                 </View>
               ))}

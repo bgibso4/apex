@@ -12,7 +12,7 @@ export const Spacing = {
   xxxl: 32,
 
   // Layout tokens (semantic names for repeated screen patterns)
-  screenTop: 72,
+  screenTop: 88,
   screenBottom: 40,
   screenHorizontal: 24,
 

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Select — Title Hierarchy v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; display: flex; justify-content: center; gap: 40px; padding: 40px; flex-wrap: wrap; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; }
+
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: #0a0a0f;
+    border-radius: 40px;
+    overflow: hidden;
+    border: 2px solid #2a2a3e;
+    position: relative;
+  }
+  .phone-label {
+    text-align: center;
+    color: #a0a0b8;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .phone-desc {
+    text-align: center;
+    color: #6a6a80;
+    font-size: 11px;
+    max-width: 375px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .screen {
+    padding: 60px 20px 20px;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  /* Day selector chips */
+  .day-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .day-chip {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid #2a2a3e;
+    background: #141420;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: #a0a0b8;
+    flex-shrink: 0;
+  }
+  .day-chip.selected {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: #6366f1;
+    color: #ffffff;
+  }
+
+  /* Small day dots */
+  .day-dots {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .day-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .day-dot-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #2a2a3e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #6a6a80;
+  }
+  .day-dot-circle.selected {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.15);
+    color: #ffffff;
+  }
+  .day-dot-label {
+    font-size: 10px;
+    color: #4a4a5e;
+    font-weight: 600;
+  }
+  .day-dot-label.selected {
+    color: #a0a0b8;
+  }
+
+  /* Week/block context */
+  .week-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6a6a80;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+  .week-label-accent {
+    color: #6366f1;
+  }
+
+  /* Session name title */
+  .session-title {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    line-height: 1.15;
+  }
+  .session-title-md {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  /* Exercise count subtitle */
+  .exercise-count {
+    color: #a0a0b8;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  /* Exercise list */
+  .exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 24px;
+  }
+  .exercise-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-left: 2px solid #2a2a3e;
+  }
+  .exercise-name {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .exercise-detail {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Start button */
+  .start-btn {
+    width: 100%;
+    padding: 18px;
+    background: #6366f1;
+    border-radius: 14px;
+    text-align: center;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 28px;
+  }
+
+  /* Recent workouts */
+  .recent-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .recent-card {
+    background: #181824;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .recent-name {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .recent-meta {
+    color: #4a4a5e;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .recent-stat {
+    color: #a0a0b8;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+  }
+  .recent-stat-sub {
+    color: #4a4a5e;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* Inline day switcher */
+  .inline-switcher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .inline-arrow {
+    color: #4a4a5e;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .inline-day-label {
+    color: #6a6a80;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Separator */
+  .separator {
+    height: 1px;
+    background: #2a2a3e;
+    margin: 12px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- Option A: Compact header — week label + chips inline, then hero title -->
+<div>
+  <div class="phone-label">A — Structured header</div>
+  <div class="phone-desc">Week/block as small label, chips below, workout name is the hero</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="week-label" style="margin-bottom: 10px;">Week 1 · Hypertrophy</div>
+      <div class="day-chips" style="margin-bottom: 20px;">
+        <div class="day-chip">Sun · Athletic Power</div>
+        <div class="day-chip selected">Mon · Upper Stre…</div>
+      </div>
+
+      <div class="session-title">Upper Power — Push/Explosive</div>
+      <div class="exercise-count">7 exercises + conditioning finisher</div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Db Hang High Pull</span><span class="exercise-detail">4 × 4</span></div>
+        <div class="exercise-row"><span class="exercise-name">Overhead Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Incline Db Press</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Lateral Raises</span><span class="exercise-detail">3 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Tricep Dips</span><span class="exercise-detail">3 × 10-12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Plyo Pushup</span><span class="exercise-detail">3 × 5</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Option B: No chips — day dots, minimal -->
+<div>
+  <div class="phone-label">B — Day dots</div>
+  <div class="phone-desc">Replace chips with compact dots. Less visual weight, more room for content</div>
+  <div class="phone">
+    <div class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div class="week-label">Week 1 · Hypertrophy</div>
+        <div class="day-dots">
+          <div class="day-dot">
+            <div class="day-dot-circle">S</div>
+          </div>
+          <div class="day-dot">
+            <div class="day-dot-circle selected">M</div>
+          </div>
+          <div class="day-dot">
+            <div class="day-dot-circle">T</div>
+          </div>
+          <div class="day-dot">
+            <div class="day-dot-circle">F</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="session-title">Upper Power — Push/Explosive</div>
+      <div class="exercise-count">7 exercises + conditioning finisher</div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Db Hang High Pull</span><span class="exercise-detail">4 × 4</span></div>
+        <div class="exercise-row"><span class="exercise-name">Overhead Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Incline Db Press</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Lateral Raises</span><span class="exercise-detail">3 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Tricep Dips</span><span class="exercise-detail">3 × 10-12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Plyo Pushup</span><span class="exercise-detail">3 × 5</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Option C: No chips at all — arrow switcher -->
+<div>
+  <div class="phone-label">C — Arrow switcher</div>
+  <div class="phone-desc">No chips. Swipe or tap arrows to change day. Cleanest layout, workout name dominates</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="week-label" style="margin-bottom: 2px;">Week 1 · Hypertrophy</div>
+      <div class="inline-switcher">
+        <span class="inline-arrow">‹</span>
+        <span class="inline-day-label">Monday</span>
+        <span class="inline-arrow">›</span>
+      </div>
+      <div style="margin-bottom: 16px;"></div>
+
+      <div class="session-title">Upper Power — Push/Explosive</div>
+      <div class="exercise-count">7 exercises + conditioning finisher</div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Db Hang High Pull</span><span class="exercise-detail">4 × 4</span></div>
+        <div class="exercise-row"><span class="exercise-name">Overhead Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Incline Db Press</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Lateral Raises</span><span class="exercise-detail">3 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Tricep Dips</span><span class="exercise-detail">3 × 10-12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Plyo Pushup</span><span class="exercise-detail">3 × 5</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Option D: Chips stay but week info moves into title area -->
+<div>
+  <div class="phone-label">D — Chips + unified title</div>
+  <div class="phone-desc">Keep chips but remove their title. Week/block becomes a small label above the workout name</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="day-chips" style="margin-bottom: 20px;">
+        <div class="day-chip">Sun · Athletic Power</div>
+        <div class="day-chip selected">Mon · Upper Stre…</div>
+      </div>
+
+      <div class="week-label week-label-accent">Week 1 · Hypertrophy</div>
+      <div class="session-title">Upper Power — Push/Explosive</div>
+      <div class="exercise-count">7 exercises + conditioning finisher</div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Db Hang High Pull</span><span class="exercise-detail">4 × 4</span></div>
+        <div class="exercise-row"><span class="exercise-name">Overhead Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Incline Db Press</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Lateral Raises</span><span class="exercise-detail">3 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Tricep Dips</span><span class="exercise-detail">3 × 10-12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Plyo Pushup</span><span class="exercise-detail">3 × 5</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

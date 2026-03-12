@@ -14,35 +14,50 @@ const defaultProps = {
   ],
   dayNames: { monday: 'Mon', wednesday: 'Wed', friday: 'Fri' } as Record<string, string>,
   onSelectDay: jest.fn(),
+  todayKey: 'monday',
 };
 
 describe('DaySelector', () => {
   it('renders week and block label', () => {
     render(<DaySelector {...defaultProps} />);
-    // Title format: "Week 3 — Hypertrophy"
     expect(screen.getByText(/Week 3/)).toBeTruthy();
     expect(screen.getByText(/Hypertrophy/)).toBeTruthy();
   });
 
-  it('renders all training day chips with day name and template name', () => {
+  it('shows "Change workout" link', () => {
     render(<DaySelector {...defaultProps} />);
-    // Chip text format: "Mon · Upper A"
-    expect(screen.getByText(/Mon/)).toBeTruthy();
-    expect(screen.getByText(/Wed/)).toBeTruthy();
-    expect(screen.getByText(/Fri/)).toBeTruthy();
+    expect(screen.getByText(/Change workout/)).toBeTruthy();
   });
 
-  it('calls onSelectDay when a day chip is pressed', () => {
-    const onSelectDay = jest.fn();
-    render(<DaySelector {...defaultProps} onSelectDay={onSelectDay} />);
-    fireEvent.press(screen.getByText(/Wed/));
-    expect(onSelectDay).toHaveBeenCalledWith('wednesday');
+  it('shows today badge when selectedDay matches todayKey', () => {
+    render(<DaySelector {...defaultProps} />);
+    expect(screen.getByText(/Mon — Today/)).toBeTruthy();
   });
 
-  it('shows template name on day chips', () => {
+  it('shows day name without today badge when not today', () => {
+    render(<DaySelector {...defaultProps} selectedDay="wednesday" />);
+    expect(screen.getByText('Wed')).toBeTruthy();
+    expect(screen.queryByText(/Today/)).toBeNull();
+  });
+
+  it('expands day chips when "Change workout" is pressed', () => {
     render(<DaySelector {...defaultProps} />);
-    // Template name is split on '—' and first part trimmed
+    // Chips not visible initially
+    expect(screen.queryByText(/Upper A/)).toBeNull();
+    // Tap "Change workout"
+    fireEvent.press(screen.getByText(/Change workout/));
+    // Chips now visible
     expect(screen.getByText(/Upper A/)).toBeTruthy();
     expect(screen.getByText(/Lower A/)).toBeTruthy();
+  });
+
+  it('calls onSelectDay and collapses when a chip is pressed', () => {
+    const onSelectDay = jest.fn();
+    render(<DaySelector {...defaultProps} onSelectDay={onSelectDay} />);
+    fireEvent.press(screen.getByText(/Change workout/));
+    fireEvent.press(screen.getByText(/Wed/));
+    expect(onSelectDay).toHaveBeenCalledWith('wednesday');
+    // Should collapse after selection
+    expect(screen.queryByText(/Lower A/)).toBeNull();
   });
 });

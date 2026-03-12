@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Select — Title Hierarchy v3</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; display: flex; justify-content: center; gap: 40px; padding: 40px; flex-wrap: wrap; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; }
+
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: #0a0a0f;
+    border-radius: 40px;
+    overflow: hidden;
+    border: 2px solid #2a2a3e;
+    position: relative;
+  }
+  .phone-label {
+    text-align: center;
+    color: #a0a0b8;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .phone-desc {
+    text-align: center;
+    color: #6a6a80;
+    font-size: 11px;
+    max-width: 375px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .screen {
+    padding: 60px 20px 20px;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  /* Shared styles */
+  .week-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+  .session-title {
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    line-height: 1.15;
+  }
+  .exercise-count {
+    color: #a0a0b8;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 24px;
+  }
+  .exercise-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-left: 2px solid #2a2a3e;
+  }
+  .exercise-name {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .exercise-detail {
+    color: #4a4a5e;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .start-btn {
+    width: 100%;
+    padding: 18px;
+    background: #6366f1;
+    border-radius: 14px;
+    text-align: center;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 28px;
+  }
+  .recent-label {
+    color: #4a4a5e;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .recent-card {
+    background: #181824;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .recent-name {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .recent-meta {
+    color: #4a4a5e;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .recent-stat {
+    color: #a0a0b8;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+  }
+  .recent-stat-sub {
+    color: #4a4a5e;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* ============================================ */
+  /* Option A — kept from v2 */
+  /* ============================================ */
+  .opt-a .day-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 20px;
+  }
+  .opt-a .day-chip {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid #2a2a3e;
+    background: #141420;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: #a0a0b8;
+    flex-shrink: 0;
+  }
+  .opt-a .day-chip.selected {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: #6366f1;
+    color: #ffffff;
+  }
+  .opt-a .week-label {
+    color: #6a6a80;
+    margin-bottom: 10px;
+  }
+
+  /* ============================================ */
+  /* Option E — Accordion cards */
+  /* ============================================ */
+  .accordion-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .accordion-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .accordion-card.selected {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.05);
+  }
+  .accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .accordion-day {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6a6a80;
+    min-width: 32px;
+  }
+  .accordion-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: #a0a0b8;
+    margin-left: 10px;
+  }
+  .accordion-card.selected .accordion-name {
+    color: #ffffff;
+  }
+  .accordion-chevron {
+    color: #4a4a5e;
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+  .accordion-card.selected .accordion-chevron {
+    color: #6366f1;
+  }
+  .accordion-body {
+    padding: 0 16px 14px;
+    border-top: 1px solid #2a2a3e;
+  }
+  .accordion-card.selected .accordion-body {
+    border-top-color: rgba(99, 102, 241, 0.2);
+  }
+  .accordion-exercise {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+  .accordion-exercise-name {
+    color: #a0a0b8;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .accordion-exercise-detail {
+    color: #4a4a5e;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* ============================================ */
+  /* Option F — Inline dropdown switcher */
+  /* ============================================ */
+  .dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 14px;
+  }
+  .dropdown-day {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a0a0b8;
+  }
+  .dropdown-chevron {
+    font-size: 10px;
+    color: #4a4a5e;
+  }
+
+  /* ============================================ */
+  /* Option G — Today's default with subtle change link */
+  /* ============================================ */
+  .today-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .change-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6366f1;
+    cursor: pointer;
+  }
+  .today-day-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .today-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+  }
+  .today-day-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6a6a80;
+  }
+</style>
+</head>
+<body>
+
+<!-- Option A (kept) -->
+<div>
+  <div class="phone-label">A — Structured header (from v2)</div>
+  <div class="phone-desc">Small week label, chips, hero title below</div>
+  <div class="phone">
+    <div class="screen opt-a">
+      <div class="week-label" style="margin-bottom: 10px;">Week 1 · Hypertrophy</div>
+      <div class="day-chips">
+        <div class="day-chip">Sun · Athletic Power</div>
+        <div class="day-chip selected">Mon · Upper Stre…</div>
+      </div>
+
+      <div class="session-title">Upper Power — Push/Explosive</div>
+      <div class="exercise-count">7 exercises + conditioning finisher</div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Db Hang High Pull</span><span class="exercise-detail">4 × 4</span></div>
+        <div class="exercise-row"><span class="exercise-name">Overhead Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Incline Db Press</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Lateral Raises</span><span class="exercise-detail">3 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Tricep Dips</span><span class="exercise-detail">3 × 10-12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Plyo Pushup</span><span class="exercise-detail">3 × 5</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Option E — Accordion cards -->
+<div>
+  <div class="phone-label">E — Accordion cards</div>
+  <div class="phone-desc">Days as vertical cards. Tap to expand exercises. Tap again to collapse (stays selected). Start button appears for selected.</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="week-label" style="margin-bottom: 16px;">Week 1 · Hypertrophy</div>
+
+      <div class="accordion-list">
+        <!-- Collapsed -->
+        <div class="accordion-card">
+          <div class="accordion-header">
+            <span class="accordion-day">Sun</span>
+            <span class="accordion-name">Athletic Power & Conditioning</span>
+            <span class="accordion-chevron">›</span>
+          </div>
+        </div>
+
+        <!-- Selected + Expanded -->
+        <div class="accordion-card selected">
+          <div class="accordion-header">
+            <span class="accordion-day" style="color: #6366f1;">Mon</span>
+            <span class="accordion-name">Upper Power — Push/Explosive</span>
+            <span class="accordion-chevron" style="transform: rotate(90deg);">›</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-exercise"><span class="accordion-exercise-name">Db Hang High Pull</span><span class="accordion-exercise-detail">4 × 4</span></div>
+            <div class="accordion-exercise"><span class="accordion-exercise-name">Overhead Press</span><span class="accordion-exercise-detail">4 × 8</span></div>
+            <div class="accordion-exercise"><span class="accordion-exercise-name">Incline Db Press</span><span class="accordion-exercise-detail">3 × 8-10</span></div>
+            <div class="accordion-exercise"><span class="accordion-exercise-name">Lateral Raises</span><span class="accordion-exercise-detail">3 × 12</span></div>
+            <div class="accordion-exercise"><span class="accordion-exercise-name">Tricep Dips</span><span class="accordion-exercise-detail">3 × 10-12</span></div>
+            <div class="accordion-exercise"><span class="accordion-exercise-name">Plyo Pushup</span><span class="accordion-exercise-detail">3 × 5</span></div>
+            <div class="accordion-exercise"><span class="accordion-exercise-name">Core Circuit</span><span class="accordion-exercise-detail">3 × 1</span></div>
+          </div>
+        </div>
+
+        <!-- Collapsed -->
+        <div class="accordion-card">
+          <div class="accordion-header">
+            <span class="accordion-day">Thu</span>
+            <span class="accordion-name">Upper Strength & Hypertrophy</span>
+            <span class="accordion-chevron">›</span>
+          </div>
+        </div>
+
+        <!-- Collapsed -->
+        <div class="accordion-card">
+          <div class="accordion-header">
+            <span class="accordion-day">Fri</span>
+            <span class="accordion-name">Lower Strength & Hypertrophy</span>
+            <span class="accordion-chevron">›</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Option F — Dropdown day selector -->
+<div>
+  <div class="phone-label">F — Dropdown selector</div>
+  <div class="phone-desc">Today's workout shown by default. Small dropdown pill to switch days. Minimal footprint.</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="week-label">Week 1 · Hypertrophy</div>
+      <div class="dropdown-trigger">
+        <span class="dropdown-day">Monday</span>
+        <span class="dropdown-chevron">▾</span>
+      </div>
+
+      <div class="session-title">Upper Power — Push/Explosive</div>
+      <div class="exercise-count">7 exercises + conditioning finisher</div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Db Hang High Pull</span><span class="exercise-detail">4 × 4</span></div>
+        <div class="exercise-row"><span class="exercise-name">Overhead Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Incline Db Press</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Lateral Raises</span><span class="exercise-detail">3 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Tricep Dips</span><span class="exercise-detail">3 × 10-12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Plyo Pushup</span><span class="exercise-detail">3 × 5</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Option G — Today's default with change link -->
+<div>
+  <div class="phone-label">G — "Change day" link</div>
+  <div class="phone-desc">Assumes today's workout. Green dot = today. "Change" link reveals the day picker only when needed.</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="today-header">
+        <div class="week-label" style="margin-bottom: 0;">Week 1 · Hypertrophy</div>
+        <span class="change-link">Change day</span>
+      </div>
+      <div class="today-day-badge">
+        <span class="today-dot"></span>
+        <span class="today-day-text">Monday — Today</span>
+      </div>
+
+      <div class="session-title">Upper Power — Push/Explosive</div>
+      <div class="exercise-count">7 exercises + conditioning finisher</div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Db Hang High Pull</span><span class="exercise-detail">4 × 4</span></div>
+        <div class="exercise-row"><span class="exercise-name">Overhead Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Incline Db Press</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Lateral Raises</span><span class="exercise-detail">3 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Tricep Dips</span><span class="exercise-detail">3 × 10-12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Plyo Pushup</span><span class="exercise-detail">3 × 5</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+
+      <div class="start-btn">Start Session →</div>
+
+      <div class="recent-label">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-meta">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div>
+          <div class="recent-stat">0m</div>
+          <div class="recent-stat-sub">14 sets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

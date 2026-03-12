@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
-import { getTargetForWeek } from '../../src/utils/program';
+import { getTargetForWeek, getTodayKey } from '../../src/utils/program';
 import { getRecentCompletedSessions, getSetLogsForSession, getActiveProgram } from '../../src/db';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
 import { DaySelector } from '../../src/components/DaySelector';
@@ -196,6 +196,7 @@ export default function WorkoutScreen() {
             trainingDays={w.trainingDays}
             dayNames={w.dayNames}
             onSelectDay={w.selectDay}
+            todayKey={getTodayKey()}
           />
         )}
 

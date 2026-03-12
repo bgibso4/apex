@@ -48,7 +48,7 @@ export default function SessionDetailScreen() {
   const [prs, setPRs] = useState<PRRecord[]>([]);
   const [sessionNotes, setSessionNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(true);
-  const notesTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -364,7 +364,7 @@ export default function SessionDetailScreen() {
                       const newRpe = parseFloat(e.nativeEvent.text) || undefined;
                       setExerciseGroups(prev => prev.map(g => ({
                         ...g,
-                        sets: g.sets.map(s => s.id === set.id ? { ...s, rpe: newRpe ?? null } : s),
+                        sets: g.sets.map(s => s.id === set.id ? { ...s, rpe: newRpe } : s),
                       })));
                       if (newRpe !== undefined) updateSet(set.id, { rpe: newRpe });
                     }}

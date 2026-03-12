@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -113,6 +113,16 @@ export function useWorkoutSession() {
 
   // Edit mode
   const [editMode, setEditMode] = useState(false);
+
+  // Debounce timer for session notes
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up notes debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    };
+  }, []);
 
   // Prevent re-running restoration on every tab focus
   const hasAttemptedRestore = useRef(false);
@@ -910,15 +920,18 @@ export function useWorkoutSession() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   };
 
-  /** Save session notes */
-  const saveNotes = async (text: string) => {
+  /** Save session notes (debounced — saves after 1s of inactivity) */
+  const handleNotesChange = useCallback((text: string) => {
     setSessionNotes(text);
     setNotesSaved(false);
-    if (sessionId) {
-      await updateSessionNotes(sessionId, text);
-      setNotesSaved(true);
-    }
-  };
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    notesTimerRef.current = setTimeout(async () => {
+      if (sessionId) {
+        await updateSessionNotes(sessionId, text);
+        setNotesSaved(true);
+      }
+    }, 1000);
+  }, [sessionId]);
 
   /** Save an exercise note */
   const saveExerciseNoteAction = async (exerciseId: string, note: string) => {
@@ -1077,7 +1090,7 @@ export function useWorkoutSession() {
     reorderMode, setReorderMode,
 
     // Session notes
-    sessionNotes, notesSaved, saveNotes,
+    sessionNotes, notesSaved, onNotesChange: handleNotesChange,
 
     // Timer
     timer, timerSeconds, startedAt,

@@ -475,7 +475,7 @@ export default function WorkoutScreen() {
             protocols={w.protocols}
             notes={w.sessionNotes}
             notesSaved={w.notesSaved}
-            onNotesChange={w.saveNotes}
+            onNotesChange={w.onNotesChange}
             sessionId={w.sessionId ?? undefined}
             onViewSession={(id) => router.push(`/session/${id}`)}
             onViewAllWorkouts={() => router.push('/history')}

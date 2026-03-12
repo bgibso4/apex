@@ -3,14 +3,17 @@
  * Read-only view of a completed workout session.
  */
 
-import { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState, useCallback, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import {
   getSessionById, getSetLogsForSession, getExerciseInfo, getActiveProgram,
   getExerciseNotesForSession, getPRsForSession,
+  updateSet, updateSessionNotes, updateProtocolCompletion,
+  saveExerciseNote, deleteExerciseNote,
+  detectPRs, deletePRsForSession, deleteSession,
 } from '../../src/db';
 import type { PRRecord } from '../../src/db';
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
@@ -67,6 +70,9 @@ export default function SessionDetailScreen() {
   const [protocols, setProtocols] = useState<SessionProtocol[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [prs, setPRs] = useState<PRRecord[]>([]);
+  const [sessionNotes, setSessionNotes] = useState('');
+  const [notesSaved, setNotesSaved] = useState(true);
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useFocusEffect(useCallback(() => {
     if (!id) return;
@@ -74,6 +80,7 @@ export default function SessionDetailScreen() {
       const s = await getSessionById(id);
       if (!s) return;
       setSession(s);
+      setSessionNotes(s.notes ?? '');
 
       const sessionProtocols = await getSessionProtocols(s.id);
       setProtocols(sessionProtocols);
@@ -123,6 +130,36 @@ export default function SessionDetailScreen() {
     })();
   }, [id]));
 
+  const handleExitEditMode = async () => {
+    if (!session) return;
+    // Clear any pending notes save
+    if (notesTimerRef.current) {
+      clearTimeout(notesTimerRef.current);
+      await updateSessionNotes(session.id, sessionNotes);
+      setNotesSaved(true);
+    }
+
+    // Recalculate PRs with updated set data
+    const setLogs = await getSetLogsForSession(session.id);
+    const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
+    const exerciseInfoMap = await getExerciseInfo(exerciseIds);
+
+    const sessionSets = setLogs.map(sl => ({
+      exercise_id: sl.exercise_id,
+      actual_weight: sl.actual_weight ?? 0,
+      actual_reps: sl.actual_reps ?? 0,
+      status: sl.status,
+      actual_duration: sl.actual_duration,
+      actual_time: sl.actual_time,
+      actual_distance: sl.actual_distance,
+      input_fields: exerciseInfoMap[sl.exercise_id]?.inputFields ?? null,
+    }));
+
+    await deletePRsForSession(session.id);
+    const newPRs = await detectPRs(session.id, session.date, sessionSets);
+    setPRs(newPRs);
+  };
+
   if (!session) {
     return (
       <View style={styles.container}>
@@ -158,7 +195,12 @@ export default function SessionDetailScreen() {
           <TouchableOpacity
             testID="edit-button"
             style={[styles.editBtn, editMode && styles.editBtnActive]}
-            onPress={() => setEditMode(!editMode)}
+            onPress={async () => {
+              if (editMode) {
+                await handleExitEditMode();
+              }
+              setEditMode(!editMode);
+            }}
           >
             <Ionicons
               name={editMode ? 'checkmark' : 'pencil'}
@@ -208,32 +250,71 @@ export default function SessionDetailScreen() {
         {/* Protocol chips */}
         {protocols.length > 0 && (
           <View style={styles.chipRow}>
-            {protocols.map(p => (
-              <View key={p.id} style={[styles.chip, p.completed ? styles.chipDone : styles.chipMissed]}>
-                <Ionicons
-                  name={p.completed ? 'checkmark' : 'close'}
-                  size={12}
-                  color={p.completed ? Colors.green : Colors.textDim}
-                />
-                <Text style={[styles.chipText, !p.completed && styles.chipTextMissed]}>
-                  {p.protocol_name}
-                </Text>
-              </View>
-            ))}
+            {protocols.map(p => {
+              const ChipWrapper = editMode ? TouchableOpacity : View;
+              return (
+                <ChipWrapper
+                  key={p.id}
+                  onPress={editMode ? async () => {
+                    await updateProtocolCompletion(p.id, !p.completed);
+                    setProtocols(prev => prev.map(pp =>
+                      pp.id === p.id ? { ...pp, completed: !pp.completed } : pp
+                    ));
+                  } : undefined}
+                  style={[
+                    styles.chip,
+                    p.completed ? styles.chipDone : styles.chipMissed,
+                    editMode && styles.chipEditable,
+                  ]}
+                >
+                  <Ionicons
+                    name={p.completed ? 'checkmark' : 'close'}
+                    size={12}
+                    color={p.completed ? Colors.green : Colors.textDim}
+                  />
+                  <Text style={[styles.chipText, !p.completed && styles.chipTextMissed]}>
+                    {p.protocol_name}
+                  </Text>
+                </ChipWrapper>
+              );
+            })}
           </View>
         )}
 
         {/* Session notes */}
-        {!!session.notes && (
-          <View style={styles.sessionNotesCard}>
-            <Text style={styles.sessionNotesLabel}>Session Notes</Text>
-            <Text style={styles.sessionNotesText}>{session.notes}</Text>
+        {(editMode || !!sessionNotes) && (
+          <View style={[styles.sessionNotesCard, editMode && styles.editableCard]}>
+            <View style={styles.notesHeader}>
+              <Text style={styles.sessionNotesLabel}>Session Notes</Text>
+              {editMode && notesSaved && <Text style={styles.notesSavedText}>{'✓ Saved'}</Text>}
+              {editMode && !notesSaved && <Text style={styles.notesSavingText}>Saving...</Text>}
+            </View>
+            {editMode ? (
+              <TextInput
+                style={styles.sessionNotesInput}
+                value={sessionNotes}
+                onChangeText={(text) => {
+                  setSessionNotes(text);
+                  setNotesSaved(false);
+                  if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+                  notesTimerRef.current = setTimeout(async () => {
+                    await updateSessionNotes(session!.id, text);
+                    setNotesSaved(true);
+                  }, 1000);
+                }}
+                multiline
+                placeholder="How did the session feel overall?"
+                placeholderTextColor={Colors.textDim}
+              />
+            ) : (
+              <Text style={styles.sessionNotesText}>{sessionNotes}</Text>
+            )}
           </View>
         )}
 
         {/* Exercise cards */}
         {exerciseGroups.map((group) => (
-          <View key={group.exerciseId} style={styles.exerciseCard}>
+          <View key={group.exerciseId} style={[styles.exerciseCard, editMode && styles.editableCard]}>
             <View style={styles.exerciseHeader}>
               <Text style={styles.exerciseName}>{group.exerciseName}</Text>
               {!!group.isAdhoc && (
@@ -265,15 +346,45 @@ export default function SessionDetailScreen() {
                 {group.inputFields.map((field) => {
                   const key = `actual_${field.type}` as keyof SetLog;
                   const value = set[key];
-                  return (
+                  const updateKey = `actual${field.type.charAt(0).toUpperCase() + field.type.slice(1)}`;
+                  return editMode ? (
+                    <TextInput
+                      key={field.type}
+                      style={[styles.setGridValue, styles.setGridEditable, { flex: 1 }]}
+                      defaultValue={value?.toString() ?? ''}
+                      keyboardType="numeric"
+                      onEndEditing={(e) => {
+                        const newValue = parseFloat(e.nativeEvent.text) || 0;
+                        setExerciseGroups(prev => prev.map(g => ({
+                          ...g,
+                          sets: g.sets.map(s => s.id === set.id ? { ...s, [`actual_${field.type}`]: newValue } : s),
+                        })));
+                        updateSet(set.id, { [updateKey]: newValue } as any);
+                      }}
+                    />
+                  ) : (
                     <Text key={field.type} style={[styles.setGridValue, { flex: 1 }]}>
                       {value ?? '—'}
                     </Text>
                   );
                 })}
-                <Text style={[styles.setGridValue, { width: 44 }]}>
-                  {set.rpe ?? '—'}
-                </Text>
+                {editMode ? (
+                  <TextInput
+                    style={[styles.setGridValue, styles.setGridEditable, { width: 44 }]}
+                    defaultValue={set.rpe?.toString() ?? ''}
+                    keyboardType="numeric"
+                    onEndEditing={(e) => {
+                      const newRpe = parseFloat(e.nativeEvent.text) || undefined;
+                      setExerciseGroups(prev => prev.map(g => ({
+                        ...g,
+                        sets: g.sets.map(s => s.id === set.id ? { ...s, rpe: newRpe ?? null } : s),
+                      })));
+                      if (newRpe !== undefined) updateSet(set.id, { rpe: newRpe });
+                    }}
+                  />
+                ) : (
+                  <Text style={[styles.setGridValue, { width: 44 }]}>{set.rpe ?? '—'}</Text>
+                )}
                 <View style={{ width: 28, alignItems: 'center' }}>
                   {set.status === 'completed' && (
                     <Ionicons name="checkmark" size={14} color={Colors.green} />
@@ -289,14 +400,55 @@ export default function SessionDetailScreen() {
             ))}
 
             {/* Exercise note */}
-            {!!exerciseNotes[group.exerciseId] && (
+            {(editMode || !!exerciseNotes[group.exerciseId]) && (
               <View style={styles.exerciseNote}>
                 <Ionicons name="chatbubble-outline" size={12} color={Colors.textDim} />
-                <Text style={styles.exerciseNoteText}>{exerciseNotes[group.exerciseId]}</Text>
+                {editMode ? (
+                  <TextInput
+                    style={styles.exerciseNoteInput}
+                    defaultValue={exerciseNotes[group.exerciseId] ?? ''}
+                    placeholder="Add a note..."
+                    placeholderTextColor={Colors.textDim}
+                    onEndEditing={(e) => {
+                      const text = e.nativeEvent.text.trim();
+                      if (text) {
+                        saveExerciseNote(session!.id, group.exerciseId, text);
+                      } else {
+                        deleteExerciseNote(session!.id, group.exerciseId);
+                      }
+                      setExerciseNotes(prev => {
+                        const next = { ...prev };
+                        if (text) next[group.exerciseId] = text;
+                        else delete next[group.exerciseId];
+                        return next;
+                      });
+                    }}
+                    multiline
+                  />
+                ) : (
+                  <Text style={styles.exerciseNoteText}>{exerciseNotes[group.exerciseId]}</Text>
+                )}
               </View>
             )}
           </View>
         ))}
+        {/* Delete button in edit mode */}
+        {editMode && (
+          <TouchableOpacity
+            style={styles.deleteBtn}
+            onPress={() => {
+              Alert.alert('Delete Workout', 'This will permanently delete this session and all its data.', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete', style: 'destructive', onPress: async () => {
+                  await deleteSession(session!.id);
+                  router.back();
+                }},
+              ]);
+            }}
+          >
+            <Text style={styles.deleteBtnText}>Delete Workout</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -399,7 +551,7 @@ const styles = StyleSheet.create({
   },
   sessionNotesLabel: {
     color: Colors.textDim, fontSize: FontSize.xs, fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.sm,
+    textTransform: 'uppercase', letterSpacing: 1,
   },
   sessionNotesText: {
     color: Colors.textSecondary, fontSize: FontSize.md, lineHeight: 20,
@@ -413,4 +565,41 @@ const styles = StyleSheet.create({
   exerciseNoteText: {
     color: Colors.textSecondary, fontSize: FontSize.sm, flex: 1, lineHeight: 18,
   },
+
+  // Edit mode styles
+  editableCard: {
+    borderWidth: 1, borderColor: `${Colors.indigo}40`,
+  },
+  chipEditable: {
+    borderStyle: 'dashed' as const,
+  },
+  notesHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  notesSavedText: { color: Colors.green, fontSize: FontSize.xs, fontWeight: '600' as const },
+  notesSavingText: { color: Colors.textDim, fontSize: FontSize.xs, fontWeight: '600' as const },
+  sessionNotesInput: {
+    backgroundColor: Colors.bg, borderWidth: 1, borderColor: `${Colors.indigo}40`,
+    borderRadius: BorderRadius.sm, padding: Spacing.sm,
+    color: Colors.text, fontSize: FontSize.md,
+    minHeight: 44, textAlignVertical: 'top' as const,
+  },
+  setGridEditable: {
+    backgroundColor: Colors.bg, borderWidth: 1, borderColor: `${Colors.indigo}40`,
+    borderRadius: BorderRadius.xs, paddingVertical: 4, paddingHorizontal: 8,
+    minWidth: 48, textAlign: 'center' as const,
+  },
+  exerciseNoteInput: {
+    flex: 1, backgroundColor: Colors.bg, borderWidth: 1, borderColor: `${Colors.indigo}40`,
+    borderRadius: BorderRadius.xs, paddingVertical: 6, paddingHorizontal: 10,
+    color: Colors.text, fontSize: FontSize.sm,
+    minHeight: 32, textAlignVertical: 'top' as const,
+  },
+  deleteBtn: {
+    marginTop: Spacing.xxl, padding: Spacing.lg,
+    backgroundColor: `${Colors.red}15`, borderWidth: 1, borderColor: `${Colors.red}30`,
+    borderRadius: BorderRadius.md, alignItems: 'center' as const,
+  },
+  deleteBtnText: { color: Colors.red, fontSize: FontSize.md, fontWeight: '600' as const },
 });

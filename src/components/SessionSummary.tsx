@@ -221,8 +221,8 @@ export function SessionSummary({
 
       {/* Recent Workouts */}
       {recentSessions && recentSessions.length > 0 && (
-        <>
-          <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Recent Workouts</Text>
+        <View style={styles.recentWorkoutsCard} testID="recent-workouts-card">
+          <Text style={[styles.sectionLabel, { marginTop: 0 }]}>Recent Workouts</Text>
           <View style={styles.recentWorkouts}>
             {recentSessions.map(s => (
               <TouchableOpacity
@@ -253,7 +253,7 @@ export function SessionSummary({
               <Text style={styles.viewAllText}>View all workouts {'\u2192'}</Text>
             </TouchableOpacity>
           )}
-        </>
+        </View>
       )}
 
     </View>
@@ -516,13 +516,19 @@ const styles = StyleSheet.create({
   },
 
   // Recent workouts
+  recentWorkoutsCard: {
+    backgroundColor: '#111118',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginTop: Spacing.xxl,
+  },
   recentWorkouts: {
     gap: Spacing.sm,
   },
   recentCard: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: '#181824',
     borderRadius: BorderRadius.cardInner,
     paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.lg,

@@ -117,6 +117,19 @@ describe('SessionSummary', () => {
     expect(screen.getByText(/EMOM 10min/)).toBeTruthy();
   });
 
+  it('wraps recent workouts in a card container', () => {
+    const recentSessions = [
+      { id: 's1', name: 'Pull A', dateLabel: 'Mar 7', blockName: 'Strength Block', durationMin: 45, setCount: 18 },
+    ];
+    render(
+      <SessionSummary
+        {...defaultProps}
+        recentSessions={recentSessions}
+      />
+    );
+    expect(screen.getByTestId('recent-workouts-card')).toBeTruthy();
+  });
+
   it('shows recent workouts section', () => {
     const recentSessions = [
       { id: 's1', name: 'Pull A', dateLabel: 'Mar 7', blockName: 'Strength Block', durationMin: 45, setCount: 18 },

@@ -95,7 +95,7 @@ export default function WorkoutScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.recentCardLeft}>
-                    <Text style={styles.recentCardName}>{s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+                    <Text style={styles.recentCardName}>{s.name ?? s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
                     <Text style={styles.recentCardDate}>
                       {dateLabel}
                       {s.block_name ? ` · ${s.block_name}` : ''}
@@ -251,7 +251,7 @@ export default function WorkoutScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.recentCardLeft}>
-                    <Text style={styles.recentCardName}>{s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+                    <Text style={styles.recentCardName}>{s.name ?? s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
                     <Text style={styles.recentCardDate}>
                       {dateLabel}
                       {s.block_name ? ` · ${s.block_name}` : ''}
@@ -481,7 +481,7 @@ export default function WorkoutScreen() {
             onViewAllWorkouts={() => router.push('/history')}
             recentSessions={recentSessions.map(s => ({
               id: String(s.id),
-              name: s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+              name: s.name ?? s.day_template_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
               dateLabel: new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
                 month: 'short', day: 'numeric',
               }),

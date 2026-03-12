@@ -173,7 +173,7 @@ export default function SessionDetailScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Text style={styles.backArrow}>←</Text>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{session.day_template_id.replace(/_/g, ' ')}</Text>
+            <Text style={styles.headerTitle}>{session.name ?? session.day_template_id.replace(/_/g, ' ')}</Text>
           </View>
           <TouchableOpacity
             testID="edit-button"

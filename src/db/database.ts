@@ -113,6 +113,11 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         await db.execAsync('ALTER TABLE set_logs ADD COLUMN actual_time REAL');
       } catch { /* already exists */ }
     }
+    if (currentVersion < 8) {
+      try {
+        await db.execAsync('ALTER TABLE sessions ADD COLUMN name TEXT');
+      } catch { /* already exists */ }
+    }
     if (currentVersion < SCHEMA_VERSION) {
       await db.runAsync(
         "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",

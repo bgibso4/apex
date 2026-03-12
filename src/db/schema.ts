@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS exercises (
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
   program_id TEXT NOT NULL,
+  name TEXT,
   week_number INTEGER NOT NULL,
   block_name TEXT NOT NULL,
   day_template_id TEXT NOT NULL,

@@ -27,6 +27,7 @@ export interface Exercise {
 export interface Session {
   id: string;
   program_id: string;
+  name?: string;
   week_number: number;
   block_name: string;
   day_template_id: string;

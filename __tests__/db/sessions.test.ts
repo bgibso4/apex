@@ -71,13 +71,14 @@ describe('sessions', () => {
       expect(sql).toContain('INSERT INTO sessions');
       expect(params[0]).toBe('test-id-123'); // id
       expect(params[1]).toBe('prog-1');       // program_id
-      expect(params[2]).toBe(3);              // week_number
-      expect(params[3]).toBe('Hypertrophy');  // block_name
-      expect(params[4]).toBe('day-a');        // day_template_id
-      expect(params[5]).toBe('Monday');       // scheduled_day
-      expect(params[6]).toBe('Monday');       // actual_day
-      expect(params[7]).toBe('2026-03-01');   // date
-      expect(typeof params[8]).toBe('string'); // started_at ISO string
+      expect(params[2]).toBeNull();           // name (not provided)
+      expect(params[3]).toBe(3);              // week_number
+      expect(params[4]).toBe('Hypertrophy');  // block_name
+      expect(params[5]).toBe('day-a');        // day_template_id
+      expect(params[6]).toBe('Monday');       // scheduled_day
+      expect(params[7]).toBe('Monday');       // actual_day
+      expect(params[8]).toBe('2026-03-01');   // date
+      expect(typeof params[9]).toBe('string'); // started_at ISO string
     });
   });
 

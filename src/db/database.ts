@@ -113,6 +113,35 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         await db.execAsync('ALTER TABLE set_logs ADD COLUMN actual_time REAL');
       } catch { /* already exists */ }
     }
+    if (currentVersion < 8) {
+      try {
+        await db.execAsync('ALTER TABLE sessions ADD COLUMN name TEXT');
+      } catch { /* already exists */ }
+
+      // Backfill session names from program templates
+      const programs = await db.getAllAsync<{ id: string; definition: string }>(
+        'SELECT id, definition FROM programs'
+      );
+      for (const prog of programs) {
+        try {
+          const def = typeof prog.definition === 'string'
+            ? JSON.parse(prog.definition)
+            : prog.definition;
+          const tmpl = def?.program?.weekly_template;
+          if (!tmpl) continue;
+          const sessions = await db.getAllAsync<{ id: string; day_template_id: string }>(
+            'SELECT id, day_template_id FROM sessions WHERE program_id = ? AND name IS NULL',
+            [prog.id]
+          );
+          for (const s of sessions) {
+            const dayTmpl = tmpl[s.day_template_id];
+            if (dayTmpl && dayTmpl.name) {
+              await db.runAsync('UPDATE sessions SET name = ? WHERE id = ?', [dayTmpl.name, s.id]);
+            }
+          }
+        } catch { /* skip if definition can't be parsed */ }
+      }
+    }
     if (currentVersion < SCHEMA_VERSION) {
       await db.runAsync(
         "UPDATE schema_info SET value = ? WHERE key = 'schema_version'",

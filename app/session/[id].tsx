@@ -76,12 +76,20 @@ export default function SessionDetailScreen() {
       const dayName = DAY_FULL_NAMES[s.scheduled_day] ?? s.scheduled_day;
       const monthDay = sessionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-      // Get block name from program
+      // Get block name and resolve session name from program
       const program = await getActiveProgram();
       let blockLabel = s.block_name;
       if (program) {
         const block = getBlockForWeek(program.definition.program.blocks, s.week_number);
         if (block) blockLabel = block.name;
+
+        // Backfill name from program template if missing
+        if (!s.name) {
+          const tmpl = program.definition.program.weekly_template[s.day_template_id];
+          if (tmpl && 'name' in tmpl) {
+            s.name = tmpl.name;
+          }
+        }
       }
       setDateLabel(`${dayName}, ${monthDay} · Week ${s.week_number} ${blockLabel}`);
 
@@ -173,7 +181,7 @@ export default function SessionDetailScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Text style={styles.backArrow}>←</Text>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{session.day_template_id.replace(/_/g, ' ')}</Text>
+            <Text style={styles.headerTitle}>{session.name ?? session.day_template_id.replace(/_/g, ' ')}</Text>
           </View>
           <TouchableOpacity
             testID="edit-button"

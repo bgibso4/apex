@@ -454,6 +454,7 @@ export function useWorkoutSession() {
 
     const id = await createSession({
       programId: program.id,
+      name: selectedTemplate.name,
       weekNumber: currentWeek,
       blockName: block.name,
       dayTemplateId: selectedDay,

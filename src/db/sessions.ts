@@ -9,6 +9,7 @@ import type { InputField } from '../types/fields';
 /** Create a new session (when user starts a workout) */
 export async function createSession(params: {
   programId: string;
+  name?: string;
   weekNumber: number;
   blockName: string;
   dayTemplateId: string;
@@ -21,11 +22,11 @@ export async function createSession(params: {
 
   await db.runAsync(
     `INSERT INTO sessions
-     (id, program_id, week_number, block_name, day_template_id,
+     (id, program_id, name, week_number, block_name, day_template_id,
       scheduled_day, actual_day, date, started_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      id, params.programId, params.weekNumber, params.blockName,
+      id, params.programId, params.name ?? null, params.weekNumber, params.blockName,
       params.dayTemplateId, params.scheduledDay, params.actualDay,
       params.date, new Date().toISOString()
     ]

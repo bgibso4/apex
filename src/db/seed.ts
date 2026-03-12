@@ -220,12 +220,12 @@ export async function seedHistoricalProgram(): Promise<number> {
   let count = 0;
   for (const s of sessions) {
     await db.runAsync(
-      `INSERT INTO sessions (id, program_id, week_number, block_name, day_template_id,
+      `INSERT INTO sessions (id, program_id, name, week_number, block_name, day_template_id,
         scheduled_day, actual_day, date, sleep, soreness, energy,
         started_at, completed_at, is_sample)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
+        s.id, programId, s.name, s.weekNumber, s.blockName, s.dayTemplateId,
         s.day, s.day, s.date,
         3 + Math.round(Math.random() * 2),
         2 + Math.round(Math.random() * 2),
@@ -271,10 +271,10 @@ function generateHistoricalSessionData(
   const sessions: SessionData[] = [];
 
   const daySchedule = [
-    { day: 'monday', template: 'upper_a' },
-    { day: 'tuesday', template: 'lower_a' },
-    { day: 'thursday', template: 'upper_b' },
-    { day: 'friday', template: 'lower_b' },
+    { day: 'monday', template: 'upper_a', name: 'Upper A' },
+    { day: 'tuesday', template: 'lower_a', name: 'Lower A' },
+    { day: 'thursday', template: 'upper_b', name: 'Upper B' },
+    { day: 'friday', template: 'lower_b', name: 'Lower B' },
   ];
 
   // Lower starting weights for the historical program
@@ -403,6 +403,7 @@ function generateHistoricalSessionData(
 
       sessions.push({
         id: sessionId,
+        name: sched.name,
         weekNumber: week,
         blockName: block.name,
         dayTemplateId: sched.template,
@@ -460,12 +461,12 @@ export async function seedWorkoutSessions(programId: string): Promise<number> {
   let count = 0;
   for (const s of sessions) {
     await db.runAsync(
-      `INSERT INTO sessions (id, program_id, week_number, block_name, day_template_id,
+      `INSERT INTO sessions (id, program_id, name, week_number, block_name, day_template_id,
         scheduled_day, actual_day, date, sleep, soreness, energy,
         started_at, completed_at, is_sample)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        s.id, programId, s.weekNumber, s.blockName, s.dayTemplateId,
+        s.id, programId, s.name, s.weekNumber, s.blockName, s.dayTemplateId,
         s.day, s.day, s.date,
         3 + Math.round(Math.random() * 2), // sleep 3-5
         2 + Math.round(Math.random() * 2), // soreness 2-4
@@ -518,6 +519,7 @@ function warmupPattern(sessionIndex: number, rate: number): boolean {
 
 interface SessionData {
   id: string;
+  name: string;
   weekNumber: number;
   blockName: string;
   dayTemplateId: string;
@@ -537,10 +539,10 @@ function generateSessionData(programId: string, exercises: { id: string }[]): Se
 
   // Day rotation
   const daySchedule = [
-    { day: 'monday', template: 'power_upper' },
-    { day: 'tuesday', template: 'power_lower' },
-    { day: 'thursday', template: 'strength_upper' },
-    { day: 'friday', template: 'strength_lower' },
+    { day: 'monday', template: 'power_upper', name: 'Athletic Power & Conditioning' },
+    { day: 'tuesday', template: 'power_lower', name: 'Athletic Lower Power' },
+    { day: 'thursday', template: 'strength_upper', name: 'Upper Strength & Hypertrophy' },
+    { day: 'friday', template: 'strength_lower', name: 'Lower Strength & Hypertrophy' },
   ];
 
   // Base weights
@@ -682,6 +684,7 @@ function generateSessionData(programId: string, exercises: { id: string }[]): Se
 
       sessions.push({
         id: sessionId,
+        name: sched.name,
         weekNumber: week,
         blockName: block.name,
         dayTemplateId: sched.template,

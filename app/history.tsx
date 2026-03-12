@@ -118,7 +118,7 @@ export default function HistoryScreen() {
                 >
                   <View style={styles.cardLeft}>
                     <Text style={styles.cardDayName}>
-                      {formatDayName(s.day_template_id)}
+                      {s.name || formatDayName(s.day_template_id)}
                     </Text>
                     <Text style={styles.cardDate}>
                       {dateLabel}

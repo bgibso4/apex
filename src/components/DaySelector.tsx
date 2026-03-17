@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.cardPaddingCompact,
+    padding: Spacing.cardPadding,
   },
   cardTop: {
     flexDirection: 'row',
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: Colors.border,
-    marginVertical: Spacing.md,
+    marginVertical: Spacing.lg,
   },
   contextRow: {
     flexDirection: 'row',
@@ -240,30 +240,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.lg,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    marginTop: Spacing.md,
+    marginTop: Spacing.lg,
   },
   exerciseToggleText: {
-    fontSize: FontSize.body,
+    fontSize: FontSize.md,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
 
   // Exercise list (inside card)
   exerciseList: {
-    marginTop: Spacing.sm,
-    gap: 2,
+    marginTop: Spacing.md,
+    gap: 3,
   },
   exerciseRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.sm + 3,
-    paddingHorizontal: Spacing.md + 2,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.bg,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.cardInner,
   },
   exerciseName: {
     color: Colors.text,

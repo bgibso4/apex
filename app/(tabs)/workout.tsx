@@ -186,7 +186,12 @@ export default function WorkoutScreen() {
           w.phase === 'select' && !w.selectedTemplate && styles.scrollContentFill,
         ]}
       >
-        {/* Day Selector (select phase only) */}
+        {/* Fixed page title (select phase only) */}
+        {w.phase === 'select' && (
+          <Text style={styles.title}>Workout</Text>
+        )}
+
+        {/* Workout info card (select phase only) */}
         {w.phase === 'select' && (
           <DaySelector
             currentWeek={w.currentWeek}
@@ -199,6 +204,13 @@ export default function WorkoutScreen() {
             todayKey={getTodayKey()}
             workoutName={w.selectedTemplate?.name}
             exerciseCountLabel={w.selectedTemplate ? `${w.selectedTemplate.exercises.length} exercises${w.selectedTemplate.conditioning_finisher ? ' + conditioning finisher' : ''}` : undefined}
+            exercises={w.selectedTemplate?.exercises.map((ex) => {
+              const target = getTargetForWeek(ex, w.currentWeek);
+              return {
+                name: ex.exercise_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+                detail: target ? `${target.sets}${target.reps != null ? ` \u00D7 ${target.reps}` : ''}` : '',
+              };
+            })}
           />
         )}
 
@@ -211,31 +223,15 @@ export default function WorkoutScreen() {
           </Animated.View>
         )}
 
-        {/* Phase: Select — Session preview */}
+        {/* Start Session button (select phase with template) */}
         {w.phase === 'select' && w.selectedTemplate && (
-          <View style={styles.sessionPreview}>
-            <View style={styles.previewExercises}>
-              {w.selectedTemplate.exercises.map((ex, i) => {
-                const target = getTargetForWeek(ex, w.currentWeek);
-                return (
-                  <View key={i} style={styles.previewExerciseRow}>
-                    <Text style={styles.previewExerciseName}>{ex.exercise_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
-                    <Text style={styles.previewExerciseDetail}>
-                      {target ? `${target.sets}${target.reps != null ? ` \u00D7 ${target.reps}` : ''}` : ''}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={w.startSession}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.startButtonText}>Start Session {'\u2192'}</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={w.startSession}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.startButtonText}>Start Session {'\u2192'}</Text>
+          </TouchableOpacity>
         )}
 
         {/* Recent workouts (select phase) */}
@@ -707,6 +703,14 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: Spacing.xxxl, gap: Spacing.md },
   emptyText: { color: Colors.textSecondary, fontSize: FontSize.lg },
 
+  // Fixed page title
+  title: {
+    color: Colors.text,
+    fontSize: FontSize.screenTitle,
+    fontWeight: '800',
+    marginBottom: Spacing.lg,
+  },
+
   // Rest day
   restDay: {
     flex: 1,
@@ -725,33 +729,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
   },
 
-  // Session preview (select phase)
-  sessionPreview: {
-    flex: 1,
-    paddingVertical: Spacing.xs,
-  },
-  previewExercises: {
-    gap: 2,
-    flex: 1,
-  },
-  previewExerciseRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.md + 2, // 14px
-    paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.md,
-  },
-  previewExerciseName: {
-    color: Colors.text,
-    fontSize: FontSize.base,
-    fontWeight: '600',
-  },
-  previewExerciseDetail: {
-    color: Colors.textMuted,
-    fontSize: FontSize.body,
-  },
   startButton: {
     marginTop: Spacing.xxl,
     paddingVertical: Spacing.lg,

@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
+
+export interface ExercisePreview {
+  name: string;
+  detail: string;
+}
 
 export interface DaySelectorProps {
   currentWeek: number;
@@ -13,48 +19,90 @@ export interface DaySelectorProps {
   todayKey?: string;
   workoutName?: string;
   exerciseCountLabel?: string;
+  exercises?: ExercisePreview[];
 }
 
 export function DaySelector({
   currentWeek, blockName, selectedDay,
   trainingDays, dayNames, onSelectDay, todayKey,
-  workoutName, exerciseCountLabel,
+  workoutName, exerciseCountLabel, exercises,
 }: DaySelectorProps) {
   const [modalVisible, setModalVisible] = useState(false);
+  const [exercisesExpanded, setExercisesExpanded] = useState(false);
   const isToday = todayKey === selectedDay;
 
   return (
     <View style={styles.container}>
-      {/* Workout title — hero position */}
+      {/* Info card — only when a workout is selected */}
       {workoutName && (
-        <Text style={styles.heroTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
-          {workoutName}
-        </Text>
-      )}
-      {exerciseCountLabel && (
-        <Text style={styles.heroSubtitle}>{exerciseCountLabel}</Text>
+        <View style={styles.card}>
+          {/* Workout name + Change link */}
+          <View style={styles.cardTop}>
+            <Text style={styles.cardTitle}>{workoutName}</Text>
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <Text style={styles.changeLink}>Change</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Week/block + today badge */}
+          <View style={styles.contextRow}>
+            <Text style={styles.weekLabel}>
+              Week {currentWeek} · {blockName}
+            </Text>
+            {isToday && (
+              <View style={styles.todayBadge}>
+                <View style={styles.todayDot} />
+                <Text style={styles.todayText}>{dayNames[selectedDay]} — Today</Text>
+              </View>
+            )}
+            {!isToday && (
+              <Text style={styles.dayText}>{dayNames[selectedDay]}</Text>
+            )}
+          </View>
+
+          {/* Exercise toggle row */}
+          {exerciseCountLabel && (
+            <TouchableOpacity
+              style={styles.exerciseToggle}
+              onPress={() => setExercisesExpanded(!exercisesExpanded)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.exerciseToggleText}>{exerciseCountLabel}</Text>
+              <Ionicons
+                name={exercisesExpanded ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color={Colors.textDim}
+              />
+            </TouchableOpacity>
+          )}
+
+          {/* Collapsible exercise list */}
+          {exercisesExpanded && exercises && exercises.length > 0 && (
+            <View style={styles.exerciseList}>
+              {exercises.map((ex, i) => (
+                <View key={i} style={styles.exerciseRow}>
+                  <Text style={styles.exerciseName}>{ex.name}</Text>
+                  <Text style={styles.exerciseDetail}>{ex.detail}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
       )}
 
-      {/* Week label + change link + today badge row */}
-      <View style={styles.contextRow}>
-        <View style={styles.contextLeft}>
+      {/* Fallback context row when no workout selected (rest day) */}
+      {!workoutName && (
+        <View style={styles.restDayContext}>
           <Text style={styles.weekLabel}>
             Week {currentWeek} · {blockName}
           </Text>
-          {isToday && (
-            <View style={styles.todayBadge}>
-              <View style={styles.todayDot} />
-              <Text style={styles.todayText}>{dayNames[selectedDay]} — Today</Text>
-            </View>
-          )}
-          {!isToday && (
-            <Text style={styles.dayText}>{dayNames[selectedDay]}</Text>
-          )}
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={styles.changeLink}>Change</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Text style={styles.changeLink}>Change workout</Text>
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Bottom sheet modal */}
       <Modal
@@ -119,28 +167,44 @@ export function DaySelector({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.sm,
-  },
-  heroTitle: {
-    color: Colors.text,
-    fontSize: FontSize.screenTitle,
-    fontWeight: '800',
-    marginBottom: Spacing.xs,
-  },
-  heroSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.md,
     marginBottom: Spacing.lg,
+  },
+
+  // Info card
+  card: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.cardPaddingCompact,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  cardTitle: {
+    color: Colors.text,
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  changeLink: {
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    color: Colors.indigo,
+    paddingTop: 3,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.md,
   },
   contextRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  contextLeft: {
-    flex: 1,
-    gap: Spacing.xs,
+    alignItems: 'center',
   },
   weekLabel: {
     fontSize: FontSize.body,
@@ -148,11 +212,6 @@ const styles = StyleSheet.create({
     color: Colors.indigo,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-  },
-  changeLink: {
-    fontSize: FontSize.body,
-    fontWeight: '600',
-    color: Colors.indigo,
   },
   todayBadge: {
     flexDirection: 'row',
@@ -174,6 +233,53 @@ const styles = StyleSheet.create({
     fontSize: FontSize.body,
     fontWeight: '600',
     color: Colors.textDim,
+  },
+
+  // Exercise toggle
+  exerciseToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    marginTop: Spacing.md,
+  },
+  exerciseToggleText: {
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+
+  // Exercise list (inside card)
+  exerciseList: {
+    marginTop: Spacing.sm,
+    gap: 2,
+  },
+  exerciseRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm + 3,
+    paddingHorizontal: Spacing.md + 2,
+    backgroundColor: Colors.bg,
+    borderRadius: BorderRadius.md,
+  },
+  exerciseName: {
+    color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '600',
+  },
+  exerciseDetail: {
+    color: Colors.textMuted,
+    fontSize: FontSize.body,
+  },
+
+  // Rest day fallback
+  restDayContext: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 
   // Modal overlay
@@ -211,7 +317,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
 
-  // Workout rows
+  // Workout rows (modal)
   workoutRow: {
     flexDirection: 'row',
     alignItems: 'center',

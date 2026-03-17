@@ -15,18 +15,29 @@ const defaultProps = {
   dayNames: { monday: 'Mon', wednesday: 'Wed', friday: 'Fri' } as Record<string, string>,
   onSelectDay: jest.fn(),
   todayKey: 'monday',
+  workoutName: 'Upper A \u2014 Push',
+  exerciseCountLabel: '2 exercises',
+  exercises: [
+    { name: 'Bench Press', detail: '4 \u00D7 8' },
+    { name: 'Barbell Row', detail: '3 \u00D7 10' },
+  ],
 };
 
 describe('DaySelector', () => {
+  it('renders workout name in info card', () => {
+    render(<DaySelector {...defaultProps} />);
+    expect(screen.getByText('Upper A \u2014 Push')).toBeTruthy();
+  });
+
   it('renders week and block label', () => {
     render(<DaySelector {...defaultProps} />);
     expect(screen.getByText(/Week 3/)).toBeTruthy();
     expect(screen.getByText(/Hypertrophy/)).toBeTruthy();
   });
 
-  it('shows "Change workout" link', () => {
+  it('shows "Change" link', () => {
     render(<DaySelector {...defaultProps} />);
-    expect(screen.getByText(/Change workout/)).toBeTruthy();
+    expect(screen.getByText('Change')).toBeTruthy();
   });
 
   it('shows today badge when selectedDay matches todayKey', () => {
@@ -40,37 +51,51 @@ describe('DaySelector', () => {
     expect(screen.queryByText(/Today/)).toBeNull();
   });
 
-  it('opens modal when "Change workout" is pressed', () => {
+  it('shows exercise count as toggle row', () => {
     render(<DaySelector {...defaultProps} />);
-    fireEvent.press(screen.getByText(/Change workout/));
-    // Modal shows the sheet title
+    expect(screen.getByText('2 exercises')).toBeTruthy();
+  });
+
+  it('exercises are hidden by default', () => {
+    render(<DaySelector {...defaultProps} />);
+    expect(screen.queryByText('Bench Press')).toBeNull();
+  });
+
+  it('expands exercises when toggle is pressed', () => {
+    render(<DaySelector {...defaultProps} />);
+    fireEvent.press(screen.getByText('2 exercises'));
+    expect(screen.getByText('Bench Press')).toBeTruthy();
+    expect(screen.getByText('Barbell Row')).toBeTruthy();
+    expect(screen.getByText('4 \u00D7 8')).toBeTruthy();
+  });
+
+  it('collapses exercises when toggle is pressed again', () => {
+    render(<DaySelector {...defaultProps} />);
+    fireEvent.press(screen.getByText('2 exercises'));
+    expect(screen.getByText('Bench Press')).toBeTruthy();
+    fireEvent.press(screen.getByText('2 exercises'));
+    expect(screen.queryByText('Bench Press')).toBeNull();
+  });
+
+  it('opens modal when "Change" is pressed', () => {
+    render(<DaySelector {...defaultProps} />);
+    fireEvent.press(screen.getByText('Change'));
     expect(screen.getByText('Change Workout')).toBeTruthy();
-    // Shows workout names
-    expect(screen.getByText(/Upper A/)).toBeTruthy();
+    expect(screen.getAllByText(/Upper A/).length).toBeGreaterThanOrEqual(2); // card + modal
     expect(screen.getByText(/Lower A/)).toBeTruthy();
-  });
-
-  it('renders workout name as hero title when provided', () => {
-    render(<DaySelector {...defaultProps} workoutName="Upper A — Push" />);
-    expect(screen.getByText('Upper A — Push')).toBeTruthy();
-  });
-
-  it('renders exercise count label when provided', () => {
-    render(<DaySelector {...defaultProps} exerciseCountLabel="5 exercises" />);
-    expect(screen.getByText('5 exercises')).toBeTruthy();
-  });
-
-  it('does not render hero title when workoutName is undefined', () => {
-    render(<DaySelector {...defaultProps} />);
-    // Week label should still be present
-    expect(screen.getByText(/Week 3/)).toBeTruthy();
   });
 
   it('calls onSelectDay when a workout row is pressed', () => {
     const onSelectDay = jest.fn();
     render(<DaySelector {...defaultProps} onSelectDay={onSelectDay} />);
-    fireEvent.press(screen.getByText(/Change workout/));
+    fireEvent.press(screen.getByText('Change'));
     fireEvent.press(screen.getByText(/Lower A/));
     expect(onSelectDay).toHaveBeenCalledWith('wednesday');
+  });
+
+  it('renders rest day context when no workoutName', () => {
+    render(<DaySelector {...defaultProps} workoutName={undefined} exerciseCountLabel={undefined} exercises={undefined} />);
+    expect(screen.getByText(/Week 3/)).toBeTruthy();
+    expect(screen.getByText('Change')).toBeTruthy();
   });
 });

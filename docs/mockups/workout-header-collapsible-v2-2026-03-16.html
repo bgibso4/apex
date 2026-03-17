@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Header — Collapsible v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif; color: #fff; padding: 40px 20px; }
+
+  .options { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+  .state-label { text-align: center; color: #22c55e; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+
+  .phone {
+    width: 375px;
+    background: #0a0a0f;
+    border-radius: 40px;
+    padding: 60px 24px 40px;
+    overflow-y: auto;
+    border: 2px solid #2a2a3e;
+    position: relative;
+  }
+  .phone-short { height: 540px; }
+  .phone-tall { height: 780px; }
+
+  .status-bar {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 28px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .page-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  /* Info Card */
+  .info-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .info-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .info-card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    flex: 1;
+    margin-right: 12px;
+  }
+  .change-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6366f1;
+    padding-top: 4px;
+  }
+  .info-card-divider {
+    height: 1px;
+    background: #2a2a3e;
+    margin: 12px 0;
+  }
+  .context-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .week-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .today-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .today-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: #22c55e;
+  }
+  .today-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6a6a80;
+  }
+
+  /* Exercise toggle row */
+  .exercise-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a3e;
+    margin-top: 12px;
+    cursor: pointer;
+  }
+  .exercise-toggle-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a0a0b8;
+  }
+  .chevron {
+    font-size: 14px;
+    color: #6a6a80;
+  }
+  .chevron-up { display: inline-block; transform: rotate(180deg); }
+
+  /* Exercise list */
+  .exercise-list {
+    margin-top: 10px;
+  }
+  .exercise-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 14px;
+    background: #0a0a0f;
+    border-radius: 10px;
+    margin-bottom: 2px;
+  }
+  .exercise-name { font-size: 15px; font-weight: 600; color: #fff; }
+  .exercise-detail { font-size: 13px; color: #4a4a5e; }
+
+  .start-btn {
+    margin-top: 20px;
+    padding: 16px;
+    background: #6366f1;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* Recent section */
+  .recent-section { margin-top: 24px; }
+  .recent-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4a4a5e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .recent-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .recent-name { font-size: 15px; font-weight: 600; color: #fff; }
+  .recent-date { font-size: 12px; color: #4a4a5e; margin-top: 2px; }
+  .recent-stats { font-size: 13px; color: #6a6a80; }
+  .view-all { text-align: center; padding: 12px; font-size: 13px; font-weight: 600; color: #6366f1; }
+
+  h1 { text-align: center; font-size: 28px; margin-bottom: 8px; color: #fff; }
+  .subtitle { text-align: center; color: #6a6a80; font-size: 14px; margin-bottom: 40px; }
+</style>
+</head>
+<body>
+
+<h1>Workout Header — Collapsible v2</h1>
+<p class="subtitle">Exercise count row doubles as the expand toggle</p>
+
+<div class="options">
+
+<!-- ===================== COLLAPSED ===================== -->
+<div>
+  <div class="state-label">▾ Collapsed (default)</div>
+  <div class="phone phone-short">
+    <div class="status-bar"><span>22:06</span><span>⦿ ▸ ▪</span></div>
+    <div class="page-title">Workout</div>
+
+    <div class="info-card">
+      <div class="info-card-top">
+        <div class="info-card-title">Upper Strength — Heavy Pull</div>
+        <span class="change-link">Change</span>
+      </div>
+      <div class="info-card-divider"></div>
+      <div class="context-row">
+        <span class="week-label">Week 1 · Hypertrophy</span>
+        <div class="today-badge">
+          <span class="today-dot"></span>
+          <span class="today-text">Mon — Today</span>
+        </div>
+      </div>
+      <div class="exercise-toggle">
+        <span class="exercise-toggle-text">7 exercises + conditioning finisher</span>
+        <span class="chevron">▾</span>
+      </div>
+    </div>
+
+    <div class="start-btn">Start Session →</div>
+
+    <div class="recent-section">
+      <div class="recent-title">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-date">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div class="recent-stats">14 sets</div>
+      </div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Lower Strength — Squat</div>
+          <div class="recent-date">Mon, Mar 9 · Hypertrophy</div>
+        </div>
+        <div class="recent-stats">18 sets</div>
+      </div>
+      <div class="view-all">View all workouts →</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== EXPANDED ===================== -->
+<div>
+  <div class="state-label">▴ Expanded</div>
+  <div class="phone phone-tall">
+    <div class="status-bar"><span>22:06</span><span>⦿ ▸ ▪</span></div>
+    <div class="page-title">Workout</div>
+
+    <div class="info-card">
+      <div class="info-card-top">
+        <div class="info-card-title">Upper Strength — Heavy Pull</div>
+        <span class="change-link">Change</span>
+      </div>
+      <div class="info-card-divider"></div>
+      <div class="context-row">
+        <span class="week-label">Week 1 · Hypertrophy</span>
+        <div class="today-badge">
+          <span class="today-dot"></span>
+          <span class="today-text">Mon — Today</span>
+        </div>
+      </div>
+      <div class="exercise-toggle">
+        <span class="exercise-toggle-text">7 exercises + conditioning finisher</span>
+        <span class="chevron chevron-up">▾</span>
+      </div>
+
+      <div class="exercise-list">
+        <div class="exercise-row"><span class="exercise-name">Weighted Pullup</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Bench Press</span><span class="exercise-detail">4 × 8</span></div>
+        <div class="exercise-row"><span class="exercise-name">Barbell Row</span><span class="exercise-detail">3 × 8-10</span></div>
+        <div class="exercise-row"><span class="exercise-name">Face Pulls</span><span class="exercise-detail">3 × 15</span></div>
+        <div class="exercise-row"><span class="exercise-name">Farmers Carry</span><span class="exercise-detail">3</span></div>
+        <div class="exercise-row"><span class="exercise-name">Curls</span><span class="exercise-detail">2 × 12</span></div>
+        <div class="exercise-row"><span class="exercise-name">Core Circuit</span><span class="exercise-detail">3 × 1</span></div>
+      </div>
+    </div>
+
+    <div class="start-btn">Start Session →</div>
+
+    <div class="recent-section">
+      <div class="recent-title">Recent Workouts</div>
+      <div class="recent-card">
+        <div>
+          <div class="recent-name">Upper Power — Push/Explosive</div>
+          <div class="recent-date">Wed, Mar 11 · Hypertrophy</div>
+        </div>
+        <div class="recent-stats">14 sets</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

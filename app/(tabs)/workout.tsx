@@ -3,7 +3,7 @@
  * Thin render layer — all state logic lives in useWorkoutSession.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   Modal, Pressable, Alert, StyleSheet,
@@ -19,7 +19,7 @@ import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
 import { getTargetForWeek, getTodayKey } from '../../src/utils/program';
 import { getRecentCompletedSessions, getSetLogsForSession, getActiveProgram } from '../../src/db';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
-import { DaySelector } from '../../src/components/DaySelector';
+import { DaySelector, type DaySelectorHandle } from '../../src/components/DaySelector';
 import { WarmupChecklist } from '../../src/components/WarmupChecklist';
 import { ExerciseCard } from '../../src/components/ExerciseCard';
 import { AdjustModal } from '../../src/components/AdjustModal';
@@ -29,6 +29,7 @@ import type { Session } from '../../src/types';
 export default function WorkoutScreen() {
   const w = useWorkoutSession();
   const router = useRouter();
+  const daySelectorRef = useRef<DaySelectorHandle>(null);
 
   // Recent completed sessions for the idle state
   const [recentSessions, setRecentSessions] = useState<(Session & { setCount?: number; durationMin?: number })[]>([]);
@@ -194,6 +195,7 @@ export default function WorkoutScreen() {
         {/* Workout info card (select phase only) */}
         {w.phase === 'select' && (
           <DaySelector
+            ref={daySelectorRef}
             currentWeek={w.currentWeek}
             blockName={w.block?.name}
             blockColor={w.blockColor}
@@ -223,15 +225,23 @@ export default function WorkoutScreen() {
           </Animated.View>
         )}
 
-        {/* Start Session button (select phase with template) */}
+        {/* Start Session button + Change workout link (select phase with template) */}
         {w.phase === 'select' && w.selectedTemplate && (
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={w.startSession}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.startButtonText}>Start Session {'\u2192'}</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={w.startSession}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.startButtonText}>Start Session {'\u2192'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.changeWorkoutLink}
+              onPress={() => daySelectorRef.current?.openChangeModal()}
+            >
+              <Text style={styles.changeWorkoutText}>Change workout</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         {/* Recent workouts (select phase) */}
@@ -740,6 +750,16 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSize.lg,
     fontWeight: '700',
+  },
+  changeWorkoutLink: {
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.lg,
+  },
+  changeWorkoutText: {
+    fontSize: FontSize.md,
+    fontWeight: '600',
+    color: Colors.indigo,
   },
 
   // Recent workouts

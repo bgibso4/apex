@@ -11,41 +11,50 @@ export interface DaySelectorProps {
   dayNames: Record<string, string>;
   onSelectDay: (day: string) => void;
   todayKey?: string;
+  workoutName?: string;
+  exerciseCountLabel?: string;
 }
 
 export function DaySelector({
   currentWeek, blockName, selectedDay,
   trainingDays, dayNames, onSelectDay, todayKey,
+  workoutName, exerciseCountLabel,
 }: DaySelectorProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const isToday = todayKey === selectedDay;
 
   return (
     <View style={styles.container}>
-      {/* Top row: week label + change link */}
-      <View style={styles.topRow}>
-        <Text style={styles.weekLabel}>
-          Week {currentWeek} · {blockName}
+      {/* Workout title — hero position */}
+      {workoutName && (
+        <Text style={styles.heroTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
+          {workoutName}
         </Text>
+      )}
+      {exerciseCountLabel && (
+        <Text style={styles.heroSubtitle}>{exerciseCountLabel}</Text>
+      )}
+
+      {/* Week label + change link + today badge row */}
+      <View style={styles.contextRow}>
+        <View style={styles.contextLeft}>
+          <Text style={styles.weekLabel}>
+            Week {currentWeek} · {blockName}
+          </Text>
+          {isToday && (
+            <View style={styles.todayBadge}>
+              <View style={styles.todayDot} />
+              <Text style={styles.todayText}>{dayNames[selectedDay]} — Today</Text>
+            </View>
+          )}
+          {!isToday && (
+            <Text style={styles.dayText}>{dayNames[selectedDay]}</Text>
+          )}
+        </View>
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <Text style={styles.changeLink}>Change workout</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Today badge */}
-      {isToday && (
-        <View style={styles.todayBadge}>
-          <View style={styles.todayDot} />
-          <Text style={styles.todayText}>{dayNames[selectedDay]} — Today</Text>
-        </View>
-      )}
-
-      {/* Not today badge */}
-      {!isToday && (
-        <View style={styles.todayBadge}>
-          <Text style={styles.dayText}>{dayNames[selectedDay]}</Text>
-        </View>
-      )}
 
       {/* Bottom sheet modal */}
       <Modal
@@ -112,11 +121,26 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: Spacing.sm,
   },
-  topRow: {
+  heroTitle: {
+    color: Colors.text,
+    fontSize: FontSize.screenTitle,
+    fontWeight: '800',
+    marginBottom: Spacing.xs,
+  },
+  heroSubtitle: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    marginBottom: Spacing.lg,
+  },
+  contextRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: Spacing.xs,
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+  },
+  contextLeft: {
+    flex: 1,
+    gap: Spacing.xs,
   },
   weekLabel: {
     fontSize: FontSize.body,
@@ -134,7 +158,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: Spacing.sm,
   },
   todayDot: {
     width: 6,

@@ -197,6 +197,8 @@ export default function WorkoutScreen() {
             dayNames={w.dayNames}
             onSelectDay={w.selectDay}
             todayKey={getTodayKey()}
+            workoutName={w.selectedTemplate?.name}
+            exerciseCountLabel={w.selectedTemplate ? `${w.selectedTemplate.exercises.length} exercises${w.selectedTemplate.conditioning_finisher ? ' + conditioning finisher' : ''}` : undefined}
           />
         )}
 
@@ -212,12 +214,6 @@ export default function WorkoutScreen() {
         {/* Phase: Select — Session preview */}
         {w.phase === 'select' && w.selectedTemplate && (
           <View style={styles.sessionPreview}>
-            <Text style={styles.previewTitle}>{w.selectedTemplate.name}</Text>
-            <Text style={styles.previewSubtitle}>
-              {w.selectedTemplate.exercises.length} exercises
-              {w.selectedTemplate.conditioning_finisher ? ' + conditioning finisher' : ''}
-            </Text>
-
             <View style={styles.previewExercises}>
               {w.selectedTemplate.exercises.map((ex, i) => {
                 const target = getTargetForWeek(ex, w.currentWeek);
@@ -733,17 +729,6 @@ const styles = StyleSheet.create({
   sessionPreview: {
     flex: 1,
     paddingVertical: Spacing.xs,
-  },
-  previewTitle: {
-    color: Colors.text,
-    fontSize: FontSize.xxxl,
-    fontWeight: '800',
-    marginBottom: Spacing.xs,
-  },
-  previewSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.md,
-    marginBottom: Spacing.xxl,
   },
   previewExercises: {
     gap: 2,

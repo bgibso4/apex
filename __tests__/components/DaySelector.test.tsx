@@ -50,6 +50,22 @@ describe('DaySelector', () => {
     expect(screen.getByText(/Lower A/)).toBeTruthy();
   });
 
+  it('renders workout name as hero title when provided', () => {
+    render(<DaySelector {...defaultProps} workoutName="Upper A — Push" />);
+    expect(screen.getByText('Upper A — Push')).toBeTruthy();
+  });
+
+  it('renders exercise count label when provided', () => {
+    render(<DaySelector {...defaultProps} exerciseCountLabel="5 exercises" />);
+    expect(screen.getByText('5 exercises')).toBeTruthy();
+  });
+
+  it('does not render hero title when workoutName is undefined', () => {
+    render(<DaySelector {...defaultProps} />);
+    // Week label should still be present
+    expect(screen.getByText(/Week 3/)).toBeTruthy();
+  });
+
   it('calls onSelectDay when a workout row is pressed', () => {
     const onSelectDay = jest.fn();
     render(<DaySelector {...defaultProps} onSelectDay={onSelectDay} />);

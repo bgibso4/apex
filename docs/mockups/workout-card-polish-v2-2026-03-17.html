@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Card Polish v2 — Change Button Placement</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif; color: #fff; padding: 40px 20px; }
+
+  .options { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
+  .option-label { text-align: center; color: #6366f1; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .option-desc { text-align: center; color: #a0a0b8; font-size: 13px; margin-bottom: 16px; max-width: 375px; }
+
+  .phone {
+    width: 375px;
+    height: 540px;
+    background: #0a0a0f;
+    border-radius: 40px;
+    padding: 60px 24px 40px;
+    overflow-y: auto;
+    border: 2px solid #2a2a3e;
+    position: relative;
+  }
+
+  .status-bar {
+    position: absolute;
+    top: 16px; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 28px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .page-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .divider {
+    height: 1px;
+    background: #2a2a3e;
+    margin: 16px 0;
+  }
+  .context-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .context-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .week-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .today-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .today-dot {
+    width: 6px; height: 6px;
+    border-radius: 3px;
+    background: #22c55e;
+  }
+  .today-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6a6a80;
+  }
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-top: 1px solid #2a2a3e;
+    margin-top: 16px;
+  }
+  .toggle-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #a0a0b8;
+  }
+  .chevron {
+    font-size: 14px;
+    color: #6a6a80;
+  }
+
+  .start-btn {
+    padding: 16px;
+    background: #6366f1;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .change-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6366f1;
+  }
+  .change-link-centered {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6366f1;
+    padding: 8px 0;
+  }
+
+  /* Option D: above title inside card */
+  .d-change-top {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+
+  /* Option E: between page title and card */
+  .e-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+  }
+  .e-page-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  h1 { text-align: center; font-size: 28px; margin-bottom: 8px; color: #fff; }
+  .subtitle { text-align: center; color: #6a6a80; font-size: 14px; margin-bottom: 40px; }
+</style>
+</head>
+<body>
+
+<h1>Workout Card Polish v2</h1>
+<p class="subtitle">Three new placements for "Change workout"</p>
+
+<div class="options">
+
+<!-- ========== OPTION D: Above title, inside card ========== -->
+<div>
+  <div class="option-label">D — Above Title (Inside Card)</div>
+  <div class="option-desc">"Change workout" top-right of card, before the title. Title gets full width prominence. Feels like a card action.</div>
+  <div class="phone">
+    <div class="status-bar"><span>22:06</span><span>⦿ ▸ ▪</span></div>
+    <div class="page-title">Workout</div>
+    <div class="card">
+      <div class="d-change-top">
+        <span class="change-link">Change workout</span>
+      </div>
+      <div class="card-title">Upper Strength — Heavy Pull</div>
+      <div class="divider"></div>
+      <div class="context-row">
+        <div class="context-left">
+          <span class="week-label">Week 1 · Hypertrophy</span>
+          <div class="today-badge">
+            <span class="today-dot"></span>
+            <span class="today-text">Mon — Today</span>
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-text">7 exercises + conditioning finisher</span>
+        <span class="chevron">▾</span>
+      </div>
+    </div>
+    <div class="start-btn">Start Session →</div>
+  </div>
+</div>
+
+<!-- ========== OPTION E: Between page title and card ========== -->
+<div>
+  <div class="option-label">E — Next to Page Title</div>
+  <div class="option-desc">"Change workout" sits on the same line as "Workout" title. Card is purely informational — no action inside it.</div>
+  <div class="phone">
+    <div class="status-bar"><span>22:06</span><span>⦿ ▸ ▪</span></div>
+    <div class="e-header-row">
+      <span class="e-page-title">Workout</span>
+      <span class="change-link">Change workout</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Upper Strength — Heavy Pull</div>
+      <div class="divider"></div>
+      <div class="context-row">
+        <div class="context-left">
+          <span class="week-label">Week 1 · Hypertrophy</span>
+          <div class="today-badge">
+            <span class="today-dot"></span>
+            <span class="today-text">Mon — Today</span>
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-text">7 exercises + conditioning finisher</span>
+        <span class="chevron">▾</span>
+      </div>
+    </div>
+    <div class="start-btn">Start Session →</div>
+  </div>
+</div>
+
+<!-- ========== OPTION F: Below Start Session ========== -->
+<div>
+  <div class="option-label">F — Below Start Session</div>
+  <div class="option-desc">"Change workout" below the primary action. Card is clean and focused. The change action is secondary — you see it but it doesn't compete.</div>
+  <div class="phone">
+    <div class="status-bar"><span>22:06</span><span>⦿ ▸ ▪</span></div>
+    <div class="page-title">Workout</div>
+    <div class="card">
+      <div class="card-title">Upper Strength — Heavy Pull</div>
+      <div class="divider"></div>
+      <div class="context-row">
+        <div class="context-left">
+          <span class="week-label">Week 1 · Hypertrophy</span>
+          <div class="today-badge">
+            <span class="today-dot"></span>
+            <span class="today-text">Mon — Today</span>
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-text">7 exercises + conditioning finisher</span>
+        <span class="chevron">▾</span>
+      </div>
+    </div>
+    <div class="start-btn">Start Session →</div>
+    <div class="change-link-centered">Change workout</div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

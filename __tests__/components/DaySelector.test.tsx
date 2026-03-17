@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { DaySelector } from '../../src/components/DaySelector';
 
 const defaultProps = {
@@ -35,9 +35,10 @@ describe('DaySelector', () => {
     expect(screen.getByText(/Hypertrophy/)).toBeTruthy();
   });
 
-  it('shows "Change" link', () => {
+  it('does not show "Change" link inside card (moved to parent)', () => {
     render(<DaySelector {...defaultProps} />);
-    expect(screen.getByText('Change')).toBeTruthy();
+    expect(screen.queryByText('Change')).toBeNull();
+    expect(screen.queryByText('Change workout')).toBeNull();
   });
 
   it('shows today badge when selectedDay matches todayKey', () => {
@@ -77,18 +78,24 @@ describe('DaySelector', () => {
     expect(screen.queryByText('Bench Press')).toBeNull();
   });
 
-  it('opens modal when "Change" is pressed', () => {
-    render(<DaySelector {...defaultProps} />);
-    fireEvent.press(screen.getByText('Change'));
+  it('opens modal via ref.openChangeModal()', () => {
+    const ref = React.createRef<import('../../src/components/DaySelector').DaySelectorHandle>();
+    render(<DaySelector {...defaultProps} ref={ref} />);
+    act(() => {
+      ref.current!.openChangeModal();
+    });
     expect(screen.getByText('Change Workout')).toBeTruthy();
     expect(screen.getAllByText(/Upper A/).length).toBeGreaterThanOrEqual(2); // card + modal
     expect(screen.getByText(/Lower A/)).toBeTruthy();
   });
 
   it('calls onSelectDay when a workout row is pressed', () => {
+    const ref = React.createRef<import('../../src/components/DaySelector').DaySelectorHandle>();
     const onSelectDay = jest.fn();
-    render(<DaySelector {...defaultProps} onSelectDay={onSelectDay} />);
-    fireEvent.press(screen.getByText('Change'));
+    render(<DaySelector {...defaultProps} onSelectDay={onSelectDay} ref={ref} />);
+    act(() => {
+      ref.current!.openChangeModal();
+    });
     fireEvent.press(screen.getByText(/Lower A/));
     expect(onSelectDay).toHaveBeenCalledWith('wednesday');
   });
@@ -96,6 +103,6 @@ describe('DaySelector', () => {
   it('renders rest day context when no workoutName', () => {
     render(<DaySelector {...defaultProps} workoutName={undefined} exerciseCountLabel={undefined} exercises={undefined} />);
     expect(screen.getByText(/Week 3/)).toBeTruthy();
-    expect(screen.getByText('Change')).toBeTruthy();
+    expect(screen.getByText('Change workout')).toBeTruthy();
   });
 });

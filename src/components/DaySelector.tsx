@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useImperativeHandle, forwardRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
@@ -22,27 +22,30 @@ export interface DaySelectorProps {
   exercises?: ExercisePreview[];
 }
 
-export function DaySelector({
+export interface DaySelectorHandle {
+  openChangeModal: () => void;
+}
+
+export const DaySelector = forwardRef<DaySelectorHandle, DaySelectorProps>(function DaySelector({
   currentWeek, blockName, selectedDay,
   trainingDays, dayNames, onSelectDay, todayKey,
   workoutName, exerciseCountLabel, exercises,
-}: DaySelectorProps) {
+}, ref) {
   const [modalVisible, setModalVisible] = useState(false);
   const [exercisesExpanded, setExercisesExpanded] = useState(false);
   const isToday = todayKey === selectedDay;
+
+  useImperativeHandle(ref, () => ({
+    openChangeModal: () => setModalVisible(true),
+  }));
 
   return (
     <View style={styles.container}>
       {/* Info card — only when a workout is selected */}
       {workoutName && (
         <View style={styles.card}>
-          {/* Workout name + Change link */}
-          <View style={styles.cardTop}>
-            <Text style={styles.cardTitle}>{workoutName}</Text>
-            <TouchableOpacity onPress={() => setModalVisible(true)}>
-              <Text style={styles.changeLink}>Change</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Workout name — prominent, standalone */}
+          <Text style={styles.cardTitle}>{workoutName}</Text>
 
           <View style={styles.divider} />
 
@@ -62,17 +65,17 @@ export function DaySelector({
             )}
           </View>
 
-          {/* Exercise toggle row */}
+          {/* Exercise toggle row — fully tappable */}
           {exerciseCountLabel && (
             <TouchableOpacity
               style={styles.exerciseToggle}
               onPress={() => setExercisesExpanded(!exercisesExpanded)}
-              activeOpacity={0.7}
+              activeOpacity={0.6}
             >
               <Text style={styles.exerciseToggleText}>{exerciseCountLabel}</Text>
               <Ionicons
                 name={exercisesExpanded ? 'chevron-up' : 'chevron-down'}
-                size={16}
+                size={18}
                 color={Colors.textDim}
               />
             </TouchableOpacity>
@@ -99,7 +102,7 @@ export function DaySelector({
             Week {currentWeek} · {blockName}
           </Text>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={styles.changeLink}>Change</Text>
+            <Text style={styles.changeLink}>Change workout</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -163,7 +166,7 @@ export function DaySelector({
       </Modal>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -178,23 +181,10 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.cardPadding,
   },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
   cardTitle: {
     color: Colors.text,
-    fontSize: FontSize.xl,
+    fontSize: FontSize.subtitle,
     fontWeight: '700',
-    flex: 1,
-    marginRight: Spacing.md,
-  },
-  changeLink: {
-    fontSize: FontSize.body,
-    fontWeight: '600',
-    color: Colors.indigo,
-    paddingTop: 3,
   },
   divider: {
     height: 1,
@@ -212,6 +202,11 @@ const styles = StyleSheet.create({
     color: Colors.indigo,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
+  },
+  changeLink: {
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    color: Colors.indigo,
   },
   todayBadge: {
     flexDirection: 'row',
@@ -241,6 +236,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xs,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     marginTop: Spacing.lg,

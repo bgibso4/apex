@@ -753,7 +753,8 @@ const styles = StyleSheet.create({
   },
   changeWorkoutLink: {
     alignItems: 'center',
-    paddingVertical: Spacing.md,
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.lg,
   },
   changeWorkoutText: {
     fontSize: FontSize.md,

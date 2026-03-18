@@ -15,6 +15,18 @@ function getGroupLabel(size: number): string {
 }
 
 export function SupersetGroup({ groupSize, children }: SupersetGroupProps) {
+  // Interleave connector lines between children
+  const childArray = React.Children.toArray(children);
+  const interleaved: React.ReactNode[] = [];
+  childArray.forEach((child, i) => {
+    interleaved.push(child);
+    if (i < childArray.length - 1) {
+      interleaved.push(
+        <View key={`connector-${i}`} style={styles.connector} />
+      );
+    }
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.labelRow}>
@@ -22,7 +34,7 @@ export function SupersetGroup({ groupSize, children }: SupersetGroupProps) {
           <Text style={styles.badgeText}>{getGroupLabel(groupSize)}</Text>
         </View>
       </View>
-      {children}
+      {interleaved}
     </View>
   );
 }
@@ -30,7 +42,7 @@ export function SupersetGroup({ groupSize, children }: SupersetGroupProps) {
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: Colors.indigoBorderFaint,
+    borderColor: '#6366f150',
     borderRadius: 16,
     padding: Spacing.xs,
     marginBottom: Spacing.sm,
@@ -55,5 +67,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     color: Colors.indigo,
+  },
+  connector: {
+    width: 2,
+    height: 8,
+    backgroundColor: '#6366f140',
+    alignSelf: 'center',
+    borderRadius: 1,
   },
 });

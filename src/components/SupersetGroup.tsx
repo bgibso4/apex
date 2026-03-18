@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.indigoBorderFaint,
     borderRadius: 16,
     padding: Spacing.xs,
-    paddingBottom: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   labelRow: {
     flexDirection: 'row',

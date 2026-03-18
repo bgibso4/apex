@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   connector: {
     width: 2,
     height: 16,
-    backgroundColor: '#6366f140',
+    backgroundColor: '#6366f180',
     alignSelf: 'center',
     borderRadius: 1,
     marginTop: -12,

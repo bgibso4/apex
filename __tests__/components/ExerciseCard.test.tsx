@@ -331,6 +331,23 @@ describe('ExerciseCard', () => {
   });
 });
 
+describe('superset next-up indicator', () => {
+  it('shows next-up label when provided and expanded', () => {
+    render(<ExerciseCard {...defaultProps} expanded={true} nextUpLabel="Face Pull set 2" />);
+    expect(screen.getByText(/Next: Face Pull set 2/)).toBeTruthy();
+  });
+
+  it('does not show next-up when label is undefined', () => {
+    render(<ExerciseCard {...defaultProps} expanded={true} />);
+    expect(screen.queryByText(/Next:/)).toBeNull();
+  });
+
+  it('does not show next-up when collapsed', () => {
+    render(<ExerciseCard {...defaultProps} expanded={false} nextUpLabel="Face Pull set 2" />);
+    expect(screen.queryByText(/Next:/)).toBeNull();
+  });
+});
+
 describe('ExerciseCard with input_fields', () => {
   const defaultInputFieldsProps = {
     ...defaultProps,

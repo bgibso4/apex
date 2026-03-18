@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
   },
   connector: {
     width: 2,
-    width: 2,
     height: 12,
     backgroundColor: '#6366f180',
     alignSelf: 'center',

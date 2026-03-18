@@ -4,7 +4,7 @@ export type GroupedItem<T> = {
   index: number;
 } | {
   type: 'superset';
-  items: Array<{ item: T; index: number }>;
+  items: { item: T; index: number }[];
   groupId: string;
 };
 
@@ -17,7 +17,7 @@ export function groupExercises<T extends { supersetGroup?: string }>(
     const ex = exercises[i];
     if (ex.supersetGroup) {
       const groupId = ex.supersetGroup;
-      const items: Array<{ item: T; index: number }> = [];
+      const items: { item: T; index: number }[] = [];
       while (i < exercises.length && exercises[i].supersetGroup === groupId) {
         items.push({ item: exercises[i], index: i });
         i++;

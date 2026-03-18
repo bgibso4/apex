@@ -15,8 +15,10 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
-import { useWorkoutSession } from '../../src/hooks/useWorkoutSession';
+import { useWorkoutSession, type ExerciseState } from '../../src/hooks/useWorkoutSession';
 import { getTargetForWeek, getTodayKey } from '../../src/utils/program';
+import { groupExercises } from '../../src/utils/supersetGrouping';
+import { SupersetGroup } from '../../src/components/SupersetGroup';
 import { getRecentCompletedSessions, getSetLogsForSession, getActiveProgram } from '../../src/db';
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../../src/data/exercise-library';
 import { DaySelector, type DaySelectorHandle } from '../../src/components/DaySelector';
@@ -25,6 +27,26 @@ import { ExerciseCard } from '../../src/components/ExerciseCard';
 import { AdjustModal } from '../../src/components/AdjustModal';
 import { SessionSummary } from '../../src/components/SessionSummary';
 import type { Session } from '../../src/types';
+
+function getNextUpLabel(exercises: ExerciseState[], currentExIdx: number): string | undefined {
+  const current = exercises[currentExIdx];
+  if (!current.supersetGroup || !current.expanded) return undefined;
+
+  const groupMembers = exercises
+    .map((e, i) => ({ e, i }))
+    .filter(({ e }) => e.supersetGroup === current.supersetGroup);
+
+  const currentPos = groupMembers.findIndex(({ i }) => i === currentExIdx);
+  for (let offset = 1; offset <= groupMembers.length; offset++) {
+    const nextPos = (currentPos + offset) % groupMembers.length;
+    const nextEx = groupMembers[nextPos].e;
+    const nextPendingSet = nextEx.sets.find(s => s.status === 'pending');
+    if (nextPendingSet) {
+      return `${nextEx.exerciseName} set ${nextPendingSet.setNumber}`;
+    }
+  }
+  return undefined;
+}
 
 export default function WorkoutScreen() {
   const w = useWorkoutSession();
@@ -364,59 +386,121 @@ export default function WorkoutScreen() {
             )}
 
             {/* Exercise cards */}
-            {w.exercises.map((ex, exIdx) => (
-              <View key={`${ex.slot.exercise_id}-${exIdx}`}>
-                <ExerciseCard
-                  exerciseName={ex.exerciseName}
-                  category={ex.isAdhoc ? 'ad-hoc' : ex.slot.category}
-                  target={ex.isAdhoc ? undefined : getTargetForWeek(ex.slot, w.currentWeek)}
-                  sets={ex.sets}
-                  rpe={ex.rpe}
-                  expanded={ex.expanded}
-                  lastWeight={ex.lastWeight}
-                  lastReps={ex.lastReps}
-                  blockColor={w.blockColor}
-                  inputFields={ex.inputFields}
-                  note={w.exerciseNotes[ex.slot.exercise_id]}
-                  onNoteChange={(note) => w.saveExerciseNoteAction(ex.slot.exercise_id, note)}
-                  onToggleExpand={() => {
-                    if (w.reorderMode) return;
-                    w.toggleExpand(exIdx);
-                  }}
-                  onCompleteSet={(setIdx) => w.completeSetAction(exIdx, setIdx)}
-                  onLongPressSet={(setIdx) => {
-                    if (w.reorderMode) return;
-                    w.openOverride(exIdx, setIdx);
-                  }}
-                  onSetRPE={(rpe) => w.setRPE(exIdx, rpe)}
-                  onLongPressCard={() => {
-                    if (!w.reorderMode) w.enterReorderMode();
-                  }}
-                />
-
-                {/* Reorder controls */}
-                {w.reorderMode && (
-                  <View style={styles.reorderControls}>
-                    <TouchableOpacity
-                      style={[styles.reorderButton, exIdx === 0 && styles.reorderButtonDisabled]}
-                      onPress={() => w.moveExercise(exIdx, -1)}
-                      disabled={exIdx === 0}
-                    >
-                      <Ionicons name="arrow-up" size={20}
-                        color={exIdx === 0 ? Colors.textMuted : Colors.text} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.reorderButton, exIdx === w.exercises.length - 1 && styles.reorderButtonDisabled]}
-                      onPress={() => w.moveExercise(exIdx, 1)}
-                      disabled={exIdx === w.exercises.length - 1}
-                    >
-                      <Ionicons name="arrow-down" size={20}
-                        color={exIdx === w.exercises.length - 1 ? Colors.textMuted : Colors.text} />
-                    </TouchableOpacity>
+            {groupExercises(w.exercises).map((group) => {
+              if (group.type === 'standalone') {
+                const { item: ex, index: exIdx } = group;
+                return (
+                  <View key={`standalone-${exIdx}`}>
+                    <ExerciseCard
+                      exerciseName={ex.exerciseName}
+                      category={ex.isAdhoc ? 'ad-hoc' : ex.slot.category}
+                      target={ex.isAdhoc ? undefined : getTargetForWeek(ex.slot, w.currentWeek)}
+                      sets={ex.sets}
+                      rpe={ex.rpe}
+                      expanded={ex.expanded}
+                      lastWeight={ex.lastWeight}
+                      lastReps={ex.lastReps}
+                      blockColor={w.blockColor}
+                      inputFields={ex.inputFields}
+                      note={w.exerciseNotes[ex.slot.exercise_id]}
+                      onNoteChange={(note) => w.saveExerciseNoteAction(ex.slot.exercise_id, note)}
+                      onToggleExpand={() => {
+                        if (w.reorderMode) return;
+                        w.toggleExpand(exIdx);
+                      }}
+                      onCompleteSet={(setIdx) => w.completeSetAction(exIdx, setIdx)}
+                      onLongPressSet={(setIdx) => {
+                        if (w.reorderMode) return;
+                        w.openOverride(exIdx, setIdx);
+                      }}
+                      onSetRPE={(rpe) => w.setRPE(exIdx, rpe)}
+                      onLongPressCard={() => {
+                        if (!w.reorderMode) w.enterReorderMode();
+                      }}
+                    />
+                    {/* Reorder controls */}
+                    {w.reorderMode && (
+                      <View style={styles.reorderControls}>
+                        <TouchableOpacity
+                          style={[styles.reorderButton, exIdx === 0 && styles.reorderButtonDisabled]}
+                          onPress={() => w.moveExercise(exIdx, -1)}
+                          disabled={exIdx === 0}
+                        >
+                          <Ionicons name="arrow-up" size={20}
+                            color={exIdx === 0 ? Colors.textMuted : Colors.text} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.reorderButton, exIdx === w.exercises.length - 1 && styles.reorderButtonDisabled]}
+                          onPress={() => w.moveExercise(exIdx, 1)}
+                          disabled={exIdx === w.exercises.length - 1}
+                        >
+                          <Ionicons name="arrow-down" size={20}
+                            color={exIdx === w.exercises.length - 1 ? Colors.textMuted : Colors.text} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-            ))}
+                );
+              }
+              // Superset group
+              return (
+                <SupersetGroup key={`superset-${group.groupId}`} groupSize={group.items.length}>
+                  {group.items.map(({ item: ex, index: exIdx }) => (
+                    <View key={`${ex.slot.exercise_id}-${exIdx}`}>
+                      <ExerciseCard
+                        exerciseName={ex.exerciseName}
+                        category={ex.isAdhoc ? 'ad-hoc' : ex.slot.category}
+                        target={ex.isAdhoc ? undefined : getTargetForWeek(ex.slot, w.currentWeek)}
+                        sets={ex.sets}
+                        rpe={ex.rpe}
+                        expanded={ex.expanded}
+                        lastWeight={ex.lastWeight}
+                        lastReps={ex.lastReps}
+                        blockColor={w.blockColor}
+                        inputFields={ex.inputFields}
+                        note={w.exerciseNotes[ex.slot.exercise_id]}
+                        onNoteChange={(note) => w.saveExerciseNoteAction(ex.slot.exercise_id, note)}
+                        onToggleExpand={() => {
+                          if (w.reorderMode) return;
+                          w.toggleExpand(exIdx);
+                        }}
+                        onCompleteSet={(setIdx) => w.completeSetAction(exIdx, setIdx)}
+                        onLongPressSet={(setIdx) => {
+                          if (w.reorderMode) return;
+                          w.openOverride(exIdx, setIdx);
+                        }}
+                        onSetRPE={(rpe) => w.setRPE(exIdx, rpe)}
+                        onLongPressCard={() => {
+                          if (!w.reorderMode) w.enterReorderMode();
+                        }}
+                        nextUpLabel={getNextUpLabel(w.exercises, exIdx)}
+                      />
+                      {/* Reorder controls */}
+                      {w.reorderMode && (
+                        <View style={styles.reorderControls}>
+                          <TouchableOpacity
+                            style={[styles.reorderButton, exIdx === 0 && styles.reorderButtonDisabled]}
+                            onPress={() => w.moveExercise(exIdx, -1)}
+                            disabled={exIdx === 0}
+                          >
+                            <Ionicons name="arrow-up" size={20}
+                              color={exIdx === 0 ? Colors.textMuted : Colors.text} />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.reorderButton, exIdx === w.exercises.length - 1 && styles.reorderButtonDisabled]}
+                            onPress={() => w.moveExercise(exIdx, 1)}
+                            disabled={exIdx === w.exercises.length - 1}
+                          >
+                            <Ionicons name="arrow-down" size={20}
+                              color={exIdx === w.exercises.length - 1 ? Colors.textMuted : Colors.text} />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  ))}
+                </SupersetGroup>
+              );
+            })}
 
             {/* Conditioning + Add Exercise (hidden in reorder mode) */}
             {!w.reorderMode && (

@@ -100,6 +100,7 @@
           {
             "exercise_id": "skierg_intervals",
             "category": "conditioning",
+            "superset_group": "sunday-triset",
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 5, "values": { "duration": 30 }, "notes": "30s on / 30s off" },
               { "weeks": [5], "sets": 3, "values": { "duration": 30 }, "notes": "30s on / 30s off" },
@@ -111,6 +112,7 @@
           {
             "exercise_id": "farmers_carry",
             "category": "conditioning",
+            "superset_group": "sunday-triset",
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "values": { "distance": 40 }, "notes": "40m" },
               { "weeks": [5], "sets": 2, "values": { "distance": 40 }, "notes": "40m" },
@@ -122,6 +124,7 @@
           {
             "exercise_id": "sled_push",
             "category": "conditioning",
+            "superset_group": "sunday-triset",
             "alternatives": ["kb_swings_heavy"],
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "values": { "distance": 30 }, "notes": "30m" },

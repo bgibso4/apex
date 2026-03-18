@@ -39,6 +39,7 @@ export interface ExerciseCardProps {
   note?: string;
   onNoteChange?: (note: string) => void;
   inputFields?: InputField[];
+  nextUpLabel?: string;
 }
 
 function getSetValue(set: SetState, fieldType: FieldType): number | string {
@@ -52,7 +53,7 @@ export function ExerciseCard({
   exerciseName, category, target, sets, rpe, expanded,
   lastWeight, lastReps, blockColor,
   onToggleExpand, onCompleteSet, onLongPressSet, onSetRPE,
-  onLongPressCard, note, onNoteChange, inputFields,
+  onLongPressCard, note, onNoteChange, inputFields, nextUpLabel,
 }: ExerciseCardProps) {
   const allDone = sets.every(s => s.status !== 'pending');
   const completedCount = sets.filter(s => s.status !== 'pending').length;
@@ -196,6 +197,14 @@ export function ExerciseCard({
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+        )}
+
+        {/* Superset next-up indicator */}
+        {nextUpLabel && (
+          <View style={styles.nextUpIndicator}>
+            <Text style={styles.nextUpArrow}>{'\u2192'}</Text>
+            <Text style={styles.nextUpText}>Next: {nextUpLabel}</Text>
           </View>
         )}
 
@@ -418,6 +427,27 @@ const styles = StyleSheet.create({
   },
   rpeBtnTextSelected: {
     color: Colors.text,
+  },
+
+  // Next-up indicator (superset flow)
+  nextUpIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    backgroundColor: Colors.indigoMuted,
+    borderRadius: BorderRadius.button,
+    marginTop: Spacing.sm,
+  },
+  nextUpArrow: {
+    color: Colors.indigo,
+    fontSize: FontSize.sm,
+  },
+  nextUpText: {
+    color: Colors.indigo,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
   },
 
   // Note

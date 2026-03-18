@@ -65,6 +65,8 @@ export interface ExerciseSlot {
   targets: ExerciseTarget[];
   alternatives?: string[];
   notes?: string;
+  /** Exercises sharing the same superset_group are performed as a superset (alternating sets). */
+  superset_group?: string;
 }
 
 export interface ExerciseTarget {

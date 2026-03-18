@@ -56,6 +56,7 @@ export interface ExerciseState {
   lastReps?: number;
   isAdhoc?: boolean;
   inputFields?: InputField[];
+  supersetGroup?: string;
 }
 
 export function useWorkoutSession() {
@@ -293,6 +294,7 @@ export function useWorkoutSession() {
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
         inputFields: getFieldsForExercise(exerciseDef?.input_fields),
+        supersetGroup: slot.superset_group,
       });
     }
 
@@ -523,6 +525,7 @@ export function useWorkoutSession() {
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
         inputFields: getFieldsForExercise(exerciseDef?.input_fields),
+        supersetGroup: slot.superset_group,
       });
     }
 
@@ -618,6 +621,35 @@ export function useWorkoutSession() {
           } : s
         ),
       };
+
+      // Superset auto-advance: if this exercise is in a superset group,
+      // advance to the next group member with pending sets (round-robin)
+      const group = next[exIdx].supersetGroup;
+      if (group) {
+        // Find all indices in this superset group
+        const groupIndices = next
+          .map((ex, i) => ex.supersetGroup === group ? i : -1)
+          .filter(i => i >= 0);
+
+        // Find the next group member (round-robin from current) with pending sets
+        const posInGroup = groupIndices.indexOf(exIdx);
+        let advanceTarget = -1;
+        for (let offset = 1; offset < groupIndices.length; offset++) {
+          const candidate = groupIndices[(posInGroup + offset) % groupIndices.length];
+          if (next[candidate].sets.some(s => s.status === 'pending')) {
+            advanceTarget = candidate;
+            break;
+          }
+        }
+
+        if (advanceTarget >= 0) {
+          next[exIdx] = { ...next[exIdx], expanded: false };
+          next[advanceTarget] = { ...next[advanceTarget], expanded: true };
+        }
+        // If no pending sets in any group member, don't advance —
+        // user will set RPE which triggers normal advance
+      }
+
       return next;
     });
   };
@@ -792,14 +824,52 @@ export function useWorkoutSession() {
       const next = [...prev];
       next[exIdx] = { ...next[exIdx], rpe };
 
-      // Auto-advance: collapse this exercise, expand the next incomplete one
-      if (exIdx < next.length - 1) {
-        next[exIdx] = { ...next[exIdx], rpe, expanded: false };
-        // Find next incomplete exercise
-        for (let i = exIdx + 1; i < next.length; i++) {
-          if (next[i].sets.some(s => s.status === 'pending')) {
-            next[i] = { ...next[i], expanded: true };
+      const group = next[exIdx].supersetGroup;
+
+      if (group) {
+        // Superset-aware advance
+        const groupIndices = next
+          .map((ex, i) => ex.supersetGroup === group ? i : -1)
+          .filter(i => i >= 0);
+
+        // Check if any group member still has pending sets
+        const posInGroup = groupIndices.indexOf(exIdx);
+        let groupAdvanceTarget = -1;
+        for (let offset = 1; offset < groupIndices.length; offset++) {
+          const candidate = groupIndices[(posInGroup + offset) % groupIndices.length];
+          if (next[candidate].sets.some(s => s.status === 'pending')) {
+            groupAdvanceTarget = candidate;
             break;
+          }
+        }
+
+        if (groupAdvanceTarget >= 0) {
+          // Stay in group: advance to next group member with pending sets
+          next[exIdx] = { ...next[exIdx], rpe, expanded: false };
+          next[groupAdvanceTarget] = { ...next[groupAdvanceTarget], expanded: true };
+        } else {
+          // Entire group is done: collapse all group members, advance past the group
+          for (const gi of groupIndices) {
+            next[gi] = { ...next[gi], expanded: false };
+          }
+          next[exIdx] = { ...next[exIdx], rpe, expanded: false };
+          const maxGroupIdx = Math.max(...groupIndices);
+          for (let i = maxGroupIdx + 1; i < next.length; i++) {
+            if (next[i].sets.some(s => s.status === 'pending')) {
+              next[i] = { ...next[i], expanded: true };
+              break;
+            }
+          }
+        }
+      } else {
+        // Non-superset: original linear advance
+        if (exIdx < next.length - 1) {
+          next[exIdx] = { ...next[exIdx], rpe, expanded: false };
+          for (let i = exIdx + 1; i < next.length; i++) {
+            if (next[i].sets.some(s => s.status === 'pending')) {
+              next[i] = { ...next[i], expanded: true };
+              break;
+            }
           }
         }
       }

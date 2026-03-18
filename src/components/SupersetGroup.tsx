@@ -70,9 +70,11 @@ const styles = StyleSheet.create({
   },
   connector: {
     width: 2,
-    height: 8,
+    height: 12,
     backgroundColor: '#6366f140',
     alignSelf: 'center',
     borderRadius: 1,
+    marginTop: -8,
+    marginBottom: -4,
   },
 });

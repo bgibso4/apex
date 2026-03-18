@@ -1540,4 +1540,224 @@ describe('useWorkoutSession', () => {
       expect(exercises[2].supersetGroup).toBe('tri-set-a');
     });
   });
+
+  // -----------------------------------------------------------------------
+  // Superset auto-advance
+  // -----------------------------------------------------------------------
+  describe('superset auto-advance', () => {
+    /**
+     * Helper: set up a session with a superset group.
+     * Layout: bench_press (no group), lateral_raise (group-a), face_pull (group-a), tricep_ext (no group)
+     */
+    async function setupSupersetSession() {
+      const prog = makeProgram({
+        definition: {
+          program: {
+            name: 'Test Program',
+            duration_weeks: 12,
+            created: '2025-01-01',
+            blocks: [
+              { name: 'Hypertrophy', weeks: [1, 2, 3, 4], emphasis: 'hypertrophy', main_lift_scheme: {} },
+            ],
+            weekly_template: {
+              monday: {
+                name: 'Upper A',
+                warmup: [],
+                exercises: [
+                  {
+                    exercise_id: 'bench_press',
+                    category: 'main' as const,
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 2, reps: 8, percent: 0.75 }],
+                  },
+                  {
+                    exercise_id: 'lateral_raise',
+                    category: 'accessory' as const,
+                    superset_group: 'group-a',
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 2, reps: 12 }],
+                  },
+                  {
+                    exercise_id: 'face_pull',
+                    category: 'accessory' as const,
+                    superset_group: 'group-a',
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 2, reps: 15 }],
+                  },
+                  {
+                    exercise_id: 'tricep_ext',
+                    category: 'accessory' as const,
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 2, reps: 10 }],
+                  },
+                ],
+              },
+            },
+            exercise_definitions: [
+              { id: 'bench_press', name: 'Bench Press', type: 'main', muscle_groups: ['chest'] },
+              { id: 'lateral_raise', name: 'Lateral Raise', type: 'accessory', muscle_groups: ['shoulders'] },
+              { id: 'face_pull', name: 'Face Pull', type: 'accessory', muscle_groups: ['back'] },
+              { id: 'tricep_ext', name: 'Tricep Extension', type: 'accessory', muscle_groups: ['arms'] },
+            ],
+            warmup_protocols: {},
+          },
+        },
+      });
+
+      setupDefaultMocks();
+      mockedGetActiveProgram.mockResolvedValue(prog);
+      mockedGetTrainingDays.mockReturnValue([
+        { day: 'monday', template: prog.definition.program.weekly_template.monday },
+      ]);
+
+      let setIdCounter = 0;
+      mockedLogSet.mockImplementation(async () => `set-${++setIdCounter}`);
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+      await act(async () => {
+        await hookResult.result.current.submitWarmup();
+      });
+
+      return hookResult;
+    }
+
+    it('completing a set in a superset exercise auto-advances to next group member', async () => {
+      const { result } = await setupSupersetSession();
+
+      // Expand lateral_raise (idx 1), collapse bench (idx 0)
+      act(() => { result.current.toggleExpand(0); });
+      act(() => { result.current.toggleExpand(1); });
+
+      expect(result.current.exercises[1].expanded).toBe(true); // lateral_raise
+
+      // Complete set 1 of lateral_raise
+      await act(async () => {
+        await result.current.completeSetAction(1, 0);
+      });
+
+      // Should auto-advance to face_pull (idx 2)
+      expect(result.current.exercises[1].expanded).toBe(false);
+      expect(result.current.exercises[2].expanded).toBe(true);
+    });
+
+    it('round-robin cycles back: A->B->A->B for a 2-exercise superset', async () => {
+      const { result } = await setupSupersetSession();
+
+      // Expand lateral_raise (idx 1), collapse bench (idx 0)
+      act(() => { result.current.toggleExpand(0); });
+      act(() => { result.current.toggleExpand(1); });
+
+      // Complete set 1 of lateral_raise -> should advance to face_pull
+      await act(async () => {
+        await result.current.completeSetAction(1, 0);
+      });
+      expect(result.current.exercises[1].expanded).toBe(false);
+      expect(result.current.exercises[2].expanded).toBe(true);
+
+      // Complete set 1 of face_pull -> should advance back to lateral_raise
+      await act(async () => {
+        await result.current.completeSetAction(2, 0);
+      });
+      expect(result.current.exercises[2].expanded).toBe(false);
+      expect(result.current.exercises[1].expanded).toBe(true);
+
+      // Complete set 2 of lateral_raise -> should advance to face_pull
+      await act(async () => {
+        await result.current.completeSetAction(1, 1);
+      });
+      expect(result.current.exercises[1].expanded).toBe(false);
+      expect(result.current.exercises[2].expanded).toBe(true);
+    });
+
+    it('when all group members are done, no auto-advance from completeSetAction', async () => {
+      const { result } = await setupSupersetSession();
+
+      // Expand lateral_raise, collapse bench
+      act(() => { result.current.toggleExpand(0); });
+      act(() => { result.current.toggleExpand(1); });
+
+      // Complete all sets of lateral_raise
+      await act(async () => { await result.current.completeSetAction(1, 0); });
+      // Now face_pull is expanded after auto-advance
+      await act(async () => { await result.current.completeSetAction(2, 0); });
+      // Now lateral_raise is expanded
+      await act(async () => { await result.current.completeSetAction(1, 1); });
+      // Now face_pull is expanded
+
+      // Complete last set of face_pull — all group members done
+      await act(async () => {
+        await result.current.completeSetAction(2, 1);
+      });
+
+      // face_pull should stay expanded (no auto-advance since group is done)
+      expect(result.current.exercises[2].expanded).toBe(true);
+    });
+
+    it('setRPE on a superset exercise with pending group members stays in group', async () => {
+      const { result } = await setupSupersetSession();
+
+      // Expand lateral_raise, collapse bench
+      act(() => { result.current.toggleExpand(0); });
+      act(() => { result.current.toggleExpand(1); });
+
+      // Complete all sets of lateral_raise
+      await act(async () => { await result.current.completeSetAction(1, 0); });
+      // face_pull is now expanded after auto-advance
+      // Go back to lateral_raise to set RPE
+      act(() => { result.current.toggleExpand(1); });
+
+      // Set RPE on lateral_raise — face_pull still has pending sets
+      await act(async () => {
+        await result.current.setRPE(1, 7);
+      });
+
+      // Should advance to face_pull (still has pending sets)
+      expect(result.current.exercises[1].expanded).toBe(false);
+      expect(result.current.exercises[2].expanded).toBe(true);
+    });
+
+    it('setRPE when entire group is done advances past the group', async () => {
+      const { result } = await setupSupersetSession();
+
+      // Expand lateral_raise, collapse bench
+      act(() => { result.current.toggleExpand(0); });
+      act(() => { result.current.toggleExpand(1); });
+
+      // Complete all sets of both superset exercises
+      await act(async () => { await result.current.completeSetAction(1, 0); });
+      await act(async () => { await result.current.completeSetAction(2, 0); });
+      await act(async () => { await result.current.completeSetAction(1, 1); });
+      await act(async () => { await result.current.completeSetAction(2, 1); });
+
+      // Set RPE on lateral_raise — entire group is done
+      act(() => { result.current.toggleExpand(1); });
+      await act(async () => {
+        await result.current.setRPE(1, 8);
+      });
+
+      // Should advance past the group to tricep_ext (idx 3)
+      expect(result.current.exercises[1].expanded).toBe(false);
+      expect(result.current.exercises[2].expanded).toBe(false);
+      expect(result.current.exercises[3].expanded).toBe(true);
+    });
+
+    it('non-superset exercises are unaffected — no auto-advance on completeSetAction', async () => {
+      const { result } = await setupSupersetSession();
+
+      // bench_press (idx 0) is expanded by default, no superset group
+      expect(result.current.exercises[0].expanded).toBe(true);
+
+      // Complete set 1 of bench_press
+      await act(async () => {
+        await result.current.completeSetAction(0, 0);
+      });
+
+      // bench_press should remain expanded (no auto-advance for non-superset)
+      expect(result.current.exercises[0].expanded).toBe(true);
+      expect(result.current.exercises[1].expanded).toBe(false);
+    });
+  });
 });

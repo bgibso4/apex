@@ -56,6 +56,7 @@ export interface ExerciseState {
   lastReps?: number;
   isAdhoc?: boolean;
   inputFields?: InputField[];
+  supersetGroup?: string;
 }
 
 export function useWorkoutSession() {
@@ -293,6 +294,7 @@ export function useWorkoutSession() {
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
         inputFields: getFieldsForExercise(exerciseDef?.input_fields),
+        supersetGroup: slot.superset_group,
       });
     }
 
@@ -523,6 +525,7 @@ export function useWorkoutSession() {
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
         inputFields: getFieldsForExercise(exerciseDef?.input_fields),
+        supersetGroup: slot.superset_group,
       });
     }
 

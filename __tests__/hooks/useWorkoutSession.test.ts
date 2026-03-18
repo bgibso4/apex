@@ -1467,4 +1467,77 @@ describe('useWorkoutSession', () => {
       expect(mockedCompleteSession).toHaveBeenCalled();
     });
   });
+
+  // -----------------------------------------------------------------------
+  // supersetGroup propagation
+  // -----------------------------------------------------------------------
+  describe('supersetGroup propagation', () => {
+    it('propagates superset_group from slot to ExerciseState on startSession', async () => {
+      const prog = makeProgram({
+        definition: {
+          program: {
+            name: 'Test Program',
+            duration_weeks: 12,
+            created: '2025-01-01',
+            blocks: [
+              { name: 'Hypertrophy', weeks: [1, 2, 3, 4], emphasis: 'hypertrophy', main_lift_scheme: {} },
+            ],
+            weekly_template: {
+              monday: {
+                name: 'Upper A',
+                warmup: [],
+                exercises: [
+                  {
+                    exercise_id: 'bench_press',
+                    category: 'main' as const,
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 3, reps: 8, percent: 0.75 }],
+                  },
+                  {
+                    exercise_id: 'lateral_raise',
+                    category: 'accessory' as const,
+                    superset_group: 'tri-set-a',
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 3, reps: 12 }],
+                  },
+                  {
+                    exercise_id: 'face_pull',
+                    category: 'accessory' as const,
+                    superset_group: 'tri-set-a',
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 3, reps: 15 }],
+                  },
+                ],
+              },
+            },
+            exercise_definitions: [
+              { id: 'bench_press', name: 'Bench Press', type: 'main', muscle_groups: ['chest'] },
+              { id: 'lateral_raise', name: 'Lateral Raise', type: 'accessory', muscle_groups: ['shoulders'] },
+              { id: 'face_pull', name: 'Face Pull', type: 'accessory', muscle_groups: ['back'] },
+            ],
+            warmup_protocols: {},
+          },
+        },
+      });
+
+      setupDefaultMocks();
+      mockedGetActiveProgram.mockResolvedValue(prog);
+      mockedGetTrainingDays.mockReturnValue([
+        { day: 'monday', template: prog.definition.program.weekly_template.monday },
+      ]);
+
+      const { result } = renderHook(() => useWorkoutSession());
+
+      await waitFor(() => {
+        expect(result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await result.current.startSession();
+      });
+
+      const exercises = result.current.exercises;
+      expect(exercises).toHaveLength(3);
+      expect(exercises[0].supersetGroup).toBeUndefined();
+      expect(exercises[1].supersetGroup).toBe('tri-set-a');
+      expect(exercises[2].supersetGroup).toBe('tri-set-a');
+    });
+  });
 });

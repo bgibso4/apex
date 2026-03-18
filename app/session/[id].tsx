@@ -458,7 +458,7 @@ export default function SessionDetailScreen() {
           return (
             <SupersetGroup key={`superset-${grouped.groupId}`} groupSize={grouped.items.length}>
               {grouped.items.map(({ item: group }) => (
-                <View key={group.exerciseId} style={[styles.exerciseCard, editMode && styles.editableCard]}>
+                <View key={group.exerciseId} style={[styles.exerciseCard, styles.supersetCard, editMode && styles.editableCard]}>
                   {renderExerciseCard(group)}
                 </View>
               ))}
@@ -554,6 +554,9 @@ const styles = StyleSheet.create({
   exerciseCard: {
     backgroundColor: Colors.card, borderRadius: BorderRadius.lg,
     padding: Spacing.lg, marginBottom: Spacing.md,
+  },
+  supersetCard: {
+    marginBottom: Spacing.sm,
   },
   exerciseHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

@@ -70,10 +70,12 @@ const styles = StyleSheet.create({
   },
   connector: {
     width: 2,
-    width: 4,
-    height: 4,
+    width: 2,
+    height: 12,
     backgroundColor: '#6366f180',
     alignSelf: 'center',
-    borderRadius: 2,
+    borderRadius: 1,
+    marginTop: -8,
+    marginBottom: -4,
   },
 });

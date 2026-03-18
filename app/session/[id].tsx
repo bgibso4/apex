@@ -18,6 +18,8 @@ import {
 import type { PRRecord } from '../../src/db';
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
 import { formatPRDescription, formatPRName } from '../../src/utils/formatPR';
+import { groupExercises } from '../../src/utils/supersetGrouping';
+import { SupersetGroup } from '../../src/components/SupersetGroup';
 import { getFieldsForExercise, FIELD_LABELS } from '../../src/types/fields';
 import type { InputField } from '../../src/types/fields';
 import type { Session, SetLog, SessionProtocol } from '../../src/types';
@@ -34,6 +36,7 @@ type ExerciseGroup = {
   isAdhoc: boolean;
   sets: SetLog[];
   inputFields: InputField[];
+  supersetGroup?: string;
 };
 
 export default function SessionDetailScreen() {
@@ -93,6 +96,19 @@ export default function SessionDetailScreen() {
       }
       setDateLabel(`${dayName}, ${monthDay} · Week ${s.week_number} ${blockLabel}`);
 
+      // Build superset group map from program template
+      let supersetMap: Record<string, string> = {};
+      if (program) {
+        const tmpl = program.definition.program.weekly_template[s.day_template_id];
+        if (tmpl && 'exercises' in tmpl) {
+          for (const slot of (tmpl as any).exercises) {
+            if (slot.superset_group) {
+              supersetMap[slot.exercise_id] = slot.superset_group;
+            }
+          }
+        }
+      }
+
       // Get set logs, exercise notes, and group by exercise
       const [setLogs, notes] = await Promise.all([
         getSetLogsForSession(id),
@@ -114,6 +130,7 @@ export default function SessionDetailScreen() {
             isAdhoc: !!(sl as any).is_adhoc,
             sets: setLogs.filter(s2 => s2.exercise_id === sl.exercise_id),
             inputFields: getFieldsForExercise(info?.inputFields ?? null),
+            supersetGroup: supersetMap[sl.exercise_id],
           });
         }
       }
@@ -150,6 +167,130 @@ export default function SessionDetailScreen() {
     const newPRs = await detectPRs(session.id, session.date, sessionSets);
     setPRs(newPRs);
   };
+
+  const renderExerciseCard = (group: ExerciseGroup) => (
+    <>
+      <View style={styles.exerciseHeader}>
+        <Text style={styles.exerciseName}>{group.exerciseName}</Text>
+        {!!group.isAdhoc && (
+          <View style={styles.adhocTag}>
+            <Text style={styles.adhocTagText}>Ad-hoc</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Set grid header */}
+      <View style={styles.setGridHeader}>
+        <Text style={[styles.setGridHeaderText, { width: 36 }]}>Set</Text>
+        {group.inputFields.map((field) => (
+          <View key={field.type} style={{ flex: 1 }}>
+            <Text style={styles.setGridHeaderText}>{FIELD_LABELS[field.type]}</Text>
+            {field.unit && <Text style={styles.setGridUnitText}>{field.unit}</Text>}
+          </View>
+        ))}
+        <Text style={[styles.setGridHeaderText, { width: 44 }]}>RPE</Text>
+        <View style={{ width: 28 }} />
+      </View>
+
+      {/* Set rows */}
+      {group.sets.map((set) => (
+        <View key={set.id} style={styles.setGridRow}>
+          <Text style={[styles.setGridValue, { width: 36 }]}>
+            {set.set_number}
+          </Text>
+          {group.inputFields.map((field) => {
+            const key = `actual_${field.type}` as keyof SetLog;
+            const value = set[key];
+            const FIELD_TO_UPDATE_KEY: Record<string, string> = {
+              weight: 'actualWeight', reps: 'actualReps', duration: 'actualDuration',
+              time: 'actualTime', distance: 'actualDistance',
+            };
+            const updateKey = FIELD_TO_UPDATE_KEY[field.type];
+            return editMode ? (
+              <TextInput
+                key={field.type}
+                style={[styles.setGridValue, styles.setGridEditable, { flex: 1 }]}
+                defaultValue={value?.toString() ?? ''}
+                keyboardType="numeric"
+                onEndEditing={(e) => {
+                  const newValue = parseFloat(e.nativeEvent.text) || 0;
+                  setExerciseGroups(prev => prev.map(g => ({
+                    ...g,
+                    sets: g.sets.map(s => s.id === set.id ? { ...s, [`actual_${field.type}`]: newValue } : s),
+                  })));
+                  updateSet(set.id, { [updateKey]: newValue } as any);
+                }}
+              />
+            ) : (
+              <Text key={field.type} style={[styles.setGridValue, { flex: 1 }]}>
+                {value ?? '—'}
+              </Text>
+            );
+          })}
+          {editMode ? (
+            <TextInput
+              style={[styles.setGridValue, styles.setGridEditable, { width: 44 }]}
+              defaultValue={set.rpe?.toString() ?? ''}
+              keyboardType="numeric"
+              onEndEditing={(e) => {
+                const newRpe = parseFloat(e.nativeEvent.text) || undefined;
+                setExerciseGroups(prev => prev.map(g => ({
+                  ...g,
+                  sets: g.sets.map(s => s.id === set.id ? { ...s, rpe: newRpe } : s),
+                })));
+                if (newRpe !== undefined) updateSet(set.id, { rpe: newRpe });
+              }}
+            />
+          ) : (
+            <Text style={[styles.setGridValue, { width: 44 }]}>{set.rpe ?? '—'}</Text>
+          )}
+          <View style={{ width: 28, alignItems: 'center' }}>
+            {set.status === 'completed' && (
+              <Ionicons name="checkmark" size={14} color={Colors.green} />
+            )}
+            {set.status === 'completed_below' && (
+              <Text style={{ color: Colors.amber, fontSize: FontSize.sm }}>!</Text>
+            )}
+            {set.status === 'skipped' && (
+              <Text style={{ color: Colors.red, fontSize: FontSize.sm }}>—</Text>
+            )}
+          </View>
+        </View>
+      ))}
+
+      {/* Exercise note */}
+      {(editMode || !!exerciseNotes[group.exerciseId]) && (
+        <View style={styles.exerciseNote}>
+          <Ionicons name="chatbubble-outline" size={12} color={Colors.textDim} />
+          {editMode ? (
+            <TextInput
+              style={styles.exerciseNoteInput}
+              defaultValue={exerciseNotes[group.exerciseId] ?? ''}
+              placeholder="Add a note..."
+              placeholderTextColor={Colors.textDim}
+              onEndEditing={(e) => {
+                const text = e.nativeEvent.text.trim();
+                if (text) {
+                  saveExerciseNote(session!.id, group.exerciseId, text);
+                } else {
+                  deleteExerciseNote(session!.id, group.exerciseId);
+                }
+                setExerciseNotes(prev => {
+                  const next = { ...prev };
+                  if (text) next[group.exerciseId] = text;
+                  else delete next[group.exerciseId];
+                  return next;
+                });
+              }}
+              multiline
+            />
+          ) : (
+            <Text style={styles.exerciseNoteText}>{exerciseNotes[group.exerciseId]}</Text>
+          )}
+        </View>
+      )}
+    </>
+  );
 
   if (!session) {
     return (
@@ -304,129 +445,26 @@ export default function SessionDetailScreen() {
         )}
 
         {/* Exercise cards */}
-        {exerciseGroups.map((group) => (
-          <View key={group.exerciseId} style={[styles.exerciseCard, editMode && styles.editableCard]}>
-            <View style={styles.exerciseHeader}>
-              <Text style={styles.exerciseName}>{group.exerciseName}</Text>
-              {!!group.isAdhoc && (
-                <View style={styles.adhocTag}>
-                  <Text style={styles.adhocTagText}>Ad-hoc</Text>
-                </View>
-              )}
-            </View>
-
-            {/* Set grid header */}
-            <View style={styles.setGridHeader}>
-              <Text style={[styles.setGridHeaderText, { width: 36 }]}>Set</Text>
-              {group.inputFields.map((field) => (
-                <View key={field.type} style={{ flex: 1 }}>
-                  <Text style={styles.setGridHeaderText}>{FIELD_LABELS[field.type]}</Text>
-                  {field.unit && <Text style={styles.setGridUnitText}>{field.unit}</Text>}
+        {groupExercises(exerciseGroups).map((grouped) => {
+          if (grouped.type === 'standalone') {
+            const group = grouped.item;
+            return (
+              <View key={group.exerciseId} style={[styles.exerciseCard, editMode && styles.editableCard]}>
+                {renderExerciseCard(group)}
+              </View>
+            );
+          }
+          // Superset group
+          return (
+            <SupersetGroup key={`superset-${grouped.groupId}`} groupSize={grouped.items.length}>
+              {grouped.items.map(({ item: group }) => (
+                <View key={group.exerciseId} style={[styles.exerciseCard, editMode && styles.editableCard]}>
+                  {renderExerciseCard(group)}
                 </View>
               ))}
-              <Text style={[styles.setGridHeaderText, { width: 44 }]}>RPE</Text>
-              <View style={{ width: 28 }} />
-            </View>
-
-            {/* Set rows */}
-            {group.sets.map((set) => (
-              <View key={set.id} style={styles.setGridRow}>
-                <Text style={[styles.setGridValue, { width: 36 }]}>
-                  {set.set_number}
-                </Text>
-                {group.inputFields.map((field) => {
-                  const key = `actual_${field.type}` as keyof SetLog;
-                  const value = set[key];
-                  const FIELD_TO_UPDATE_KEY: Record<string, string> = {
-                    weight: 'actualWeight', reps: 'actualReps', duration: 'actualDuration',
-                    time: 'actualTime', distance: 'actualDistance',
-                  };
-                  const updateKey = FIELD_TO_UPDATE_KEY[field.type];
-                  return editMode ? (
-                    <TextInput
-                      key={field.type}
-                      style={[styles.setGridValue, styles.setGridEditable, { flex: 1 }]}
-                      defaultValue={value?.toString() ?? ''}
-                      keyboardType="numeric"
-                      onEndEditing={(e) => {
-                        const newValue = parseFloat(e.nativeEvent.text) || 0;
-                        setExerciseGroups(prev => prev.map(g => ({
-                          ...g,
-                          sets: g.sets.map(s => s.id === set.id ? { ...s, [`actual_${field.type}`]: newValue } : s),
-                        })));
-                        updateSet(set.id, { [updateKey]: newValue } as any);
-                      }}
-                    />
-                  ) : (
-                    <Text key={field.type} style={[styles.setGridValue, { flex: 1 }]}>
-                      {value ?? '—'}
-                    </Text>
-                  );
-                })}
-                {editMode ? (
-                  <TextInput
-                    style={[styles.setGridValue, styles.setGridEditable, { width: 44 }]}
-                    defaultValue={set.rpe?.toString() ?? ''}
-                    keyboardType="numeric"
-                    onEndEditing={(e) => {
-                      const newRpe = parseFloat(e.nativeEvent.text) || undefined;
-                      setExerciseGroups(prev => prev.map(g => ({
-                        ...g,
-                        sets: g.sets.map(s => s.id === set.id ? { ...s, rpe: newRpe } : s),
-                      })));
-                      if (newRpe !== undefined) updateSet(set.id, { rpe: newRpe });
-                    }}
-                  />
-                ) : (
-                  <Text style={[styles.setGridValue, { width: 44 }]}>{set.rpe ?? '—'}</Text>
-                )}
-                <View style={{ width: 28, alignItems: 'center' }}>
-                  {set.status === 'completed' && (
-                    <Ionicons name="checkmark" size={14} color={Colors.green} />
-                  )}
-                  {set.status === 'completed_below' && (
-                    <Text style={{ color: Colors.amber, fontSize: FontSize.sm }}>!</Text>
-                  )}
-                  {set.status === 'skipped' && (
-                    <Text style={{ color: Colors.red, fontSize: FontSize.sm }}>—</Text>
-                  )}
-                </View>
-              </View>
-            ))}
-
-            {/* Exercise note */}
-            {(editMode || !!exerciseNotes[group.exerciseId]) && (
-              <View style={styles.exerciseNote}>
-                <Ionicons name="chatbubble-outline" size={12} color={Colors.textDim} />
-                {editMode ? (
-                  <TextInput
-                    style={styles.exerciseNoteInput}
-                    defaultValue={exerciseNotes[group.exerciseId] ?? ''}
-                    placeholder="Add a note..."
-                    placeholderTextColor={Colors.textDim}
-                    onEndEditing={(e) => {
-                      const text = e.nativeEvent.text.trim();
-                      if (text) {
-                        saveExerciseNote(session!.id, group.exerciseId, text);
-                      } else {
-                        deleteExerciseNote(session!.id, group.exerciseId);
-                      }
-                      setExerciseNotes(prev => {
-                        const next = { ...prev };
-                        if (text) next[group.exerciseId] = text;
-                        else delete next[group.exerciseId];
-                        return next;
-                      });
-                    }}
-                    multiline
-                  />
-                ) : (
-                  <Text style={styles.exerciseNoteText}>{exerciseNotes[group.exerciseId]}</Text>
-                )}
-              </View>
-            )}
-          </View>
-        ))}
+            </SupersetGroup>
+          );
+        })}
         {/* Delete button in edit mode */}
         {editMode && (
           <TouchableOpacity

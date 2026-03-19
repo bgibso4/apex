@@ -35,14 +35,7 @@ export default function ActivateScreen() {
     if (!programId) return;
     setLoading(true);
 
-    // Parse all values to numbers
-    const oneRmValues: Record<string, number> = {};
-    for (const lift of MAIN_LIFTS_FOR_1RM) {
-      const val = parseFloat(values[lift.id] || '0');
-      if (val > 0) oneRmValues[lift.id] = val;
-    }
-
-    await activateProgram(programId, oneRmValues);
+    await activateProgram(programId);
     setLoading(false);
     router.dismissAll();
   };

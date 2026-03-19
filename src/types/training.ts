@@ -10,8 +10,6 @@ export interface Program {
   created_date: string;
   status: 'inactive' | 'active' | 'completed' | 'archived';
   definition_json: string;
-  /** User's 1RM values entered on activation, keyed by exercise_id */
-  one_rm_values?: Record<string, number>;
   activated_date?: string;
 }
 

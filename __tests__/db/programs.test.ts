@@ -8,7 +8,6 @@ import {
   getAllPrograms,
   importProgram,
   activateProgram,
-  getOneRmValues,
   stopProgram,
 } from '../../src/db/programs';
 import type { ProgramDefinition } from '../../src/types';
@@ -227,9 +226,7 @@ describe('programs', () => {
   // ---------------------------------------------------------------------------
   describe('activateProgram', () => {
     it('deactivates existing active program first', async () => {
-      const oneRm = { squat: 315, bench: 225 };
-
-      await activateProgram('prog-2', oneRm);
+      await activateProgram('prog-2');
 
       expect(mockDb.runAsync).toHaveBeenCalledTimes(2);
 
@@ -239,64 +236,17 @@ describe('programs', () => {
       expect(sql1).toContain("WHERE status = 'active'");
     });
 
-    it('activates the specified program with 1RM values', async () => {
-      const oneRm = { squat: 315, bench: 225 };
-
-      await activateProgram('prog-2', oneRm);
+    it('activates the specified program', async () => {
+      await activateProgram('prog-2');
 
       // Second call: activate
       const [sql2, params2] = mockDb.runAsync.mock.calls[1];
       expect(sql2).toContain("SET status = 'active'");
-      expect(sql2).toContain('one_rm_values = ?');
+      expect(sql2).toContain('one_rm_values = NULL');
       expect(sql2).toContain('activated_date = ?');
       expect(sql2).toContain('WHERE id = ?');
-      expect(params2[0]).toBe(JSON.stringify(oneRm));
-      expect(typeof params2[1]).toBe('string'); // date string
-      expect(params2[2]).toBe('prog-2');
-    });
-
-    it('handles empty 1RM values', async () => {
-      await activateProgram('prog-3', {});
-
-      const [, params] = mockDb.runAsync.mock.calls[1];
-      expect(params[0]).toBe(JSON.stringify({}));
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // getOneRmValues
-  // ---------------------------------------------------------------------------
-  describe('getOneRmValues', () => {
-    it('parses JSON and returns record of 1RM values', async () => {
-      const oneRm = { squat: 315, bench: 225, deadlift: 405 };
-      mockDb.getFirstAsync.mockResolvedValue({
-        one_rm_values: JSON.stringify(oneRm),
-      });
-
-      const result = await getOneRmValues('prog-1');
-
-      expect(mockDb.getFirstAsync).toHaveBeenCalledTimes(1);
-      const [sql, params] = mockDb.getFirstAsync.mock.calls[0];
-      expect(sql).toContain('SELECT one_rm_values FROM programs');
-      expect(sql).toContain('WHERE id = ?');
-      expect(params).toEqual(['prog-1']);
-      expect(result).toEqual(oneRm);
-    });
-
-    it('returns empty object when one_rm_values is null', async () => {
-      mockDb.getFirstAsync.mockResolvedValue({ one_rm_values: null });
-
-      const result = await getOneRmValues('prog-2');
-
-      expect(result).toEqual({});
-    });
-
-    it('returns empty object when row is null', async () => {
-      mockDb.getFirstAsync.mockResolvedValue(null);
-
-      const result = await getOneRmValues('nonexistent');
-
-      expect(result).toEqual({});
+      expect(typeof params2[0]).toBe('string'); // date string
+      expect(params2[1]).toBe('prog-2');
     });
   });
 

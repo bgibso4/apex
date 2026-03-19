@@ -93,11 +93,8 @@ export async function refreshBundledProgram(definition: ProgramDefinition): Prom
   return true;
 }
 
-/** Activate a program with the user's 1RM values */
-export async function activateProgram(
-  programId: string,
-  oneRmValues: Record<string, number>
-): Promise<void> {
+/** Activate a program */
+export async function activateProgram(programId: string): Promise<void> {
   const db = await getDatabase();
 
   // Deactivate any currently active program
@@ -107,9 +104,9 @@ export async function activateProgram(
 
   // Activate this one
   await db.runAsync(
-    `UPDATE programs SET status = 'active', one_rm_values = ?, activated_date = ?
+    `UPDATE programs SET status = 'active', one_rm_values = NULL, activated_date = ?
      WHERE id = ?`,
-    [JSON.stringify(oneRmValues), getLocalDateString(), programId]
+    [getLocalDateString(), programId]
   );
 }
 
@@ -175,13 +172,3 @@ export async function stopProgram(
   }
 }
 
-/** Get 1RM values for the active program */
-export async function getOneRmValues(programId: string): Promise<Record<string, number>> {
-  const db = await getDatabase();
-  const row = await db.getFirstAsync<{ one_rm_values: string | null }>(
-    "SELECT one_rm_values FROM programs WHERE id = ?",
-    [programId]
-  );
-  if (!row?.one_rm_values) return {};
-  return JSON.parse(row.one_rm_values);
-}

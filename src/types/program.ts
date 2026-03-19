@@ -65,6 +65,7 @@ export interface ExerciseSlot {
   targets: ExerciseTarget[];
   alternatives?: string[];
   notes?: string;
+  default_weight?: number;
   /** Exercises sharing the same superset_group are performed as a superset (alternating sets). */
   superset_group?: string;
 }
@@ -92,6 +93,7 @@ export interface ExerciseDefinition {
   muscle_groups: string[];
   alternatives?: string[];
   uses_1rm?: boolean;
+  one_rm?: number;
   input_fields?: InputField[];
 }
 

@@ -748,40 +748,22 @@ export function useWorkoutSession() {
     const { exerciseIdx } = overrideModal;
     const ex = exercises[exerciseIdx];
 
+    const actualUpdates: Record<string, number | undefined> = {
+      actualWeight: overrideValues.weight,
+      actualReps: overrideValues.reps,
+      actualDistance: overrideValues.distance,
+      actualDuration: overrideValues.duration,
+      actualTime: overrideValues.time,
+    };
+
     for (let i = 0; i < ex.sets.length; i++) {
       const set = ex.sets[i];
-      const hitTarget = checkHitTarget(overrideValues, set);
-      const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
-
-      const actualUpdates: Record<string, number | undefined> = {
-        actualWeight: overrideValues.weight,
-        actualReps: overrideValues.reps,
-        actualDistance: overrideValues.distance,
-        actualDuration: overrideValues.duration,
-        actualTime: overrideValues.time,
-      };
 
       if (set.id) {
-        await updateSet(set.id, { ...actualUpdates, status });
+        // Already logged — update values only, keep existing status
+        await updateSet(set.id, actualUpdates);
       } else {
-        const setId = await logSet({
-          sessionId,
-          exerciseId: ex.slot.exercise_id,
-          setNumber: set.setNumber,
-          targetWeight: set.targetWeight,
-          targetReps: set.targetReps,
-          actualWeight: overrideValues.weight ?? set.actualWeight,
-          actualReps: overrideValues.reps ?? set.actualReps,
-          targetDistance: set.targetDistance,
-          actualDistance: overrideValues.distance ?? set.actualDistance,
-          targetDuration: set.targetDuration,
-          actualDuration: overrideValues.duration ?? set.actualDuration,
-          targetTime: set.targetTime,
-          actualTime: overrideValues.time ?? set.actualTime,
-          status,
-          isAdhoc: ex.isAdhoc,
-        });
-        ex.sets[i] = { ...ex.sets[i], id: setId };
+        // Not yet logged — just update the target values in local state, don't log or complete
       }
     }
 
@@ -789,18 +771,15 @@ export function useWorkoutSession() {
       const next = [...prev];
       next[exerciseIdx] = {
         ...next[exerciseIdx],
-        sets: next[exerciseIdx].sets.map(s => {
-          const hitTarget = checkHitTarget(overrideValues, s);
-          return {
-            ...s,
-            ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
-            ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
-            ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
-            ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
-            ...(overrideValues.time != null && { actualTime: overrideValues.time }),
-            status: hitTarget ? 'completed' as const : 'completed_below' as const,
-          };
-        }),
+        sets: next[exerciseIdx].sets.map(s => ({
+          ...s,
+          ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
+          ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
+          ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
+          ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
+          ...(overrideValues.time != null && { actualTime: overrideValues.time }),
+          // Preserve existing status — don't mark sets complete
+        })),
       };
       return next;
     });

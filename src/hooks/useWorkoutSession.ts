@@ -29,6 +29,17 @@ import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
 import { useSessionTimer } from './useSessionTimer';
 
+/** Get the most frequently used weight from a set of logs */
+function getMostCommonWeight(sets: { actual_weight?: number | null }[]): number | undefined {
+  const weights = sets.map(s => s.actual_weight).filter((w): w is number => w != null && w > 0);
+  if (weights.length === 0) return undefined;
+  const counts = new Map<number, number>();
+  for (const w of weights) counts.set(w, (counts.get(w) || 0) + 1);
+  let best = weights[0], bestCount = 0;
+  for (const [w, c] of counts) { if (c > bestCount) { best = w; bestCount = c; } }
+  return best;
+}
+
 /** Check if override values meet or exceed all targets for a set */
 function checkHitTarget(vals: Record<string, number>, set: SetState): boolean {
   // Weight: actual >= target
@@ -231,7 +242,7 @@ export function useWorkoutSession() {
       }
 
       const lastSets = await getLastSessionForExercise(slot.exercise_id);
-      const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
+      const lastWeight = getMostCommonWeight(lastSets);
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
       const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
 
@@ -481,7 +492,7 @@ export function useWorkoutSession() {
       }
 
       const lastSets = await getLastSessionForExercise(slot.exercise_id);
-      const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
+      const lastWeight = getMostCommonWeight(lastSets);
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
       const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
 

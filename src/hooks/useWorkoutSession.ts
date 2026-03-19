@@ -195,13 +195,6 @@ export function useWorkoutSession() {
     const def = active.definition.program;
     const week = session.week_number;
 
-    // Parse 1RM values (same as startSession)
-    const orm: Record<string, number> = active.one_rm_values
-      ? (typeof active.one_rm_values === 'string'
-        ? JSON.parse(active.one_rm_values as string)
-        : active.one_rm_values)
-      : {};
-
     // Find the day template for this session
     const trainingDays = getTrainingDays(def.weekly_template);
     const dayEntry = trainingDays.find(d => d.day === session.day_template_id);
@@ -228,18 +221,19 @@ export function useWorkoutSession() {
       if (!target) continue;
 
       const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
+      const oneRm = exerciseDef?.one_rm;
       const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;
-      if (target.percent && orm[slot.exercise_id]) {
+      if (target.percent && oneRm) {
         const pct = typeof target.percent === 'string' ? parseFloat(target.percent) : target.percent;
-        suggestedWeight = calculateTargetWeight(orm[slot.exercise_id], pct);
+        suggestedWeight = calculateTargetWeight(oneRm, pct);
       }
 
-      const lastSets = await getLastSessionForExercise(slot.exercise_id, active.id);
+      const lastSets = await getLastSessionForExercise(slot.exercise_id);
       const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
-      const weight = suggestedWeight || lastWeight || 0;
+      const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
 
       // Merge logged sets into the template sets
       const logged = logsByExercise[slot.exercise_id] || [];
@@ -438,12 +432,6 @@ export function useWorkoutSession() {
     return vol;
   }, [exercises]);
 
-  const oneRmValues: Record<string, number> = program?.one_rm_values
-    ? (typeof program.one_rm_values === 'string'
-      ? JSON.parse(program.one_rm_values)
-      : program.one_rm_values)
-    : {};
-
   /** Select a day (and reset to select phase if mid-session) */
   const selectDay = (day: string) => {
     setSelectedDay(day);
@@ -473,6 +461,7 @@ export function useWorkoutSession() {
       if (!target) continue;
 
       const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
+      const oneRm = exerciseDef?.one_rm;
 
       // Ensure exercise exists in DB (guards against missing exercise_definitions)
       await ensureExerciseExists({
@@ -486,15 +475,15 @@ export function useWorkoutSession() {
       const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;
-      if (target.percent && oneRmValues[slot.exercise_id]) {
+      if (target.percent && oneRm) {
         const pct = typeof target.percent === 'string' ? parseFloat(target.percent) : target.percent;
-        suggestedWeight = calculateTargetWeight(oneRmValues[slot.exercise_id], pct);
+        suggestedWeight = calculateTargetWeight(oneRm, pct);
       }
 
-      const lastSets = await getLastSessionForExercise(slot.exercise_id, program.id);
+      const lastSets = await getLastSessionForExercise(slot.exercise_id);
       const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
-      const weight = suggestedWeight || lastWeight || 0;
+      const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
 
       const sets: SetState[] = Array.from({ length: target.sets }, (_, i) => ({
         setNumber: i + 1,

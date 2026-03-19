@@ -170,9 +170,9 @@ function makeProgram(overrides: Record<string, unknown> = {}) {
           },
         },
         exercise_definitions: [
-          { id: 'bench_press', name: 'Bench Press', type: 'main', muscle_groups: ['chest'] },
+          { id: 'bench_press', name: 'Bench Press', type: 'main', muscle_groups: ['chest'], one_rm: 225 },
           { id: 'row', name: 'Barbell Row', type: 'accessory', muscle_groups: ['back'] },
-          { id: 'squat', name: 'Back Squat', type: 'main', muscle_groups: ['legs'] },
+          { id: 'squat', name: 'Back Squat', type: 'main', muscle_groups: ['legs'], one_rm: 300 },
         ],
         warmup_protocols: {},
       },
@@ -492,15 +492,63 @@ describe('useWorkoutSession', () => {
       expect(hookResult.result.current.exercises[1].exerciseName).toBe('Barbell Row');
     });
 
-    it('uses calculateTargetWeight for exercises with percent + 1RM', async () => {
+    it('uses calculateTargetWeight for exercises with percent + 1RM from exercise definition', async () => {
       const hookResult = await renderAndLoad();
 
       await act(async () => {
         await hookResult.result.current.startSession();
       });
 
-      // bench_press has percent=0.75 and 1RM=225
+      // bench_press has percent=0.75 and one_rm=225 from exercise definition (not program.one_rm_values)
       expect(mockedCalculateTargetWeight).toHaveBeenCalledWith(225, 0.75);
+    });
+
+    it('calls getLastSessionForExercise without program ID (cross-program history)', async () => {
+      const hookResult = await renderAndLoad();
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+
+      // Should be called with just exercise_id, no program ID argument
+      expect(mockedGetLastSessionForExercise).toHaveBeenCalledWith('bench_press');
+      expect(mockedGetLastSessionForExercise).toHaveBeenCalledWith('row');
+      // Verify it was NOT called with a second program ID argument
+      const calls = mockedGetLastSessionForExercise.mock.calls;
+      calls.forEach((call: unknown[]) => {
+        expect(call.length).toBe(1);
+      });
+    });
+
+    it('falls back to default_weight when no 1RM and no history', async () => {
+      setupDefaultMocks();
+      // Program with no one_rm on bench_press but with default_weight on row slot
+      const prog = makeProgram();
+      // Remove one_rm from bench_press exercise definition
+      prog.definition.program.exercise_definitions[0] = {
+        id: 'bench_press', name: 'Bench Press', type: 'main', muscle_groups: ['chest'],
+      } as typeof prog.definition.program.exercise_definitions[0];
+      // Add default_weight to row slot
+      (prog.definition.program.weekly_template.monday.exercises[1] as Record<string, unknown>).default_weight = 95;
+      mockedGetActiveProgram.mockResolvedValue(prog);
+      mockedGetTrainingDays.mockReturnValue([
+        { day: 'monday', template: prog.definition.program.weekly_template.monday },
+        { day: 'wednesday', template: prog.definition.program.weekly_template.wednesday },
+      ]);
+      mockedGetLastSessionForExercise.mockResolvedValue([]);
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+
+      // row has no percent, no history, but default_weight=95
+      const rowExercise = hookResult.result.current.exercises[1];
+      expect(rowExercise.sets[0].targetWeight).toBe(95);
     });
 
     it('uses last session weight when no percent-based suggestion', async () => {

@@ -460,6 +460,7 @@
           {
             "exercise_id": "romanian_deadlift",
             "category": "compound_accessory",
+            "default_weight": 185,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": "8-10" },
               { "weeks": [5], "sets": 2, "reps": 8 },

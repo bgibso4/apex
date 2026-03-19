@@ -8,7 +8,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
-import { getAllPrograms, importProgram, getActiveProgram } from '../src/db';
+import { getAllPrograms, importProgram, getActiveProgram, activateProgram } from '../src/db';
 import { getBlockColor } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
 
@@ -129,7 +129,10 @@ export default function LibraryScreen() {
               {p.status === 'inactive' && (
                 <TouchableOpacity
                   style={styles.activateButton}
-                  onPress={() => router.push({ pathname: '/activate', params: { programId: p.id } })}
+                  onPress={async () => {
+                    await activateProgram(p.id);
+                    router.back();
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.activateButtonText}>Activate</Text>

@@ -191,6 +191,7 @@
           {
             "exercise_id": "barbell_row",
             "category": "compound_accessory",
+            "default_weight": 135,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": "8-10" },
               { "weeks": [5], "sets": 2, "reps": 8 },
@@ -203,6 +204,7 @@
           {
             "exercise_id": "face_pulls",
             "category": "accessory",
+            "default_weight": 30,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 15 },
               { "weeks": [5], "sets": 2, "reps": 12 },
@@ -221,6 +223,7 @@
           {
             "exercise_id": "curls",
             "category": "accessory",
+            "default_weight": 30,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 2, "reps": 12 },
               { "weeks": [5], "sets": 2, "reps": 10 },
@@ -308,6 +311,7 @@
           {
             "exercise_id": "db_hang_high_pull",
             "category": "power",
+            "default_weight": 40,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 4, "reps": 4 },
               { "weeks": [5], "sets": 3, "reps": 3 },
@@ -336,6 +340,7 @@
           {
             "exercise_id": "incline_db_press",
             "category": "compound_accessory",
+            "default_weight": 50,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": "8-10" },
               { "weeks": [5], "sets": 2, "reps": 8 },
@@ -348,6 +353,7 @@
           {
             "exercise_id": "lateral_raises",
             "category": "accessory",
+            "default_weight": 20,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 12 },
               { "weeks": [5], "sets": 2, "reps": 12 },
@@ -416,6 +422,7 @@
           {
             "exercise_id": "hip_thrust",
             "category": "compound_accessory",
+            "default_weight": 185,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": "8-10" },
               { "weeks": [5], "sets": 2, "reps": 8 },
@@ -428,6 +435,7 @@
           {
             "exercise_id": "close_stance_smith_squat",
             "category": "compound_accessory",
+            "default_weight": 135,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": "10-12" },
               { "weeks": [5], "sets": 2, "reps": 10 },
@@ -440,6 +448,7 @@
           {
             "exercise_id": "bulgarian_split_squat",
             "category": "compound_accessory",
+            "default_weight": 35,
             "targets": [
               { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 10, "notes": "per side" },
               { "weeks": [5], "sets": 2, "reps": 8, "notes": "per side" },
@@ -491,6 +500,7 @@
           {
             "exercise_id": "hip_adduction",
             "category": "accessory",
+            "default_weight": 50,
             "targets": [
               { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 3, "reps": 12 }
             ]
@@ -498,6 +508,7 @@
           {
             "exercise_id": "hip_abduction",
             "category": "accessory",
+            "default_weight": 50,
             "targets": [
               { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "sets": 3, "reps": 12 }
             ]
@@ -527,12 +538,12 @@
     },
 
     "exercise_definitions": [
-      { "id": "back_squat", "name": "Back Squat", "type": "main", "muscle_groups": ["quads", "glutes", "core"], "alternatives": ["front_squat", "zercher_squat"], "uses_1rm": true },
-      { "id": "weighted_pullup", "name": "Weighted Pull-up", "type": "main", "muscle_groups": ["lats", "biceps", "upper_back"], "uses_1rm": true },
-      { "id": "bench_press", "name": "Bench Press", "type": "main", "muscle_groups": ["chest", "triceps", "shoulders"], "uses_1rm": true },
-      { "id": "overhead_press", "name": "Overhead Press", "type": "main", "muscle_groups": ["shoulders", "triceps", "core"], "uses_1rm": true },
-      { "id": "zercher_squat", "name": "Zercher Squat", "type": "main", "muscle_groups": ["quads", "glutes", "core", "upper_back"], "alternatives": ["front_squat", "back_squat"], "uses_1rm": true },
-      { "id": "romanian_deadlift", "name": "Romanian Deadlift", "type": "main", "muscle_groups": ["hamstrings", "glutes", "lower_back"], "uses_1rm": true },
+      { "id": "back_squat", "name": "Back Squat", "type": "main", "muscle_groups": ["quads", "glutes", "core"], "alternatives": ["front_squat", "zercher_squat"], "uses_1rm": true, "one_rm": 315 },
+      { "id": "weighted_pullup", "name": "Weighted Pull-up", "type": "main", "muscle_groups": ["lats", "biceps", "upper_back"], "uses_1rm": true, "one_rm": 100 },
+      { "id": "bench_press", "name": "Bench Press", "type": "main", "muscle_groups": ["chest", "triceps", "shoulders"], "uses_1rm": true, "one_rm": 275 },
+      { "id": "overhead_press", "name": "Overhead Press", "type": "main", "muscle_groups": ["shoulders", "triceps", "core"], "uses_1rm": true, "one_rm": 155 },
+      { "id": "zercher_squat", "name": "Zercher Squat", "type": "main", "muscle_groups": ["quads", "glutes", "core", "upper_back"], "alternatives": ["front_squat", "back_squat"], "uses_1rm": true, "one_rm": 225 },
+      { "id": "romanian_deadlift", "name": "Romanian Deadlift", "type": "main", "muscle_groups": ["hamstrings", "glutes", "lower_back"], "uses_1rm": true, "one_rm": 275 },
 
       { "id": "broad_jump", "name": "Broad Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["box_jump"], "input_fields": [{ "type": "reps" }] },
       { "id": "box_jump", "name": "Box Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["broad_jump"], "input_fields": [{ "type": "reps" }] },

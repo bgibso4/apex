@@ -138,6 +138,8 @@ export default function HomeScreen() {
   }, [trainingDays]);
 
   // Build calendar days from monthSessions
+  const activeProgramId = program?.id ?? null;
+
   const calendarDays: MonthCalendarDay[] = useMemo(() => {
     const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
     const sessionsByDate = new Map<string, Session>();
@@ -163,10 +165,11 @@ export default function HomeScreen() {
         isTrainingDay,
         isCompleted,
         sessionId: isCompleted ? session?.id : undefined,
+        isCurrentProgram: isCompleted && activeProgramId ? session?.program_id === activeProgramId : undefined,
       });
     }
     return days;
-  }, [displayYear, displayMonth, monthSessions, trainingDayIndices]);
+  }, [displayYear, displayMonth, monthSessions, trainingDayIndices, activeProgramId]);
 
   const shouldAnimate = !hasAnimatedOnce;
 

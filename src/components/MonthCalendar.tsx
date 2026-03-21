@@ -21,6 +21,8 @@ export interface MonthCalendarDay {
   isCompleted: boolean;
   /** Session ID for completed sessions, used for navigation */
   sessionId?: string;
+  /** Whether this session belongs to the currently active program */
+  isCurrentProgram?: boolean;
 }
 
 export interface MonthCalendarProps {
@@ -149,7 +151,8 @@ export function MonthCalendar({
                 <View
                   style={[
                     styles.dayCircle,
-                    cell.isCompleted && styles.dayCircleCompleted,
+                    cell.isCompleted && cell.isCurrentProgram !== false && styles.dayCircleCompleted,
+                    cell.isCompleted && cell.isCurrentProgram === false && styles.dayCircleCompletedPast,
                     isToday && !cell.isCompleted && styles.dayCircleToday,
                     isToday && !cell.isCompleted && { borderColor: blockColor },
                   ]}
@@ -157,7 +160,8 @@ export function MonthCalendar({
                   <Text
                     style={[
                       styles.dayNumber,
-                      cell.isCompleted && styles.dayNumberCompleted,
+                      cell.isCompleted && cell.isCurrentProgram !== false && styles.dayNumberCompleted,
+                      cell.isCompleted && cell.isCurrentProgram === false && styles.dayNumberCompletedPast,
                       isToday && !cell.isCompleted && styles.dayNumberToday,
                       !cell.isTrainingDay && !isToday && !cell.isCompleted && styles.dayNumberRest,
                       cell.isTrainingDay && !cell.isCompleted && isPast && styles.dayNumberMissed,
@@ -301,6 +305,9 @@ const styles = StyleSheet.create({
   dayCircleCompleted: {
     backgroundColor: Colors.green,
   },
+  dayCircleCompletedPast: {
+    backgroundColor: `${Colors.green}50`,
+  },
   dayNumber: {
     fontSize: FontSize.sm,
     fontWeight: '500',
@@ -313,6 +320,10 @@ const styles = StyleSheet.create({
   dayNumberCompleted: {
     color: Colors.bg,
     fontWeight: '700',
+  },
+  dayNumberCompletedPast: {
+    color: Colors.bg,
+    fontWeight: '600',
   },
   dayNumberRest: {
     color: Colors.textMuted,

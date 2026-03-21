@@ -13,7 +13,7 @@ import { getBlockColor } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
 
 // Bundled program — loaded on first launch
-import FA_V2 from '../src/data/functional-athlete-v2.json';
+import FA_V2 from '../src/data/functional-athlete.json';
 
 export default function LibraryScreen() {
   const router = useRouter();

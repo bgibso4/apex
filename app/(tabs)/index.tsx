@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import { APEX_FONT_FAMILY } from '../../src/theme/fonts';
-import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange } from '../../src/db';
+import { getActiveProgram, getSessionsForWeek, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
@@ -65,7 +65,7 @@ export default function HomeScreen() {
       const sessions = await getSessionsForWeek(active.id, week);
       setWeekSessions(sessions);
 
-      const mSessions = await getSessionsForDateRange(active.id, startDate, endDate);
+      const mSessions = await getAllSessionsForDateRange(startDate, endDate);
       setMonthSessions(mSessions);
 
       // Check if today's session is completed (for TodayCard navigation)

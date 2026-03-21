@@ -7,6 +7,7 @@ import type { InputField } from './fields';
 
 export interface ProgramDefinition {
   program: {
+    id?: string;
     name: string;
     duration_weeks: number;
     created: string;

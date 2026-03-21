@@ -142,6 +142,11 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         } catch { /* skip if definition can't be parsed */ }
       }
     }
+    if (currentVersion < 10) {
+      try {
+        await db.execAsync('ALTER TABLE programs ADD COLUMN bundled_id TEXT');
+      } catch { /* already exists */ }
+    }
     // Safety net: ensure critical columns exist regardless of version
     // (handles databases where version was bumped but migrations were skipped)
     for (const col of ['notes TEXT', 'name TEXT', 'is_sample INTEGER DEFAULT 0']) {

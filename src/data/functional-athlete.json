@@ -1,5 +1,6 @@
 {
   "program": {
+    "id": "functional-athlete",
     "name": "Functional Athlete",
     "duration_weeks": 11,
     "created": "2026-02-23",

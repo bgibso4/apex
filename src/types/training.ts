@@ -11,6 +11,7 @@ export interface Program {
   status: 'inactive' | 'active' | 'completed' | 'archived';
   definition_json: string;
   activated_date?: string;
+  bundled_id?: string;
 }
 
 export interface Exercise {

@@ -306,7 +306,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.green,
   },
   dayCircleCompletedPast: {
-    backgroundColor: `${Colors.green}50`,
+    borderWidth: 1.5,
+    borderColor: Colors.green,
   },
   dayNumber: {
     fontSize: FontSize.sm,
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dayNumberCompletedPast: {
-    color: Colors.bg,
+    color: Colors.green,
     fontWeight: '600',
   },
   dayNumberRest: {

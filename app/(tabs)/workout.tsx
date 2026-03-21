@@ -105,6 +105,7 @@ export default function WorkoutScreen() {
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
         >
+          <Text style={styles.title}>Workout</Text>
           <View style={styles.emptyState}>
             <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
             <Text style={styles.emptyText}>No active program</Text>

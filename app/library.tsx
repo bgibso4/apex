@@ -27,9 +27,16 @@ export default function LibraryScreen() {
     const active = await getActiveProgram();
     setHasActive(!!active);
 
-    // Auto-import bundled program if nothing exists
-    if (all.length === 0) {
-      await importProgram(FA_V2 as unknown as ProgramDefinition);
+    // Auto-import bundled program if it doesn't exist yet (by bundled_id or name)
+    const bundledDef = FA_V2 as unknown as ProgramDefinition;
+    const bundledId = bundledDef.program.id;
+    const bundledName = bundledDef.program.name;
+    const alreadyImported = all.some(p => {
+      if (bundledId && p.bundled_id === bundledId) return true;
+      return p.name === bundledName;
+    });
+    if (!alreadyImported) {
+      await importProgram(bundledDef);
       const refreshed = await getAllPrograms();
       setPrograms(refreshed);
     }

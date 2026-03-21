@@ -13,7 +13,7 @@ import { getBlockColor } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
 
 // Bundled program — loaded on first launch
-import FA_V2 from '../src/data/functional-athlete-v2.json';
+import FA_V2 from '../src/data/functional-athlete.json';
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -27,9 +27,16 @@ export default function LibraryScreen() {
     const active = await getActiveProgram();
     setHasActive(!!active);
 
-    // Auto-import bundled program if nothing exists
-    if (all.length === 0) {
-      await importProgram(FA_V2 as unknown as ProgramDefinition);
+    // Auto-import bundled program if it doesn't exist yet (by bundled_id or name)
+    const bundledDef = FA_V2 as unknown as ProgramDefinition;
+    const bundledId = bundledDef.program.id;
+    const bundledName = bundledDef.program.name;
+    const alreadyImported = all.some(p => {
+      if (bundledId && p.bundled_id === bundledId) return true;
+      return p.name === bundledName;
+    });
+    if (!alreadyImported) {
+      await importProgram(bundledDef);
       const refreshed = await getAllPrograms();
       setPrograms(refreshed);
     }
@@ -53,8 +60,11 @@ export default function LibraryScreen() {
           )}
         </View>
 
-        {/* Program cards */}
-        {programs.map(p => {
+        {/* Program cards — activatable first, completed last */}
+        {[...programs].sort((a, b) => {
+          const order = { active: 0, inactive: 1, completed: 2, archived: 3 };
+          return (order[a.status] ?? 4) - (order[b.status] ?? 4);
+        }).map(p => {
           const isActive = p.status === 'active';
           const isCompleted = p.status === 'completed';
           let def: ProgramDefinition | null = null;
@@ -100,8 +110,8 @@ export default function LibraryScreen() {
                     >
                       <Text style={[styles.blockSegmentText, {
                         color: 'rgba(255,255,255,0.5)',
-                      }]}>
-                        {block.name.toUpperCase()}
+                      }]} numberOfLines={1}>
+                        {block.name.substring(0, 3).toUpperCase()}
                       </Text>
                     </View>
                   ))}

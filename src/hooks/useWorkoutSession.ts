@@ -29,6 +29,17 @@ import type { SetState } from '../components/ExerciseCard';
 import type { LibraryExercise } from '../data/exercise-library';
 import { useSessionTimer } from './useSessionTimer';
 
+/** Get the most frequently used weight from a set of logs */
+function getMostCommonWeight(sets: { actual_weight?: number | null }[]): number | undefined {
+  const weights = sets.map(s => s.actual_weight).filter((w): w is number => w != null && w > 0);
+  if (weights.length === 0) return undefined;
+  const counts = new Map<number, number>();
+  for (const w of weights) counts.set(w, (counts.get(w) || 0) + 1);
+  let best = weights[0], bestCount = 0;
+  for (const [w, c] of counts) { if (c > bestCount) { best = w; bestCount = c; } }
+  return best;
+}
+
 /** Check if override values meet or exceed all targets for a set */
 function checkHitTarget(vals: Record<string, number>, set: SetState): boolean {
   // Weight: actual >= target
@@ -231,7 +242,7 @@ export function useWorkoutSession() {
       }
 
       const lastSets = await getLastSessionForExercise(slot.exercise_id);
-      const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
+      const lastWeight = getMostCommonWeight(lastSets);
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
       const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
 
@@ -481,7 +492,7 @@ export function useWorkoutSession() {
       }
 
       const lastSets = await getLastSessionForExercise(slot.exercise_id);
-      const lastWeight = lastSets.length > 0 ? lastSets[0].actual_weight : undefined;
+      const lastWeight = getMostCommonWeight(lastSets);
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
       const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
 
@@ -737,40 +748,22 @@ export function useWorkoutSession() {
     const { exerciseIdx } = overrideModal;
     const ex = exercises[exerciseIdx];
 
+    const actualUpdates: Record<string, number | undefined> = {
+      actualWeight: overrideValues.weight,
+      actualReps: overrideValues.reps,
+      actualDistance: overrideValues.distance,
+      actualDuration: overrideValues.duration,
+      actualTime: overrideValues.time,
+    };
+
     for (let i = 0; i < ex.sets.length; i++) {
       const set = ex.sets[i];
-      const hitTarget = checkHitTarget(overrideValues, set);
-      const status: SetLog['status'] = hitTarget ? 'completed' : 'completed_below';
-
-      const actualUpdates: Record<string, number | undefined> = {
-        actualWeight: overrideValues.weight,
-        actualReps: overrideValues.reps,
-        actualDistance: overrideValues.distance,
-        actualDuration: overrideValues.duration,
-        actualTime: overrideValues.time,
-      };
 
       if (set.id) {
-        await updateSet(set.id, { ...actualUpdates, status });
+        // Already logged — update values only, keep existing status
+        await updateSet(set.id, actualUpdates);
       } else {
-        const setId = await logSet({
-          sessionId,
-          exerciseId: ex.slot.exercise_id,
-          setNumber: set.setNumber,
-          targetWeight: set.targetWeight,
-          targetReps: set.targetReps,
-          actualWeight: overrideValues.weight ?? set.actualWeight,
-          actualReps: overrideValues.reps ?? set.actualReps,
-          targetDistance: set.targetDistance,
-          actualDistance: overrideValues.distance ?? set.actualDistance,
-          targetDuration: set.targetDuration,
-          actualDuration: overrideValues.duration ?? set.actualDuration,
-          targetTime: set.targetTime,
-          actualTime: overrideValues.time ?? set.actualTime,
-          status,
-          isAdhoc: ex.isAdhoc,
-        });
-        ex.sets[i] = { ...ex.sets[i], id: setId };
+        // Not yet logged — just update the target values in local state, don't log or complete
       }
     }
 
@@ -778,18 +771,15 @@ export function useWorkoutSession() {
       const next = [...prev];
       next[exerciseIdx] = {
         ...next[exerciseIdx],
-        sets: next[exerciseIdx].sets.map(s => {
-          const hitTarget = checkHitTarget(overrideValues, s);
-          return {
-            ...s,
-            ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
-            ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
-            ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
-            ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
-            ...(overrideValues.time != null && { actualTime: overrideValues.time }),
-            status: hitTarget ? 'completed' as const : 'completed_below' as const,
-          };
-        }),
+        sets: next[exerciseIdx].sets.map(s => ({
+          ...s,
+          ...(overrideValues.weight != null && { actualWeight: overrideValues.weight }),
+          ...(overrideValues.reps != null && { actualReps: overrideValues.reps }),
+          ...(overrideValues.distance != null && { actualDistance: overrideValues.distance }),
+          ...(overrideValues.duration != null && { actualDuration: overrideValues.duration }),
+          ...(overrideValues.time != null && { actualTime: overrideValues.time }),
+          // Preserve existing status — don't mark sets complete
+        })),
       };
       return next;
     });

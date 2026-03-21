@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import { APEX_FONT_FAMILY } from '../../src/theme/fonts';
-import { getActiveProgram, getSessionsForWeek, getSessionsForDateRange, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange } from '../../src/db';
+import { getActiveProgram, getSessionsForWeek, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
@@ -65,7 +65,7 @@ export default function HomeScreen() {
       const sessions = await getSessionsForWeek(active.id, week);
       setWeekSessions(sessions);
 
-      const mSessions = await getSessionsForDateRange(active.id, startDate, endDate);
+      const mSessions = await getAllSessionsForDateRange(startDate, endDate);
       setMonthSessions(mSessions);
 
       // Check if today's session is completed (for TodayCard navigation)
@@ -138,6 +138,8 @@ export default function HomeScreen() {
   }, [trainingDays]);
 
   // Build calendar days from monthSessions
+  const activeProgramId = program?.id ?? null;
+
   const calendarDays: MonthCalendarDay[] = useMemo(() => {
     const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
     const sessionsByDate = new Map<string, Session>();
@@ -163,10 +165,11 @@ export default function HomeScreen() {
         isTrainingDay,
         isCompleted,
         sessionId: isCompleted ? session?.id : undefined,
+        isCurrentProgram: isCompleted && activeProgramId ? session?.program_id === activeProgramId : undefined,
       });
     }
     return days;
-  }, [displayYear, displayMonth, monthSessions, trainingDayIndices]);
+  }, [displayYear, displayMonth, monthSessions, trainingDayIndices, activeProgramId]);
 
   const shouldAnimate = !hasAnimatedOnce;
 

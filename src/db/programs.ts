@@ -31,12 +31,12 @@ export async function getAllPrograms(): Promise<Program[]> {
 export async function importProgram(definition: ProgramDefinition): Promise<string> {
   const db = await getDatabase();
   const id = generateId();
-  const { name, duration_weeks, created } = definition.program;
+  const { id: bundledId, name, duration_weeks, created } = definition.program;
 
   await db.runAsync(
-    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json)
-     VALUES (?, ?, ?, ?, 'inactive', ?)`,
-    [id, name, duration_weeks, created, JSON.stringify(definition)]
+    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, bundled_id)
+     VALUES (?, ?, ?, ?, 'inactive', ?, ?)`,
+    [id, name, duration_weeks, created, JSON.stringify(definition), bundledId ?? null]
   );
 
   // Upsert exercise definitions into global library
@@ -57,23 +57,32 @@ export async function importProgram(definition: ProgramDefinition): Promise<stri
 }
 
 /** Refresh an already-imported program's definition and exercise metadata.
- *  Updates definition_json and re-upserts exercise input_fields without
- *  touching activation state, sessions, or set logs. */
+ *  Matches by bundled_id (falls back to name for legacy programs).
+ *  Only updates active or inactive programs — completed programs are frozen. */
 export async function refreshBundledProgram(definition: ProgramDefinition): Promise<boolean> {
   const db = await getDatabase();
-  const { name } = definition.program;
+  const { id: bundledId, name } = definition.program;
 
-  // Find existing program by name
-  const existing = await db.getFirstAsync<{ id: string }>(
-    "SELECT id FROM programs WHERE name = ?",
-    [name]
-  );
+  // Match by bundled_id first, fall back to name for legacy programs
+  let existing: { id: string } | null = null;
+  if (bundledId) {
+    existing = await db.getFirstAsync<{ id: string }>(
+      "SELECT id FROM programs WHERE bundled_id = ? AND status IN ('active', 'inactive')",
+      [bundledId]
+    );
+  }
+  if (!existing) {
+    existing = await db.getFirstAsync<{ id: string }>(
+      "SELECT id FROM programs WHERE name = ? AND status IN ('active', 'inactive')",
+      [name]
+    );
+  }
   if (!existing) return false;
 
-  // Update the definition JSON
+  // Update the definition JSON, name, and bundled_id
   await db.runAsync(
-    "UPDATE programs SET definition_json = ? WHERE id = ?",
-    [JSON.stringify(definition), existing.id]
+    "UPDATE programs SET definition_json = ?, name = ?, bundled_id = ? WHERE id = ?",
+    [JSON.stringify(definition), name, bundledId ?? null, existing.id]
   );
 
   // Re-upsert exercise definitions (updates input_fields for existing exercises)

@@ -42,11 +42,23 @@ export interface ExerciseCardProps {
   nextUpLabel?: string;
 }
 
+function formatDuration(seconds: number): string {
+  if (seconds >= 100) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins}m${secs}s` : `${mins}m`;
+  }
+  return String(seconds);
+}
+
 function getSetValue(set: SetState, fieldType: FieldType): number | string {
   const key = fieldType.charAt(0).toUpperCase() + fieldType.slice(1);
   const actual = set[`actual${key}` as keyof SetState] as number | undefined;
   const target = set[`target${key}` as keyof SetState] as number | undefined;
-  return actual ?? target ?? '\u2014';
+  const value = actual ?? target;
+  if (value == null) return '\u2014';
+  if (fieldType === 'duration' || fieldType === 'time') return formatDuration(value);
+  return value;
 }
 
 export function ExerciseCard({

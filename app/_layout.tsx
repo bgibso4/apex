@@ -15,7 +15,7 @@ import { Colors } from '../src/theme';
 import { CUSTOM_FONTS } from '../src/theme/fonts';
 import { getDatabase, refreshBundledProgram } from '../src/db';
 import type { ProgramDefinition } from '../src/types';
-import FA_V2 from '../src/data/functional-athlete-v2.json';
+import FA_V2 from '../src/data/functional-athlete.json';
 import { SplashScreen } from '../src/components/SplashScreen';
 
 // Prevent the native splash from auto-hiding — we control it

@@ -1,0 +1,745 @@
+{
+  "program": {
+    "id": "functional-athlete",
+    "name": "Functional Athlete",
+    "duration_weeks": 11,
+    "created": "2026-02-23",
+
+    "blocks": [
+      {
+        "name": "Hypertrophy",
+        "weeks": [1, 2, 3, 4],
+        "emphasis": "work_capacity",
+        "main_lift_scheme": {
+          "progression": "weekly_weight",
+          "week_1": { "sets": 4, "reps": 8, "percent": 75, "rpe_target": "6-7" },
+          "week_2": { "sets": 4, "reps": 8, "percent": 77, "rpe_target": "7" },
+          "week_3": { "sets": 4, "reps": 8, "percent": 79, "rpe_target": "7-8" },
+          "week_4": { "sets": 4, "reps": 8, "percent": 81, "rpe_target": "8" }
+        },
+        "accessory_scheme": { "rep_target": "fixed", "rpe_target": "7-8", "notes": "Fixed rep target per exercise, auto-regulate weight" }
+      },
+      {
+        "name": "Deload",
+        "weeks": [5],
+        "emphasis": "recovery",
+        "main_lift_scheme": {
+          "week_5": { "sets": 3, "reps": 8, "percent": 65, "rpe_target": "4-5" }
+        },
+        "volume_modifier": 0.6,
+        "accessory_scheme": { "notes": "Drop 1 set per exercise, use lighter weight" }
+      },
+      {
+        "name": "Strength",
+        "weeks": [6, 7, 8, 9],
+        "emphasis": "strength",
+        "main_lift_scheme": {
+          "progression": "weekly_weight",
+          "week_6": { "sets": 4, "reps": 5, "percent": 80, "rpe_target": "7" },
+          "week_7": { "sets": 4, "reps": 5, "percent": 83, "rpe_target": "7-8" },
+          "week_8": { "sets": 4, "reps": 5, "percent": 85, "rpe_target": "8" },
+          "week_9": { "sets": 4, "reps": 5, "percent": 87, "rpe_target": "8-9" }
+        },
+        "accessory_scheme": { "rep_target": "fixed", "rpe_target": "7-8", "notes": "Same rep target as hypertrophy, auto-regulate weight" }
+      },
+      {
+        "name": "Deload",
+        "weeks": [10],
+        "emphasis": "recovery",
+        "main_lift_scheme": {
+          "week_10": { "sets": 3, "reps": 5, "percent": 70, "rpe_target": "4-5" }
+        },
+        "volume_modifier": 0.6,
+        "accessory_scheme": { "notes": "Drop 1 set per exercise, use lighter weight" }
+      },
+      {
+        "name": "Realization",
+        "weeks": [11],
+        "emphasis": "peak",
+        "main_lift_scheme": {
+          "week_11": { "sets": 3, "reps": 3, "percent": 90, "rpe_target": "8-9" }
+        },
+        "accessory_scheme": { "notes": "Same rep target, moderate weight, keep volume low" }
+      }
+    ],
+
+    "weekly_template": {
+      "saturday": { "type": "rest" },
+
+      "sunday": {
+        "name": "Athletic Power & Conditioning",
+        "locked": true,
+        "warmup": ["jump_rope", "full_ankle", "dynamic_warmup"],
+        "exercises": [
+          {
+            "exercise_id": "back_squat",
+            "category": "main",
+            "targets": [
+              { "weeks": [1], "sets": 4, "reps": 8, "percent": 75, "rpe_target": "6-7" },
+              { "weeks": [2], "sets": 4, "reps": 8, "percent": 77, "rpe_target": "7" },
+              { "weeks": [3], "sets": 4, "reps": 8, "percent": 79, "rpe_target": "7-8" },
+              { "weeks": [4], "sets": 4, "reps": 8, "percent": 81, "rpe_target": "8" },
+              { "weeks": [5], "sets": 3, "reps": 8, "percent": 65, "rpe_target": "4-5" },
+              { "weeks": [6], "sets": 4, "reps": 5, "percent": 80, "rpe_target": "7" },
+              { "weeks": [7], "sets": 4, "reps": 5, "percent": 83, "rpe_target": "7-8" },
+              { "weeks": [8], "sets": 4, "reps": 5, "percent": 85, "rpe_target": "8" },
+              { "weeks": [9], "sets": 4, "reps": 5, "percent": 87, "rpe_target": "8-9" },
+              { "weeks": [10], "sets": 3, "reps": 5, "percent": 70, "rpe_target": "4-5" },
+              { "weeks": [11], "sets": 3, "reps": 3, "percent": 90, "rpe_target": "8-9" }
+            ]
+          },
+          {
+            "exercise_id": "trap_bar_squat_to_box_jump",
+            "category": "power",
+            "default_weight": 185,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 4, "reps": 1, "notes": "3 trap bar squats + 1 box jump per set" },
+              { "weeks": [5], "sets": 3, "reps": 1, "notes": "3 trap bar squats + 1 box jump per set" },
+              { "weeks": [6, 7, 8, 9], "sets": 4, "reps": 1, "notes": "3 trap bar squats + 1 box jump per set" },
+              { "weeks": [10], "sets": 3, "reps": 1, "notes": "3 trap bar squats + 1 box jump per set" },
+              { "weeks": [11], "sets": 4, "reps": 1, "notes": "3 trap bar squats + 1 box jump per set" }
+            ]
+          },
+          {
+            "exercise_id": "skierg_intervals",
+            "category": "conditioning",
+            "superset_group": "sunday-triset",
+            "targets": [
+              { "weeks": [1, 2], "sets": 3, "values": { "distance": 250 }, "notes": "250m per round" },
+              { "weeks": [3, 4], "sets": 4, "values": { "distance": 250 }, "notes": "250m per round" },
+              { "weeks": [5], "sets": 2, "values": { "distance": 250 }, "notes": "250m per round" },
+              { "weeks": [6, 7], "sets": 4, "values": { "distance": 250 }, "notes": "250m per round" },
+              { "weeks": [8, 9], "sets": 5, "values": { "distance": 250 }, "notes": "250m per round" },
+              { "weeks": [10], "sets": 3, "values": { "distance": 250 }, "notes": "250m per round" },
+              { "weeks": [11], "sets": 6, "values": { "distance": 250 }, "notes": "250m per round" }
+            ]
+          },
+          {
+            "exercise_id": "farmers_carry",
+            "category": "conditioning",
+            "superset_group": "sunday-triset",
+            "default_weight": 88,
+            "targets": [
+              { "weeks": [1, 2], "sets": 3, "values": { "distance": 40 }, "notes": "40m per round, 88lb KBs" },
+              { "weeks": [3, 4], "sets": 4, "values": { "distance": 40 }, "notes": "40m per round, 88lb KBs" },
+              { "weeks": [5], "sets": 2, "values": { "distance": 40 }, "notes": "40m per round, 88lb KBs" },
+              { "weeks": [6, 7], "sets": 4, "values": { "distance": 40 }, "notes": "40m per round, 88lb KBs" },
+              { "weeks": [8, 9], "sets": 5, "values": { "distance": 40 }, "notes": "40m per round, 88lb KBs" },
+              { "weeks": [10], "sets": 3, "values": { "distance": 40 }, "notes": "40m per round, 88lb KBs" },
+              { "weeks": [11], "sets": 6, "values": { "distance": 40 }, "notes": "40m per round, 88lb KBs" }
+            ]
+          },
+          {
+            "exercise_id": "kb_swings_heavy",
+            "category": "conditioning",
+            "superset_group": "sunday-triset",
+            "default_weight": 88,
+            "targets": [
+              { "weeks": [1, 2], "sets": 3, "reps": 10, "notes": "88lb KB" },
+              { "weeks": [3, 4], "sets": 4, "reps": 10, "notes": "88lb KB" },
+              { "weeks": [5], "sets": 2, "reps": 10, "notes": "88lb KB" },
+              { "weeks": [6, 7], "sets": 4, "reps": 10, "notes": "88lb KB" },
+              { "weeks": [8, 9], "sets": 5, "reps": 10, "notes": "88lb KB" },
+              { "weeks": [10], "sets": 3, "reps": 10, "notes": "88lb KB" },
+              { "weeks": [11], "sets": 6, "reps": 10, "notes": "88lb KB" }
+            ]
+          },
+          {
+            "exercise_id": "lying_leg_curl",
+            "category": "accessory",
+            "default_weight": 100,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 15 },
+              { "weeks": [5], "sets": 2, "reps": 15 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 15 },
+              { "weeks": [10], "sets": 2, "reps": 15 },
+              { "weeks": [11], "sets": 3, "reps": 15 }
+            ],
+            "alternatives": ["nordic_curl"]
+          }
+        ],
+        "conditioning_finisher": "5-8 min: Assault Bike, Row, or Speed Rope",
+        "notes": "Tri-set: cycle SkiErg 250m → Farmer's Carry 40m → KB Swings ×10 with minimal rest. Highest intensity day."
+      },
+
+      "monday": {
+        "name": "Upper Strength — Heavy Pull",
+        "warmup": ["jump_rope", "abbreviated_ankle", "dynamic_warmup"],
+        "exercises": [
+          {
+            "exercise_id": "weighted_pullup",
+            "category": "accessory",
+            "default_weight": 35,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 8 },
+              { "weeks": [5], "sets": 2, "reps": 8 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 8 },
+              { "weeks": [10], "sets": 2, "reps": 8 },
+              { "weeks": [11], "sets": 3, "reps": 8 }
+            ]
+          },
+          {
+            "exercise_id": "bench_press",
+            "category": "main",
+            "targets": [
+              { "weeks": [1], "sets": 4, "reps": 8, "percent": 75, "rpe_target": "6-7" },
+              { "weeks": [2], "sets": 4, "reps": 8, "percent": 77, "rpe_target": "7" },
+              { "weeks": [3], "sets": 4, "reps": 8, "percent": 79, "rpe_target": "7-8" },
+              { "weeks": [4], "sets": 4, "reps": 8, "percent": 81, "rpe_target": "8" },
+              { "weeks": [5], "sets": 3, "reps": 8, "percent": 65, "rpe_target": "4-5" },
+              { "weeks": [6], "sets": 4, "reps": 5, "percent": 80, "rpe_target": "7" },
+              { "weeks": [7], "sets": 4, "reps": 5, "percent": 83, "rpe_target": "7-8" },
+              { "weeks": [8], "sets": 4, "reps": 5, "percent": 85, "rpe_target": "8" },
+              { "weeks": [9], "sets": 4, "reps": 5, "percent": 87, "rpe_target": "8-9" },
+              { "weeks": [10], "sets": 3, "reps": 5, "percent": 70, "rpe_target": "4-5" },
+              { "weeks": [11], "sets": 3, "reps": 3, "percent": 90, "rpe_target": "8-9" }
+            ]
+          },
+          {
+            "exercise_id": "barbell_row",
+            "category": "main",
+            "targets": [
+              { "weeks": [1], "sets": 4, "reps": 8, "percent": 75, "rpe_target": "6-7" },
+              { "weeks": [2], "sets": 4, "reps": 8, "percent": 77, "rpe_target": "7" },
+              { "weeks": [3], "sets": 4, "reps": 8, "percent": 79, "rpe_target": "7-8" },
+              { "weeks": [4], "sets": 4, "reps": 8, "percent": 81, "rpe_target": "8" },
+              { "weeks": [5], "sets": 3, "reps": 8, "percent": 65, "rpe_target": "4-5" },
+              { "weeks": [6], "sets": 4, "reps": 5, "percent": 80, "rpe_target": "7" },
+              { "weeks": [7], "sets": 4, "reps": 5, "percent": 83, "rpe_target": "7-8" },
+              { "weeks": [8], "sets": 4, "reps": 5, "percent": 85, "rpe_target": "8" },
+              { "weeks": [9], "sets": 4, "reps": 5, "percent": 87, "rpe_target": "8-9" },
+              { "weeks": [10], "sets": 3, "reps": 5, "percent": 70, "rpe_target": "4-5" },
+              { "weeks": [11], "sets": 3, "reps": 3, "percent": 90, "rpe_target": "8-9" }
+            ]
+          },
+          {
+            "exercise_id": "face_pulls",
+            "category": "accessory",
+            "default_weight": 40,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 15 },
+              { "weeks": [5], "sets": 2, "reps": 15 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 15 },
+              { "weeks": [10], "sets": 2, "reps": 15 },
+              { "weeks": [11], "sets": 3, "reps": 15 }
+            ]
+          },
+          {
+            "exercise_id": "farmers_carry",
+            "category": "accessory",
+            "default_weight": 88,
+            "superset_group": "monday-carry-curl",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "values": { "distance": 40 }, "notes": "40m, 88lb KBs" },
+              { "weeks": [5], "sets": 2, "values": { "distance": 40 }, "notes": "40m, 88lb KBs" },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "values": { "distance": 40 }, "notes": "40m, 88lb KBs" },
+              { "weeks": [10], "sets": 2, "values": { "distance": 40 }, "notes": "40m, 88lb KBs" },
+              { "weeks": [11], "sets": 3, "values": { "distance": 40 }, "notes": "40m, 88lb KBs" }
+            ]
+          },
+          {
+            "exercise_id": "db_curls",
+            "category": "accessory",
+            "default_weight": 35,
+            "superset_group": "monday-carry-curl",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 2, "reps": 12 },
+              { "weeks": [5], "sets": 2, "reps": 12 },
+              { "weeks": [6, 7, 8, 9], "sets": 2, "reps": 12 },
+              { "weeks": [10], "sets": 2, "reps": 12 },
+              { "weeks": [11], "sets": 2, "reps": 12 }
+            ]
+          },
+          {
+            "exercise_id": "core_circuit",
+            "category": "core",
+            "targets": [
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "sets": 3, "reps": 1, "notes": "2-3 exercises" }
+            ]
+          }
+        ],
+        "conditioning_finisher": "5-8 min: KB Swings, Row, or Assault Bike",
+        "notes": "Heavy pulling day. Bench and barbell rows are the main lifts. Pull-ups are accessory."
+      },
+
+      "tuesday": {
+        "name": "Run + Movement",
+        "warmup": ["jump_rope", "full_ankle_plus_mobility"],
+        "exercises": [
+          {
+            "exercise_id": "easy_run",
+            "category": "conditioning",
+            "targets": [
+              { "weeks": [1, 2], "sets": 1, "values": { "duration": 900 }, "notes": "15 min easy" },
+              { "weeks": [3], "sets": 1, "values": { "duration": 1080 }, "notes": "18 min easy" },
+              { "weeks": [4], "sets": 1, "values": { "duration": 1200 }, "notes": "20 min easy" },
+              { "weeks": [5], "sets": 1, "values": { "duration": 720 }, "notes": "12 min very easy" },
+              { "weeks": [6], "sets": 1, "values": { "duration": 1200 }, "notes": "20 min easy" },
+              { "weeks": [7], "sets": 1, "values": { "duration": 1320 }, "notes": "22 min easy" },
+              { "weeks": [8], "sets": 1, "values": { "duration": 1320 }, "notes": "22 min + 3-4 pickups" },
+              { "weeks": [9], "sets": 1, "values": { "duration": 1500 }, "notes": "25 min + 4-5 pickups" },
+              { "weeks": [10], "sets": 1, "values": { "duration": 720 }, "notes": "12 min very easy" },
+              { "weeks": [11], "sets": 1, "values": { "duration": 1500 }, "notes": "25 min + pickups" }
+            ]
+          },
+          {
+            "exercise_id": "cossack_squat_bw",
+            "category": "movement",
+            "targets": [
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "sets": 2, "reps": 6, "notes": "per side" }
+            ]
+          },
+          {
+            "exercise_id": "hip_mobility_flow",
+            "category": "movement",
+            "targets": [
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "sets": 1, "values": { "duration": 390 }, "notes": "5-8 min" }
+            ]
+          }
+        ],
+        "run_progression": {
+          "week_1": { "duration_min": 15, "type": "easy" },
+          "week_2": { "duration_min": 15, "type": "easy" },
+          "week_3": { "duration_min": 18, "type": "easy" },
+          "week_4": { "duration_min": 20, "type": "easy" },
+          "week_5": { "duration_min": 12, "type": "easy" },
+          "week_6": { "duration_min": 20, "type": "easy" },
+          "week_7": { "duration_min": 22, "type": "easy" },
+          "week_8": { "duration_min": 22, "type": "easy_with_pickups", "pickups": 4 },
+          "week_9": { "duration_min": 25, "type": "easy_with_pickups", "pickups": 5 },
+          "week_10": { "duration_min": 12, "type": "easy" },
+          "week_11": { "duration_min": 25, "type": "easy_with_pickups", "pickups": 5 }
+        },
+        "notes": "Full ankle protocol + lower body mobilization BEFORE running. Keep pace genuinely easy."
+      },
+
+      "wednesday": {
+        "name": "Upper Power — Push/Explosive",
+        "warmup": ["jump_rope", "abbreviated_ankle", "dynamic_warmup"],
+        "exercises": [
+          {
+            "exercise_id": "db_hang_high_pull",
+            "category": "power",
+            "default_weight": 65,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 4, "reps": 4 },
+              { "weeks": [5], "sets": 3, "reps": 3 },
+              { "weeks": [6, 7, 8, 9], "sets": 4, "reps": 3 },
+              { "weeks": [10], "sets": 3, "reps": 3 },
+              { "weeks": [11], "sets": 3, "reps": 3 }
+            ]
+          },
+          {
+            "exercise_id": "overhead_press",
+            "category": "main",
+            "targets": [
+              { "weeks": [1], "sets": 4, "reps": 8, "percent": 75, "rpe_target": "6-7" },
+              { "weeks": [2], "sets": 4, "reps": 8, "percent": 77, "rpe_target": "7" },
+              { "weeks": [3], "sets": 4, "reps": 8, "percent": 79, "rpe_target": "7-8" },
+              { "weeks": [4], "sets": 4, "reps": 8, "percent": 81, "rpe_target": "8" },
+              { "weeks": [5], "sets": 3, "reps": 8, "percent": 65, "rpe_target": "4-5" },
+              { "weeks": [6], "sets": 4, "reps": 5, "percent": 80, "rpe_target": "7" },
+              { "weeks": [7], "sets": 4, "reps": 5, "percent": 83, "rpe_target": "7-8" },
+              { "weeks": [8], "sets": 4, "reps": 5, "percent": 85, "rpe_target": "8" },
+              { "weeks": [9], "sets": 4, "reps": 5, "percent": 87, "rpe_target": "8-9" },
+              { "weeks": [10], "sets": 3, "reps": 5, "percent": 70, "rpe_target": "4-5" },
+              { "weeks": [11], "sets": 3, "reps": 3, "percent": 90, "rpe_target": "8-9" }
+            ]
+          },
+          {
+            "exercise_id": "incline_db_press",
+            "category": "accessory",
+            "default_weight": 85,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 8 },
+              { "weeks": [5], "sets": 2, "reps": 8 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 8 },
+              { "weeks": [10], "sets": 2, "reps": 8 },
+              { "weeks": [11], "sets": 3, "reps": 8 }
+            ]
+          },
+          {
+            "exercise_id": "lateral_raises",
+            "category": "accessory",
+            "default_weight": 25,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 10 },
+              { "weeks": [5], "sets": 2, "reps": 10 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 10 },
+              { "weeks": [10], "sets": 2, "reps": 10 },
+              { "weeks": [11], "sets": 3, "reps": 10 }
+            ]
+          },
+          {
+            "exercise_id": "tricep_pushdown",
+            "category": "accessory",
+            "default_weight": 60,
+            "superset_group": "wednesday-tricep",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 8 },
+              { "weeks": [5], "sets": 2, "reps": 8 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 8 },
+              { "weeks": [10], "sets": 2, "reps": 8 },
+              { "weeks": [11], "sets": 3, "reps": 8 }
+            ]
+          },
+          {
+            "exercise_id": "overhead_tricep_extension",
+            "category": "accessory",
+            "default_weight": 45,
+            "superset_group": "wednesday-tricep",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 8 },
+              { "weeks": [5], "sets": 2, "reps": 8 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 8 },
+              { "weeks": [10], "sets": 2, "reps": 8 },
+              { "weeks": [11], "sets": 3, "reps": 8 }
+            ]
+          },
+          {
+            "exercise_id": "plyo_pushup",
+            "category": "power",
+            "superset_group": "wednesday-plyo-lat",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 4, "reps": 5 },
+              { "weeks": [5], "sets": 2, "reps": 3 },
+              { "weeks": [6, 7, 8, 9], "sets": 4, "reps": 5 },
+              { "weeks": [10], "sets": 2, "reps": 3 },
+              { "weeks": [11], "sets": 3, "reps": 5 }
+            ]
+          },
+          {
+            "exercise_id": "lat_pulldown",
+            "category": "accessory",
+            "default_weight": 125,
+            "superset_group": "wednesday-plyo-lat",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 4, "reps": 8, "notes": "Hammer machine, 125 per side" },
+              { "weeks": [5], "sets": 2, "reps": 8, "notes": "Hammer machine, 125 per side" },
+              { "weeks": [6, 7, 8, 9], "sets": 4, "reps": 8, "notes": "Hammer machine, 125 per side" },
+              { "weeks": [10], "sets": 2, "reps": 8, "notes": "Hammer machine, 125 per side" },
+              { "weeks": [11], "sets": 4, "reps": 8, "notes": "Hammer machine, 125 per side" }
+            ]
+          },
+          {
+            "exercise_id": "core_circuit",
+            "category": "core",
+            "targets": [
+              { "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "sets": 3, "reps": 1, "notes": "2-3 exercises" }
+            ]
+          }
+        ],
+        "conditioning_finisher": "5-8 min: Jump Rope, Assault Bike, or Row",
+        "notes": "Push and explosive dominant. DB High Pulls go FIRST when nervous system is freshest."
+      },
+
+      "thursday": {
+        "name": "Lower Strength & Development",
+        "warmup": ["jump_rope", "full_ankle", "dynamic_warmup"],
+        "exercises": [
+          {
+            "exercise_id": "zercher_squat",
+            "category": "main",
+            "alternatives": ["front_squat"],
+            "targets": [
+              { "weeks": [1], "sets": 4, "reps": 8, "percent": 75, "rpe_target": "6-7" },
+              { "weeks": [2], "sets": 4, "reps": 8, "percent": 77, "rpe_target": "7" },
+              { "weeks": [3], "sets": 4, "reps": 8, "percent": 79, "rpe_target": "7-8" },
+              { "weeks": [4], "sets": 4, "reps": 8, "percent": 81, "rpe_target": "8" },
+              { "weeks": [5], "sets": 3, "reps": 8, "percent": 65, "rpe_target": "4-5" },
+              { "weeks": [6], "sets": 4, "reps": 5, "percent": 80, "rpe_target": "7" },
+              { "weeks": [7], "sets": 4, "reps": 5, "percent": 83, "rpe_target": "7-8" },
+              { "weeks": [8], "sets": 4, "reps": 5, "percent": 85, "rpe_target": "8" },
+              { "weeks": [9], "sets": 4, "reps": 5, "percent": 87, "rpe_target": "8-9" },
+              { "weeks": [10], "sets": 3, "reps": 5, "percent": 70, "rpe_target": "4-5" },
+              { "weeks": [11], "sets": 3, "reps": 3, "percent": 90, "rpe_target": "8-9" }
+            ]
+          },
+          {
+            "exercise_id": "hip_thrust",
+            "category": "accessory",
+            "default_weight": 245,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 12 },
+              { "weeks": [5], "sets": 2, "reps": 12 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 12 },
+              { "weeks": [10], "sets": 2, "reps": 12 },
+              { "weeks": [11], "sets": 3, "reps": 12 }
+            ]
+          },
+          {
+            "exercise_id": "bulgarian_split_squat",
+            "category": "accessory",
+            "default_weight": 63,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 8, "notes": "per side, KBs" },
+              { "weeks": [5], "sets": 2, "reps": 8, "notes": "per side, KBs" },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 8, "notes": "per side, KBs" },
+              { "weeks": [10], "sets": 2, "reps": 8, "notes": "per side, KBs" },
+              { "weeks": [11], "sets": 3, "reps": 8, "notes": "per side, KBs" }
+            ]
+          },
+          {
+            "exercise_id": "romanian_deadlift",
+            "category": "main",
+            "targets": [
+              { "weeks": [1], "sets": 4, "reps": 8, "percent": 75, "rpe_target": "6-7" },
+              { "weeks": [2], "sets": 4, "reps": 8, "percent": 77, "rpe_target": "7" },
+              { "weeks": [3], "sets": 4, "reps": 8, "percent": 79, "rpe_target": "7-8" },
+              { "weeks": [4], "sets": 4, "reps": 8, "percent": 81, "rpe_target": "8" },
+              { "weeks": [5], "sets": 3, "reps": 8, "percent": 65, "rpe_target": "4-5" },
+              { "weeks": [6], "sets": 4, "reps": 5, "percent": 80, "rpe_target": "7" },
+              { "weeks": [7], "sets": 4, "reps": 5, "percent": 83, "rpe_target": "7-8" },
+              { "weeks": [8], "sets": 4, "reps": 5, "percent": 85, "rpe_target": "8" },
+              { "weeks": [9], "sets": 4, "reps": 5, "percent": 87, "rpe_target": "8-9" },
+              { "weeks": [10], "sets": 3, "reps": 5, "percent": 70, "rpe_target": "4-5" },
+              { "weeks": [11], "sets": 3, "reps": 3, "percent": 90, "rpe_target": "8-9" }
+            ]
+          },
+          {
+            "exercise_id": "close_stance_smith_squat",
+            "category": "accessory",
+            "default_weight": 225,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 8, "notes": "Burnout set" },
+              { "weeks": [5], "sets": 2, "reps": 8, "notes": "Burnout set" },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 8, "notes": "Burnout set" },
+              { "weeks": [10], "sets": 2, "reps": 8, "notes": "Burnout set" },
+              { "weeks": [11], "sets": 3, "reps": 8, "notes": "Burnout set" }
+            ]
+          }
+        ],
+        "conditioning_finisher": "Row",
+        "notes": "96 hours from Sunday's heavy squats. Zercher/Front differentiates from Sunday back squats."
+      },
+
+      "friday": {
+        "name": "Athletic Lower & Agility",
+        "warmup": ["jump_rope", "full_ankle", "dynamic_warmup", "agility_drills"],
+        "exercises": [
+          {
+            "exercise_id": "box_jump",
+            "category": "power",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 4, "reps": 4 },
+              { "weeks": [5], "sets": 3, "reps": 3 },
+              { "weeks": [6, 7, 8, 9], "sets": 4, "reps": 4 },
+              { "weeks": [10], "sets": 3, "reps": 3 },
+              { "weeks": [11], "sets": 4, "reps": 4 }
+            ]
+          },
+          {
+            "exercise_id": "landmine_explosive_row",
+            "category": "power",
+            "default_weight": 45,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 12, "notes": "45 plate, one-arm row to press transition" },
+              { "weeks": [5], "sets": 2, "reps": 12, "notes": "45 plate, one-arm row to press transition" },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 12, "notes": "45 plate, one-arm row to press transition" },
+              { "weeks": [10], "sets": 2, "reps": 12, "notes": "45 plate, one-arm row to press transition" },
+              { "weeks": [11], "sets": 3, "reps": 12, "notes": "45 plate, one-arm row to press transition" }
+            ]
+          },
+          {
+            "exercise_id": "cossack_squat",
+            "category": "movement",
+            "default_weight": 50,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 8, "notes": "per side, 50lb DB/KB" },
+              { "weeks": [5], "sets": 2, "reps": 8, "notes": "per side, 50lb DB/KB" },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 8, "notes": "per side, 50lb DB/KB" },
+              { "weeks": [10], "sets": 2, "reps": 8, "notes": "per side, 50lb DB/KB" },
+              { "weeks": [11], "sets": 3, "reps": 8, "notes": "per side, 50lb DB/KB" }
+            ]
+          },
+          {
+            "exercise_id": "hip_abduction",
+            "category": "accessory",
+            "default_weight": 120,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 12 },
+              { "weeks": [5], "sets": 2, "reps": 12 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 12 },
+              { "weeks": [10], "sets": 2, "reps": 12 },
+              { "weeks": [11], "sets": 3, "reps": 12 }
+            ]
+          },
+          {
+            "exercise_id": "hip_adduction",
+            "category": "accessory",
+            "default_weight": 110,
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 12 },
+              { "weeks": [5], "sets": 2, "reps": 12 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 12 },
+              { "weeks": [10], "sets": 2, "reps": 12 },
+              { "weeks": [11], "sets": 3, "reps": 12 }
+            ]
+          },
+          {
+            "exercise_id": "pogo_hops",
+            "category": "power",
+            "targets": [
+              { "weeks": [1, 2, 3, 4], "sets": 3, "reps": 15 },
+              { "weeks": [5], "sets": 2, "reps": 15 },
+              { "weeks": [6, 7, 8, 9], "sets": 3, "reps": 15 },
+              { "weeks": [10], "sets": 2, "reps": 15 },
+              { "weeks": [11], "sets": 3, "reps": 15 }
+            ]
+          }
+        ],
+        "notes": "Movement quality day, not heavy loading. Shortest day at ~60-70 min."
+      }
+    },
+
+    "exercise_definitions": [
+      { "id": "back_squat", "name": "Back Squat", "type": "main", "muscle_groups": ["quads", "glutes", "core"], "alternatives": ["front_squat", "zercher_squat"], "uses_1rm": true, "one_rm": 315 },
+      { "id": "weighted_pullup", "name": "Weighted Pull-up", "type": "accessory", "muscle_groups": ["lats", "biceps", "upper_back"] },
+      { "id": "bench_press", "name": "Bench Press", "type": "main", "muscle_groups": ["chest", "triceps", "shoulders"], "uses_1rm": true, "one_rm": 315 },
+      { "id": "overhead_press", "name": "Overhead Press", "type": "main", "muscle_groups": ["shoulders", "triceps", "core"], "uses_1rm": true, "one_rm": 180 },
+      { "id": "zercher_squat", "name": "Zercher Squat", "type": "main", "muscle_groups": ["quads", "glutes", "core", "upper_back"], "alternatives": ["front_squat", "back_squat"], "uses_1rm": true, "one_rm": 225 },
+      { "id": "romanian_deadlift", "name": "Romanian Deadlift", "type": "main", "muscle_groups": ["hamstrings", "glutes", "lower_back"], "uses_1rm": true, "one_rm": 205 },
+
+      { "id": "broad_jump", "name": "Broad Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["box_jump"], "input_fields": [{ "type": "reps" }] },
+      { "id": "box_jump", "name": "Box Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves"], "alternatives": ["broad_jump"], "input_fields": [{ "type": "reps" }] },
+      { "id": "db_hang_high_pull", "name": "DB Hang High Pull", "type": "power", "muscle_groups": ["traps", "shoulders", "upper_back"] },
+      { "id": "plyo_pushup", "name": "Plyo Push-up", "type": "power", "muscle_groups": ["chest", "triceps"], "input_fields": [{ "type": "reps" }] },
+      { "id": "pogo_hops", "name": "Pogo Hops", "type": "power", "muscle_groups": ["calves", "ankles"], "input_fields": [{ "type": "reps" }] },
+      { "id": "landmine_explosive_row", "name": "Landmine Explosive Row", "type": "power", "muscle_groups": ["upper_back", "shoulders", "core", "glutes"], "notes": "T-bar attachment, one-arm explosive row to press transition" },
+      { "id": "trap_bar_squat_to_box_jump", "name": "Trap Bar Squat to Box Jump", "type": "power", "muscle_groups": ["quads", "glutes", "calves", "core"], "notes": "Contrast set: 3 trap bar squats then 1 explosive box jump" },
+
+      { "id": "barbell_row", "name": "Barbell Row", "type": "main", "muscle_groups": ["upper_back", "lats", "biceps"], "uses_1rm": true, "one_rm": 245 },
+      { "id": "face_pulls", "name": "Face Pulls", "type": "accessory", "muscle_groups": ["rear_delts", "upper_back"] },
+      { "id": "curls", "name": "Curls", "type": "accessory", "muscle_groups": ["biceps"] },
+      { "id": "db_curls", "name": "DB Curls", "type": "accessory", "muscle_groups": ["biceps"] },
+      { "id": "incline_db_press", "name": "Incline DB Press", "type": "accessory", "muscle_groups": ["upper_chest", "shoulders", "triceps"] },
+      { "id": "lateral_raises", "name": "Lateral Raises", "type": "accessory", "muscle_groups": ["lateral_delts"] },
+      { "id": "tricep_dips", "name": "Dips / Tricep Work", "type": "accessory", "muscle_groups": ["triceps", "chest"], "alternatives": ["tricep_pushdowns"] },
+      { "id": "tricep_pushdown", "name": "Tricep Pushdown", "type": "accessory", "muscle_groups": ["triceps"] },
+      { "id": "overhead_tricep_extension", "name": "Overhead Tricep Extension", "type": "accessory", "muscle_groups": ["triceps"] },
+      { "id": "lat_pulldown", "name": "Lat Pulldown", "type": "accessory", "muscle_groups": ["lats", "upper_back", "biceps"], "notes": "Hammer machine, track weight per side" },
+      { "id": "hip_thrust", "name": "Hip Thrust", "type": "accessory", "muscle_groups": ["glutes", "hamstrings"] },
+      { "id": "close_stance_smith_squat", "name": "Close-Stance Smith Squat", "type": "accessory", "muscle_groups": ["quads"] },
+      { "id": "bulgarian_split_squat", "name": "Bulgarian Split Squat", "type": "accessory", "muscle_groups": ["quads", "glutes"] },
+      { "id": "nordic_curl", "name": "Nordic Hamstring Curl", "type": "accessory", "muscle_groups": ["hamstrings"], "alternatives": ["lying_leg_curl"], "input_fields": [{ "type": "reps" }] },
+      { "id": "lying_leg_curl", "name": "Lying Leg Curl", "type": "accessory", "muscle_groups": ["hamstrings"], "alternatives": ["nordic_curl"] },
+      { "id": "hip_adduction", "name": "Hip Adduction", "type": "accessory", "muscle_groups": ["adductors"] },
+      { "id": "hip_abduction", "name": "Hip Abduction", "type": "accessory", "muscle_groups": ["abductors", "glutes"] },
+      { "id": "cossack_squat", "name": "Cossack Squat", "type": "movement", "muscle_groups": ["quads", "adductors", "ankles"] },
+      { "id": "cossack_squat_bw", "name": "Cossack Squat (BW)", "type": "movement", "muscle_groups": ["quads", "adductors", "ankles"], "input_fields": [{ "type": "reps" }] },
+
+      { "id": "skierg_intervals", "name": "SkiErg Intervals", "type": "conditioning", "muscle_groups": ["full_body"], "input_fields": [{ "type": "distance", "unit": "m" }] },
+      { "id": "farmers_carry", "name": "Farmer's Carry", "type": "conditioning", "muscle_groups": ["grip", "core", "traps"], "input_fields": [{ "type": "weight", "unit": "lbs" }, { "type": "distance", "unit": "m" }] },
+      { "id": "light_farmers_carry", "name": "Light Farmer's Carry", "type": "conditioning", "muscle_groups": ["grip", "core"], "input_fields": [{ "type": "weight", "unit": "lbs" }, { "type": "distance", "unit": "m" }] },
+      { "id": "sled_push", "name": "Sled Push", "type": "conditioning", "muscle_groups": ["quads", "glutes"], "alternatives": ["kb_swings_heavy"], "input_fields": [{ "type": "weight", "unit": "lbs" }, { "type": "distance", "unit": "m" }] },
+      { "id": "kb_swings_heavy", "name": "KB Swings (Heavy)", "type": "conditioning", "muscle_groups": ["hamstrings", "glutes", "core"] },
+      { "id": "easy_run", "name": "Easy Run", "type": "conditioning", "muscle_groups": ["cardio", "legs"], "input_fields": [{ "type": "duration", "unit": "sec" }] },
+      { "id": "agility_drills", "name": "Agility Drills", "type": "movement", "muscle_groups": ["ankles", "coordination"], "input_fields": [{ "type": "duration", "unit": "sec" }], "notes": "No equipment needed. Options: lateral shuffles, carioca/grapevine, quick feet in place, skater bounds, lateral hops over a line, 180-degree squat jumps, single-leg lateral hops" },
+      { "id": "hip_mobility_flow", "name": "Hip Mobility Flow", "type": "movement", "muscle_groups": ["hips"], "input_fields": [{ "type": "duration", "unit": "sec" }] },
+
+      { "id": "core_circuit", "name": "Core Circuit", "type": "core", "muscle_groups": ["core"], "input_fields": [{ "type": "reps" }] }
+    ],
+
+    "warmup_protocols": {
+      "jump_rope": {
+        "name": "Jump Rope",
+        "duration_min": 3,
+        "steps": [
+          {
+            "name": "Jump Rope",
+            "prescription": "3 min continuous",
+            "notes": "Any style — single bounce, alternating, or mixed"
+          }
+        ]
+      },
+      "hip_ir_mobility": {
+        "name": "Hip IR Mobility",
+        "duration_min": 5,
+        "steps": [
+          {
+            "name": "Hip IR Mobility Work",
+            "prescription": "5 min",
+            "notes": "90/90 position, internal rotation stretches"
+          }
+        ]
+      },
+      "full_ankle": {
+        "name": "Full Ankle Protocol",
+        "duration_min": 10,
+        "steps": [
+          { "name": "Plantar Fascia Roll", "prescription": "30 sec/foot", "notes": "Lacrosse ball or golf ball on hard surface", "progression": "Increase pressure over weeks" },
+          { "name": "Calf SMR", "prescription": "30 sec/side", "notes": "Foam roller or lacrosse ball", "progression": "Add ankle circles while rolling" },
+          { "name": "Banded Ankle Mobilization", "prescription": "2×10 reps/side", "notes": "Band anchored low, drive knee forward over toes", "progression": "Add weight Wk 5+ (hold KB)" },
+          { "name": "Short Foot Exercise (Doming)", "prescription": "3×8 sec holds", "notes": "Wk 1-4: seated → Wk 5-8: standing → Wk 9-12: single-leg", "progression": "Most important foot exercise" },
+          { "name": "Toe Yoga", "prescription": "2×8 reps", "notes": "Big toe up/small toes down, then switch", "progression": "Add tempo holds Wk 5+" },
+          { "name": "Single-Leg Balance", "prescription": "2×20 sec/side", "notes": "Wk 1-4: eyes open → Wk 5-8: eyes closed → Wk 9-12: unstable", "progression": "Progress surface difficulty" },
+          { "name": "Wall Ankle Mobilization (K2W)", "prescription": "2×10 reps/side", "notes": "Knee tracks over 2nd-3rd toe, measure distance", "progression": "Track cm improvement" },
+          { "name": "Barefoot Cossack Squat", "prescription": "1×5/side", "notes": "Bodyweight only, full depth", "progression": "Add load Wk 9+" }
+        ]
+      },
+      "abbreviated_ankle": {
+        "name": "Abbreviated Ankle Protocol",
+        "duration_min": 5,
+        "steps": [
+          { "name": "Plantar Fascia Roll", "prescription": "30 sec/foot", "notes": "Quick pass" },
+          { "name": "Short Foot Exercise (Standing)", "prescription": "2×8 sec holds", "notes": "Standing bilateral" },
+          { "name": "Toe Yoga", "prescription": "1×8 reps", "notes": "Quick set" },
+          { "name": "Wall Ankle Mobilization (3-way)", "prescription": "8 reps each direction/side", "notes": "Straight, inside, outside" },
+          { "name": "Single-Leg Balance (Eyes Closed)", "prescription": "2×15 sec/side", "notes": "Challenge proprioception" }
+        ]
+      },
+      "dynamic_warmup": {
+        "name": "Dynamic Warmup",
+        "duration_min": 5,
+        "notes": "Session-specific movement prep. Pick 3-5 exercises based on the day's focus.",
+        "steps": [
+          { "name": "Leg Swings (Front-to-Back)", "prescription": "10/side", "notes": "Lower body days" },
+          { "name": "Leg Swings (Lateral)", "prescription": "10/side", "notes": "Lower body days" },
+          { "name": "Banded Hip Activation (Monster Walks)", "prescription": "10/direction", "notes": "Lower body days — glute activation" },
+          { "name": "Banded Hip Activation (Clamshells)", "prescription": "10/side", "notes": "Lower body days — glute activation" },
+          { "name": "Walking Lunges with Rotation", "prescription": "5/side", "notes": "Lower body days — hip mobility + activation" },
+          { "name": "Band Pull-Aparts", "prescription": "15-20 reps", "notes": "Upper body days — shoulder warmup" },
+          { "name": "Band Dislocates", "prescription": "10 reps", "notes": "Upper body days — shoulder mobility" },
+          { "name": "Banded External Rotations", "prescription": "10/side", "notes": "Upper body days — rotator cuff" },
+          { "name": "Scapular Push-ups", "prescription": "10 reps", "notes": "Upper body days — scapular activation" },
+          { "name": "Arm Circles", "prescription": "10 forward + 10 backward", "notes": "Upper body days" }
+        ]
+      },
+      "agility_drills": {
+        "name": "Agility Drills",
+        "duration_min": 7,
+        "notes": "5-8 min of footwork and agility. No equipment needed. Pick 3-4 drills.",
+        "steps": [
+          { "name": "Lateral Shuffles", "prescription": "5-10 yards, 4-6 reps", "notes": "Quick, low stance" },
+          { "name": "Carioca / Grapevine", "prescription": "10 yards, 3-4 reps/direction", "notes": "Crossover steps, stay low" },
+          { "name": "Quick Feet in Place", "prescription": "3×10-15 sec", "notes": "As fast as possible" },
+          { "name": "Skater Bounds", "prescription": "3×8/side", "notes": "Lateral single-leg jumps, stick the landing" },
+          { "name": "Single-Leg Lateral Hops", "prescription": "3×8/side", "notes": "Over a line on the floor" },
+          { "name": "180-Degree Squat Jumps", "prescription": "3×6", "notes": "Land, immediately rotate and jump" },
+          { "name": "Lateral Box Step-Overs", "prescription": "3×10", "notes": "Quick feet over and back, use a box or bench" }
+        ]
+      },
+      "full_ankle_plus_mobility": {
+        "name": "Full Ankle + Mobility",
+        "duration_min": 18,
+        "steps": [
+          { "name": "Plantar Fascia Roll", "prescription": "30 sec/foot" },
+          { "name": "Calf SMR", "prescription": "30 sec/side" },
+          { "name": "Banded Ankle Mobilization", "prescription": "2×10 reps/side" },
+          { "name": "Short Foot Exercise", "prescription": "3×8 sec holds" },
+          { "name": "Toe Yoga", "prescription": "2×8 reps" },
+          { "name": "Single-Leg Balance", "prescription": "2×20 sec/side" },
+          { "name": "Wall Ankle Mobilization", "prescription": "2×10 reps/side" },
+          { "name": "Barefoot Cossack Squat", "prescription": "1×5/side" },
+          { "name": "Hip 90/90 Switches", "prescription": "8/side + extra LEFT IR", "notes": "Focus on internal rotation range" },
+          { "name": "Leg Swings (Front-to-Back)", "prescription": "10/side" },
+          { "name": "Leg Swings (Lateral)", "prescription": "10/side" },
+          { "name": "Walking Lunges with Rotation", "prescription": "5/side", "notes": "Rotate over front knee" },
+          { "name": "Glute Bridges", "prescription": "2×10", "notes": "Squeeze 2 sec at top" },
+          { "name": "Bodyweight Squats", "prescription": "10 reps", "notes": "Full depth, controlled" }
+        ],
+        "note": "Full ankle protocol + lower body mobilization. Used on Tuesday before running."
+      }
+    }
+  }
+}

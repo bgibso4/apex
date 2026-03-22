@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Health Display Options (All Pages)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 60px;
+  }
+
+  h2 { color: #ffffff; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .page-section { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+  .options-row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+
+  .label {
+    color: #a0a0b8; font-size: 13px; text-align: center;
+    margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .phone {
+    width: 393px; height: 852px; background: #0a0a0f;
+    border-radius: 44px; overflow: hidden; position: relative;
+    border: 3px solid #2a2a3e; display: flex; flex-direction: column;
+  }
+  .dynamic-island {
+    width: 126px; height: 36px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  }
+  .status-bar {
+    height: 54px; padding: 14px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .header {
+    padding: 8px 24px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .header h1 { color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 3px; }
+  .gear-icon { color: #6a6a80; font-size: 22px; }
+
+  .content {
+    flex: 1; padding: 0 24px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  /* Program context */
+  .program-context { padding: 4px 0; }
+  .program-name { color: #ffffff; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .program-week { color: #a0a0b8; font-size: 15px; font-weight: 500; }
+  .program-week span { color: #f59e0b; font-weight: 600; }
+  .block-timeline { margin-top: 14px; display: flex; gap: 3px; height: 28px; border-radius: 8px; overflow: hidden; }
+  .block-segment { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+  .block-segment.active { color: #ffffff; }
+  .block-hyp { background: #6366f130; flex: 4; }
+  .block-hyp.active { background: #6366f1; }
+  .block-str { background: #f59e0b30; flex: 4; }
+  .block-dl { background: #22c55e30; flex: 1; }
+  .block-peak { background: #ec489930; flex: 2; }
+
+  /* Today card */
+  .today-card { background: #141420; border: 1px solid #2a2a3e; border-radius: 14px; padding: 20px; }
+  .today-label { color: #6a6a80; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .today-title { color: #ffffff; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .today-subtitle { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+  .start-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: #6366f1; color: #ffffff; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; width: 100%; }
+
+  /* Calendar placeholder */
+  .calendar-placeholder { color: #4a4a5e; font-size: 12px; text-align: center; padding: 30px 0; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* =============================================
+     OPTION A: Compact inline row with small rings
+     ============================================= */
+  .health-compact {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .health-compact-rings {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .mini-ring-container { display: flex; align-items: center; gap: 8px; }
+  .mini-ring-wrap { position: relative; width: 44px; height: 44px; }
+  .mini-ring-svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+  .mini-ring-value-wrap {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mini-ring-value { font-size: 13px; font-weight: 800; }
+  .mini-ring-label { font-size: 11px; font-weight: 600; color: #a0a0b8; }
+  .health-compact-source { margin-left: auto; color: #4a4a5e; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* =============================================
+     OPTION B: Single line text only
+     ============================================= */
+  .health-text-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+  }
+  .health-text-label {
+    color: #6a6a80; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .health-text-metrics {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .health-text-value { font-size: 15px; font-weight: 700; }
+  .health-text-name { font-size: 12px; color: #6a6a80; font-weight: 500; }
+  .health-text-dot { color: #3a3a4e; font-size: 12px; margin: 0 4px; }
+  .health-text-source { margin-left: auto; color: #4a4a5e; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* =============================================
+     OPTION C: Integrated into program header
+     ============================================= */
+  .program-header-with-health {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .program-header-left { flex: 1; }
+  .program-header-right {
+    display: flex; gap: 8px; align-items: center; padding-top: 4px;
+  }
+  .tiny-ring-wrap { position: relative; width: 36px; height: 36px; }
+  .tiny-ring-svg { width: 36px; height: 36px; transform: rotate(-90deg); }
+  .tiny-ring-value-wrap {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tiny-ring-value { font-size: 11px; font-weight: 800; }
+
+  /* =============================================
+     Workout page elements
+     ============================================= */
+  .warmup-header {
+    padding: 0;
+  }
+  .warmup-title { color: #ffffff; font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+  .warmup-subtitle { color: #a0a0b8; font-size: 14px; margin-bottom: 16px; }
+  .warmup-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    background: #141420; border: 1px solid #2a2a3e; border-radius: 12px;
+  }
+  .warmup-item-left { display: flex; align-items: center; gap: 12px; }
+  .warmup-check { width: 22px; height: 22px; border: 2px solid #3a3a4e; border-radius: 6px; }
+  .warmup-check.done { background: #22c55e; border-color: #22c55e; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
+  .warmup-item-text { color: #ffffff; font-size: 14px; font-weight: 500; }
+  .warmup-item-time { color: #6a6a80; font-size: 12px; }
+
+  /* Session detail elements */
+  .session-header { display: flex; align-items: center; gap: 12px; }
+  .back-arrow { color: #6a6a80; font-size: 20px; }
+  .session-title { color: #ffffff; font-size: 20px; font-weight: 700; }
+  .session-date { color: #6a6a80; font-size: 13px; margin-bottom: 12px; }
+  .stats-row { display: flex; gap: 8px; }
+  .stat-item {
+    flex: 1; padding: 12px; text-align: center;
+    background: #141420; border: 1px solid #2a2a3e; border-radius: 10px;
+  }
+  .stat-value { color: #ffffff; font-size: 18px; font-weight: 700; }
+  .stat-label { color: #6a6a80; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* Divider */
+  .section-divider { width: 100%; max-width: 1300px; height: 1px; background: #2a2a3e; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- ============================================= -->
+<!-- PAGE 1: HOME DASHBOARD                        -->
+<!-- ============================================= -->
+<div class="page-section">
+  <h2>Home Dashboard</h2>
+  <div class="options-row">
+
+    <!-- HOME OPTION A: Compact row with small rings -->
+    <div class="phone-wrapper">
+      <div class="label">Option A: Compact Rings Row</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="header"><h1>APEX</h1><span class="gear-icon">&#9881;</span></div>
+        <div class="content">
+          <div class="program-context">
+            <div class="program-name">Functional Athlete v2</div>
+            <div class="program-week">Week 1 of 11 — <span>Hypertrophy</span></div>
+            <div class="block-timeline">
+              <div class="block-segment block-hyp active">Hyp</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-str">Str</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-peak">Peak</div>
+            </div>
+          </div>
+
+          <!-- OPTION A: Compact row -->
+          <div class="health-compact">
+            <div class="health-compact-rings">
+              <div class="mini-ring-container">
+                <div class="mini-ring-wrap">
+                  <svg class="mini-ring-svg" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#22c55e15" stroke-width="3.5" />
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"
+                      stroke-dasharray="119.38" stroke-dashoffset="34.62" />
+                  </svg>
+                  <div class="mini-ring-value-wrap">
+                    <span class="mini-ring-value" style="color: #22c55e;">71</span>
+                  </div>
+                </div>
+                <span class="mini-ring-label">Recovery</span>
+              </div>
+              <div class="mini-ring-container">
+                <div class="mini-ring-wrap">
+                  <svg class="mini-ring-svg" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#6366f115" stroke-width="3.5" />
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#6366f1" stroke-width="3.5" stroke-linecap="round"
+                      stroke-dasharray="119.38" stroke-dashoffset="20.30" />
+                  </svg>
+                  <div class="mini-ring-value-wrap">
+                    <span class="mini-ring-value" style="color: #6366f1;">83</span>
+                  </div>
+                </div>
+                <span class="mini-ring-label">Sleep</span>
+              </div>
+            </div>
+            <span class="health-compact-source">WHOOP</span>
+          </div>
+
+          <div class="today-card">
+            <div class="today-label">TODAY'S TRAINING</div>
+            <div class="today-title">Athletic Power & Conditioning</div>
+            <div class="today-subtitle">6 exercises + finisher</div>
+            <button class="start-btn">Start Workout &rarr;</button>
+          </div>
+
+          <div class="calendar-placeholder">— March 2026 Calendar —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME OPTION B: Text only -->
+    <div class="phone-wrapper">
+      <div class="label">Option B: Text-Only Row</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="header"><h1>APEX</h1><span class="gear-icon">&#9881;</span></div>
+        <div class="content">
+          <div class="program-context">
+            <div class="program-name">Functional Athlete v2</div>
+            <div class="program-week">Week 1 of 11 — <span>Hypertrophy</span></div>
+            <div class="block-timeline">
+              <div class="block-segment block-hyp active">Hyp</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-str">Str</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-peak">Peak</div>
+            </div>
+          </div>
+
+          <!-- OPTION B: Text row -->
+          <div class="health-text-row">
+            <div class="health-text-metrics">
+              <span class="health-text-name">Recovery</span>
+              <span class="health-text-value" style="color: #22c55e;">71%</span>
+            </div>
+            <span class="health-text-dot">&middot;</span>
+            <div class="health-text-metrics">
+              <span class="health-text-name">Sleep</span>
+              <span class="health-text-value" style="color: #6366f1;">83%</span>
+            </div>
+            <span class="health-text-source">WHOOP</span>
+          </div>
+
+          <div class="today-card">
+            <div class="today-label">TODAY'S TRAINING</div>
+            <div class="today-title">Athletic Power & Conditioning</div>
+            <div class="today-subtitle">6 exercises + finisher</div>
+            <button class="start-btn">Start Workout &rarr;</button>
+          </div>
+
+          <div class="calendar-placeholder">— March 2026 Calendar —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME OPTION C: Integrated into program header -->
+    <div class="phone-wrapper">
+      <div class="label">Option C: In Program Header</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="header"><h1>APEX</h1><span class="gear-icon">&#9881;</span></div>
+        <div class="content">
+          <div class="program-context">
+            <div class="program-header-with-health">
+              <div class="program-header-left">
+                <div class="program-name">Functional Athlete v2</div>
+                <div class="program-week">Week 1 of 11 — <span>Hypertrophy</span></div>
+              </div>
+              <div class="program-header-right">
+                <div class="tiny-ring-wrap">
+                  <svg class="tiny-ring-svg" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="#22c55e15" stroke-width="3" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"
+                      stroke-dasharray="94.25" stroke-dashoffset="27.33" />
+                  </svg>
+                  <div class="tiny-ring-value-wrap">
+                    <span class="tiny-ring-value" style="color: #22c55e;">71</span>
+                  </div>
+                </div>
+                <div class="tiny-ring-wrap">
+                  <svg class="tiny-ring-svg" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="#6366f115" stroke-width="3" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round"
+                      stroke-dasharray="94.25" stroke-dashoffset="16.02" />
+                  </svg>
+                  <div class="tiny-ring-value-wrap">
+                    <span class="tiny-ring-value" style="color: #6366f1;">83</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="block-timeline">
+              <div class="block-segment block-hyp active">Hyp</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-str">Str</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-peak">Peak</div>
+            </div>
+          </div>
+
+          <div class="today-card">
+            <div class="today-label">TODAY'S TRAINING</div>
+            <div class="today-title">Athletic Power & Conditioning</div>
+            <div class="today-subtitle">6 exercises + finisher</div>
+            <button class="start-btn">Start Workout &rarr;</button>
+          </div>
+
+          <div class="calendar-placeholder">— March 2026 Calendar —</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================================= -->
+<!-- PAGE 2: WORKOUT (WARMUP PHASE)                -->
+<!-- ============================================= -->
+<div class="page-section">
+  <h2>Workout — Warmup Phase</h2>
+  <div class="options-row">
+
+    <!-- WORKOUT OPTION A: Compact row below title -->
+    <div class="phone-wrapper">
+      <div class="label">Option A: Compact Below Title</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>10:12 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="warmup-header">
+            <div class="warmup-title">Athletic Power & Conditioning</div>
+            <div class="warmup-subtitle">Week 1 — Hypertrophy</div>
+          </div>
+
+          <div class="health-compact">
+            <div class="health-compact-rings">
+              <div class="mini-ring-container">
+                <div class="mini-ring-wrap">
+                  <svg class="mini-ring-svg" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#22c55e15" stroke-width="3.5" />
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"
+                      stroke-dasharray="119.38" stroke-dashoffset="34.62" />
+                  </svg>
+                  <div class="mini-ring-value-wrap"><span class="mini-ring-value" style="color: #22c55e;">71</span></div>
+                </div>
+                <span class="mini-ring-label">Recovery</span>
+              </div>
+              <div class="mini-ring-container">
+                <div class="mini-ring-wrap">
+                  <svg class="mini-ring-svg" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#6366f115" stroke-width="3.5" />
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#6366f1" stroke-width="3.5" stroke-linecap="round"
+                      stroke-dasharray="119.38" stroke-dashoffset="20.30" />
+                  </svg>
+                  <div class="mini-ring-value-wrap"><span class="mini-ring-value" style="color: #6366f1;">83</span></div>
+                </div>
+                <span class="mini-ring-label">Sleep</span>
+              </div>
+            </div>
+            <span class="health-compact-source">WHOOP</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check done">&#10003;</div>
+                <span class="warmup-item-text">Full Ankle Protocol</span>
+              </div>
+              <span class="warmup-item-time">8 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Dynamic Warmup</span>
+              </div>
+              <span class="warmup-item-time">5 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Movement Prep</span>
+              </div>
+              <span class="warmup-item-time">3 min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKOUT OPTION B: Text row below title -->
+    <div class="phone-wrapper">
+      <div class="label">Option B: Text Below Title</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>10:12 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="warmup-header">
+            <div class="warmup-title">Athletic Power & Conditioning</div>
+            <div class="warmup-subtitle">Week 1 — Hypertrophy</div>
+          </div>
+
+          <div class="health-text-row">
+            <div class="health-text-metrics">
+              <span class="health-text-name">Recovery</span>
+              <span class="health-text-value" style="color: #22c55e;">71%</span>
+            </div>
+            <span class="health-text-dot">&middot;</span>
+            <div class="health-text-metrics">
+              <span class="health-text-name">Sleep</span>
+              <span class="health-text-value" style="color: #6366f1;">83%</span>
+            </div>
+            <span class="health-text-source">WHOOP</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check done">&#10003;</div>
+                <span class="warmup-item-text">Full Ankle Protocol</span>
+              </div>
+              <span class="warmup-item-time">8 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Dynamic Warmup</span>
+              </div>
+              <span class="warmup-item-time">5 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Movement Prep</span>
+              </div>
+              <span class="warmup-item-time">3 min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKOUT OPTION C: Inline with subtitle -->
+    <div class="phone-wrapper">
+      <div class="label">Option C: In Subtitle Row</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>10:12 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="warmup-header">
+            <div class="warmup-title">Athletic Power & Conditioning</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <div class="warmup-subtitle" style="margin-bottom: 0;">Week 1 — Hypertrophy</div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <span style="color: #22c55e; font-size: 13px; font-weight: 700;">71%</span>
+                <span style="color: #4a4a5e; font-size: 10px;">REC</span>
+                <span style="color: #6366f1; font-size: 13px; font-weight: 700;">83%</span>
+                <span style="color: #4a4a5e; font-size: 10px;">SLP</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check done">&#10003;</div>
+                <span class="warmup-item-text">Full Ankle Protocol</span>
+              </div>
+              <span class="warmup-item-time">8 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Dynamic Warmup</span>
+              </div>
+              <span class="warmup-item-time">5 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Movement Prep</span>
+              </div>
+              <span class="warmup-item-time">3 min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================================= -->
+<!-- PAGE 3: SESSION DETAIL (PAST WORKOUT)         -->
+<!-- ============================================= -->
+<div class="page-section">
+  <h2>Session Detail (Past Workout)</h2>
+  <div class="options-row">
+
+    <!-- SESSION OPTION A: Compact row after stats -->
+    <div class="phone-wrapper">
+      <div class="label">Option A: Compact Below Stats</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="session-header">
+            <span class="back-arrow">&larr;</span>
+            <span class="session-title">Athletic Power & Conditioning</span>
+          </div>
+          <div class="session-date">Saturday, March 22 — Week 1</div>
+
+          <div class="stats-row">
+            <div class="stat-item">
+              <div class="stat-value">52m</div>
+              <div class="stat-label">Duration</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">24</div>
+              <div class="stat-label">Sets</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">1</div>
+              <div class="stat-label">PRs</div>
+            </div>
+          </div>
+
+          <div class="health-compact">
+            <div class="health-compact-rings">
+              <div class="mini-ring-container">
+                <div class="mini-ring-wrap">
+                  <svg class="mini-ring-svg" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#22c55e15" stroke-width="3.5" />
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round"
+                      stroke-dasharray="119.38" stroke-dashoffset="34.62" />
+                  </svg>
+                  <div class="mini-ring-value-wrap"><span class="mini-ring-value" style="color: #22c55e;">71</span></div>
+                </div>
+                <span class="mini-ring-label">Recovery</span>
+              </div>
+              <div class="mini-ring-container">
+                <div class="mini-ring-wrap">
+                  <svg class="mini-ring-svg" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#6366f115" stroke-width="3.5" />
+                    <circle cx="22" cy="22" r="19" fill="none" stroke="#6366f1" stroke-width="3.5" stroke-linecap="round"
+                      stroke-dasharray="119.38" stroke-dashoffset="20.30" />
+                  </svg>
+                  <div class="mini-ring-value-wrap"><span class="mini-ring-value" style="color: #6366f1;">83</span></div>
+                </div>
+                <span class="mini-ring-label">Sleep</span>
+              </div>
+            </div>
+            <span class="health-compact-source">WHOOP</span>
+          </div>
+
+          <div style="color: #6a6a80; font-size: 12px; text-align: center; padding: 20px;">— Exercise sets would follow —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSION OPTION B: Text row after stats -->
+    <div class="phone-wrapper">
+      <div class="label">Option B: Text Below Stats</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="session-header">
+            <span class="back-arrow">&larr;</span>
+            <span class="session-title">Athletic Power & Conditioning</span>
+          </div>
+          <div class="session-date">Saturday, March 22 — Week 1</div>
+
+          <div class="stats-row">
+            <div class="stat-item">
+              <div class="stat-value">52m</div>
+              <div class="stat-label">Duration</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">24</div>
+              <div class="stat-label">Sets</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">1</div>
+              <div class="stat-label">PRs</div>
+            </div>
+          </div>
+
+          <div class="health-text-row">
+            <div class="health-text-metrics">
+              <span class="health-text-name">Recovery</span>
+              <span class="health-text-value" style="color: #22c55e;">71%</span>
+            </div>
+            <span class="health-text-dot">&middot;</span>
+            <div class="health-text-metrics">
+              <span class="health-text-name">Sleep</span>
+              <span class="health-text-value" style="color: #6366f1;">83%</span>
+            </div>
+            <span class="health-text-source">WHOOP</span>
+          </div>
+
+          <div style="color: #6a6a80; font-size: 12px; text-align: center; padding: 20px;">— Exercise sets would follow —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSION OPTION C: Integrated into stats row -->
+    <div class="phone-wrapper">
+      <div class="label">Option C: Inside Stats Row</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="session-header">
+            <span class="back-arrow">&larr;</span>
+            <span class="session-title">Athletic Power & Conditioning</span>
+          </div>
+          <div class="session-date">Saturday, March 22 — Week 1</div>
+
+          <div class="stats-row" style="flex-wrap: wrap;">
+            <div class="stat-item">
+              <div class="stat-value">52m</div>
+              <div class="stat-label">Duration</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">24</div>
+              <div class="stat-label">Sets</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">1</div>
+              <div class="stat-label">PRs</div>
+            </div>
+            <div class="stat-item" style="border-color: #22c55e20;">
+              <div class="stat-value" style="color: #22c55e;">71%</div>
+              <div class="stat-label">Recovery</div>
+            </div>
+            <div class="stat-item" style="border-color: #6366f120;">
+              <div class="stat-value" style="color: #6366f1;">83%</div>
+              <div class="stat-label">Sleep</div>
+            </div>
+          </div>
+
+          <div style="color: #6a6a80; font-size: 12px; text-align: center; padding: 20px;">— Exercise sets would follow —</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

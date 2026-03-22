@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { withSentry } from '@sentry/cloudflare';
 import type { Env } from './lib/types';
 import { authMiddleware } from './middleware/auth';
 import { corsMiddleware } from './middleware/cors';
@@ -21,4 +22,10 @@ app.use('/v1/*', authMiddleware);
 app.route('/v1/auth/whoop', oauthRoutes);
 app.route('/v1', syncRoutes);
 
-export default app;
+export default withSentry(
+  (env: Env) => ({
+    dsn: env.SENTRY_DSN,
+    tracesSampleRate: 1.0,
+  }),
+  app
+);

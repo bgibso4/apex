@@ -9,6 +9,7 @@ export default [
       '.expo/',
       'coverage/',
       '.worktrees/',
+      'workers/',
       'docs/',
     ],
   },

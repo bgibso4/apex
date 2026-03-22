@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Health Metrics: Pill/Card Variations</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 60px;
+  }
+
+  h2 { color: #ffffff; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .page-section { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+  .options-row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+
+  .label {
+    color: #a0a0b8; font-size: 13px; text-align: center;
+    margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .phone {
+    width: 393px; height: 852px; background: #0a0a0f;
+    border-radius: 44px; overflow: hidden; position: relative;
+    border: 3px solid #2a2a3e; display: flex; flex-direction: column;
+  }
+  .dynamic-island {
+    width: 126px; height: 36px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  }
+  .status-bar {
+    height: 54px; padding: 14px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .header {
+    padding: 8px 24px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .header h1 { color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 3px; }
+  .gear-icon { color: #6a6a80; font-size: 22px; }
+
+  .content {
+    flex: 1; padding: 0 24px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  /* Program context */
+  .program-context { padding: 4px 0; }
+  .program-name { color: #ffffff; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .program-week { color: #a0a0b8; font-size: 15px; font-weight: 500; }
+  .program-week span { color: #f59e0b; font-weight: 600; }
+  .block-timeline { margin-top: 14px; display: flex; gap: 3px; height: 28px; border-radius: 8px; overflow: hidden; }
+  .block-segment { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+  .block-segment.active { color: #ffffff; }
+  .block-hyp { background: #6366f130; flex: 4; }
+  .block-hyp.active { background: #6366f1; }
+  .block-str { background: #f59e0b30; flex: 4; }
+  .block-dl { background: #22c55e30; flex: 1; }
+  .block-peak { background: #ec489930; flex: 2; }
+
+  /* Today card */
+  .today-card { background: #141420; border: 1px solid #2a2a3e; border-radius: 14px; padding: 20px; }
+  .today-label { color: #6a6a80; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .today-title { color: #ffffff; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .today-subtitle { color: #a0a0b8; font-size: 13px; margin-bottom: 16px; }
+  .start-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: #6366f1; color: #ffffff; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; width: 100%; }
+
+  .calendar-placeholder { color: #4a4a5e; font-size: 12px; text-align: center; padding: 30px 0; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Warmup elements */
+  .warmup-title { color: #ffffff; font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+  .warmup-subtitle { color: #a0a0b8; font-size: 14px; margin-bottom: 16px; }
+  .warmup-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: #141420; border: 1px solid #2a2a3e; border-radius: 12px;
+  }
+  .warmup-item-left { display: flex; align-items: center; gap: 12px; }
+  .warmup-check { width: 22px; height: 22px; border: 2px solid #3a3a4e; border-radius: 6px; }
+  .warmup-check.done { background: #22c55e; border-color: #22c55e; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
+  .warmup-item-text { color: #ffffff; font-size: 14px; font-weight: 500; }
+  .warmup-item-time { color: #6a6a80; font-size: 12px; }
+
+  /* Session detail */
+  .session-header { display: flex; align-items: center; gap: 12px; }
+  .back-arrow { color: #6a6a80; font-size: 20px; }
+  .session-title { color: #ffffff; font-size: 20px; font-weight: 700; }
+  .session-date { color: #6a6a80; font-size: 13px; margin-bottom: 12px; }
+  .stats-row { display: flex; gap: 8px; }
+  .stat-item {
+    flex: 1; padding: 12px; text-align: center;
+    background: #141420; border: 1px solid #2a2a3e; border-radius: 10px;
+  }
+  .stat-value { color: #ffffff; font-size: 18px; font-weight: 700; }
+  .stat-label { color: #6a6a80; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .section-divider { width: 100%; max-width: 1300px; height: 1px; background: #2a2a3e; margin: 20px 0; }
+
+  /* =============================================
+     HEALTH METRIC PILLS — 3 across
+     ============================================= */
+
+  /* Style 1: Dark pills with colored values (matches stats row style) */
+  .health-pills {
+    display: flex; gap: 8px; position: relative;
+  }
+  .health-pill {
+    flex: 1; padding: 10px 8px; text-align: center;
+    background: #141420; border: 1px solid #2a2a3e; border-radius: 10px;
+  }
+  .health-pill-value { font-size: 17px; font-weight: 700; line-height: 1.2; }
+  .health-pill-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #6a6a80; margin-top: 3px;
+  }
+  .health-pills-source {
+    position: absolute; top: -14px; right: 0;
+    color: #3a3a4e; font-size: 9px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  /* Style 2: Colored accent border on left */
+  .health-pills-accent .health-pill {
+    text-align: left; padding: 10px 12px;
+    border-left-width: 3px; display: flex; flex-direction: column;
+  }
+  .health-pills-accent .health-pill.green { border-left-color: #22c55e; }
+  .health-pills-accent .health-pill.indigo { border-left-color: #6366f1; }
+  .health-pills-accent .health-pill.amber { border-left-color: #f59e0b; }
+
+  /* Style 3: Subtle colored background tint */
+  .health-pills-tinted .health-pill.green {
+    background: #22c55e08; border-color: #22c55e20;
+  }
+  .health-pills-tinted .health-pill.indigo {
+    background: #6366f108; border-color: #6366f120;
+  }
+  .health-pills-tinted .health-pill.amber {
+    background: #f59e0b08; border-color: #f59e0b20;
+  }
+
+  /* Style 4: No border, just floating values (most minimal) */
+  .health-inline {
+    display: flex; gap: 0; align-items: center;
+    padding: 10px 16px;
+    background: #141420; border: 1px solid #2a2a3e; border-radius: 10px;
+    position: relative;
+  }
+  .health-inline-item {
+    flex: 1; text-align: center;
+    position: relative;
+  }
+  .health-inline-item + .health-inline-item::before {
+    content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+    width: 1px; background: #2a2a3e;
+  }
+  .health-inline-value { font-size: 16px; font-weight: 700; }
+  .health-inline-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #6a6a80; margin-top: 2px;
+  }
+  .health-inline-source {
+    position: absolute; top: -14px; right: 0;
+    color: #3a3a4e; font-size: 9px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================= -->
+<!-- PAGE 1: HOME DASHBOARD                        -->
+<!-- ============================================= -->
+<div class="page-section">
+  <h2>Home Dashboard</h2>
+  <div class="options-row">
+
+    <!-- HOME: Style 1 — Dark pills (matches stats) -->
+    <div class="phone-wrapper">
+      <div class="label">A: Dark Pills (stats style)</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="header"><h1>APEX</h1><span class="gear-icon">&#9881;</span></div>
+        <div class="content">
+          <div class="program-context">
+            <div class="program-name">Functional Athlete v2</div>
+            <div class="program-week">Week 1 of 11 — <span>Hypertrophy</span></div>
+            <div class="block-timeline">
+              <div class="block-segment block-hyp active">Hyp</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-str">Str</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-peak">Peak</div>
+            </div>
+          </div>
+
+          <div class="health-pills" style="margin-top: 4px;">
+            <span class="health-pills-source">WHOOP</span>
+            <div class="health-pill">
+              <div class="health-pill-value" style="color: #22c55e;">71%</div>
+              <div class="health-pill-label">Recovery</div>
+            </div>
+            <div class="health-pill">
+              <div class="health-pill-value" style="color: #6366f1;">83%</div>
+              <div class="health-pill-label">Sleep</div>
+            </div>
+            <div class="health-pill">
+              <div class="health-pill-value" style="color: #f59e0b;">12.5</div>
+              <div class="health-pill-label">Strain</div>
+            </div>
+          </div>
+
+          <div class="today-card">
+            <div class="today-label">TODAY'S TRAINING</div>
+            <div class="today-title">Athletic Power & Conditioning</div>
+            <div class="today-subtitle">6 exercises + finisher</div>
+            <button class="start-btn">Start Workout &rarr;</button>
+          </div>
+          <div class="calendar-placeholder">— March 2026 Calendar —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME: Style 2 — Left accent border -->
+    <div class="phone-wrapper">
+      <div class="label">B: Accent Border Pills</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="header"><h1>APEX</h1><span class="gear-icon">&#9881;</span></div>
+        <div class="content">
+          <div class="program-context">
+            <div class="program-name">Functional Athlete v2</div>
+            <div class="program-week">Week 1 of 11 — <span>Hypertrophy</span></div>
+            <div class="block-timeline">
+              <div class="block-segment block-hyp active">Hyp</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-str">Str</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-peak">Peak</div>
+            </div>
+          </div>
+
+          <div class="health-pills health-pills-accent" style="margin-top: 4px;">
+            <span class="health-pills-source">WHOOP</span>
+            <div class="health-pill green">
+              <div class="health-pill-value" style="color: #22c55e;">71%</div>
+              <div class="health-pill-label">Recovery</div>
+            </div>
+            <div class="health-pill indigo">
+              <div class="health-pill-value" style="color: #6366f1;">83%</div>
+              <div class="health-pill-label">Sleep</div>
+            </div>
+            <div class="health-pill amber">
+              <div class="health-pill-value" style="color: #f59e0b;">12.5</div>
+              <div class="health-pill-label">Strain</div>
+            </div>
+          </div>
+
+          <div class="today-card">
+            <div class="today-label">TODAY'S TRAINING</div>
+            <div class="today-title">Athletic Power & Conditioning</div>
+            <div class="today-subtitle">6 exercises + finisher</div>
+            <button class="start-btn">Start Workout &rarr;</button>
+          </div>
+          <div class="calendar-placeholder">— March 2026 Calendar —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME: Style 3 — Tinted background -->
+    <div class="phone-wrapper">
+      <div class="label">C: Tinted Background Pills</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="header"><h1>APEX</h1><span class="gear-icon">&#9881;</span></div>
+        <div class="content">
+          <div class="program-context">
+            <div class="program-name">Functional Athlete v2</div>
+            <div class="program-week">Week 1 of 11 — <span>Hypertrophy</span></div>
+            <div class="block-timeline">
+              <div class="block-segment block-hyp active">Hyp</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-str">Str</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-peak">Peak</div>
+            </div>
+          </div>
+
+          <div class="health-pills health-pills-tinted" style="margin-top: 4px;">
+            <span class="health-pills-source">WHOOP</span>
+            <div class="health-pill green">
+              <div class="health-pill-value" style="color: #22c55e;">71%</div>
+              <div class="health-pill-label">Recovery</div>
+            </div>
+            <div class="health-pill indigo">
+              <div class="health-pill-value" style="color: #6366f1;">83%</div>
+              <div class="health-pill-label">Sleep</div>
+            </div>
+            <div class="health-pill amber">
+              <div class="health-pill-value" style="color: #f59e0b;">12.5</div>
+              <div class="health-pill-label">Strain</div>
+            </div>
+          </div>
+
+          <div class="today-card">
+            <div class="today-label">TODAY'S TRAINING</div>
+            <div class="today-title">Athletic Power & Conditioning</div>
+            <div class="today-subtitle">6 exercises + finisher</div>
+            <button class="start-btn">Start Workout &rarr;</button>
+          </div>
+          <div class="calendar-placeholder">— March 2026 Calendar —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME: Style 4 — Single bar with dividers -->
+    <div class="phone-wrapper">
+      <div class="label">D: Single Bar with Dividers</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="header"><h1>APEX</h1><span class="gear-icon">&#9881;</span></div>
+        <div class="content">
+          <div class="program-context">
+            <div class="program-name">Functional Athlete v2</div>
+            <div class="program-week">Week 1 of 11 — <span>Hypertrophy</span></div>
+            <div class="block-timeline">
+              <div class="block-segment block-hyp active">Hyp</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-str">Str</div>
+              <div class="block-segment block-dl">DL</div>
+              <div class="block-segment block-peak">Peak</div>
+            </div>
+          </div>
+
+          <div class="health-inline" style="margin-top: 4px;">
+            <span class="health-inline-source">WHOOP</span>
+            <div class="health-inline-item">
+              <div class="health-inline-value" style="color: #22c55e;">71%</div>
+              <div class="health-inline-label">Recovery</div>
+            </div>
+            <div class="health-inline-item">
+              <div class="health-inline-value" style="color: #6366f1;">83%</div>
+              <div class="health-inline-label">Sleep</div>
+            </div>
+            <div class="health-inline-item">
+              <div class="health-inline-value" style="color: #f59e0b;">12.5</div>
+              <div class="health-inline-label">Strain</div>
+            </div>
+          </div>
+
+          <div class="today-card">
+            <div class="today-label">TODAY'S TRAINING</div>
+            <div class="today-title">Athletic Power & Conditioning</div>
+            <div class="today-subtitle">6 exercises + finisher</div>
+            <button class="start-btn">Start Workout &rarr;</button>
+          </div>
+          <div class="calendar-placeholder">— March 2026 Calendar —</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================================= -->
+<!-- PAGE 2: WORKOUT (WARMUP)                      -->
+<!-- ============================================= -->
+<div class="page-section">
+  <h2>Workout — Warmup Phase</h2>
+  <div class="options-row">
+
+    <!-- WORKOUT: Style A — Dark pills below title -->
+    <div class="phone-wrapper">
+      <div class="label">A: Pills Below Title</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>10:12 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div>
+            <div class="warmup-title">Athletic Power & Conditioning</div>
+            <div class="warmup-subtitle" style="margin-bottom: 12px;">Week 1 — Hypertrophy</div>
+            <div class="health-pills">
+              <div class="health-pill">
+                <div class="health-pill-value" style="color: #22c55e;">71%</div>
+                <div class="health-pill-label">Recovery</div>
+              </div>
+              <div class="health-pill">
+                <div class="health-pill-value" style="color: #6366f1;">83%</div>
+                <div class="health-pill-label">Sleep</div>
+              </div>
+              <div class="health-pill">
+                <div class="health-pill-value" style="color: #f59e0b;">12.5</div>
+                <div class="health-pill-label">Strain</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check done">&#10003;</div>
+                <span class="warmup-item-text">Full Ankle Protocol</span>
+              </div>
+              <span class="warmup-item-time">8 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Dynamic Warmup</span>
+              </div>
+              <span class="warmup-item-time">5 min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKOUT: Style D — Single bar below title -->
+    <div class="phone-wrapper">
+      <div class="label">B: Single Bar Below Title</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>10:12 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div>
+            <div class="warmup-title">Athletic Power & Conditioning</div>
+            <div class="warmup-subtitle" style="margin-bottom: 12px;">Week 1 — Hypertrophy</div>
+            <div class="health-inline">
+              <div class="health-inline-item">
+                <div class="health-inline-value" style="color: #22c55e;">71%</div>
+                <div class="health-inline-label">Recovery</div>
+              </div>
+              <div class="health-inline-item">
+                <div class="health-inline-value" style="color: #6366f1;">83%</div>
+                <div class="health-inline-label">Sleep</div>
+              </div>
+              <div class="health-inline-item">
+                <div class="health-inline-value" style="color: #f59e0b;">12.5</div>
+                <div class="health-inline-label">Strain</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check done">&#10003;</div>
+                <span class="warmup-item-text">Full Ankle Protocol</span>
+              </div>
+              <span class="warmup-item-time">8 min</span>
+            </div>
+            <div class="warmup-item">
+              <div class="warmup-item-left">
+                <div class="warmup-check"></div>
+                <span class="warmup-item-text">Dynamic Warmup</span>
+              </div>
+              <span class="warmup-item-time">5 min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ============================================= -->
+<!-- PAGE 3: SESSION DETAIL                        -->
+<!-- ============================================= -->
+<div class="page-section">
+  <h2>Session Detail (Past Workout)</h2>
+  <div class="options-row">
+
+    <!-- SESSION: Style A — Health pills below stats -->
+    <div class="phone-wrapper">
+      <div class="label">A: Pills Below Stats</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="session-header">
+            <span class="back-arrow">&larr;</span>
+            <span class="session-title">Athletic Power & Conditioning</span>
+          </div>
+          <div class="session-date">Saturday, March 22 — Week 1</div>
+          <div class="stats-row">
+            <div class="stat-item">
+              <div class="stat-value">52m</div>
+              <div class="stat-label">Duration</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">24</div>
+              <div class="stat-label">Sets</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">1</div>
+              <div class="stat-label">PRs</div>
+            </div>
+          </div>
+          <div class="health-pills">
+            <span class="health-pills-source">WHOOP</span>
+            <div class="health-pill">
+              <div class="health-pill-value" style="color: #22c55e;">71%</div>
+              <div class="health-pill-label">Recovery</div>
+            </div>
+            <div class="health-pill">
+              <div class="health-pill-value" style="color: #6366f1;">83%</div>
+              <div class="health-pill-label">Sleep</div>
+            </div>
+            <div class="health-pill">
+              <div class="health-pill-value" style="color: #f59e0b;">12.5</div>
+              <div class="health-pill-label">Strain</div>
+            </div>
+          </div>
+          <div style="color: #6a6a80; font-size: 12px; text-align: center; padding: 20px;">— Exercise sets follow —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSION: Style B — Health merged into stats row (5 items) -->
+    <div class="phone-wrapper">
+      <div class="label">B: Merged Into Stats (5 items)</div>
+      <div class="phone">
+        <div class="dynamic-island"></div>
+        <div class="status-bar"><span>9:41 AM</span></div>
+        <div class="content" style="padding-top: 70px;">
+          <div class="session-header">
+            <span class="back-arrow">&larr;</span>
+            <span class="session-title">Athletic Power & Conditioning</span>
+          </div>
+          <div class="session-date">Saturday, March 22 — Week 1</div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <div class="stat-item" style="flex: 1; min-width: 30%;">
+              <div class="stat-value">52m</div>
+              <div class="stat-label">Duration</div>
+            </div>
+            <div class="stat-item" style="flex: 1; min-width: 30%;">
+              <div class="stat-value">24</div>
+              <div class="stat-label">Sets</div>
+            </div>
+            <div class="stat-item" style="flex: 1; min-width: 30%;">
+              <div class="stat-value">1</div>
+              <div class="stat-label">PRs</div>
+            </div>
+            <div class="stat-item" style="flex: 1; min-width: 30%; border-color: #22c55e20;">
+              <div class="stat-value" style="color: #22c55e;">71%</div>
+              <div class="stat-label">Recovery</div>
+            </div>
+            <div class="stat-item" style="flex: 1; min-width: 30%; border-color: #6366f120;">
+              <div class="stat-value" style="color: #6366f1;">83%</div>
+              <div class="stat-label">Sleep</div>
+            </div>
+            <div class="stat-item" style="flex: 1; min-width: 30%; border-color: #f59e0b20;">
+              <div class="stat-value" style="color: #f59e0b;">12.5</div>
+              <div class="stat-label">Strain</div>
+            </div>
+          </div>
+          <div style="color: #6a6a80; font-size: 12px; text-align: center; padding: 20px;">— Exercise sets follow —</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

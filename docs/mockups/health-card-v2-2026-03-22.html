@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Health Card v2 — Two Rings</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8; font-size: 13px; text-align: center;
+    margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .phone {
+    width: 393px; height: 852px; background: #0a0a0f;
+    border-radius: 44px; overflow: hidden; position: relative;
+    border: 3px solid #2a2a3e; display: flex; flex-direction: column;
+  }
+  .dynamic-island {
+    width: 126px; height: 36px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  }
+  .status-bar {
+    height: 54px; padding: 14px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .header {
+    padding: 8px 24px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .header h1 { color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 3px; }
+  .gear-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #6a6a80; font-size: 22px; }
+
+  .content {
+    flex: 1; padding: 0 24px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+
+  /* Program context */
+  .program-context { padding: 4px 0; }
+  .program-name { color: #ffffff; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .program-week { color: #a0a0b8; font-size: 15px; font-weight: 500; }
+  .program-week span { color: #f59e0b; font-weight: 600; }
+  .block-timeline { margin-top: 16px; display: flex; gap: 3px; height: 32px; border-radius: 8px; overflow: hidden; }
+  .block-segment { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+  .block-segment.active { color: #ffffff; }
+  .block-hyp { background: #6366f130; flex: 4; }
+  .block-str { background: #f59e0b30; flex: 4; }
+  .block-str.active { background: #f59e0b; }
+  .block-dl { background: #22c55e30; flex: 1; }
+  .block-peak { background: #ec489930; flex: 2; }
+
+  /* Today card */
+  .today-card { background: #141420; border: 1px solid #2a2a3e; border-radius: 14px; padding: 24px; }
+  .today-label { color: #6a6a80; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .today-title { color: #ffffff; font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+  .today-subtitle { color: #a0a0b8; font-size: 14px; margin-bottom: 20px; }
+  .start-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: #6366f1; color: #ffffff; border: none; border-radius: 10px; padding: 14px 24px; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; width: 100%; }
+
+  /* ========================================
+     HEALTH CARD v2 — Two rings layout
+     ======================================== */
+  .health-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .health-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  .health-card-title {
+    color: #6a6a80; font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .health-card-source {
+    color: #4a4a5e; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  .health-card-body {
+    display: flex; justify-content: space-evenly; align-items: center;
+  }
+
+  /* SVG-based progress ring */
+  .ring-container {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .ring-wrapper {
+    position: relative; width: 88px; height: 88px;
+  }
+  .ring-svg {
+    width: 88px; height: 88px; transform: rotate(-90deg);
+  }
+  .ring-bg {
+    fill: none; stroke-width: 5;
+  }
+  .ring-progress {
+    fill: none; stroke-width: 5;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .ring-value-container {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ring-value {
+    font-size: 24px; font-weight: 800; line-height: 1;
+  }
+  .ring-unit {
+    font-size: 11px; font-weight: 600; opacity: 0.7; margin-top: 1px;
+  }
+  .ring-label {
+    font-size: 12px; font-weight: 600; color: #a0a0b8;
+  }
+
+  /* Colors */
+  .green .ring-bg { stroke: #22c55e15; }
+  .green .ring-progress { stroke: #22c55e; }
+  .green .ring-value { color: #22c55e; }
+  .green .ring-unit { color: #22c55e; }
+
+  .yellow .ring-bg { stroke: #f59e0b15; }
+  .yellow .ring-progress { stroke: #f59e0b; }
+  .yellow .ring-value { color: #f59e0b; }
+  .yellow .ring-unit { color: #f59e0b; }
+
+  .red .ring-bg { stroke: #ef444415; }
+  .red .ring-progress { stroke: #ef4444; }
+  .red .ring-value { color: #ef4444; }
+  .red .ring-unit { color: #ef4444; }
+
+  .muted .ring-bg { stroke: #4a4a5e15; }
+  .muted .ring-progress { stroke: #4a4a5e; }
+  .muted .ring-value { color: #4a4a5e; }
+
+  /* Sleep always uses indigo */
+  .sleep .ring-bg { stroke: #6366f115; }
+  .sleep .ring-progress { stroke: #6366f1; }
+  .sleep .ring-value { color: #6366f1; }
+  .sleep .ring-unit { color: #6366f1; }
+
+  /* Standalone cards */
+  .standalone-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .standalone-card { width: 345px; }
+  .standalone-label { color: #a0a0b8; font-size: 13px; text-align: center; letter-spacing: 0.5px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- Full home screen context -->
+<div class="phone-wrapper">
+  <div class="label">Home Dashboard with Health Card</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar"><span>9:41 AM</span></div>
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">&#9881;</div>
+    </div>
+    <div class="content">
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 5 &middot; <span>Strength</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl">DL</div>
+          <div class="block-segment block-str active">Str</div>
+          <div class="block-segment block-dl">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <!-- HEALTH CARD — Two rings -->
+      <div class="health-card">
+        <div class="health-card-header">
+          <span class="health-card-title">Today's Readiness</span>
+          <span class="health-card-source">WHOOP</span>
+        </div>
+        <div class="health-card-body">
+          <!-- Recovery ring — 78% -->
+          <div class="ring-container green">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 88 88">
+                <circle class="ring-bg" cx="44" cy="44" r="38" />
+                <circle class="ring-progress" cx="44" cy="44" r="38"
+                  stroke-dasharray="238.76"
+                  stroke-dashoffset="52.53" />
+              </svg>
+              <div class="ring-value-container">
+                <span class="ring-value">78</span>
+                <span class="ring-unit">%</span>
+              </div>
+            </div>
+            <span class="ring-label">Recovery</span>
+          </div>
+
+          <!-- Sleep ring — 85% -->
+          <div class="ring-container sleep">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 88 88">
+                <circle class="ring-bg" cx="44" cy="44" r="38" />
+                <circle class="ring-progress" cx="44" cy="44" r="38"
+                  stroke-dasharray="238.76"
+                  stroke-dashoffset="35.81" />
+              </svg>
+              <div class="ring-value-container">
+                <span class="ring-value">85</span>
+                <span class="ring-unit">%</span>
+              </div>
+            </div>
+            <span class="ring-label">Sleep</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's session -->
+      <div class="today-card">
+        <div class="today-label">Today's Session</div>
+        <div class="today-title">Lower Body A</div>
+        <div class="today-subtitle">Back Squat &middot; RDL &middot; Leg Press &middot; +3 more</div>
+        <button class="start-btn">Start Workout &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recovery color states -->
+<div style="display: flex; flex-direction: column; gap: 32px;">
+
+  <!-- Green -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">Green Recovery (78%)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Readiness</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="ring-container green">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="52.53" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">78</span>
+              <span class="ring-unit">%</span>
+            </div>
+          </div>
+          <span class="ring-label">Recovery</span>
+        </div>
+        <div class="ring-container sleep">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="35.81" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">85</span>
+              <span class="ring-unit">%</span>
+            </div>
+          </div>
+          <span class="ring-label">Sleep</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Yellow -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">Yellow Recovery (48%)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Readiness</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="ring-container yellow">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <!-- 48% = 238.76 * (1 - 0.48) = 124.16 -->
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="124.15" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">48</span>
+              <span class="ring-unit">%</span>
+            </div>
+          </div>
+          <span class="ring-label">Recovery</span>
+        </div>
+        <div class="ring-container sleep">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <!-- 62% = 238.76 * (1 - 0.62) = 90.73 -->
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="90.73" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">62</span>
+              <span class="ring-unit">%</span>
+            </div>
+          </div>
+          <span class="ring-label">Sleep</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Red -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">Red Recovery (22%)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Readiness</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="ring-container red">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <!-- 22% = 238.76 * (1 - 0.22) = 186.23 -->
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="186.23" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">22</span>
+              <span class="ring-unit">%</span>
+            </div>
+          </div>
+          <span class="ring-label">Recovery</span>
+        </div>
+        <div class="ring-container sleep">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <!-- 38% = 238.76 * (1 - 0.38) = 148.03 -->
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="148.03" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">38</span>
+              <span class="ring-unit">%</span>
+            </div>
+          </div>
+          <span class="ring-label">Sleep</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Missing data -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">No Data (Whoop not worn)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Readiness</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="ring-container muted">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="238.76" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">&mdash;</span>
+            </div>
+          </div>
+          <span class="ring-label">Recovery</span>
+        </div>
+        <div class="ring-container muted">
+          <div class="ring-wrapper">
+            <svg class="ring-svg" viewBox="0 0 88 88">
+              <circle class="ring-bg" cx="44" cy="44" r="38" />
+              <circle class="ring-progress" cx="44" cy="44" r="38"
+                stroke-dasharray="238.76"
+                stroke-dashoffset="238.76" />
+            </svg>
+            <div class="ring-value-container">
+              <span class="ring-value">&mdash;</span>
+            </div>
+          </div>
+          <span class="ring-label">Sleep</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

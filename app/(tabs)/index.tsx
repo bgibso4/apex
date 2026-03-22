@@ -19,6 +19,8 @@ import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
 } from '../../src/utils/program';
+import { useHealthData, syncHealthData } from '../../src/hooks/useHealthData';
+import HealthCard from '../../src/components/HealthCard';
 import { ProgramTimeline } from '../../src/components/ProgramTimeline';
 import { MonthCalendar } from '../../src/components/MonthCalendar';
 import type { MonthCalendarDay } from '../../src/components/MonthCalendar';
@@ -51,6 +53,9 @@ export default function HomeScreen() {
   const now = useMemo(() => new Date(), []);
   const [displayYear, setDisplayYear] = useState(now.getFullYear());
   const [displayMonth, setDisplayMonth] = useState(now.getMonth());
+
+  const today = new Date().toISOString().split('T')[0];
+  const { data: healthData, loading: healthLoading } = useHealthData(today, true);
 
   const loadData = useCallback(async () => {
     const active = await getActiveProgram();
@@ -95,6 +100,7 @@ export default function HomeScreen() {
 
   useFocusEffect(useCallback(() => {
     loadData().finally(() => setLoading(false));
+    syncHealthData(); // fire-and-forget
   }, [loadData]));
 
   const onRefresh = async () => {
@@ -313,6 +319,12 @@ export default function HomeScreen() {
             currentWeek={currentWeek}
           />
         </Animated.View>
+
+        {(healthData || healthLoading) && (
+          <Animated.View entering={FadeInDown.delay(250).duration(500)}>
+            <HealthCard data={healthData} loading={healthLoading} />
+          </Animated.View>
+        )}
 
         {/* Pain follow-up prompt (24h after a run) */}
         {pendingFollowUp && (

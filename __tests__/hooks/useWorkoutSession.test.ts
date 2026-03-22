@@ -24,6 +24,12 @@ jest.mock('expo-router', () => ({
 
 // expo-haptics is mocked via __mocks__/expo-haptics.ts automatically
 
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(),
+  setItemAsync: jest.fn(),
+  deleteItemAsync: jest.fn(),
+}));
+
 jest.mock('../../src/db', () => ({
   getActiveProgram: jest.fn(),
   createSession: jest.fn(),

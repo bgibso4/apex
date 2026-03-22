@@ -79,6 +79,7 @@ export default function WorkoutScreen() {
     }).catch(() => {});
   }, []));
 
+
   // Hooks must be called unconditionally (before any early returns)
   const exerciseCount = w.exercises.filter(e =>
     e.sets.some(s => s.status !== 'pending')

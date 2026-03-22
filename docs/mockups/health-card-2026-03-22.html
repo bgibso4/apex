@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Health Card Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8; font-size: 13px; text-align: center;
+    margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .phone {
+    width: 393px; height: 852px; background: #0a0a0f;
+    border-radius: 44px; overflow: hidden; position: relative;
+    border: 3px solid #2a2a3e; display: flex; flex-direction: column;
+  }
+  .dynamic-island {
+    width: 126px; height: 36px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  }
+  .status-bar {
+    height: 54px; padding: 14px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .header {
+    padding: 8px 24px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .header h1 {
+    color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 3px;
+  }
+  .gear-icon {
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    color: #6a6a80; font-size: 22px;
+  }
+
+  .content {
+    flex: 1; padding: 0 24px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+
+  /* Program context */
+  .program-context { padding: 4px 0; }
+  .program-name { color: #ffffff; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .program-week { color: #a0a0b8; font-size: 15px; font-weight: 500; }
+  .program-week span { color: #f59e0b; font-weight: 600; }
+
+  /* Block timeline */
+  .block-timeline {
+    margin-top: 16px; display: flex; gap: 3px; height: 32px;
+    border-radius: 8px; overflow: hidden;
+  }
+  .block-segment {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; color: rgba(255,255,255,0.5);
+  }
+  .block-segment.active { color: #ffffff; }
+  .block-hyp { background: #6366f130; flex: 4; }
+  .block-str { background: #f59e0b30; flex: 4; }
+  .block-str.active { background: #f59e0b; }
+  .block-dl { background: #22c55e30; flex: 1; }
+  .block-peak { background: #ec489930; flex: 2; }
+
+  /* ========================================
+     HEALTH CARD — The main mockup subject
+     ======================================== */
+  .health-card {
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .health-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .health-card-title {
+    color: #6a6a80; font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .health-card-source {
+    color: #4a4a5e; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  .health-card-body {
+    display: flex; align-items: center; gap: 20px;
+  }
+
+  /* Recovery score — large circular display */
+  .recovery-ring {
+    width: 72px; height: 72px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative;
+  }
+  .recovery-ring::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid currentColor; opacity: 0.15;
+  }
+  .recovery-ring::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid transparent; border-top-color: currentColor;
+    border-right-color: currentColor; border-bottom-color: currentColor;
+  }
+  .recovery-ring.green { color: #22c55e; }
+  .recovery-ring.yellow { color: #f59e0b; }
+  .recovery-ring.red { color: #ef4444; }
+
+  .recovery-inner {
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .recovery-value {
+    font-size: 22px; font-weight: 800; line-height: 1;
+  }
+  .recovery-unit {
+    font-size: 10px; font-weight: 600; opacity: 0.7; margin-top: 2px;
+  }
+
+  /* Metric grid */
+  .health-metrics {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+  }
+  .health-metric {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .health-metric-label {
+    color: #4a4a5e; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .health-metric-value {
+    color: #ffffff; font-size: 16px; font-weight: 700;
+  }
+  .health-metric-unit {
+    color: #6a6a80; font-size: 11px; font-weight: 500;
+  }
+
+  /* Today card (simplified) */
+  .today-card {
+    background: #141420; border: 1px solid #2a2a3e;
+    border-radius: 14px; padding: 24px;
+  }
+  .today-label {
+    color: #6a6a80; font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .today-title {
+    color: #ffffff; font-size: 19px; font-weight: 700; margin-bottom: 6px;
+  }
+  .today-subtitle {
+    color: #a0a0b8; font-size: 14px; margin-bottom: 20px;
+  }
+  .start-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: #6366f1; color: #ffffff; border: none; border-radius: 10px;
+    padding: 14px 24px; font-size: 15px; font-weight: 700;
+    letter-spacing: 0.5px; width: 100%;
+  }
+
+  /* Card for standalone view */
+  .standalone-wrapper {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .standalone-card {
+    width: 345px;
+  }
+  .standalone-label {
+    color: #a0a0b8; font-size: 13px; text-align: center;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  /* Missing data state */
+  .health-metric-value.missing {
+    color: #4a4a5e;
+  }
+</style>
+</head>
+<body>
+
+<!-- Full home screen context with Health Card -->
+<div class="phone-wrapper">
+  <div class="label">Home Dashboard with Health Card</div>
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar"><span>9:41 AM</span></div>
+    <div class="header">
+      <h1>APEX</h1>
+      <div class="gear-icon">&#9881;</div>
+    </div>
+    <div class="content">
+      <!-- Program context -->
+      <div class="program-context">
+        <div class="program-name">Functional Athlete v2</div>
+        <div class="program-week">Week 5 &middot; <span>Strength</span></div>
+        <div class="block-timeline">
+          <div class="block-segment block-hyp">Hyp</div>
+          <div class="block-segment block-dl">DL</div>
+          <div class="block-segment block-str active">Str</div>
+          <div class="block-segment block-dl">DL</div>
+          <div class="block-segment block-peak">Peak</div>
+        </div>
+      </div>
+
+      <!-- HEALTH CARD — Green recovery (67-100) -->
+      <div class="health-card">
+        <div class="health-card-header">
+          <span class="health-card-title">Today's Recovery</span>
+          <span class="health-card-source">WHOOP</span>
+        </div>
+        <div class="health-card-body">
+          <div class="recovery-ring green">
+            <div class="recovery-inner">
+              <span class="recovery-value" style="color: #22c55e;">78</span>
+              <span class="recovery-unit" style="color: #22c55e;">%</span>
+            </div>
+          </div>
+          <div class="health-metrics">
+            <div class="health-metric">
+              <span class="health-metric-label">Sleep</span>
+              <span class="health-metric-value">85<span class="health-metric-unit">%</span></span>
+            </div>
+            <div class="health-metric">
+              <span class="health-metric-label">HRV</span>
+              <span class="health-metric-value">45<span class="health-metric-unit"> ms</span></span>
+            </div>
+            <div class="health-metric">
+              <span class="health-metric-label">RHR</span>
+              <span class="health-metric-value">52<span class="health-metric-unit"> bpm</span></span>
+            </div>
+            <div class="health-metric">
+              <span class="health-metric-label">Strain</span>
+              <span class="health-metric-value">12.5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's session -->
+      <div class="today-card">
+        <div class="today-label">Today's Session</div>
+        <div class="today-title">Lower Body A</div>
+        <div class="today-subtitle">Back Squat &middot; RDL &middot; Leg Press &middot; +3 more</div>
+        <button class="start-btn">Start Workout &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recovery states comparison -->
+<div style="display: flex; flex-direction: column; gap: 32px;">
+
+  <!-- Green recovery -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">Green Recovery (67-100)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Recovery</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="recovery-ring green">
+          <div class="recovery-inner">
+            <span class="recovery-value" style="color: #22c55e;">78</span>
+            <span class="recovery-unit" style="color: #22c55e;">%</span>
+          </div>
+        </div>
+        <div class="health-metrics">
+          <div class="health-metric">
+            <span class="health-metric-label">Sleep</span>
+            <span class="health-metric-value">85<span class="health-metric-unit">%</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">HRV</span>
+            <span class="health-metric-value">45<span class="health-metric-unit"> ms</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">RHR</span>
+            <span class="health-metric-value">52<span class="health-metric-unit"> bpm</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">Strain</span>
+            <span class="health-metric-value">12.5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Yellow recovery -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">Yellow Recovery (34-66)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Recovery</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="recovery-ring yellow">
+          <div class="recovery-inner">
+            <span class="recovery-value" style="color: #f59e0b;">48</span>
+            <span class="recovery-unit" style="color: #f59e0b;">%</span>
+          </div>
+        </div>
+        <div class="health-metrics">
+          <div class="health-metric">
+            <span class="health-metric-label">Sleep</span>
+            <span class="health-metric-value">62<span class="health-metric-unit">%</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">HRV</span>
+            <span class="health-metric-value">32<span class="health-metric-unit"> ms</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">RHR</span>
+            <span class="health-metric-value">58<span class="health-metric-unit"> bpm</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">Strain</span>
+            <span class="health-metric-value">16.2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Red recovery -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">Red Recovery (0-33)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Recovery</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="recovery-ring red">
+          <div class="recovery-inner">
+            <span class="recovery-value" style="color: #ef4444;">22</span>
+            <span class="recovery-unit" style="color: #ef4444;">%</span>
+          </div>
+        </div>
+        <div class="health-metrics">
+          <div class="health-metric">
+            <span class="health-metric-label">Sleep</span>
+            <span class="health-metric-value">38<span class="health-metric-unit">%</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">HRV</span>
+            <span class="health-metric-value">18<span class="health-metric-unit"> ms</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">RHR</span>
+            <span class="health-metric-value">65<span class="health-metric-unit"> bpm</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">Strain</span>
+            <span class="health-metric-value">18.9</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Missing data -->
+  <div class="standalone-wrapper">
+    <div class="standalone-label">Partial Data (Whoop not worn)</div>
+    <div class="health-card standalone-card">
+      <div class="health-card-header">
+        <span class="health-card-title">Today's Recovery</span>
+        <span class="health-card-source">WHOOP</span>
+      </div>
+      <div class="health-card-body">
+        <div class="recovery-ring" style="color: #4a4a5e;">
+          <div class="recovery-inner">
+            <span class="recovery-value" style="color: #4a4a5e;">&mdash;</span>
+          </div>
+        </div>
+        <div class="health-metrics">
+          <div class="health-metric">
+            <span class="health-metric-label">Sleep</span>
+            <span class="health-metric-value missing">&mdash;</span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">HRV</span>
+            <span class="health-metric-value missing">&mdash;</span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">RHR</span>
+            <span class="health-metric-value">52<span class="health-metric-unit"> bpm</span></span>
+          </div>
+          <div class="health-metric">
+            <span class="health-metric-label">Strain</span>
+            <span class="health-metric-value missing">&mdash;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

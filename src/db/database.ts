@@ -147,6 +147,33 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         await db.execAsync('ALTER TABLE programs ADD COLUMN bundled_id TEXT');
       } catch { /* already exists */ }
     }
+    if (currentVersion < 11) {
+      try {
+        await db.execAsync(`
+          CREATE TABLE IF NOT EXISTS daily_health (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL UNIQUE,
+            source TEXT NOT NULL,
+            recovery_score REAL,
+            sleep_score REAL,
+            hrv_rmssd REAL,
+            resting_hr REAL,
+            strain_score REAL,
+            sleep_duration_min INTEGER,
+            spo2 REAL,
+            skin_temp_celsius REAL,
+            respiratory_rate REAL,
+            raw_json TEXT,
+            synced_at TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+          );
+          CREATE INDEX IF NOT EXISTS idx_daily_health_date ON daily_health(date);
+        `);
+      } catch (e) {
+        console.warn('Migration to v11 warning:', e);
+      }
+    }
     // Safety net: ensure critical columns exist regardless of version
     // (handles databases where version was bumped but migrations were skipped)
     for (const col of ['notes TEXT', 'name TEXT', 'is_sample INTEGER DEFAULT 0']) {
@@ -179,6 +206,7 @@ export async function closeDatabase(): Promise<void> {
 export async function clearAllData(): Promise<void> {
   const db = await getDatabase();
   await db.execAsync(`
+    DELETE FROM daily_health;
     DELETE FROM personal_records;
     DELETE FROM exercise_notes;
     DELETE FROM set_logs;

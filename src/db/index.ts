@@ -18,3 +18,9 @@ export { saveExerciseNote, getExerciseNotesForSession, deleteExerciseNote } from
 export { detectPRs, getPRsForSession, deletePRsForSession, PR_REP_COUNTS } from './personal-records';
 export type { PRRecord } from './personal-records';
 export { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram } from './seed';
+export {
+  upsertDailyHealth,
+  getDailyHealth,
+  getDailyHealthRange,
+  getMissingDates,
+} from './health';

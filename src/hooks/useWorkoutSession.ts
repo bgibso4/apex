@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { syncHealthData } from './useHealthData';
 import {
   getActiveProgram, createSession, logSet, updateSet, deleteSet,
   completeSession, updateReadiness, updateSessionNotes,
@@ -465,6 +466,7 @@ export function useWorkoutSession() {
     });
     setSessionId(id);
     setStartedAt(new Date().toISOString());
+    syncHealthData(); // Non-blocking fresh pull for today
 
     const exStates: ExerciseState[] = [];
     for (const slot of selectedTemplate.exercises) {

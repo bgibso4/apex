@@ -19,6 +19,8 @@ import type { PRRecord } from '../../src/db';
 import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
 import { formatPRDescription, formatPRName } from '../../src/utils/formatPR';
 import { groupExercises } from '../../src/utils/supersetGrouping';
+import { useHealthData } from '../../src/hooks/useHealthData';
+import HealthCard from '../../src/components/HealthCard';
 import { SupersetGroup } from '../../src/components/SupersetGroup';
 import { getFieldsForExercise, FIELD_LABELS } from '../../src/types/fields';
 import type { InputField } from '../../src/types/fields';
@@ -52,6 +54,8 @@ export default function SessionDetailScreen() {
   const [sessionNotes, setSessionNotes] = useState('');
   const [notesSaved, setNotesSaved] = useState(true);
   const notesTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const { data: healthData, loading: healthLoading } = useHealthData(session?.date ?? '');
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -360,6 +364,13 @@ export default function SessionDetailScreen() {
             <Text style={[styles.statLabel, prs.length > 0 && { color: `${Colors.amber}99` }]}>PRs</Text>
           </View>
         </View>
+
+        {/* Health snapshot */}
+        {healthData && (
+          <View style={{ marginTop: Spacing.lg }}>
+            <HealthCard data={healthData} loading={healthLoading} />
+          </View>
+        )}
 
         {/* Personal Records */}
         {prs.length > 0 && (

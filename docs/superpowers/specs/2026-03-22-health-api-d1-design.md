@@ -263,6 +263,8 @@ The D1 schema closely mirrors the APEX local schema but with these differences:
 | `is_sample` column | Present on most tables | Absent | Sample data is not synced — filtered out by sync client |
 | `created_at` columns | Present on some tables | Absent | Not needed for sync or analytics; `updated_at` is sufficient |
 | `day_template_id` on sessions | Present | Absent | Internal program structure detail, not useful for analytics |
+| `personal_records` columns | `value`, `previous_value`, `rep_count` | `weight`, `reps`, `e1rm` | D1 uses explicit named columns for clarity. Sync client maps: `value` → `weight`, `rep_count` → `reps`, computes `e1rm` from Epley if not stored. |
+| `set_logs.is_adhoc` | Present | Absent | Can be added later if dashboard needs planned vs. ad-hoc volume breakdown |
 
 ## Sync API
 
@@ -330,14 +332,17 @@ Hardcoded in `lib/tables.ts`:
 ```typescript
 export const ALLOWED_TABLES = {
   sessions: {
-    columns: ['id', 'program_id', 'program_name', 'week_number', 'day_index',
-              'date', 'status', 'started_at', 'completed_at', 'sleep_quality',
+    columns: ['id', 'program_id', 'program_name', 'name', 'block_name',
+              'week_number', 'day_index', 'scheduled_day', 'actual_day',
+              'date', 'status', 'started_at', 'completed_at', 'sleep',
               'soreness', 'energy', 'notes', 'updated_at', 'source_app'],
     required: ['id', 'date', 'updated_at'],
   },
   set_logs: {
-    columns: ['id', 'session_id', 'exercise_name', 'set_index', 'target_weight',
-              'actual_weight', 'target_reps', 'actual_reps', 'status', 'rpe', 'updated_at'],
+    columns: ['id', 'session_id', 'exercise_id', 'exercise_name', 'set_number',
+              'target_weight', 'actual_weight', 'target_reps', 'actual_reps',
+              'target_distance', 'actual_distance', 'target_duration', 'actual_duration',
+              'target_time', 'actual_time', 'status', 'rpe', 'timestamp', 'updated_at'],
     required: ['id', 'session_id', 'exercise_name', 'updated_at'],
   },
   // ... all tables defined similarly

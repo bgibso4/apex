@@ -16,8 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { useWorkoutSession, type ExerciseState } from '../../src/hooks/useWorkoutSession';
-import { useHealthData } from '../../src/hooks/useHealthData';
-import HealthCard from '../../src/components/HealthCard';
 import { getTargetForWeek, getTodayKey } from '../../src/utils/program';
 import { groupExercises } from '../../src/utils/supersetGrouping';
 import { SupersetGroup } from '../../src/components/SupersetGroup';
@@ -81,8 +79,6 @@ export default function WorkoutScreen() {
     }).catch(() => {});
   }, []));
 
-  const today = new Date().toISOString().split('T')[0];
-  const { data: healthData, loading: healthLoading } = useHealthData(today, true);
 
   // Hooks must be called unconditionally (before any early returns)
   const exerciseCount = w.exercises.filter(e =>
@@ -322,7 +318,6 @@ export default function WorkoutScreen() {
         {/* Phase: Warmup */}
         {w.phase === 'warmup' && (
           <>
-            {healthData && <HealthCard data={healthData} loading={healthLoading} />}
             <WarmupChecklist
               protocols={w.protocols}
               onToggle={w.toggleProtocol}

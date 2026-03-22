@@ -67,30 +67,37 @@ export class WhoopProvider implements HealthProvider {
     const startISO = `${date}T00:00:00.000Z`;
     const endISO = `${date}T23:59:59.999Z`;
 
-    // Fetch cycle (contains strain)
+    // Fetch yesterday's cycle for completed strain
+    const yesterday = new Date(date + 'T00:00:00');
+    yesterday.setDate(yesterday.getDate() - 1);
+    const ydayStart = `${yesterday.toISOString().split('T')[0]}T00:00:00.000Z`;
+    const ydayEnd = `${yesterday.toISOString().split('T')[0]}T23:59:59.999Z`;
+
     const cycles = await this.apiGet<WhoopPaginatedResponse<WhoopCycleResponse>>(
       token,
-      `/v1/cycle?start=${startISO}&end=${endISO}&limit=1`
+      `/v2/cycle?start=${ydayStart}&end=${ydayEnd}&limit=1`
     );
 
-    if (!cycles.records.length) return null;
+    // Use yesterday's cycle for strain, but don't block if missing
+    const cycle = cycles.records[0] ?? null;
 
-    const cycle = cycles.records[0];
-
-    // Fetch recovery (contains recovery score, HRV, RHR, SpO2, skin temp)
+    // Fetch today's recovery (contains recovery score, HRV, RHR, SpO2, skin temp)
     const recoveries = await this.apiGet<WhoopPaginatedResponse<WhoopRecoveryResponse>>(
       token,
-      `/v1/recovery?start=${startISO}&end=${endISO}&limit=1`
+      `/v2/recovery?start=${startISO}&end=${endISO}&limit=1`
     );
 
-    // Fetch sleep (contains sleep score, respiratory rate, duration)
+    // Fetch today's sleep (contains sleep score, respiratory rate, duration)
     const sleeps = await this.apiGet<WhoopPaginatedResponse<WhoopSleepResponse>>(
       token,
-      `/v1/sleep?start=${startISO}&end=${endISO}&limit=1`
+      `/v2/activity/sleep?start=${startISO}&end=${endISO}&limit=1`
     );
 
     const recovery = recoveries.records[0]?.score ?? null;
     const sleep = sleeps.records[0]?.score ?? null;
+
+    // If no recovery or sleep data, nothing useful to show
+    if (!recovery && !sleep) return null;
 
     // Calculate sleep duration from actual sleep stages (excludes awake time)
     let sleepDurationMin: number | undefined;
@@ -111,7 +118,7 @@ export class WhoopProvider implements HealthProvider {
       sleepScore: sleep?.sleep_performance_percentage,
       hrvRmssd: recovery?.hrv_rmssd_milli,
       restingHr: recovery?.resting_heart_rate,
-      strainScore: cycle.score?.strain,
+      strainScore: cycle?.score?.strain,  // yesterday's completed strain
       sleepDurationMin: sleepDurationMin,
       spo2: recovery?.spo2_percentage,
       skinTempCelsius: recovery?.skin_temp_celsius,

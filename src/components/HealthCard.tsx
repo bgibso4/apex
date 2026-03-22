@@ -52,7 +52,7 @@ export default function HealthCard({ data, loading }: HealthCardProps) {
         <Text style={[styles.value, { color: Colors.text }]}>
           {formatValue(data?.strainScore)}
         </Text>
-        <Text style={styles.label}>Strain</Text>
+        <Text style={styles.label}>Yday Strain</Text>
       </View>
     </View>
   );

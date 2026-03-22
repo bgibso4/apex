@@ -129,6 +129,7 @@ describe('WhoopProvider', () => {
         return null;
       });
 
+      // Mock refresh response
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
@@ -139,10 +140,11 @@ describe('WhoopProvider', () => {
         }),
       });
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ records: [], next_token: null }),
-      });
+      // Mock cycle (yesterday's strain), recovery, sleep — all empty
+      const emptyResponse = { ok: true, json: () => Promise.resolve({ records: [], next_token: null }) };
+      mockFetch.mockResolvedValueOnce(emptyResponse);
+      mockFetch.mockResolvedValueOnce(emptyResponse);
+      mockFetch.mockResolvedValueOnce(emptyResponse);
 
       await provider.fetchDaily('2026-03-22');
 
@@ -153,11 +155,12 @@ describe('WhoopProvider', () => {
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith('whoop_access_token', 'new-token');
     });
 
-    it('returns null when no cycle data for date', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ records: [], next_token: null }),
-      });
+    it('returns null when no recovery or sleep data', async () => {
+      // Mock cycle, recovery, sleep — all empty
+      const emptyResponse = { ok: true, json: () => Promise.resolve({ records: [], next_token: null }) };
+      mockFetch.mockResolvedValueOnce(emptyResponse);
+      mockFetch.mockResolvedValueOnce(emptyResponse);
+      mockFetch.mockResolvedValueOnce(emptyResponse);
 
       const result = await provider.fetchDaily('2026-03-22');
       expect(result).toBeNull();

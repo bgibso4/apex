@@ -115,8 +115,8 @@ The API is exposed to the internet and must be authenticated, even for single-us
 ```
 POST   /v1/:table            -- upsert records (batch)
 GET    /v1/:table?since=     -- get records, optionally since timestamp
-POST   /oauth/token           -- WHOOP OAuth token exchange (existing, preserved)
-POST   /oauth/refresh         -- WHOOP OAuth token refresh (existing, preserved)
+POST   /v1/auth/whoop/token   -- WHOOP OAuth token exchange
+POST   /v1/auth/whoop/refresh -- WHOOP OAuth token refresh
 GET    /v1/analytics/...     -- dashboard-specific query endpoints
 ```
 

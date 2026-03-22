@@ -8,6 +8,7 @@ import {
   WhoopTokenResponse,
   WhoopPaginatedResponse,
 } from '../../types/health';
+import { WHOOP_WORKER_API_KEY } from '../config';
 
 const WHOOP_API = 'https://api.prod.whoop.com/developer';
 const STORE_KEYS = {
@@ -35,7 +36,7 @@ export class WhoopProvider implements HealthProvider {
   async authorizeWithCode(code: string, redirectUri: string): Promise<void> {
     const response = await fetch(`${this.workerUrl}/oauth/token`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': WHOOP_WORKER_API_KEY },
       body: JSON.stringify({ code, redirect_uri: redirectUri }),
     });
 
@@ -166,7 +167,7 @@ export class WhoopProvider implements HealthProvider {
     try {
       const response = await fetch(`${this.workerUrl}/oauth/refresh`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': WHOOP_WORKER_API_KEY },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
 

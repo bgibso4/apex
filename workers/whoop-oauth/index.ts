@@ -2,12 +2,13 @@ interface Env {
   WHOOP_CLIENT_ID: string;
   WHOOP_CLIENT_SECRET: string;
   WHOOP_TOKEN_URL: string;
+  APP_API_KEY: string;
 }
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
 };
 
 export default {
@@ -18,6 +19,11 @@ export default {
 
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
+    }
+
+    // Verify request comes from our app
+    if (request.headers.get('X-API-Key') !== env.APP_API_KEY) {
+      return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
     }
 
     const url = new URL(request.url);

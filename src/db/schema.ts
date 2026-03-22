@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -163,4 +163,26 @@ CREATE INDEX IF NOT EXISTS idx_session_protocols_session ON session_protocols(se
 CREATE INDEX IF NOT EXISTS idx_exercise_notes_session ON exercise_notes(session_id);
 CREATE INDEX IF NOT EXISTS idx_personal_records_exercise ON personal_records(exercise_id, record_type, rep_count);
 CREATE INDEX IF NOT EXISTS idx_personal_records_session ON personal_records(session_id);
+
+-- Daily health data (vendor-agnostic: Whoop, Garmin, etc.)
+CREATE TABLE IF NOT EXISTS daily_health (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TEXT NOT NULL UNIQUE,
+  source TEXT NOT NULL,
+  recovery_score REAL,
+  sleep_score REAL,
+  hrv_rmssd REAL,
+  resting_hr REAL,
+  strain_score REAL,
+  sleep_duration_min INTEGER,
+  spo2 REAL,
+  skin_temp_celsius REAL,
+  respiratory_rate REAL,
+  raw_json TEXT,
+  synced_at TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_health_date ON daily_health(date);
 `;

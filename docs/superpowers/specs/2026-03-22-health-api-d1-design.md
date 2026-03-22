@@ -284,7 +284,7 @@ The D1 schema closely mirrors the APEX local schema but with these differences:
 |------------|-----------|----------|--------|
 | ID type for `daily_health` | `INTEGER AUTOINCREMENT` | `TEXT` (UUID) | Cloud needs globally unique IDs. **Sync client must generate a text UUID for each local row before pushing.** |
 | `is_sample` column | Present on most tables | Absent | Sample data is not synced — filtered out by sync client |
-| `created_at` columns | Present on some tables | Absent | Not needed for sync or analytics; `updated_at` is sufficient |
+| `created_at` columns | Present on some tables | Absent (except `exercise_notes` which retains it) | Not needed for sync or analytics; `updated_at` is sufficient. Exception: `exercise_notes.created_at` is retained because it records when the note was originally written. |
 | `day_template_id` on sessions | Present | Absent | Internal program structure detail, not useful for analytics |
 | `session_protocols.id` | `INTEGER AUTOINCREMENT` | `TEXT` (UUID) | Same as `daily_health` — sync client generates text UUID for each local row |
 

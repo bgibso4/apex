@@ -4,6 +4,7 @@ import { authMiddleware } from './middleware/auth';
 import { corsMiddleware } from './middleware/cors';
 import { loggingMiddleware } from './middleware/logging';
 import { oauthRoutes } from './routes/oauth';
+import { syncRoutes } from './routes/sync';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -18,5 +19,6 @@ app.get('/health', (c) => c.json({ status: 'ok' }));
 app.use('/v1/*', authMiddleware);
 
 app.route('/v1/auth/whoop', oauthRoutes);
+app.route('/v1', syncRoutes);
 
 export default app;

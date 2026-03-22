@@ -22,7 +22,7 @@ Extend the existing Cloudflare Worker (currently WHOOP OAuth proxy) into a full 
 3. **Add D1** database binding with schema for all syncable tables
 4. **Add sync endpoints** — generic `/v1/:table` with allowlist validation
 5. **Add observability** — Sentry error tracking, structured logging middleware, query timing
-6. **Preserve existing OAuth routes** — same logic, migrated into `routes/oauth.ts`
+6. **Preserve existing OAuth routes at `/oauth/*`** — same paths, same logic, migrated into `routes/oauth.ts`. Not moved to `/v1/auth/*` — changing deployed routes would break the existing APEX WHOOP connection for no benefit.
 
 ## Worker Architecture
 
@@ -55,7 +55,7 @@ workers/health-api/
 1. Sentry — captures unhandled exceptions
 2. Logging — structured `console.log` with method, path, status, duration, context
 3. Auth — validates `X-API-Key`, rejects with 401 before route logic
-4. CORS — same headers as current Worker
+4. CORS — expanded from current Worker to allow `GET` (for dashboard pulls) in addition to `POST`
 
 ## D1 Schema
 
@@ -68,13 +68,17 @@ CREATE TABLE sessions (
   id TEXT PRIMARY KEY,
   program_id INTEGER,
   program_name TEXT,
+  name TEXT,
+  block_name TEXT,
   week_number INTEGER,
   day_index INTEGER,
+  scheduled_day INTEGER,
+  actual_day INTEGER,
   date TEXT NOT NULL,
   status TEXT,
   started_at TEXT,
   completed_at TEXT,
-  sleep_quality INTEGER,
+  sleep INTEGER,
   soreness INTEGER,
   energy INTEGER,
   notes TEXT,
@@ -85,14 +89,22 @@ CREATE TABLE sessions (
 CREATE TABLE set_logs (
   id TEXT PRIMARY KEY,
   session_id TEXT NOT NULL,
+  exercise_id INTEGER,
   exercise_name TEXT NOT NULL,
-  set_index INTEGER,
+  set_number INTEGER,
   target_weight REAL,
   actual_weight REAL,
   target_reps INTEGER,
   actual_reps INTEGER,
+  target_distance REAL,
+  actual_distance REAL,
+  target_duration REAL,
+  actual_duration REAL,
+  target_time REAL,
+  actual_time REAL,
   status TEXT,
   rpe REAL,
+  timestamp TEXT,
   updated_at TEXT NOT NULL
 );
 
@@ -101,6 +113,8 @@ CREATE TABLE exercises (
   name TEXT NOT NULL,
   type TEXT,
   muscle_groups TEXT,
+  alternatives TEXT,
+  input_fields TEXT,
   updated_at TEXT NOT NULL
 );
 
@@ -108,6 +122,9 @@ CREATE TABLE programs (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   status TEXT,
+  duration_weeks INTEGER,
+  definition_json TEXT,
+  one_rm_values TEXT,
   started_at TEXT,
   completed_at TEXT,
   updated_at TEXT NOT NULL
@@ -115,12 +132,27 @@ CREATE TABLE programs (
 
 CREATE TABLE run_logs (
   id TEXT PRIMARY KEY,
+  session_id TEXT,
   date TEXT NOT NULL,
   duration_min REAL,
   distance REAL,
   pain_level INTEGER,
   pain_level_24h INTEGER,
+  included_pickups INTEGER DEFAULT 0,
   notes TEXT,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE personal_records (
+  id TEXT PRIMARY KEY,
+  exercise_id INTEGER NOT NULL,
+  exercise_name TEXT NOT NULL,
+  record_type TEXT NOT NULL,
+  weight REAL,
+  reps INTEGER,
+  e1rm REAL,
+  date TEXT NOT NULL,
+  session_id TEXT,
   updated_at TEXT NOT NULL
 );
 
@@ -139,6 +171,9 @@ CREATE TABLE daily_health (
   strain_score REAL,
   sleep_duration_min INTEGER,
   spo2 REAL,
+  skin_temp_celsius REAL,
+  respiratory_rate REAL,
+  synced_at TEXT,
   updated_at TEXT NOT NULL
 );
 
@@ -177,15 +212,57 @@ CREATE TABLE sync_log (
   rows_synced INTEGER,
   PRIMARY KEY (app_id, table_name)
 );
+
+-- ============================================================
+-- Indexes
+-- ============================================================
+
+CREATE INDEX idx_sessions_date ON sessions(date);
+CREATE INDEX idx_sessions_updated ON sessions(updated_at);
+CREATE INDEX idx_set_logs_session ON set_logs(session_id);
+CREATE INDEX idx_set_logs_updated ON set_logs(updated_at);
+CREATE INDEX idx_exercises_updated ON exercises(updated_at);
+CREATE INDEX idx_programs_updated ON programs(updated_at);
+CREATE INDEX idx_run_logs_date ON run_logs(date);
+CREATE INDEX idx_run_logs_updated ON run_logs(updated_at);
+CREATE INDEX idx_personal_records_exercise ON personal_records(exercise_id);
+CREATE INDEX idx_personal_records_date ON personal_records(date);
+CREATE INDEX idx_personal_records_updated ON personal_records(updated_at);
+CREATE INDEX idx_daily_health_date ON daily_health(date);
+CREATE INDEX idx_daily_health_updated ON daily_health(updated_at);
+CREATE INDEX idx_body_weights_date ON body_weights(date);
+CREATE INDEX idx_body_weights_updated ON body_weights(updated_at);
+CREATE INDEX idx_body_comp_scans_date ON body_comp_scans(date);
+CREATE INDEX idx_body_comp_scans_updated ON body_comp_scans(updated_at);
 ```
 
 **Key decisions:**
 - **Text UUIDs as primary keys** — apps generate IDs locally, no auto-increment conflicts across devices/apps
 - **`source_app` on sessions** — tracks which app wrote the data
+- **`personal_records` included** — dashboard needs pre-computed e1RM data for trends; cheaper than recomputing from set_logs
 - **`body_weights` and `body_comp_scans` created now but empty** — ready for the weight app when built
 - **`set_logs.exercise_name` denormalized** — dashboard queries don't always need joins to exercises
 - **No `raw_json` columns** — cloud stores structured data only; full API responses stay local
 - **D1 migrations tracked in `db/migrations/`** — versioned SQL files applied via `wrangler d1 execute`
+- **Indexes on `date` and `updated_at`** for every table — `date` for dashboard time-range queries, `updated_at` for sync pull filtering
+- **`body_weights.date` is not UNIQUE** — multiple weigh-ins per day are allowed. `daily_health.date` is UNIQUE (one snapshot per day)
+
+**Tables intentionally excluded from cloud sync:**
+- `exercise_notes` — per-session notes for exercises. Low value for dashboard analytics. Can be added later if needed.
+- `session_protocols` — warmup/conditioning items. Local-only for now.
+- `weekly_checkins` — not actively used yet (see #49). Will be added when implemented.
+- `is_sample` flag — sample/seed data is excluded from sync. The sync client filters these out before pushing.
+
+### Schema Mapping: APEX Local → D1
+
+The D1 schema closely mirrors the APEX local schema but with these differences:
+
+| Difference | APEX Local | D1 Cloud | Reason |
+|------------|-----------|----------|--------|
+| ID type for `daily_health` | `INTEGER AUTOINCREMENT` | `TEXT` (UUID) | Cloud needs globally unique IDs. **Sync client must generate a text UUID for each local row before pushing.** |
+| `is_sample` column | Present on most tables | Absent | Sample data is not synced — filtered out by sync client |
+| `created_at` columns | Present on some tables | Absent | Not needed for sync or analytics; `updated_at` is sufficient |
+| `day_template_id` on sessions | Present | Absent | Internal program structure detail, not useful for analytics |
 
 ## Sync API
 
@@ -218,9 +295,11 @@ Content-Type: application/json
 **Behavior:**
 - Validates table name against allowlist (rejects unknown tables)
 - Validates each record has required columns, strips unknown columns
-- Batch upsert via `INSERT OR REPLACE INTO <table> (...) VALUES (...)`
+- Upsert via `INSERT INTO <table> (...) VALUES (...) ON CONFLICT(id) DO UPDATE SET col1=excluded.col1, ...` — this preserves existing columns not included in the push payload, unlike `INSERT OR REPLACE` which deletes and reinserts
+- Large batches chunked to respect D1's bound parameter limits (max ~100 records per batch statement)
 - Updates `sync_log` with timestamp and count
 - Returns synced/error count
+- `sync_log` is server-side observability — it lets you see when each app last synced and how much data flowed. Apps track their own last-sync timestamp locally and do not query `sync_log`.
 
 ### Pull: `GET /v1/:table`
 
@@ -356,8 +435,8 @@ Slow queries (>100ms) logged as warnings — visible in the same logging pipelin
 
 ### Update APEX Config
 
-- If the Worker URL changes due to rename, update `src/health/config.ts`
-- If same CF project (same URL), no app changes needed
+- **Keep `name = "apex-whoop-oauth"` in `wrangler.toml`** to preserve the existing deployed URL. Changing the `name` field creates a new Worker at a new subdomain, which would break the live WHOOP connection. The directory can be renamed to `health-api/` locally without affecting the deployed name.
+- No APEX config changes needed — same Worker URL, same API key.
 
 ## Error Handling
 

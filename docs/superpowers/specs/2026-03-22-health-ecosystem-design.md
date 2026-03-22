@@ -104,7 +104,7 @@ sync_log          -- last sync timestamp per app per table
 
 The API is exposed to the internet and must be authenticated, even for single-user.
 
-- **Mechanism:** API key (long random string) sent via `Authorization: Bearer <key>` header
+- **Mechanism:** API key (long random string) sent via `X-API-Key` header (already deployed and in use for WHOOP OAuth)
 - **Server-side:** Key stored as a Worker environment variable (Cloudflare secret). Worker rejects requests without a valid key.
 - **Client-side:** Key stored in each app's environment config (not in source control). For Expo apps, this can be an environment variable baked at build time.
 - **Why not OAuth/JWT for the sync API:** Overkill for single-user. An API key is simple, has no expiry to manage, and is trivially rotatable via `wrangler secret put`.
@@ -115,8 +115,8 @@ The API is exposed to the internet and must be authenticated, even for single-us
 ```
 POST   /v1/:table            -- upsert records (batch)
 GET    /v1/:table?since=     -- get records, optionally since timestamp
-POST   /v1/auth/whoop/token  -- OAuth token exchange
-POST   /v1/auth/whoop/refresh -- OAuth token refresh
+POST   /oauth/token           -- WHOOP OAuth token exchange (existing, preserved)
+POST   /oauth/refresh         -- WHOOP OAuth token refresh (existing, preserved)
 GET    /v1/analytics/...     -- dashboard-specific query endpoints
 ```
 

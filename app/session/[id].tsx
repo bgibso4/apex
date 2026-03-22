@@ -20,7 +20,6 @@ import { getBlockForWeek, getBlockColor } from '../../src/utils/program';
 import { formatPRDescription, formatPRName } from '../../src/utils/formatPR';
 import { groupExercises } from '../../src/utils/supersetGrouping';
 import { useHealthData } from '../../src/hooks/useHealthData';
-import HealthCard from '../../src/components/HealthCard';
 import { SupersetGroup } from '../../src/components/SupersetGroup';
 import { getFieldsForExercise, FIELD_LABELS } from '../../src/types/fields';
 import type { InputField } from '../../src/types/fields';
@@ -55,7 +54,7 @@ export default function SessionDetailScreen() {
   const [notesSaved, setNotesSaved] = useState(true);
   const notesTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const { data: healthData, loading: healthLoading } = useHealthData(session?.date ?? '');
+  const { data: healthData } = useHealthData(session?.date ?? '');
 
   // Clean up debounce timer on unmount
   useEffect(() => {
@@ -365,10 +364,23 @@ export default function SessionDetailScreen() {
           </View>
         </View>
 
-        {/* Health snapshot */}
+        {/* Health snapshot — matching stats row style */}
         {healthData && (
-          <View style={{ marginTop: Spacing.lg }}>
-            <HealthCard data={healthData} loading={healthLoading} />
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{healthData.sleepScore != null ? `${Math.round(healthData.sleepScore)}%` : '—'}</Text>
+              <Text style={styles.statLabel}>Sleep</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: healthData.recoveryScore != null ? (healthData.recoveryScore >= 67 ? Colors.green : healthData.recoveryScore >= 34 ? Colors.amber : Colors.red) : Colors.textMuted }]}>
+                {healthData.recoveryScore != null ? `${Math.round(healthData.recoveryScore)}%` : '—'}
+              </Text>
+              <Text style={styles.statLabel}>Recovery</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{healthData.strainScore != null ? `${Math.round(healthData.strainScore * 10) / 10}` : '—'}</Text>
+              <Text style={styles.statLabel}>Strain</Text>
+            </View>
           </View>
         )}
 

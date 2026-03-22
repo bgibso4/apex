@@ -26,7 +26,7 @@ const WHOOP_DISCOVERY: AuthSession.DiscoveryDocument = {
   tokenEndpoint: `${WHOOP_WORKER_URL}/oauth/token`,
 };
 
-const WHOOP_CLIENT_ID = 'YOUR_WHOOP_CLIENT_ID'; // Replace after registering at developer.whoop.com
+const WHOOP_CLIENT_ID = 'bd642103-b2cd-4fa9-a570-f09608b32be4';
 
 type WeightUnit = 'lbs' | 'kg';
 

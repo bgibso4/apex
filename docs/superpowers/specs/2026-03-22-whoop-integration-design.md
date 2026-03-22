@@ -4,6 +4,8 @@
 **Issue:** #43 — [Spike] Investigate Whoop integration for recovery & sleep data
 **Status:** Design approved, ready for implementation planning
 
+**Note:** The Worker architecture described here (single-purpose OAuth proxy) has been superseded by the broader health ecosystem design. See `2026-03-22-health-ecosystem-design.md` for the authoritative Worker architecture — WHOOP OAuth endpoints are part of a unified health API Worker that also handles data sync and analytics.
+
 ## Goal
 
 Integrate Whoop recovery, sleep, and health data into APEX to provide a unified view of workout readiness and historical context. The integration should be vendor-agnostic so future wearables (Garmin, Oura, etc.) can slot in without rewriting the UI or data layer.

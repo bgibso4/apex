@@ -55,6 +55,13 @@ Names TBD — will be decided when each piece is built.
 - **API is the contract** — Apps are decoupled from each other. They only share the API surface.
 - **Extensible by default** — New apps register with the API, new data types get new endpoints. No rewrites needed.
 
+### Non-Goals
+
+- **Not multi-user.** Single user, single account. No sharing, no social features, no permissions model.
+- **Not real-time sync.** Eventual consistency is fine. Data syncs on app open and after writes, not via live WebSocket streams.
+- **Not a data editing dashboard.** The web dashboard is strictly read-only. All data entry happens in the mobile apps. If editing is ever added, the conflict resolution model must be revisited.
+- **Not a replacement for wearable apps.** WHOOP/Garmin/etc. apps still exist. This ecosystem consumes their data, not replaces their UX.
+
 ## Cloud Layer (CF Worker + D1)
 
 ### Why Cloudflare D1
@@ -93,6 +100,16 @@ daily_health
 sync_log          -- last sync timestamp per app per table
 ```
 
+### Authentication
+
+The API is exposed to the internet and must be authenticated, even for single-user.
+
+- **Mechanism:** API key (long random string) sent via `Authorization: Bearer <key>` header
+- **Server-side:** Key stored as a Worker environment variable (Cloudflare secret). Worker rejects requests without a valid key.
+- **Client-side:** Key stored in each app's environment config (not in source control). For Expo apps, this can be an environment variable baked at build time.
+- **Why not OAuth/JWT for the sync API:** Overkill for single-user. An API key is simple, has no expiry to manage, and is trivially rotatable via `wrangler secret put`.
+- **WHOOP OAuth endpoints are separate** — they handle WHOOP's auth flow, not the sync API's auth.
+
 ### API Design
 
 ```
@@ -103,23 +120,27 @@ POST   /v1/auth/whoop/refresh -- OAuth token refresh
 GET    /v1/analytics/...     -- dashboard-specific query endpoints
 ```
 
-The `/v1/:table` pattern is generic — adding a new data type requires only a D1 migration, no Worker code changes for basic sync.
+The `/v1/:table` pattern is generic but **validated** — the Worker maintains an allowlist of valid table names and rejects requests for unknown tables. Adding a new data type requires a D1 migration and adding the table name to the allowlist.
 
 ### Sync Model
 
+- **Direction: apps push, dashboard pulls.** Mobile apps only write to the cloud (push). The dashboard only reads from the cloud (pull). There is no app-to-app sync or cloud-to-app sync. Each app's local SQLite is its authoritative data source.
+  - **Exception — reinstall recovery:** If an app is reinstalled, it could pull its own data back from D1 as a one-time restore. This is a future consideration, not a v1 requirement.
 - **Push-based** — Apps push changes after local SQLite writes (debounced, batched)
-- **Timestamp-based** — Each row has `updated_at`. Apps track last sync per table. Push: "here's everything since my last sync." Pull: "give me everything since my last sync."
-- **Conflict resolution: last-write-wins** — Sufficient for single-user
+- **Timestamp-based** — Each row has `updated_at`. Apps track their last successful sync timestamp per table. Push: "here's everything I changed since my last sync."
+- **Conflict resolution: last-write-wins** — Sufficient for single-user with push-only apps. If the dashboard ever gains write capabilities, this must be revisited.
 - **Offline resilient** — Sync fails silently. Retries on next app open. Local SQLite is always the source of truth for the app.
 - **Sync logic lives in the shared package's client library**, not in the API URL structure
+- **`sync_log` table** — The Worker maintains a `sync_log` table in D1 tracking the last successful sync timestamp per app per table. Updated by the Worker after each successful push.
 
 ## How APEX Changes
 
 Minimal additions — APEX stays focused:
 
-1. **Sync client** — Background push to cloud after local SQLite writes. Uses shared package. Non-blocking, fails silently.
-2. **WHOOP integration** — Proceeds per existing spec (`2026-03-22-whoop-integration-design.md`). Additionally syncs `daily_health` to cloud.
-3. **No new screens, tabs, or cards** for body comp or weight. That's the other app's domain.
+1. **Schema migration: add `updated_at`** — The sync model requires `updated_at` columns on all syncable tables (`sessions`, `set_logs`, `exercises`, `programs`, `run_logs`, `weekly_checkins`). This is a schema migration that backfills existing rows with `datetime('now')` and adds triggers or application-level updates to maintain the timestamp on writes.
+2. **Sync client** — Background push to cloud after local SQLite writes. Uses shared package. Non-blocking, fails silently.
+3. **WHOOP integration** — Proceeds per existing spec (`2026-03-22-whoop-integration-design.md`). Additionally syncs `daily_health` to cloud. Note: the WHOOP spec describes a "single-purpose OAuth proxy" Worker, but this ecosystem spec expands the Worker's role to include data sync. The WHOOP OAuth endpoints become part of the broader health API Worker, not a separate deployment.
+4. **No new screens, tabs, or cards** for body comp or weight. That's the other app's domain.
 
 ## Weight / Body Comp App
 
@@ -158,7 +179,7 @@ Each app is its own repo. A private npm package contains:
 - TypeScript types for the cloud API contract
 - Sync client library
 - CLAUDE.md ecosystem context (maps relationships, API contracts, cross-cutting decisions)
-- Shared design tokens (optional, incremental)
+- Shared design tokens (optional, incremental — note: Expo apps use JS token objects, web dashboard uses CSS variables, so shared tokens need a format-agnostic definition that can be consumed by both)
 
 **Why:** Each app stays lean and independent. Clear boundaries. Can evolve at different speeds. The API is the real contract — the shared package is a convenience.
 

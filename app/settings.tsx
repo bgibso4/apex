@@ -3,7 +3,7 @@
  * Training preferences, integrations, and data management.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert,
@@ -13,6 +13,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
 import { seedRunLogs, seedWorkoutSessions, seedHistoricalProgram, getActiveProgram, clearAllData, clearSampleData, stopProgram } from '../src/db';
 import { exportDatabase, importDatabase, getLastExportTimestamp } from '../src/db';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import { getWhoopProvider } from '../src/health/providers';
+import { initialHealthBackfill } from '../src/hooks/useHealthData';
+import { WHOOP_WORKER_URL } from '../src/health/config';
+
+WebBrowser.maybeCompleteAuthSession();
+
+const WHOOP_DISCOVERY: AuthSession.DiscoveryDocument = {
+  authorizationEndpoint: 'https://api.prod.whoop.com/oauth/oauth2/auth',
+  tokenEndpoint: `${WHOOP_WORKER_URL}/oauth/token`,
+};
+
+const WHOOP_CLIENT_ID = 'YOUR_WHOOP_CLIENT_ID'; // Replace after registering at developer.whoop.com
 
 type WeightUnit = 'lbs' | 'kg';
 
@@ -21,13 +35,72 @@ export default function SettingsScreen() {
   const [unit, setUnit] = useState<WeightUnit>('lbs');
   const [lastExport, setLastExport] = useState<string | null>(null);
   const [activeProgram, setActiveProgram] = useState<{ id: string; name: string } | null>(null);
+  const [whoopConnected, setWhoopConnected] = useState(false);
+  const [whoopLoading, setWhoopLoading] = useState(false);
+
+  const redirectUri = AuthSession.makeRedirectUri({ scheme: 'apex' });
+
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: WHOOP_CLIENT_ID,
+      scopes: ['read:recovery', 'read:sleep', 'read:workout', 'read:cycles', 'read:profile', 'offline'],
+      redirectUri,
+      responseType: AuthSession.ResponseType.Code,
+    },
+    WHOOP_DISCOVERY
+  );
 
   useFocusEffect(
     useCallback(() => {
       getLastExportTimestamp().then(setLastExport);
       getActiveProgram().then((p) => setActiveProgram(p ? { id: p.id, name: p.name } : null));
+      getWhoopProvider().isConnected().then(setWhoopConnected);
     }, [])
   );
+
+  useEffect(() => {
+    if (response?.type === 'success' && response.params.code) {
+      (async () => {
+        setWhoopLoading(true);
+        try {
+          await getWhoopProvider().authorizeWithCode(response.params.code, redirectUri);
+          setWhoopConnected(true);
+          initialHealthBackfill();
+        } catch (e) {
+          Alert.alert('Connection Failed', 'Could not connect to WHOOP. Please try again.');
+        } finally {
+          setWhoopLoading(false);
+        }
+      })();
+    }
+  }, [response]);
+
+  const handleWhoopConnect = async () => {
+    setWhoopLoading(true);
+    try {
+      await promptAsync();
+    } catch {
+      setWhoopLoading(false);
+    }
+  };
+
+  const handleWhoopDisconnect = () => {
+    Alert.alert(
+      'Disconnect WHOOP',
+      'This will stop syncing health data. Your existing data will be kept.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disconnect',
+          style: 'destructive',
+          onPress: async () => {
+            await getWhoopProvider().disconnect();
+            setWhoopConnected(false);
+          },
+        },
+      ]
+    );
+  };
 
   const handleExportData = async () => {
     try {
@@ -285,13 +358,39 @@ export default function SettingsScreen() {
               <View style={styles.rowLeft}>
                 <Text style={styles.rowLabel}>WHOOP</Text>
                 <Text style={styles.rowHint}>
-                  Recovery, sleep, and strain data
+                  {whoopConnected ? 'Syncing recovery & sleep data' : 'Recovery, sleep, and strain data'}
                 </Text>
               </View>
-              <View style={styles.comingSoonBadge}>
-                <Text style={styles.comingSoonText}>Coming Soon</Text>
-              </View>
+              {whoopLoading ? (
+                <View style={styles.connectingBadge}>
+                  <Text style={styles.connectingText}>Connecting...</Text>
+                </View>
+              ) : whoopConnected ? (
+                <View style={styles.connectedBadge}>
+                  <Text style={styles.connectedText}>✓ Connected</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.connectButton}
+                  onPress={handleWhoopConnect}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.connectButtonText}>Connect</Text>
+                </TouchableOpacity>
+              )}
             </View>
+            {whoopConnected && (
+              <>
+                <View style={styles.rowDivider} />
+                <TouchableOpacity style={styles.row} onPress={handleWhoopDisconnect} activeOpacity={0.7}>
+                  <View style={styles.rowLeft}>
+                    <Text style={[styles.rowLabel, { fontWeight: '500' }]}>Disconnect</Text>
+                    <Text style={styles.rowHint}>Stop syncing. Your data will be kept.</Text>
+                  </View>
+                  <Text style={styles.disconnectText}>Disconnect</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
 
@@ -530,6 +629,53 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: FontSize.body,
     fontWeight: '600',
+  },
+
+  // Connect button (indigo)
+  connectButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.button,
+    backgroundColor: Colors.indigo,
+  },
+  connectButtonText: {
+    color: Colors.text,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+
+  // Connected badge (green)
+  connectedBadge: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.button,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+  },
+  connectedText: {
+    color: Colors.green,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+
+  // Connecting badge
+  connectingBadge: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.button,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+  },
+  connectingText: {
+    color: Colors.indigo,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+  },
+
+  // Disconnect
+  disconnectText: {
+    color: Colors.red,
+    fontSize: FontSize.body,
+    fontWeight: '500',
+    opacity: 0.8,
   },
 
   // Danger button

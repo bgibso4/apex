@@ -137,7 +137,7 @@ The `/v1/:table` pattern is generic but **validated** — the Worker maintains a
 
 Minimal additions — APEX stays focused:
 
-1. **Schema migration: add `updated_at`** — The sync model requires `updated_at` columns on all syncable tables (`sessions`, `set_logs`, `exercises`, `programs`, `run_logs`, `weekly_checkins`). This is a schema migration that backfills existing rows with `datetime('now')` and adds triggers or application-level updates to maintain the timestamp on writes.
+1. **Schema migration: add `updated_at`** — The sync model requires `updated_at` columns on all syncable tables (`sessions`, `set_logs`, `exercises`, `programs`, `run_logs`). This is a schema migration that backfills existing rows with `datetime('now')` and adds triggers or application-level updates to maintain the timestamp on writes. (`weekly_checkins` is not yet actively used — sync support for it is tracked separately.)
 2. **Sync client** — Background push to cloud after local SQLite writes. Uses shared package. Non-blocking, fails silently.
 3. **WHOOP integration** — Proceeds per existing spec (`2026-03-22-whoop-integration-design.md`). Additionally syncs `daily_health` to cloud. Note: the WHOOP spec describes a "single-purpose OAuth proxy" Worker, but this ecosystem spec expands the Worker's role to include data sync. The WHOOP OAuth endpoints become part of the broader health API Worker, not a separate deployment.
 4. **No new screens, tabs, or cards** for body comp or weight. That's the other app's domain.

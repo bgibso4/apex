@@ -34,7 +34,7 @@ export class WhoopProvider implements HealthProvider {
    * Exchange an authorization code for tokens via the CF Worker.
    */
   async authorizeWithCode(code: string, redirectUri: string): Promise<void> {
-    const response = await fetch(`${this.workerUrl}/oauth/token`, {
+    const response = await fetch(`${this.workerUrl}/v1/auth/whoop/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-API-Key': WHOOP_WORKER_API_KEY },
       body: JSON.stringify({ code, redirect_uri: redirectUri }),
@@ -165,7 +165,7 @@ export class WhoopProvider implements HealthProvider {
     if (!refreshToken) return null;
 
     try {
-      const response = await fetch(`${this.workerUrl}/oauth/refresh`, {
+      const response = await fetch(`${this.workerUrl}/v1/auth/whoop/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-Key': WHOOP_WORKER_API_KEY },
         body: JSON.stringify({ refresh_token: refreshToken }),

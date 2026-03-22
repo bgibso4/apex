@@ -1,0 +1,387 @@
+# Health API + D1 — Design Spec
+
+**Date:** 2026-03-22
+**Status:** Design approved, pending implementation planning
+**Parent:** `2026-03-22-health-ecosystem-design.md` (roadmap item #3)
+
+## Goal
+
+Extend the existing Cloudflare Worker (currently WHOOP OAuth proxy) into a full health API with a D1 database for cloud sync. This is the foundation that all future apps and the dashboard depend on.
+
+## What Exists Today
+
+- `workers/whoop-oauth/` — Deployed CF Worker with two OAuth endpoints (`/oauth/token`, `/oauth/refresh`)
+- API key auth via `X-API-Key` header (PR #51)
+- `wrangler.toml` with WHOOP environment variables
+- APEX app configured to talk to this Worker for WHOOP token exchange
+
+## What Changes
+
+1. **Rename** `workers/whoop-oauth/` → `workers/health-api/` to reflect expanded role
+2. **Restructure** from single `index.ts` to modular Hono app with route files and middleware
+3. **Add D1** database binding with schema for all syncable tables
+4. **Add sync endpoints** — generic `/v1/:table` with allowlist validation
+5. **Add observability** — Sentry error tracking, structured logging middleware, query timing
+6. **Preserve existing OAuth routes** — same logic, migrated into `routes/oauth.ts`
+
+## Worker Architecture
+
+**Framework:** [Hono](https://hono.dev) — lightweight, built for CF Workers, typed, middleware-first.
+
+```
+workers/health-api/
+  src/
+    index.ts              -- Hono app entry, route registration, Sentry wrapper
+    routes/
+      oauth.ts            -- /oauth/token, /oauth/refresh (migrated from current index.ts)
+      sync.ts             -- POST /v1/:table, GET /v1/:table
+      analytics.ts        -- GET /v1/analytics/* (dashboard queries, added later)
+    middleware/
+      auth.ts             -- API key validation (X-API-Key header)
+      logging.ts          -- Structured request/response logging with timing
+      sentry.ts           -- Sentry error capture wrapper
+    db/
+      schema.sql          -- D1 table definitions
+      migrations/         -- Versioned SQL migration files
+      queries.ts          -- Reusable query builders (upsert, select-since)
+    lib/
+      tables.ts           -- Table allowlist with column definitions
+  wrangler.toml           -- D1 binding + existing WHOOP vars
+  package.json            -- hono, @sentry/cloudflare
+  tsconfig.json
+```
+
+**Middleware stack** (applied to every request in order):
+1. Sentry — captures unhandled exceptions
+2. Logging — structured `console.log` with method, path, status, duration, context
+3. Auth — validates `X-API-Key`, rejects with 401 before route logic
+4. CORS — same headers as current Worker
+
+## D1 Schema
+
+```sql
+-- ============================================================
+-- Workout data (from APEX)
+-- ============================================================
+
+CREATE TABLE sessions (
+  id TEXT PRIMARY KEY,
+  program_id INTEGER,
+  program_name TEXT,
+  week_number INTEGER,
+  day_index INTEGER,
+  date TEXT NOT NULL,
+  status TEXT,
+  started_at TEXT,
+  completed_at TEXT,
+  sleep_quality INTEGER,
+  soreness INTEGER,
+  energy INTEGER,
+  notes TEXT,
+  updated_at TEXT NOT NULL,
+  source_app TEXT DEFAULT 'apex'
+);
+
+CREATE TABLE set_logs (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  exercise_name TEXT NOT NULL,
+  set_index INTEGER,
+  target_weight REAL,
+  actual_weight REAL,
+  target_reps INTEGER,
+  actual_reps INTEGER,
+  status TEXT,
+  rpe REAL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE exercises (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT,
+  muscle_groups TEXT,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE programs (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  status TEXT,
+  started_at TEXT,
+  completed_at TEXT,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE run_logs (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  duration_min REAL,
+  distance REAL,
+  pain_level INTEGER,
+  pain_level_24h INTEGER,
+  notes TEXT,
+  updated_at TEXT NOT NULL
+);
+
+-- ============================================================
+-- Health data (from APEX / WHOOP)
+-- ============================================================
+
+CREATE TABLE daily_health (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL UNIQUE,
+  source TEXT NOT NULL,
+  recovery_score REAL,
+  sleep_score REAL,
+  hrv_rmssd REAL,
+  resting_hr REAL,
+  strain_score REAL,
+  sleep_duration_min INTEGER,
+  spo2 REAL,
+  updated_at TEXT NOT NULL
+);
+
+-- ============================================================
+-- Weight / Body Comp (from future weight app)
+-- ============================================================
+
+CREATE TABLE body_weights (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  weight REAL NOT NULL,
+  unit TEXT DEFAULT 'lbs',
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE body_comp_scans (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  weight REAL,
+  skeletal_muscle_mass REAL,
+  body_fat_percent REAL,
+  bmi REAL,
+  body_water_percent REAL,
+  notes TEXT,
+  updated_at TEXT NOT NULL
+);
+
+-- ============================================================
+-- Sync tracking
+-- ============================================================
+
+CREATE TABLE sync_log (
+  app_id TEXT NOT NULL,
+  table_name TEXT NOT NULL,
+  last_synced_at TEXT NOT NULL,
+  rows_synced INTEGER,
+  PRIMARY KEY (app_id, table_name)
+);
+```
+
+**Key decisions:**
+- **Text UUIDs as primary keys** — apps generate IDs locally, no auto-increment conflicts across devices/apps
+- **`source_app` on sessions** — tracks which app wrote the data
+- **`body_weights` and `body_comp_scans` created now but empty** — ready for the weight app when built
+- **`set_logs.exercise_name` denormalized** — dashboard queries don't always need joins to exercises
+- **No `raw_json` columns** — cloud stores structured data only; full API responses stay local
+- **D1 migrations tracked in `db/migrations/`** — versioned SQL files applied via `wrangler d1 execute`
+
+## Sync API
+
+### Push: `POST /v1/:table`
+
+Apps push records after local SQLite writes.
+
+```typescript
+// Request
+POST /v1/sessions
+X-API-Key: <key>
+Content-Type: application/json
+
+{
+  "app_id": "apex",
+  "records": [
+    { "id": "uuid-1", "date": "2026-03-22", "status": "completed", "updated_at": "..." },
+    { "id": "uuid-2", "date": "2026-03-21", "status": "completed", "updated_at": "..." }
+  ]
+}
+
+// Response 200
+{ "synced": 2, "errors": 0 }
+
+// Response 400 (validation failure)
+{ "error": "Unknown table: foo" }
+{ "error": "Missing required column: id in records[0]" }
+```
+
+**Behavior:**
+- Validates table name against allowlist (rejects unknown tables)
+- Validates each record has required columns, strips unknown columns
+- Batch upsert via `INSERT OR REPLACE INTO <table> (...) VALUES (...)`
+- Updates `sync_log` with timestamp and count
+- Returns synced/error count
+
+### Pull: `GET /v1/:table`
+
+Dashboard (and future reinstall recovery) reads records.
+
+```typescript
+// Request
+GET /v1/sessions?since=2026-03-01T00:00:00Z&limit=100&offset=0
+
+// Response 200
+{
+  "records": [...],
+  "total": 47,
+  "has_more": false
+}
+```
+
+**Behavior:**
+- `since` filters on `updated_at` (only records changed after timestamp)
+- Without `since`, returns all records
+- Paginated with `limit` (default 100, max 1000) and `offset`
+- `total` is the count matching the filter, `has_more` indicates more pages
+
+### Table Allowlist
+
+Hardcoded in `lib/tables.ts`:
+
+```typescript
+export const ALLOWED_TABLES = {
+  sessions: {
+    columns: ['id', 'program_id', 'program_name', 'week_number', 'day_index',
+              'date', 'status', 'started_at', 'completed_at', 'sleep_quality',
+              'soreness', 'energy', 'notes', 'updated_at', 'source_app'],
+    required: ['id', 'date', 'updated_at'],
+  },
+  set_logs: {
+    columns: ['id', 'session_id', 'exercise_name', 'set_index', 'target_weight',
+              'actual_weight', 'target_reps', 'actual_reps', 'status', 'rpe', 'updated_at'],
+    required: ['id', 'session_id', 'exercise_name', 'updated_at'],
+  },
+  // ... all tables defined similarly
+} as const;
+```
+
+**This prevents:**
+- SQL injection (table names are never interpolated from user input — they're looked up in the allowlist)
+- Junk data (unknown columns stripped, required columns enforced)
+- Unauthorized table access (only allowlisted tables are queryable)
+
+## Observability
+
+### Sentry (Error Tracking + Alerting)
+
+- `@sentry/cloudflare` SDK wraps the Hono app
+- Captures unhandled exceptions with stack traces
+- Free tier: 5K errors/month, email alerts on new issues
+- `SENTRY_DSN` stored as Worker secret
+- **This is how you find out something broke** — proactive email, not "app feels slow"
+
+### Structured Logging
+
+Every request logs:
+```json
+{
+  "method": "POST",
+  "path": "/v1/sessions",
+  "status": 200,
+  "duration_ms": 12,
+  "app_id": "apex",
+  "records_count": 5,
+  "table": "sessions"
+}
+```
+
+Visible in:
+- **Workers Observability dashboard** — persistent, queryable, 24-72h retention (free)
+- **`wrangler tail`** — live streaming during development (free)
+
+### D1 Query Timing
+
+Database queries wrapped with timing:
+```typescript
+const start = Date.now();
+const result = await db.prepare(sql).bind(...params).all();
+const ms = Date.now() - start;
+if (ms > 100) console.warn(`Slow query (${ms}ms): ${table}`);
+```
+
+Slow queries (>100ms) logged as warnings — visible in the same logging pipeline.
+
+### What You Get
+
+| Signal | Source | Cost |
+|--------|--------|------|
+| Request volume, error rate, latency | CF Workers Analytics dashboard | Free |
+| D1 read/write counts, storage | CF D1 dashboard | Free |
+| Persistent request logs (24-72h) | Workers Observability | Free |
+| Error stack traces + email alerts | Sentry free tier | Free |
+| Live log streaming | `wrangler tail` | Free |
+| Slow D1 query warnings | Custom logging middleware | Free |
+
+## Migration Plan
+
+### Rename & Restructure
+
+1. Copy `workers/whoop-oauth/` to `workers/health-api/`
+2. Restructure into modular layout (routes, middleware, db, lib)
+3. Migrate existing OAuth logic into `routes/oauth.ts` (same behavior, no changes)
+4. Add Hono as router, wire up middleware stack
+5. Verify existing WHOOP OAuth flow still works via `wrangler dev`
+
+### Add D1
+
+1. `wrangler d1 create health-db`
+2. Add D1 binding to `wrangler.toml`
+3. Apply schema via `wrangler d1 execute health-db --file=./src/db/schema.sql`
+4. Implement sync routes
+
+### Add Observability
+
+1. Create free Sentry project
+2. `wrangler secret put SENTRY_DSN`
+3. Wrap Hono app with Sentry handler
+4. Add logging middleware
+
+### Deploy & Verify
+
+1. Deploy via `wrangler deploy`
+2. Smoke test: hit `/oauth/token` (existing), `/v1/sessions` (new) with curl
+3. Verify Sentry captures a test error
+4. Verify logs appear in CF dashboard
+5. Update APEX `src/health/config.ts` if Worker URL changed
+
+### Update APEX Config
+
+- If the Worker URL changes due to rename, update `src/health/config.ts`
+- If same CF project (same URL), no app changes needed
+
+## Error Handling
+
+- **Invalid table name:** 400 with `{ error: "Unknown table: foo" }`
+- **Missing required columns:** 400 with `{ error: "Missing required column: id in records[0]" }`
+- **Empty records array:** 400 with `{ error: "No records provided" }`
+- **Invalid API key:** 401 with `Unauthorized`
+- **D1 error:** 500 with `{ error: "Database error" }` (details in Sentry, not exposed to client)
+- **Rate limiting:** Not implemented — free tier limits are far beyond personal usage
+
+## Testing Strategy
+
+- **Unit tests:** Route handlers with mocked D1 bindings (Hono test utilities + Miniflare)
+- **Integration tests:** `wrangler dev` with local D1 database
+- **Allowlist tests:** Reject unknown tables, missing required fields, extra columns stripped
+- **Auth tests:** 401 without key, 200 with valid key
+- **Migration test:** Verify OAuth routes still work after restructure
+- **Smoke test post-deploy:** curl each endpoint, verify responses
+
+## Cost
+
+| Component | Monthly Cost |
+|-----------|-------------|
+| CF Worker | $0 (free tier: 100K req/day) |
+| CF D1 | $0 (free tier: 5M reads/day, 100K writes/day, 5GB) |
+| Sentry | $0 (free tier: 5K errors/month) |
+| **Total** | **$0/month** |

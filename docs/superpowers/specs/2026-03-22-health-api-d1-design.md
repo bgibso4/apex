@@ -288,6 +288,21 @@ The D1 schema closely mirrors the APEX local schema but with these differences:
 | `day_template_id` on sessions | Present | Absent | Internal program structure detail, not useful for analytics |
 | `session_protocols.id` | `INTEGER AUTOINCREMENT` | `TEXT` (UUID) | Same as `daily_health` — sync client generates text UUID for each local row |
 
+## Sync Cadence
+
+Apps sync at two moments:
+
+1. **On app open** — Push all changes since last successful sync. Covers anything that accumulated while the app was closed (completed sessions, health data synced from WHOOP, etc.).
+2. **On session complete** — When a workout session is marked complete, push the session, its set_logs, exercise_notes, session_protocols, and any personal_records created. This ensures the most important data (a finished workout) reaches the cloud promptly.
+
+**Not** on every individual write (each set, each rep). Mid-workout data stays local until the session completes or the app is next opened.
+
+**Behavior:**
+- Sync is background, non-blocking. The app never waits for sync to complete.
+- If sync fails (offline, API error), changes accumulate locally. Next sync picks up everything since last successful sync.
+- Each app tracks its last successful sync timestamp per table in local storage.
+- Estimated API volume: ~10-20 requests per workout day (one batch per table on open, one batch per table on session complete). Well within free tier.
+
 ## Sync API
 
 ### Push: `POST /v1/:table`

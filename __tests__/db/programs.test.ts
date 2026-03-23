@@ -147,6 +147,8 @@ describe('programs', () => {
       // First runAsync call is the program INSERT
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('INSERT INTO programs');
+      expect(sql).toContain('updated_at');
+      expect(sql).toContain("datetime('now')");
       expect(params[0]).toBe('test-prog-id');
       expect(params[1]).toBe('Test Program');
       expect(params[2]).toBe(12);
@@ -166,6 +168,8 @@ describe('programs', () => {
       const [sql1, params1] = mockDb.runAsync.mock.calls[1];
       expect(sql1).toContain('INSERT OR REPLACE INTO exercises');
       expect(sql1).toContain('input_fields');
+      expect(sql1).toContain('updated_at');
+      expect(sql1).toContain("datetime('now')");
       expect(params1[0]).toBe('squat');
       expect(params1[1]).toBe('Back Squat');
       expect(params1[2]).toBe('main');
@@ -234,6 +238,7 @@ describe('programs', () => {
       const [sql1] = mockDb.runAsync.mock.calls[0];
       expect(sql1).toContain("UPDATE programs SET status = 'completed'");
       expect(sql1).toContain("WHERE status = 'active'");
+      expect(sql1).toContain('updated_at');
     });
 
     it('activates the specified program', async () => {
@@ -245,6 +250,7 @@ describe('programs', () => {
       expect(sql2).toContain('one_rm_values = NULL');
       expect(sql2).toContain('activated_date = ?');
       expect(sql2).toContain('WHERE id = ?');
+      expect(sql2).toContain('updated_at');
       expect(typeof params2[0]).toBe('string'); // date string
       expect(params2[1]).toBe('prog-2');
     });
@@ -261,6 +267,7 @@ describe('programs', () => {
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain("UPDATE programs SET status = 'completed'");
       expect(sql).toContain('WHERE id = ?');
+      expect(sql).toContain('updated_at');
       expect(params).toEqual(['prog-1']);
     });
 
@@ -308,6 +315,7 @@ describe('programs', () => {
       expect(sql).toContain("UPDATE programs SET status = 'inactive'");
       expect(sql).toContain('activated_date = NULL');
       expect(sql).toContain('WHERE id = ?');
+      expect(sql).toContain('updated_at');
       expect(params).toEqual(['prog-1']);
     });
   });

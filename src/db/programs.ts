@@ -34,16 +34,16 @@ export async function importProgram(definition: ProgramDefinition): Promise<stri
   const { id: bundledId, name, duration_weeks, created } = definition.program;
 
   await db.runAsync(
-    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, bundled_id)
-     VALUES (?, ?, ?, ?, 'inactive', ?, ?)`,
+    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, bundled_id, updated_at)
+     VALUES (?, ?, ?, ?, 'inactive', ?, ?, datetime('now'))`,
     [id, name, duration_weeks, created, JSON.stringify(definition), bundledId ?? null]
   );
 
   // Upsert exercise definitions into global library
   for (const ex of definition.program.exercise_definitions) {
     await db.runAsync(
-      `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
       [
         ex.id, ex.name, ex.type,
         JSON.stringify(ex.muscle_groups),
@@ -81,15 +81,15 @@ export async function refreshBundledProgram(definition: ProgramDefinition): Prom
 
   // Update the definition JSON, name, and bundled_id
   await db.runAsync(
-    "UPDATE programs SET definition_json = ?, name = ?, bundled_id = ? WHERE id = ?",
+    "UPDATE programs SET definition_json = ?, name = ?, bundled_id = ?, updated_at = datetime('now') WHERE id = ?",
     [JSON.stringify(definition), name, bundledId ?? null, existing.id]
   );
 
   // Re-upsert exercise definitions (updates input_fields for existing exercises)
   for (const ex of definition.program.exercise_definitions) {
     await db.runAsync(
-      `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
       [
         ex.id, ex.name, ex.type,
         JSON.stringify(ex.muscle_groups),
@@ -108,12 +108,12 @@ export async function activateProgram(programId: string): Promise<void> {
 
   // Deactivate any currently active program
   await db.runAsync(
-    "UPDATE programs SET status = 'completed' WHERE status = 'active'"
+    "UPDATE programs SET status = 'completed', updated_at = datetime('now') WHERE status = 'active'"
   );
 
   // Activate this one
   await db.runAsync(
-    `UPDATE programs SET status = 'active', one_rm_values = NULL, activated_date = ?
+    `UPDATE programs SET status = 'active', one_rm_values = NULL, activated_date = ?, updated_at = datetime('now')
      WHERE id = ?`,
     [getLocalDateString(), programId]
   );
@@ -165,7 +165,7 @@ export async function stopProgram(
         [programId]
       );
       await db.runAsync(
-        "UPDATE programs SET status = 'inactive', activated_date = NULL WHERE id = ?",
+        "UPDATE programs SET status = 'inactive', activated_date = NULL, updated_at = datetime('now') WHERE id = ?",
         [programId]
       );
       await db.execAsync('COMMIT');
@@ -175,7 +175,7 @@ export async function stopProgram(
     }
   } else {
     await db.runAsync(
-      "UPDATE programs SET status = 'completed' WHERE id = ?",
+      "UPDATE programs SET status = 'completed', updated_at = datetime('now') WHERE id = ?",
       [programId]
     );
   }

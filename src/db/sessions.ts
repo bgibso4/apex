@@ -23,8 +23,8 @@ export async function createSession(params: {
   await db.runAsync(
     `INSERT INTO sessions
      (id, program_id, name, week_number, block_name, day_template_id,
-      scheduled_day, actual_day, date, started_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      scheduled_day, actual_day, date, started_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
     [
       id, params.programId, params.name ?? null, params.weekNumber, params.blockName,
       params.dayTemplateId, params.scheduledDay, params.actualDay,
@@ -44,7 +44,7 @@ export async function updateReadiness(
 ): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    "UPDATE sessions SET sleep = ?, soreness = ?, energy = ? WHERE id = ?",
+    "UPDATE sessions SET sleep = ?, soreness = ?, energy = ?, updated_at = datetime('now') WHERE id = ?",
     [sleep, soreness, energy, sessionId]
   );
 }
@@ -58,8 +58,8 @@ export async function insertSessionProtocols(
   for (let i = 0; i < protocols.length; i++) {
     const p = protocols[i];
     await db.runAsync(
-      `INSERT INTO session_protocols (session_id, type, protocol_key, protocol_name, sort_order)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO session_protocols (session_id, type, protocol_key, protocol_name, sort_order, updated_at)
+       VALUES (?, ?, ?, ?, ?, datetime('now'))`,
       [sessionId, p.type, p.protocolKey, p.protocolName, i]
     );
   }
@@ -81,7 +81,7 @@ export async function updateProtocolCompletion(
 ): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    'UPDATE session_protocols SET completed = ? WHERE id = ?',
+    "UPDATE session_protocols SET completed = ?, updated_at = datetime('now') WHERE id = ?",
     [completed ? 1 : 0, protocolId]
   );
 }
@@ -113,8 +113,8 @@ export async function logSet(params: {
      (id, session_id, exercise_id, set_number, target_weight, target_reps,
       actual_weight, actual_reps, target_distance, actual_distance,
       target_duration, actual_duration, target_time, actual_time,
-      rpe, status, timestamp, is_adhoc)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      rpe, status, timestamp, is_adhoc, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
     [
       id, params.sessionId, params.exerciseId, params.setNumber,
       params.targetWeight ?? null, params.targetReps ?? null,
@@ -160,8 +160,9 @@ export async function updateSet(
   if (updates.actualTime !== undefined) { fields.push('actual_time = ?'); values.push(updates.actualTime); }
   if (updates.rpe !== undefined) { fields.push('rpe = ?'); values.push(updates.rpe); }
   if (updates.status !== undefined) { fields.push('status = ?'); values.push(updates.status); }
+  fields.push("updated_at = datetime('now')");
 
-  if (fields.length === 0) return;
+  if (fields.length === 1) return; // only updated_at — no real changes
   values.push(setId);
 
   await db.runAsync(
@@ -180,7 +181,7 @@ export async function deleteSet(setId: string): Promise<void> {
 export async function completeSession(sessionId: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    "UPDATE sessions SET completed_at = ? WHERE id = ?",
+    "UPDATE sessions SET completed_at = ?, updated_at = datetime('now') WHERE id = ?",
     [new Date().toISOString(), sessionId]
   );
 }
@@ -188,7 +189,7 @@ export async function completeSession(sessionId: string): Promise<void> {
 /** Update session notes */
 export async function updateSessionNotes(sessionId: string, notes: string): Promise<void> {
   const db = await getDatabase();
-  await db.runAsync("UPDATE sessions SET notes = ? WHERE id = ?", [notes, sessionId]);
+  await db.runAsync("UPDATE sessions SET notes = ?, updated_at = datetime('now') WHERE id = ?", [notes, sessionId]);
 }
 
 /** Get all sessions for a given week */
@@ -309,8 +310,8 @@ export async function ensureExerciseExists(exercise: {
 }): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
     [
       exercise.id, exercise.name, exercise.type,
       JSON.stringify(exercise.muscleGroups ?? []),

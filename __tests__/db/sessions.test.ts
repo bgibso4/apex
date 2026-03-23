@@ -69,6 +69,7 @@ describe('sessions', () => {
 
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('INSERT INTO sessions');
+      expect(sql).toContain('updated_at');
       expect(params[0]).toBe('test-id-123'); // id
       expect(params[1]).toBe('prog-1');       // program_id
       expect(params[2]).toBeNull();           // name (not provided)
@@ -92,6 +93,7 @@ describe('sessions', () => {
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('UPDATE sessions SET sleep = ?, soreness = ?, energy = ?');
+      expect(sql).toContain('updated_at');
       expect(sql).toContain('WHERE id = ?');
       expect(params).toEqual([4, 2, 5, 'sess-1']);
     });
@@ -112,6 +114,7 @@ describe('sessions', () => {
 
       const [sql0, params0] = mockDb.runAsync.mock.calls[0];
       expect(sql0).toContain('INSERT INTO session_protocols');
+      expect(sql0).toContain('updated_at');
       expect(params0).toEqual(['sess-1', 'warmup', 'rope', 'Jump Rope', 0]);
 
       const [, params1] = mockDb.runAsync.mock.calls[1];
@@ -157,6 +160,7 @@ describe('sessions', () => {
 
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('UPDATE session_protocols SET completed = ?');
+      expect(sql).toContain('updated_at');
       expect(sql).toContain('WHERE id = ?');
       expect(params).toEqual([1, 42]);
     });
@@ -193,6 +197,7 @@ describe('sessions', () => {
 
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('INSERT INTO set_logs');
+      expect(sql).toContain('updated_at');
       expect(params[0]).toBe('test-id-123'); // id
       expect(params[1]).toBe('sess-1');       // session_id
       expect(params[2]).toBe('squat');        // exercise_id
@@ -350,6 +355,7 @@ describe('sessions', () => {
       expect(sql).toContain('actual_reps = ?');
       expect(sql).toContain('rpe = ?');
       expect(sql).toContain('status = ?');
+      expect(sql).toContain('updated_at');
       expect(sql).toContain('WHERE id = ?');
       expect(params).toEqual([240, 3, 9, 'completed_below', 'set-1']);
     });
@@ -430,6 +436,7 @@ describe('sessions', () => {
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('UPDATE sessions SET completed_at = ?');
+      expect(sql).toContain('updated_at');
       expect(sql).toContain('WHERE id = ?');
       expect(typeof params[0]).toBe('string'); // ISO timestamp
       expect(params[1]).toBe('sess-1');
@@ -446,6 +453,7 @@ describe('sessions', () => {
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('UPDATE sessions SET notes = ?');
+      expect(sql).toContain('updated_at');
       expect(sql).toContain('WHERE id = ?');
       expect(params).toEqual(['Great workout', 'sess-1']);
     });
@@ -626,6 +634,7 @@ describe('sessions', () => {
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('INSERT OR REPLACE INTO exercises');
       expect(sql).toContain('input_fields');
+      expect(sql).toContain('updated_at');
       expect(params[0]).toBe('lateral-raise');
       expect(params[1]).toBe('Lateral Raise');
       expect(params[2]).toBe('accessory');

@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS programs (
   one_rm_values TEXT,
   activated_date TEXT,
   is_sample INTEGER DEFAULT 0,
-  bundled_id TEXT
+  bundled_id TEXT,
+  updated_at TEXT
 );
 
 -- Global exercise library (cross-program)
@@ -28,7 +29,8 @@ CREATE TABLE IF NOT EXISTS exercises (
   muscle_groups TEXT NOT NULL DEFAULT '[]',
   alternatives TEXT NOT NULL DEFAULT '[]',
   input_fields TEXT,
-  is_sample INTEGER DEFAULT 0
+  is_sample INTEGER DEFAULT 0,
+  updated_at TEXT
 );
 
 -- Session logs
@@ -49,6 +51,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   started_at TEXT,
   completed_at TEXT,
   is_sample INTEGER DEFAULT 0,
+  updated_at TEXT,
   FOREIGN KEY (program_id) REFERENCES programs(id)
 );
 
@@ -73,6 +76,7 @@ CREATE TABLE IF NOT EXISTS set_logs (
   timestamp TEXT,
   is_adhoc INTEGER DEFAULT 0,
   is_sample INTEGER DEFAULT 0,
+  updated_at TEXT,
   FOREIGN KEY (session_id) REFERENCES sessions(id),
   FOREIGN KEY (exercise_id) REFERENCES exercises(id)
 );
@@ -89,6 +93,7 @@ CREATE TABLE IF NOT EXISTS run_logs (
   notes TEXT,
   included_pickups INTEGER DEFAULT 0,
   is_sample INTEGER DEFAULT 0,
+  updated_at TEXT,
   FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
 
@@ -119,6 +124,7 @@ CREATE TABLE IF NOT EXISTS exercise_notes (
   note TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   is_sample INTEGER DEFAULT 0,
+  updated_at TEXT,
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
   UNIQUE(session_id, exercise_id)
 );
@@ -134,6 +140,7 @@ CREATE TABLE IF NOT EXISTS personal_records (
   session_id TEXT NOT NULL,
   date TEXT NOT NULL,
   is_sample INTEGER DEFAULT 0,
+  updated_at TEXT,
   FOREIGN KEY (exercise_id) REFERENCES exercises(id),
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
@@ -148,6 +155,7 @@ CREATE TABLE IF NOT EXISTS session_protocols (
   completed INTEGER DEFAULT 0,
   sort_order INTEGER DEFAULT 0,
   is_sample INTEGER DEFAULT 0,
+  updated_at TEXT,
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 

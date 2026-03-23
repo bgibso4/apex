@@ -174,6 +174,22 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         console.warn('Migration to v11 warning:', e);
       }
     }
+    // v12: Add updated_at to all syncable tables for cloud sync
+    if (currentVersion < 12) {
+      const syncableTables = [
+        'sessions', 'set_logs', 'exercises', 'programs',
+        'run_logs', 'exercise_notes', 'personal_records', 'session_protocols',
+      ];
+      for (const table of syncableTables) {
+        try {
+          await db.runAsync(`ALTER TABLE ${table} ADD COLUMN updated_at TEXT`);
+        } catch {
+          // Column may already exist
+        }
+        await db.runAsync(`UPDATE ${table} SET updated_at = datetime('now') WHERE updated_at IS NULL`);
+      }
+    }
+
     // Safety net: ensure critical columns exist regardless of version
     // (handles databases where version was bumped but migrations were skipped)
     for (const col of ['notes TEXT', 'name TEXT', 'is_sample INTEGER DEFAULT 0']) {

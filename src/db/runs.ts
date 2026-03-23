@@ -19,8 +19,8 @@ export async function logRun(params: {
   const id = generateId();
 
   await db.runAsync(
-    `INSERT INTO run_logs (id, session_id, date, duration_min, distance, pain_level, notes, included_pickups)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO run_logs (id, session_id, date, duration_min, distance, pain_level, notes, included_pickups, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
     [id, params.sessionId ?? null, params.date, params.durationMin, params.distance ?? null, params.painLevel, params.notes ?? null, params.includedPickups ? 1 : 0]
   );
 
@@ -120,7 +120,7 @@ export async function updateRun(runId: string, params: {
 }): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    `UPDATE run_logs SET duration_min = ?, distance = ?, pain_level = ?, notes = ?, included_pickups = ? WHERE id = ?`,
+    `UPDATE run_logs SET duration_min = ?, distance = ?, pain_level = ?, notes = ?, included_pickups = ?, updated_at = datetime('now') WHERE id = ?`,
     [params.durationMin, params.distance ?? null, params.painLevel, params.notes ?? null, params.includedPickups ? 1 : 0, runId]
   );
 }
@@ -129,7 +129,7 @@ export async function updateRun(runId: string, params: {
 export async function updateRunPain24h(runId: string, painLevel: number): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    "UPDATE run_logs SET pain_level_24h = ? WHERE id = ?",
+    "UPDATE run_logs SET pain_level_24h = ?, updated_at = datetime('now') WHERE id = ?",
     [painLevel, runId]
   );
 }

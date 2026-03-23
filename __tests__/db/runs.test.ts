@@ -58,6 +58,7 @@ describe('runs', () => {
 
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('INSERT INTO run_logs');
+      expect(sql).toContain('updated_at');
       expect(params).toEqual([
         'test-run-id',
         'sess-1',
@@ -225,6 +226,7 @@ describe('runs', () => {
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
       expect(sql).toContain('UPDATE run_logs SET pain_level_24h = ?');
+      expect(sql).toContain('updated_at');
       expect(sql).toContain('WHERE id = ?');
       expect(params).toEqual([4, 'run-123']);
     });
@@ -266,6 +268,7 @@ describe('runs', () => {
       expect(sql).toContain('pain_level = ?');
       expect(sql).toContain('notes = ?');
       expect(sql).toContain('included_pickups = ?');
+      expect(sql).toContain('updated_at');
       expect(sql).toContain('WHERE id = ?');
       expect(params).toEqual([35, 3.5, 4, 'updated notes', 1, 'run-789']);
     });

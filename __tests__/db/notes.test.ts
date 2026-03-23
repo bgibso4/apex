@@ -34,6 +34,8 @@ describe('exercise notes', () => {
         expect.stringContaining('INSERT OR REPLACE'),
         expect.arrayContaining(['session-1', 'bench_press', 'Left shoulder tight'])
       );
+      const [sql] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('updated_at');
     });
   });
 

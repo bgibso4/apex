@@ -224,8 +224,8 @@ export async function detectPRs(
   // Save all new PRs
   for (const pr of newPRs) {
     await db.runAsync(
-      `INSERT INTO personal_records (id, exercise_id, record_type, rep_count, value, previous_value, session_id, date)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO personal_records (id, exercise_id, record_type, rep_count, value, previous_value, session_id, date, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
       [pr.id, pr.exercise_id, pr.record_type, pr.rep_count, pr.value, pr.previous_value, pr.session_id, pr.date]
     );
   }

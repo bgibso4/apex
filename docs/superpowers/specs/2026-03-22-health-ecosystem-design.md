@@ -104,7 +104,7 @@ sync_log          -- last sync timestamp per app per table
 
 The API is exposed to the internet and must be authenticated, even for single-user.
 
-- **Mechanism:** API key (long random string) sent via `Authorization: Bearer <key>` header
+- **Mechanism:** API key (long random string) sent via `X-API-Key` header (already deployed and in use for WHOOP OAuth)
 - **Server-side:** Key stored as a Worker environment variable (Cloudflare secret). Worker rejects requests without a valid key.
 - **Client-side:** Key stored in each app's environment config (not in source control). For Expo apps, this can be an environment variable baked at build time.
 - **Why not OAuth/JWT for the sync API:** Overkill for single-user. An API key is simple, has no expiry to manage, and is trivially rotatable via `wrangler secret put`.
@@ -115,8 +115,8 @@ The API is exposed to the internet and must be authenticated, even for single-us
 ```
 POST   /v1/:table            -- upsert records (batch)
 GET    /v1/:table?since=     -- get records, optionally since timestamp
-POST   /v1/auth/whoop/token  -- OAuth token exchange
-POST   /v1/auth/whoop/refresh -- OAuth token refresh
+POST   /v1/auth/whoop/token   -- WHOOP OAuth token exchange
+POST   /v1/auth/whoop/refresh -- WHOOP OAuth token refresh
 GET    /v1/analytics/...     -- dashboard-specific query endpoints
 ```
 
@@ -185,15 +185,31 @@ Each app is its own repo. A private npm package contains:
 
 **Start simple:** Begin with just API types in the shared package. Pull in shared sync logic and design tokens incrementally as patterns emerge.
 
-## Implementation Order
+## Current State (as of 2026-03-22)
 
-Each piece gets its own brainstorm → spec → plan → implementation cycle:
+### Completed
 
-1. **Cloud API + D1** — Foundation. Nothing works without it.
-2. **APEX sync client** — Get existing workout data flowing to the cloud.
-3. **WHOOP integration** — Already spec'd. Adds health data to the pipeline.
-4. **Weight/Body Comp app** — New app, own brainstorm.
-5. **Dashboard** — Reads from everything. Built last when there's data to visualize.
+- **WHOOP integration (PR #50)** — Full `HealthProvider` interface, Whoop provider, health service orchestrator, `daily_health` SQLite table, compact health bar on home + session detail, settings connect/disconnect flow. 16 new tests, 552 total passing.
+- **CF Worker deployed (PR #51)** — OAuth token exchange + refresh endpoints at `workers/whoop-oauth/`. Protected with API key auth (`X-API-Key` header). Production deployment live.
+- **Vendor-agnostic health architecture** — `HealthProvider` interface in `src/types/health.ts`, provider registry in `src/health/providers/`. Garmin/Oura/etc. can slot in by implementing the interface.
+
+### What Exists to Build On
+
+- `workers/whoop-oauth/` — Deployed Worker with `wrangler.toml`. Will be extended (not replaced) to add D1 binding and sync endpoints alongside existing OAuth routes.
+- `src/health/` — Health service, provider system, config. Sync-to-cloud capability can be wired into the existing health service.
+- API key auth already in place — same `X-API-Key` mechanism will protect sync endpoints.
+
+## Implementation Roadmap
+
+Each remaining piece gets its own brainstorm → spec → plan → implementation cycle:
+
+1. ~~WHOOP integration~~ — **Done** (PR #50)
+2. ~~Worker + API key auth~~ — **Done** (PR #51)
+3. **Extend Worker with D1 + sync endpoints** — Add D1 binding to existing `wrangler.toml`, create D1 schema, add `/v1/:table` sync routes alongside existing `/oauth/*` routes. Not starting from scratch.
+4. **APEX sync client + `updated_at` migration** — Add `updated_at` to syncable tables, build shared sync library, wire push-on-write into APEX.
+5. **Shared package** — Extract API types and sync client into a private npm package.
+6. **Weight/Body Comp app** — New app, own brainstorm. Uses shared package for sync.
+7. **Dashboard** — Web app on CF Pages. Built last when there's data to visualize. Own brainstorm.
 
 ## Cost Analysis
 

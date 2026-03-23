@@ -149,7 +149,7 @@ describe('WhoopProvider', () => {
       await provider.fetchDaily('2026-03-22');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://test-worker.example.com/oauth/refresh',
+        'https://test-worker.example.com/v1/auth/whoop/refresh',
         expect.objectContaining({ method: 'POST' })
       );
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith('whoop_access_token', 'new-token');

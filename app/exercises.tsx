@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import AddExerciseModal from '../src/components/AddExerciseModal';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
@@ -36,6 +37,7 @@ export default function ExercisesScreen() {
   const [groups, setGroups] = useState<GroupedExercises[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const toggleGroup = (group: string) => {
     setCollapsed(prev => {
@@ -150,7 +152,7 @@ export default function ExercisesScreen() {
         <View style={styles.headerSpacer} />
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => {}}
+          onPress={() => setShowAddModal(true)}
           activeOpacity={0.7}
         >
           <Ionicons name="add" size={24} color={Colors.indigo} />
@@ -235,6 +237,11 @@ export default function ExercisesScreen() {
           })}
         </ScrollView>
       )}
+      <AddExerciseModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSaved={() => { setShowAddModal(false); loadData(); }}
+      />
     </View>
   );
 }

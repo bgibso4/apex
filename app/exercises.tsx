@@ -1,7 +1,8 @@
 /**
  * APEX — All Exercises Screen
- * Lists all exercises the user has ever logged, grouped by muscle group.
- * Each exercise is tappable to navigate to its detail view.
+ * Lists all exercises (library + user-created), grouped by muscle group.
+ * Each exercise shows its primary metric and trend indicator.
+ * Groups are collapsible; all expanded by default.
  */
 
 import { useState, useCallback } from 'react';
@@ -9,53 +10,80 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
-import { getLoggedExercises, getEstimated1RM, get1RMHistory } from '../src/db';
+import { getAllExercises, getEstimated1RM, getExercisePrimaryMetric, get1RMHistory } from '../src/db';
+import type { ExerciseListItem, ExercisePrimaryMetric as PrimaryMetric } from '../src/db';
 import { MUSCLE_GROUPS } from '../src/data/exercise-library';
-import { SparkLine } from '../src/components/TrendLineChart';
-import type { Estimated1RM } from '../src/types';
+import { getFieldsForExercise, supportsE1RM } from '../src/types/fields';
 
-interface ExerciseData {
+type TrendDirection = 'up' | 'down' | 'flat';
+
+interface ExerciseRow {
   id: string;
   name: string;
   muscleGroup: string;
-  e1rm: Estimated1RM | null;
-  history: number[];
+  hasLoggedSets: boolean;
+  metric: PrimaryMetric | null;
+  trend: TrendDirection;
 }
 
 interface GroupedExercises {
   group: string;
-  exercises: ExerciseData[];
+  exercises: ExerciseRow[];
 }
 
 export default function ExercisesScreen() {
   const router = useRouter();
   const [groups, setGroups] = useState<GroupedExercises[]>([]);
   const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (group: string) => {
+    setCollapsed(prev => {
+      const next = new Set(prev);
+      next.has(group) ? next.delete(group) : next.add(group);
+      return next;
+    });
+  };
 
   const loadData = useCallback(async () => {
-    const exercises = await getLoggedExercises();
+    const allExercises = await getAllExercises();
 
-    // Load e1RM and history for all exercises in parallel
-    const enriched = await Promise.all(
-      exercises.map(async (ex) => {
-        const [e1rm, history] = await Promise.all([
-          getEstimated1RM(ex.id),
-          get1RMHistory(ex.id, 8),
-        ]);
-        return {
-          id: ex.id,
-          name: ex.name,
-          muscleGroup: ex.muscleGroups[0] ?? 'Other',
-          e1rm,
-          history: history.map(h => h.e1rm),
-        };
+    // Enrich exercises with metrics in parallel
+    const enriched: ExerciseRow[] = await Promise.all(
+      allExercises.map(async (ex) => {
+        const muscleGroup = ex.muscleGroups[0] ?? 'Other';
+        if (!ex.hasLoggedSets) {
+          return { id: ex.id, name: ex.name, muscleGroup, hasLoggedSets: false, metric: null, trend: 'flat' as TrendDirection };
+        }
+
+        const fields = getFieldsForExercise(ex.inputFields);
+        const isE1RM = supportsE1RM(fields);
+        const metric = await getExercisePrimaryMetric(ex.id, ex.inputFields);
+
+        // Determine trend for e1RM exercises
+        let trend: TrendDirection = 'flat';
+        if (isE1RM && metric) {
+          try {
+            const history = await get1RMHistory(ex.id, 4);
+            if (history.length >= 2) {
+              const latest = history[0].e1rm;
+              const previous = history[1].e1rm;
+              if (latest > previous) trend = 'up';
+              else if (latest < previous) trend = 'down';
+            }
+          } catch {
+            // Ignore — just show flat
+          }
+        }
+
+        return { id: ex.id, name: ex.name, muscleGroup, hasLoggedSets: true, metric, trend };
       })
     );
 
-    // Group by muscle group
-    const groupMap = new Map<string, ExerciseData[]>();
+    // Group by muscle group following MUSCLE_GROUPS order
+    const groupMap = new Map<string, ExerciseRow[]>();
     for (const ex of enriched) {
-      const group = MUSCLE_GROUPS.includes(ex.muscleGroup as typeof MUSCLE_GROUPS[number])
+      const group = (MUSCLE_GROUPS as readonly string[]).includes(ex.muscleGroup)
         ? ex.muscleGroup
         : 'Other';
       const list = groupMap.get(group) ?? [];
@@ -63,7 +91,12 @@ export default function ExercisesScreen() {
       groupMap.set(group, list);
     }
 
-    // Order by MUSCLE_GROUPS, then "Other" at the end
+    // Sort exercises alphabetically within each group
+    for (const list of groupMap.values()) {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Order groups by MUSCLE_GROUPS, then "Other" at the end
     const ordered: GroupedExercises[] = [];
     for (const group of MUSCLE_GROUPS) {
       const exercises = groupMap.get(group);
@@ -82,6 +115,27 @@ export default function ExercisesScreen() {
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
+  const getTrendArrow = (trend: TrendDirection) => {
+    switch (trend) {
+      case 'up': return { symbol: '\u2191', color: Colors.green };
+      case 'down': return { symbol: '\u2193', color: Colors.amber };
+      default: return { symbol: '\u2192', color: Colors.textMuted };
+    }
+  };
+
+  const formatMetricValue = (metric: PrimaryMetric) => {
+    if (metric.unit === 'sec') {
+      return `${metric.value}s`;
+    }
+    if (metric.unit === 'reps') {
+      return `${metric.value} reps`;
+    }
+    if (metric.unit === 'm') {
+      return `${metric.value}m`;
+    }
+    return `${metric.value} ${metric.unit ?? ''}`.trim();
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -93,6 +147,14 @@ export default function ExercisesScreen() {
           <Ionicons name="chevron-back" size={22} color={Colors.textDim} />
         </TouchableOpacity>
         <Text style={styles.title}>All Exercises</Text>
+        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {}}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={24} color={Colors.indigo} />
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -102,55 +164,75 @@ export default function ExercisesScreen() {
       ) : groups.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="barbell-outline" size={48} color={Colors.textMuted} />
-          <Text style={styles.emptyText}>No exercises logged yet</Text>
+          <Text style={styles.emptyText}>No exercises found</Text>
         </View>
       ) : (
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
         >
-          {groups.map((group) => (
-            <View key={group.group} style={styles.section}>
-              <Text style={styles.sectionLabel}>{group.group}</Text>
-              <View style={styles.card}>
-                {group.exercises.map((ex, index) => (
-                  <TouchableOpacity
-                    key={ex.id}
-                    style={[
-                      styles.row,
-                      index < group.exercises.length - 1 && styles.rowBorder,
-                    ]}
-                    activeOpacity={0.7}
-                    onPress={() => router.push(`/exercise/${ex.id}`)}
-                  >
-                    <View style={styles.rowLeft}>
-                      <Text style={styles.exerciseName}>{ex.name}</Text>
-                      {ex.history.length >= 2 && (
-                        <View style={styles.sparklineContainer}>
-                          <SparkLine
-                            data={ex.history}
-                            color={Colors.indigo}
-                            height={20}
-                            opacity={0.3}
-                          />
+          {groups.map((group) => {
+            const isCollapsed = collapsed.has(group.group);
+            return (
+              <View key={group.group} style={styles.section}>
+                <TouchableOpacity
+                  style={styles.sectionHeader}
+                  onPress={() => toggleGroup(group.group)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.sectionLabel}>
+                    {group.group} ({group.exercises.length})
+                  </Text>
+                  <Ionicons
+                    name={isCollapsed ? 'chevron-forward' : 'chevron-down'}
+                    size={14}
+                    color={Colors.textMuted}
+                  />
+                </TouchableOpacity>
+                {!isCollapsed && (
+                  <View style={styles.card}>
+                    {group.exercises.map((ex, index) => (
+                      <TouchableOpacity
+                        key={ex.id}
+                        style={[
+                          styles.row,
+                          index < group.exercises.length - 1 && styles.rowBorder,
+                        ]}
+                        activeOpacity={0.7}
+                        onPress={() => router.push(`/exercise/${ex.id}`)}
+                      >
+                        <Text
+                          style={[
+                            styles.exerciseName,
+                            !ex.hasLoggedSets && styles.exerciseNameUnlogged,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {ex.name}
+                        </Text>
+                        <View style={styles.rowRight}>
+                          {ex.metric ? (
+                            <View style={styles.metricRow}>
+                              <Text style={styles.metricValue}>
+                                {formatMetricValue(ex.metric)}
+                              </Text>
+                              {ex.hasLoggedSets && (
+                                <Text style={[styles.trendArrow, { color: getTrendArrow(ex.trend).color }]}>
+                                  {' '}{getTrendArrow(ex.trend).symbol}
+                                </Text>
+                              )}
+                            </View>
+                          ) : (
+                            <Text style={styles.metricDash}>{'\u2014'}</Text>
+                          )}
                         </View>
-                      )}
-                    </View>
-                    <View style={styles.rowRight}>
-                      {ex.e1rm ? (
-                        <View style={styles.e1rmRow}>
-                          <Text style={styles.e1rmValue}>{ex.e1rm.value}</Text>
-                          <Text style={styles.e1rmUnit}>lbs</Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.e1rmDash}>{'\u2014'}</Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
-            </View>
-          ))}
+            );
+          })}
         </ScrollView>
       )}
     </View>
@@ -182,6 +264,16 @@ const styles = StyleSheet.create({
     fontSize: FontSize.screenTitle,
     fontWeight: '800',
   },
+  headerSpacer: {
+    flex: 1,
+  },
+  addButton: {
+    width: Spacing.xxxl,
+    height: Spacing.xxxl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.button,
+  },
   scroll: {
     flex: 1,
   },
@@ -192,13 +284,19 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: Spacing.lg,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md - 2,
+    paddingVertical: Spacing.xs,
+  },
   sectionLabel: {
     color: Colors.textMuted,
     fontSize: FontSize.sectionLabel,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: Spacing.md - 2,
   },
   card: {
     backgroundColor: Colors.card,
@@ -211,45 +309,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.lg,
+    minHeight: 56,
   },
   rowBorder: {
     borderBottomWidth: 1,
     borderBottomColor: Colors.surface,
   },
-  rowLeft: {
+  exerciseName: {
     flex: 1,
+    color: Colors.text,
+    fontSize: FontSize.md,
+    fontWeight: '500',
     marginRight: Spacing.md,
   },
-  exerciseName: {
-    color: Colors.text,
-    fontSize: FontSize.body,
-    fontWeight: '600',
-  },
-  sparklineContainer: {
-    marginTop: Spacing.xs,
-    width: 80,
+  exerciseNameUnlogged: {
+    color: Colors.textSecondary,
   },
   rowRight: {
     alignItems: 'flex-end',
   },
-  e1rmRow: {
+  metricRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: Spacing.xs,
   },
-  e1rmValue: {
+  metricValue: {
     color: Colors.text,
+    fontSize: FontSize.body,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  trendArrow: {
     fontSize: FontSize.body,
     fontWeight: '700',
   },
-  e1rmUnit: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-  e1rmDash: {
+  metricDash: {
     color: Colors.textMuted,
     fontSize: FontSize.body,
   },

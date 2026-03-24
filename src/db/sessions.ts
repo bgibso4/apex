@@ -5,6 +5,7 @@
 import { getDatabase, generateId } from './database';
 import type { Session, SetLog, SessionProtocol } from '../types';
 import type { InputField } from '../types/fields';
+import { syncAll } from '../sync/syncClient';
 
 /** Create a new session (when user starts a workout) */
 export async function createSession(params: {
@@ -184,6 +185,11 @@ export async function completeSession(sessionId: string): Promise<void> {
     "UPDATE sessions SET completed_at = ?, updated_at = datetime('now') WHERE id = ?",
     [new Date().toISOString(), sessionId]
   );
+
+  // Trigger background sync after completing a session
+  syncAll().catch((err) => {
+    console.warn('[sync] Post-session sync failed:', err);
+  });
 }
 
 /** Update session notes */

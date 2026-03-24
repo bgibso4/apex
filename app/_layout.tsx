@@ -17,6 +17,7 @@ import { getDatabase, refreshBundledProgram } from '../src/db';
 import type { ProgramDefinition } from '../src/types';
 import FA_V2 from '../src/data/functional-athlete.json';
 import { SplashScreen } from '../src/components/SplashScreen';
+import { useSyncOnOpen } from '../src/sync/useSyncOnOpen';
 
 // Prevent the native splash from auto-hiding — we control it
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
@@ -24,6 +25,7 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
+  useSyncOnOpen();
 
   useEffect(() => {
     (async () => {

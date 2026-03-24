@@ -9,10 +9,10 @@ export async function saveExerciseNote(
   const db = await getDatabase();
   const id = generateId();
   await db.runAsync(
-    `INSERT OR REPLACE INTO exercise_notes (id, session_id, exercise_id, note, created_at)
+    `INSERT OR REPLACE INTO exercise_notes (id, session_id, exercise_id, note, created_at, updated_at)
      VALUES (
        COALESCE((SELECT id FROM exercise_notes WHERE session_id = ? AND exercise_id = ?), ?),
-       ?, ?, ?, datetime('now')
+       ?, ?, ?, datetime('now'), datetime('now')
      )`,
     [sessionId, exerciseId, id, sessionId, exerciseId, note]
   );

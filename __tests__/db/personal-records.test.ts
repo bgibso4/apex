@@ -44,6 +44,13 @@ describe('personal records', () => {
         record_type: 'e1rm',
         value: calculateEpley(225, 5),
       }));
+
+      // All INSERTs must include updated_at
+      const insertCalls = mockDb.runAsync.mock.calls.filter(([sql]: [string]) => sql.includes('INSERT INTO personal_records'));
+      expect(insertCalls.length).toBeGreaterThan(0);
+      for (const [sql] of insertCalls) {
+        expect(sql).toContain('updated_at');
+      }
     });
 
     it('does not detect e1RM PR when below previous best', async () => {

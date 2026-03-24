@@ -113,6 +113,33 @@
             }
           ]
         }
+      },
+      {
+        "displayName": "sync",
+        "testEnvironment": "node",
+        "testPathIgnorePatterns": [
+          "/node_modules/",
+          "/.worktrees/"
+        ],
+        "modulePathIgnorePatterns": [
+          "<rootDir>/.worktrees/"
+        ],
+        "testMatch": [
+          "**/__tests__/sync/**"
+        ],
+        "moduleNameMapper": {
+          "\\.(ttf|otf|woff|woff2)$": "<rootDir>/__mocks__/fileMock.js"
+        },
+        "transform": {
+          "^.+\\.(ts|tsx)$": [
+            "babel-jest",
+            {
+              "presets": [
+                "babel-preset-expo"
+              ]
+            }
+          ]
+        }
       }
     ]
   },

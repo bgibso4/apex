@@ -1,8 +1,12 @@
-import { getAllExercises } from '../../src/db/exercises';
+import { getAllExercises, insertExercise } from '../../src/db/exercises';
 import { EXERCISE_LIBRARY } from '../../src/data/exercise-library';
 
 jest.mock('../../src/db/database', () => ({
   getDatabase: jest.fn(),
+}));
+
+jest.mock('expo-crypto', () => ({
+  randomUUID: jest.fn(() => 'abcd1234-5678-90ab-cdef-1234567890ab'),
 }));
 
 import { getDatabase } from '../../src/db/database';
@@ -10,6 +14,8 @@ import { getDatabase } from '../../src/db/database';
 function createMockDb(rows: any[] = []) {
   return {
     getAllAsync: jest.fn().mockResolvedValue(rows),
+    getFirstAsync: jest.fn().mockResolvedValue(null),
+    runAsync: jest.fn().mockResolvedValue({}),
   };
 }
 
@@ -98,5 +104,54 @@ describe('getAllExercises', () => {
     const names = all.map((e: any) => e.name);
     const sorted = [...names].sort((a, b) => a.localeCompare(b));
     expect(names).toEqual(sorted);
+  });
+});
+
+describe('insertExercise', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('inserts a new exercise into the exercises table', async () => {
+    const mockDb = createMockDb();
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+
+    await insertExercise({ name: 'Cable Lateral Raise', type: 'accessory', muscleGroup: 'Shoulders' });
+
+    expect(mockDb.runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO exercises'),
+      ['cable_lateral_raise', 'Cable Lateral Raise', 'accessory', '["Shoulders"]', null],
+    );
+  });
+
+  it('generates a snake_case ID from the name', async () => {
+    const mockDb = createMockDb();
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+
+    const id = await insertExercise({ name: 'Cable Lateral Raise', type: 'accessory', muscleGroup: 'Shoulders' });
+    expect(id).toBe('cable_lateral_raise');
+  });
+
+  it('appends UUID suffix when derived ID collides with existing exercise', async () => {
+    const mockDb = createMockDb();
+    mockDb.getFirstAsync.mockResolvedValue({ id: 'bench_press' });
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+
+    const id = await insertExercise({ name: 'Bench Press!', type: 'main', muscleGroup: 'Chest' });
+    expect(id).not.toBe('bench_press');
+    expect(id).toMatch(/^bench_press_[a-z0-9]+$/);
+  });
+
+  it('passes inputFields as JSON when provided', async () => {
+    const mockDb = createMockDb();
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+
+    const fields = [{ key: 'weight', label: 'Weight', unit: 'lbs' }, { key: 'reps', label: 'Reps' }];
+    await insertExercise({ name: 'Custom Lift', type: 'accessory', muscleGroup: 'Arms', inputFields: fields as any });
+
+    expect(mockDb.runAsync).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO exercises'),
+      ['custom_lift', 'Custom Lift', 'accessory', '["Arms"]', JSON.stringify(fields)],
+    );
   });
 });

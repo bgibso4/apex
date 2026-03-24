@@ -2,8 +2,11 @@
  * APEX — Exercise queries (merges DB + built-in library)
  */
 
+import * as Crypto from 'expo-crypto';
+
 import { getDatabase } from './database';
 import { EXERCISE_LIBRARY } from '../data/exercise-library';
+import type { InputField } from '../types/fields';
 
 export interface ExerciseListItem {
   id: string;
@@ -66,4 +69,34 @@ export async function getAllExercises(): Promise<ExerciseListItem[]> {
 
   // Sort by name
   return Array.from(exerciseMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Insert a new user-created exercise with collision-safe ID generation.
+ * Derives a snake_case ID from the name; appends a short UUID suffix on collision.
+ */
+export async function insertExercise(params: {
+  name: string;
+  type: string;
+  muscleGroup: string;
+  inputFields?: InputField[];
+}): Promise<string> {
+  const db = await getDatabase();
+  let id = params.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
+  // Check for ID collision — append short UUID suffix if needed
+  const existing = await db.getFirstAsync<{ id: string }>(
+    'SELECT id FROM exercises WHERE id = ?', [id]
+  );
+  if (existing) {
+    id = `${id}_${Crypto.randomUUID().slice(0, 8)}`;
+  }
+
+  await db.runAsync(
+    `INSERT INTO exercises (id, name, type, muscle_groups, input_fields)
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, params.name, params.type, JSON.stringify([params.muscleGroup]),
+     params.inputFields ? JSON.stringify(params.inputFields) : null]
+  );
+  return id;
 }

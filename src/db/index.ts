@@ -24,3 +24,5 @@ export {
   getDailyHealthRange,
   getMissingDates,
 } from './health';
+export { getAllExercises } from './exercises';
+export type { ExerciseListItem } from './exercises';

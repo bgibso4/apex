@@ -710,6 +710,7 @@ export async function getMetricHistory(
 
 /** Session set history for non-weight exercises */
 export interface GenericSessionSetHistory {
+  sessionId: string;
   date: string;
   blockName: string;
   bestMetricValue: number | null;
@@ -771,6 +772,7 @@ export async function getGenericExerciseSetHistory(
 
   // Group by session
   const sessionMap = new Map<string, {
+    sessionId: string;
     date: string;
     blockName: string;
     rpeValues: number[];
@@ -781,6 +783,7 @@ export async function getGenericExerciseSetHistory(
     const key = row.session_id;
     if (!sessionMap.has(key)) {
       sessionMap.set(key, {
+        sessionId: key,
         date: row.date,
         blockName: row.block_name,
         rpeValues: [],
@@ -805,6 +808,7 @@ export async function getGenericExerciseSetHistory(
   }
 
   const results: GenericSessionSetHistory[] = Array.from(sessionMap.values()).map(s => ({
+    sessionId: s.sessionId,
     date: s.date,
     blockName: s.blockName,
     bestMetricValue: null, // computed by caller based on exercise type

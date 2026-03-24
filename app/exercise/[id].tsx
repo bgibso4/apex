@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,8 +22,11 @@ import {
   getGenericExerciseSetHistory,
   getExerciseInfo,
   calculateEpley,
+  getExerciseResources,
+  addExerciseResource,
+  deleteExerciseResource,
 } from '../../src/db';
-import type { E1RMHistoryPoint, ExercisePrimaryMetric, MetricHistoryPoint, GenericSessionSetHistory } from '../../src/db';
+import type { E1RMHistoryPoint, ExercisePrimaryMetric, MetricHistoryPoint, GenericSessionSetHistory, ExerciseResource } from '../../src/db';
 import { getFieldsForExercise, supportsE1RM, InputField } from '../../src/types/fields';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import { getBlockColorMap, buildBands, getBlockColorOpaque } from '../../src/utils/blockColors';
@@ -133,6 +136,10 @@ export default function ExerciseDetailScreen() {
   const [exerciseName, setExerciseName] = useState<string>('');
   const [exerciseFields, setExerciseFields] = useState<InputField[]>([]);
   const [isE1RMExercise, setIsE1RMExercise] = useState(true);
+  const [resources, setResources] = useState<ExerciseResource[]>([]);
+  const [showAddResource, setShowAddResource] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newUrl, setNewUrl] = useState('');
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -185,13 +192,15 @@ export default function ExerciseDetailScreen() {
       }
     }
 
-    // Load session history and count
-    const [sets, count] = await Promise.all([
+    // Load session history, count, and resources
+    const [sets, count, exerciseResources] = await Promise.all([
       getGenericExerciseSetHistory(id, { startDate, programId: filterProgramId, limit: showCount }),
       getExerciseSessionCount(id, { startDate, programId: filterProgramId }),
+      getExerciseResources(id),
     ]);
     setRecentSessions(sets);
     setTotalSessions(count);
+    setResources(exerciseResources);
   }, [id, timeRange, showCount]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
@@ -390,7 +399,11 @@ export default function ExerciseDetailScreen() {
             {recentSessions.map((session, si) => {
               const metricValue = getSessionMetricValue(session);
               return (
-                <View key={si}>
+                <TouchableOpacity
+                  key={si}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(`/session/${session.sessionId}`)}
+                >
                   {si > 0 && <View style={styles.sessionDivider} />}
                   <View style={styles.sessionRow}>
                     <View style={styles.sessionLeft}>
@@ -407,7 +420,7 @@ export default function ExerciseDetailScreen() {
                       <Text style={styles.sessionRpe}>RPE {session.avgRpe.toFixed(1)}</Text>
                     )}
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
@@ -427,6 +440,153 @@ export default function ExerciseDetailScreen() {
               View all {totalSessions} sessions {'\u2192'}
             </Text>
           </TouchableOpacity>
+        )}
+
+        {/* Resources Section */}
+        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Resources</Text>
+        {resources.length > 0 ? (
+          <View style={styles.sessionsCard}>
+            {resources.map((resource, ri) => (
+              <View key={resource.id}>
+                {ri > 0 && <View style={styles.sessionDivider} />}
+                <TouchableOpacity
+                  style={styles.resourceRow}
+                  activeOpacity={0.7}
+                  onPress={() => Linking.openURL(resource.url)}
+                >
+                  <Text style={styles.resourceLabel} numberOfLines={1}>{resource.label}</Text>
+                  <View style={styles.resourceActions}>
+                    <Ionicons name="open-outline" size={16} color={Colors.textDim} />
+                    <TouchableOpacity
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        deleteExerciseResource(resource.id).then(() => {
+                          getExerciseResources(id!).then(setResources);
+                        });
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color={Colors.textDim} />
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            ))}
+            <View style={styles.sessionDivider} />
+            {!showAddResource ? (
+              <TouchableOpacity
+                style={styles.addResourceRow}
+                onPress={() => setShowAddResource(true)}
+              >
+                <Ionicons name="add" size={18} color={Colors.textMuted} />
+                <Text style={styles.addResourceText}>Add resource</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.addResourceForm}>
+                <TextInput
+                  style={styles.resourceInput}
+                  placeholder="Label"
+                  placeholderTextColor={Colors.textDim}
+                  value={newLabel}
+                  onChangeText={setNewLabel}
+                  autoFocus
+                />
+                <TextInput
+                  style={styles.resourceInput}
+                  placeholder="URL"
+                  placeholderTextColor={Colors.textDim}
+                  value={newUrl}
+                  onChangeText={setNewUrl}
+                  autoCapitalize="none"
+                  keyboardType="url"
+                />
+                <View style={styles.addResourceButtons}>
+                  <TouchableOpacity
+                    style={styles.resourceCancelButton}
+                    onPress={() => {
+                      setShowAddResource(false);
+                      setNewLabel('');
+                      setNewUrl('');
+                    }}
+                  >
+                    <Text style={styles.resourceCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.resourceSaveButton, (!newLabel.trim() || !newUrl.trim()) && styles.resourceSaveButtonDisabled]}
+                    onPress={() => {
+                      if (!newLabel.trim() || !newUrl.trim()) return;
+                      addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then(() => {
+                        getExerciseResources(id!).then(setResources);
+                        setShowAddResource(false);
+                        setNewLabel('');
+                        setNewUrl('');
+                      });
+                    }}
+                  >
+                    <Text style={styles.resourceSaveText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        ) : (
+          <View style={styles.sessionsCard}>
+            {!showAddResource ? (
+              <TouchableOpacity
+                style={styles.addResourceRow}
+                onPress={() => setShowAddResource(true)}
+              >
+                <Ionicons name="add" size={18} color={Colors.textMuted} />
+                <Text style={styles.addResourceEmptyText}>No resources yet — tap + to add a tutorial link</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.addResourceForm}>
+                <TextInput
+                  style={styles.resourceInput}
+                  placeholder="Label"
+                  placeholderTextColor={Colors.textDim}
+                  value={newLabel}
+                  onChangeText={setNewLabel}
+                  autoFocus
+                />
+                <TextInput
+                  style={styles.resourceInput}
+                  placeholder="URL"
+                  placeholderTextColor={Colors.textDim}
+                  value={newUrl}
+                  onChangeText={setNewUrl}
+                  autoCapitalize="none"
+                  keyboardType="url"
+                />
+                <View style={styles.addResourceButtons}>
+                  <TouchableOpacity
+                    style={styles.resourceCancelButton}
+                    onPress={() => {
+                      setShowAddResource(false);
+                      setNewLabel('');
+                      setNewUrl('');
+                    }}
+                  >
+                    <Text style={styles.resourceCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.resourceSaveButton, (!newLabel.trim() || !newUrl.trim()) && styles.resourceSaveButtonDisabled]}
+                    onPress={() => {
+                      if (!newLabel.trim() || !newUrl.trim()) return;
+                      addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then(() => {
+                        getExerciseResources(id!).then(setResources);
+                        setShowAddResource(false);
+                        setNewLabel('');
+                        setNewUrl('');
+                      });
+                    }}
+                  >
+                    <Text style={styles.resourceSaveText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
         )}
       </ScrollView>
     </View>
@@ -679,5 +839,82 @@ const styles = StyleSheet.create({
   chartEmptyText: {
     color: Colors.textDim,
     fontSize: FontSize.sm,
+  },
+
+  // Resources
+  resourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.sm,
+  },
+  resourceLabel: {
+    flex: 1,
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    marginRight: Spacing.md,
+  },
+  resourceActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.lg,
+  },
+  addResourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+  },
+  addResourceText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  addResourceEmptyText: {
+    color: Colors.textDim,
+    fontSize: FontSize.sm,
+  },
+  addResourceForm: {
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+  },
+  resourceInput: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.button,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    color: Colors.text,
+    fontSize: FontSize.sm,
+  },
+  addResourceButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  resourceCancelButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.button,
+  },
+  resourceCancelText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  resourceSaveButton: {
+    backgroundColor: Colors.indigo,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.button,
+  },
+  resourceSaveButtonDisabled: {
+    opacity: 0.4,
+  },
+  resourceSaveText: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
   },
 });

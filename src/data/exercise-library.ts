@@ -8,7 +8,7 @@ import type { InputField } from '../types/fields';
 export type LibraryExercise = {
   id: string;
   name: string;
-  muscleGroup: string;
+  muscleGroup: typeof MUSCLE_GROUPS[number];
   type: 'main' | 'accessory' | 'core' | 'conditioning';
   inputFields?: InputField[];
 };

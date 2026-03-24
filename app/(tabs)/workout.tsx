@@ -675,7 +675,7 @@ export default function WorkoutScreen() {
                       w.setSelectedLibraryExercise({
                         id: customId,
                         name: customName,
-                        muscleGroup: 'Other',
+                        muscleGroup: 'Conditioning',
                         type: 'accessory',
                       });
                       w.setPickerStep('configure');

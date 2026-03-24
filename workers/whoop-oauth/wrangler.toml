@@ -1,6 +1,0 @@
-name = "apex-whoop-oauth"
-main = "index.ts"
-compatibility_date = "2024-12-01"
-
-[vars]
-WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token"

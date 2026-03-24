@@ -10,8 +10,8 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../src/theme';
-import { getAllExercises, getEstimated1RM, getExercisePrimaryMetric, get1RMHistory } from '../src/db';
-import type { ExerciseListItem, ExercisePrimaryMetric as PrimaryMetric } from '../src/db';
+import { getAllExercises, getExercisePrimaryMetric, get1RMHistory } from '../src/db';
+import type { ExercisePrimaryMetric as PrimaryMetric } from '../src/db';
 import { MUSCLE_GROUPS } from '../src/data/exercise-library';
 import { getFieldsForExercise, supportsE1RM } from '../src/types/fields';
 

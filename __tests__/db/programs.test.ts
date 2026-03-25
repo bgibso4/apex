@@ -166,7 +166,7 @@ describe('programs', () => {
 
       // First exercise: squat
       const [sql1, params1] = mockDb.runAsync.mock.calls[1];
-      expect(sql1).toContain('INSERT OR REPLACE INTO exercises');
+      expect(sql1).toContain('INSERT INTO exercises');
       expect(sql1).toContain('input_fields');
       expect(sql1).toContain('updated_at');
       expect(sql1).toContain("datetime('now')");
@@ -179,7 +179,7 @@ describe('programs', () => {
 
       // Second exercise: bench
       const [sql2, params2] = mockDb.runAsync.mock.calls[2];
-      expect(sql2).toContain('INSERT OR REPLACE INTO exercises');
+      expect(sql2).toContain('INSERT INTO exercises');
       expect(params2[0]).toBe('bench');
       expect(params2[1]).toBe('Bench Press');
       expect(params2[4]).toBe(JSON.stringify([])); // no alternatives → []

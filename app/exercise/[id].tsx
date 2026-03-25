@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -557,18 +557,11 @@ export default function ExerciseDetailScreen() {
                   style={[styles.resourceSaveButton, (!newLabel.trim() || !newUrl.trim()) && styles.resourceSaveButtonDisabled]}
                   onPress={() => {
                     if (!newLabel.trim() || !newUrl.trim()) return;
-                    Alert.alert('Debug', `Saving: label="${newLabel.trim()}", url="${newUrl.trim()}", exerciseId="${id}"`);
-                    addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then((resourceId) => {
-                      Alert.alert('Saved', `Resource ID: ${resourceId}`);
-                      getExerciseResources(id!).then((res) => {
-                        Alert.alert('Loaded', `Found ${res.length} resources`);
-                        setResources(res);
-                      });
+                    addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then(() => {
+                      getExerciseResources(id!).then(setResources);
                       setShowAddResource(false);
                       setNewLabel('');
                       setNewUrl('');
-                    }).catch((err) => {
-                      Alert.alert('Error saving', String(err));
                     });
                   }}
                 >

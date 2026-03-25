@@ -632,7 +632,7 @@ describe('sessions', () => {
 
       expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
       const [sql, params] = mockDb.runAsync.mock.calls[0];
-      expect(sql).toContain('INSERT OR REPLACE INTO exercises');
+      expect(sql).toContain('INSERT INTO exercises');
       expect(sql).toContain('input_fields');
       expect(sql).toContain('updated_at');
       expect(params[0]).toBe('lateral-raise');

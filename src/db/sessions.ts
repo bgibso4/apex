@@ -316,8 +316,12 @@ export async function ensureExerciseExists(exercise: {
 }): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    `INSERT OR REPLACE INTO exercises (id, name, type, muscle_groups, alternatives, input_fields, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+    `INSERT INTO exercises (id, name, type, muscle_groups, alternatives, input_fields, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(id) DO UPDATE SET
+       name = excluded.name, type = excluded.type, muscle_groups = excluded.muscle_groups,
+       alternatives = excluded.alternatives, input_fields = excluded.input_fields,
+       updated_at = excluded.updated_at`,
     [
       exercise.id, exercise.name, exercise.type,
       JSON.stringify(exercise.muscleGroups ?? []),

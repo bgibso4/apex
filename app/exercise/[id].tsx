@@ -486,7 +486,7 @@ export default function ExerciseDetailScreen() {
               </View>
               <Text style={styles.resourceLabel} numberOfLines={1}>{resource.label}</Text>
               <View style={styles.resourceActions}>
-                <Ionicons name="open-outline" size={12} color={Colors.textMuted} style={{ opacity: 0.6 }} />
+                <Ionicons name="open-outline" size={16} color={Colors.textSecondary} />
                 <TouchableOpacity
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   onPress={() => {
@@ -495,7 +495,7 @@ export default function ExerciseDetailScreen() {
                     });
                   }}
                 >
-                  <Ionicons name="trash-outline" size={13} color={Colors.textMuted} style={{ opacity: 0.4 }} />
+                  <Ionicons name="trash-outline" size={16} color={Colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -851,7 +851,8 @@ const styles = StyleSheet.create({
   resourceActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    gap: Spacing.lg,
+    marginLeft: Spacing.sm,
   },
   addResourceRow: {
     flexDirection: 'row',

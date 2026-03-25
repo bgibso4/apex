@@ -286,6 +286,27 @@ export default function ExerciseDetailScreen() {
 
   const isDeload = (blockName: string) => /deload/i.test(blockName);
 
+  // URL-based icon detection for resource links
+  const getResourceIconName = (url: string): keyof typeof Ionicons.glyphMap => {
+    if (/youtube\.com|youtu\.be/i.test(url)) return 'logo-youtube';
+    if (/instagram\.com/i.test(url)) return 'logo-instagram';
+    if (/tiktok\.com/i.test(url)) return 'logo-tiktok';
+    if (/reddit\.com/i.test(url)) return 'logo-reddit';
+    return 'link-outline';
+  };
+  const getResourceIconColor = (url: string): string => {
+    if (/youtube\.com|youtu\.be/i.test(url)) return '#FF4444';
+    if (/instagram\.com/i.test(url)) return '#E1306C';
+    if (/tiktok\.com/i.test(url)) return '#F5F5F7';
+    return Colors.indigo;
+  };
+  const getResourceIconBg = (url: string): string => {
+    if (/youtube\.com|youtu\.be/i.test(url)) return 'rgba(255, 68, 68, 0.12)';
+    if (/instagram\.com/i.test(url)) return 'rgba(225, 48, 108, 0.12)';
+    if (/tiktok\.com/i.test(url)) return 'rgba(245, 245, 247, 0.08)';
+    return Colors.indigoMuted;
+  };
+
   // Format the hero value for display
   const heroDisplayValue = primaryMetric
     ? formatMetricValue(primaryMetric.value, primaryMetric.unit)
@@ -451,158 +472,100 @@ export default function ExerciseDetailScreen() {
 
         {/* Resources Section */}
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Resources</Text>
-        {resources.length > 0 ? (
-          <View style={styles.sessionsCard}>
-            {resources.map((resource, ri) => (
-              <View key={resource.id}>
-                {ri > 0 && <View style={styles.sessionDivider} />}
+        <View style={styles.sessionsCard}>
+          {/* Resource links */}
+          {resources.map((resource, ri) => (
+            <TouchableOpacity
+              key={resource.id}
+              style={styles.resourceRow}
+              activeOpacity={0.7}
+              onPress={() => Linking.openURL(resource.url)}
+            >
+              <View style={[styles.resourceIconBox, { backgroundColor: getResourceIconBg(resource.url) }]}>
+                <Ionicons name={getResourceIconName(resource.url)} size={14} color={getResourceIconColor(resource.url)} />
+              </View>
+              <Text style={styles.resourceLabel} numberOfLines={1}>{resource.label}</Text>
+              <View style={styles.resourceActions}>
+                <Ionicons name="open-outline" size={12} color={Colors.textMuted} style={{ opacity: 0.6 }} />
                 <TouchableOpacity
-                  style={styles.resourceRow}
-                  activeOpacity={0.7}
-                  onPress={() => Linking.openURL(resource.url)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={() => {
+                    deleteExerciseResource(resource.id).then(() => {
+                      getExerciseResources(id!).then(setResources);
+                    });
+                  }}
                 >
-                  <Text style={styles.resourceLabel} numberOfLines={1}>{resource.label}</Text>
-                  <View style={styles.resourceActions}>
-                    <Ionicons name="open-outline" size={16} color={Colors.textDim} />
-                    <TouchableOpacity
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        deleteExerciseResource(resource.id).then(() => {
-                          getExerciseResources(id!).then(setResources);
-                        });
-                      }}
-                    >
-                      <Ionicons name="trash-outline" size={16} color={Colors.textDim} />
-                    </TouchableOpacity>
-                  </View>
+                  <Ionicons name="trash-outline" size={13} color={Colors.textMuted} style={{ opacity: 0.4 }} />
                 </TouchableOpacity>
               </View>
-            ))}
-            <View style={styles.sessionDivider} />
-            {!showAddResource ? (
-              <TouchableOpacity
-                style={styles.addResourceRow}
-                onPress={() => { setShowAddResource(true); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); }}
-              >
-                <View style={styles.addResourceIcon}>
-                  <Ionicons name="add" size={16} color={Colors.indigo} />
-                </View>
-                <Text style={styles.addResourceText}>Add resource</Text>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.addResourceForm}>
-                <Text style={styles.addResourceFormTitle}>Add Resource</Text>
-                <TextInput
-                  style={styles.resourceInput}
-                  placeholder="Label (e.g. Form Tutorial)"
-                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
-                  placeholderTextColor={Colors.textDim}
-                  value={newLabel}
-                  onChangeText={setNewLabel}
-                  autoFocus
-                />
-                <TextInput
-                  style={styles.resourceInput}
-                  placeholder="URL (e.g. https://youtube.com/...)"
-                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
-                  placeholderTextColor={Colors.textDim}
-                  value={newUrl}
-                  onChangeText={setNewUrl}
-                  autoCapitalize="none"
-                  keyboardType="url"
-                />
-                <View style={styles.addResourceButtons}>
-                  <TouchableOpacity
-                    style={styles.resourceCancelButton}
-                    onPress={() => {
+            </TouchableOpacity>
+          ))}
+          {/* Empty state */}
+          {resources.length === 0 && !showAddResource && (
+            <View style={styles.resourceEmptyState}>
+              <Text style={styles.addResourceEmptyText}>
+                No resources yet {'\u2014'} tap <Text style={{ color: Colors.indigo, fontWeight: '700' }}>+</Text> to add a tutorial link
+              </Text>
+            </View>
+          )}
+          {/* Add resource row or form */}
+          {!showAddResource ? (
+            <TouchableOpacity
+              style={[styles.addResourceRow, resources.length > 0 && { borderTopWidth: 1, borderTopColor: Colors.border }]}
+              onPress={() => { setShowAddResource(true); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); }}
+            >
+              <View style={styles.addResourceIcon}>
+                <Ionicons name="add" size={16} color={Colors.indigo} />
+              </View>
+              <Text style={styles.addResourceText}>Add resource</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.addResourceForm}>
+              <Text style={styles.addResourceFormTitle}>Add Resource</Text>
+              <TextInput
+                style={styles.resourceInput}
+                placeholder="Label (e.g. Form Tutorial)"
+                onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
+                placeholderTextColor={Colors.textDim}
+                value={newLabel}
+                onChangeText={setNewLabel}
+                autoFocus
+              />
+              <TextInput
+                style={styles.resourceInput}
+                placeholder="URL (e.g. https://youtube.com/...)"
+                onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
+                placeholderTextColor={Colors.textDim}
+                value={newUrl}
+                onChangeText={setNewUrl}
+                autoCapitalize="none"
+                keyboardType="url"
+              />
+              <View style={styles.addResourceButtons}>
+                <TouchableOpacity
+                  style={styles.resourceCancelButton}
+                  onPress={() => { setShowAddResource(false); setNewLabel(''); setNewUrl(''); }}
+                >
+                  <Text style={styles.resourceCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.resourceSaveButton, (!newLabel.trim() || !newUrl.trim()) && styles.resourceSaveButtonDisabled]}
+                  onPress={() => {
+                    if (!newLabel.trim() || !newUrl.trim()) return;
+                    addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then(() => {
+                      getExerciseResources(id!).then(setResources);
                       setShowAddResource(false);
                       setNewLabel('');
                       setNewUrl('');
-                    }}
-                  >
-                    <Text style={styles.resourceCancelText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.resourceSaveButton, (!newLabel.trim() || !newUrl.trim()) && styles.resourceSaveButtonDisabled]}
-                    onPress={() => {
-                      if (!newLabel.trim() || !newUrl.trim()) return;
-                      addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then(() => {
-                        getExerciseResources(id!).then(setResources);
-                        setShowAddResource(false);
-                        setNewLabel('');
-                        setNewUrl('');
-                      });
-                    }}
-                  >
-                    <Text style={styles.resourceSaveText}>Save</Text>
-                  </TouchableOpacity>
-                </View>
+                    });
+                  }}
+                >
+                  <Text style={styles.resourceSaveText}>Save</Text>
+                </TouchableOpacity>
               </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.sessionsCard}>
-            {!showAddResource ? (
-              <TouchableOpacity
-                style={styles.addResourceRow}
-                onPress={() => { setShowAddResource(true); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); }}
-              >
-                <Ionicons name="add" size={18} color={Colors.textMuted} />
-                <Text style={styles.addResourceEmptyText}>No resources yet — tap + to add a tutorial link</Text>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.addResourceForm}>
-                <Text style={styles.addResourceFormTitle}>Add Resource</Text>
-                <TextInput
-                  style={styles.resourceInput}
-                  placeholder="Label (e.g. Form Tutorial)"
-                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
-                  placeholderTextColor={Colors.textDim}
-                  value={newLabel}
-                  onChangeText={setNewLabel}
-                  autoFocus
-                />
-                <TextInput
-                  style={styles.resourceInput}
-                  placeholder="URL (e.g. https://youtube.com/...)"
-                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
-                  placeholderTextColor={Colors.textDim}
-                  value={newUrl}
-                  onChangeText={setNewUrl}
-                  autoCapitalize="none"
-                  keyboardType="url"
-                />
-                <View style={styles.addResourceButtons}>
-                  <TouchableOpacity
-                    style={styles.resourceCancelButton}
-                    onPress={() => {
-                      setShowAddResource(false);
-                      setNewLabel('');
-                      setNewUrl('');
-                    }}
-                  >
-                    <Text style={styles.resourceCancelText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.resourceSaveButton, (!newLabel.trim() || !newUrl.trim()) && styles.resourceSaveButtonDisabled]}
-                    onPress={() => {
-                      if (!newLabel.trim() || !newUrl.trim()) return;
-                      addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then(() => {
-                        getExerciseResources(id!).then(setResources);
-                        setShowAddResource(false);
-                        setNewLabel('');
-                        setNewUrl('');
-                      });
-                    }}
-                  >
-                    <Text style={styles.resourceSaveText}>Save</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </View>
-        )}
+            </View>
+          )}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -857,6 +820,14 @@ const styles = StyleSheet.create({
   },
 
   // Resources
+  resourceIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   resourceRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -865,6 +836,11 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  resourceEmptyState: {
+    paddingVertical: Spacing.xxl,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
   },
   resourceLabel: {
     flex: 1,

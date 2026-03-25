@@ -190,6 +190,24 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       }
     }
 
+    if (currentVersion < 13) {
+      try {
+        await db.execAsync(`
+          CREATE TABLE IF NOT EXISTS exercise_resources (
+            id TEXT PRIMARY KEY,
+            exercise_id TEXT NOT NULL,
+            label TEXT NOT NULL,
+            url TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+          );
+          CREATE INDEX IF NOT EXISTS idx_exercise_resources_exercise ON exercise_resources(exercise_id);
+        `);
+      } catch (e) {
+        console.warn('Migration to v13 warning:', e);
+      }
+    }
+
     // Safety net: ensure critical columns exist regardless of version
     // (handles databases where version was bumped but migrations were skipped)
     for (const col of ['notes TEXT', 'name TEXT', 'is_sample INTEGER DEFAULT 0']) {
@@ -222,6 +240,7 @@ export async function closeDatabase(): Promise<void> {
 export async function clearAllData(): Promise<void> {
   const db = await getDatabase();
   await db.execAsync(`
+    DELETE FROM exercise_resources;
     DELETE FROM daily_health;
     DELETE FROM personal_records;
     DELETE FROM exercise_notes;

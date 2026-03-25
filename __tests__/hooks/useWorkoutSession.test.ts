@@ -978,7 +978,7 @@ describe('useWorkoutSession', () => {
       const libraryExercise = {
         id: 'lateral_raise',
         name: 'Lateral Raise',
-        muscleGroup: 'Shoulders',
+        muscleGroup: 'Shoulders' as const,
         type: 'accessory' as const,
       };
 
@@ -1035,7 +1035,7 @@ describe('useWorkoutSession', () => {
       const coreExercise = {
         id: 'plank',
         name: 'Plank',
-        muscleGroup: 'Core',
+        muscleGroup: 'Abs' as const,
         type: 'core' as const,
       };
 

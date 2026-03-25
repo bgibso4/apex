@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -193,4 +193,16 @@ CREATE TABLE IF NOT EXISTS daily_health (
 );
 
 CREATE INDEX IF NOT EXISTS idx_daily_health_date ON daily_health(date);
+
+-- Exercise resources (external links: tutorials, videos, etc.)
+CREATE TABLE IF NOT EXISTS exercise_resources (
+  id TEXT PRIMARY KEY,
+  exercise_id TEXT NOT NULL,
+  label TEXT NOT NULL,
+  url TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_exercise_resources_exercise ON exercise_resources(exercise_id);
 `;

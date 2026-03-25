@@ -6,8 +6,8 @@
  * Navigated from Progress screen lift cards.
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState, useCallback, useMemo, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,8 +22,11 @@ import {
   getGenericExerciseSetHistory,
   getExerciseInfo,
   calculateEpley,
+  getExerciseResources,
+  addExerciseResource,
+  deleteExerciseResource,
 } from '../../src/db';
-import type { E1RMHistoryPoint, ExercisePrimaryMetric, MetricHistoryPoint, GenericSessionSetHistory } from '../../src/db';
+import type { E1RMHistoryPoint, ExercisePrimaryMetric, MetricHistoryPoint, GenericSessionSetHistory, ExerciseResource } from '../../src/db';
 import { getFieldsForExercise, supportsE1RM, InputField } from '../../src/types/fields';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import { getBlockColorMap, buildBands, getBlockColorOpaque } from '../../src/utils/blockColors';
@@ -133,6 +136,10 @@ export default function ExerciseDetailScreen() {
   const [exerciseName, setExerciseName] = useState<string>('');
   const [exerciseFields, setExerciseFields] = useState<InputField[]>([]);
   const [isE1RMExercise, setIsE1RMExercise] = useState(true);
+  const [resources, setResources] = useState<ExerciseResource[]>([]);
+  const [showAddResource, setShowAddResource] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newUrl, setNewUrl] = useState('');
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -185,13 +192,15 @@ export default function ExerciseDetailScreen() {
       }
     }
 
-    // Load session history and count
-    const [sets, count] = await Promise.all([
+    // Load session history, count, and resources
+    const [sets, count, exerciseResources] = await Promise.all([
       getGenericExerciseSetHistory(id, { startDate, programId: filterProgramId, limit: showCount }),
       getExerciseSessionCount(id, { startDate, programId: filterProgramId }),
+      getExerciseResources(id),
     ]);
     setRecentSessions(sets);
     setTotalSessions(count);
+    setResources(exerciseResources);
   }, [id, timeRange, showCount]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
@@ -218,7 +227,7 @@ export default function ExerciseDetailScreen() {
   const formatCompactDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T12:00:00');
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[d.getMonth()]} ${d.getDate()}`;
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   };
 
   const formatSessionSummary = (session: GenericSessionSetHistory) => {
@@ -227,7 +236,7 @@ export default function ExerciseDetailScreen() {
     const types = exerciseFields.map(f => f.type);
 
     if (types.includes('weight') && types.includes('reps')) {
-      return `${first.weight} \u00D7 ${first.reps} \u00D7 ${session.sets.length} sets`;
+      return `${session.sets.length} \u00D7 ${first.reps} @ ${first.weight} lb`;
     }
     if (types.includes('duration')) {
       return `${formatTime(first.duration ?? 0)} \u00D7 ${session.sets.length} sets`;
@@ -277,6 +286,27 @@ export default function ExerciseDetailScreen() {
 
   const isDeload = (blockName: string) => /deload/i.test(blockName);
 
+  // URL-based icon detection for resource links
+  const getResourceIconName = (url: string): keyof typeof Ionicons.glyphMap => {
+    if (/youtube\.com|youtu\.be/i.test(url)) return 'logo-youtube';
+    if (/instagram\.com/i.test(url)) return 'logo-instagram';
+    if (/tiktok\.com/i.test(url)) return 'logo-tiktok';
+    if (/reddit\.com/i.test(url)) return 'logo-reddit';
+    return 'link-outline';
+  };
+  const getResourceIconColor = (url: string): string => {
+    if (/youtube\.com|youtu\.be/i.test(url)) return '#FF4444';
+    if (/instagram\.com/i.test(url)) return '#E1306C';
+    if (/tiktok\.com/i.test(url)) return '#F5F5F7';
+    return Colors.indigo;
+  };
+  const getResourceIconBg = (url: string): string => {
+    if (/youtube\.com|youtu\.be/i.test(url)) return 'rgba(255, 68, 68, 0.12)';
+    if (/instagram\.com/i.test(url)) return 'rgba(225, 48, 108, 0.12)';
+    if (/tiktok\.com/i.test(url)) return 'rgba(245, 245, 247, 0.08)';
+    return Colors.indigoMuted;
+  };
+
   // Format the hero value for display
   const heroDisplayValue = primaryMetric
     ? formatMetricValue(primaryMetric.value, primaryMetric.unit)
@@ -285,9 +315,16 @@ export default function ExerciseDetailScreen() {
   // For e1RM we show "lbs", for time-based we don't show unit (it's in the formatted value)
   const showHeroUnit = primaryMetric && primaryMetric.unit !== 'sec';
 
+  const scrollRef = useRef<ScrollView>(null);
+
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -390,24 +427,35 @@ export default function ExerciseDetailScreen() {
             {recentSessions.map((session, si) => {
               const metricValue = getSessionMetricValue(session);
               return (
-                <View key={si}>
+                <TouchableOpacity
+                  key={si}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(`/session/${session.sessionId}`)}
+                >
                   {si > 0 && <View style={styles.sessionDivider} />}
                   <View style={styles.sessionRow}>
                     <View style={styles.sessionLeft}>
-                      <Text style={styles.sessionDate}>{formatCompactDate(session.date)}</Text>
-                      {isDeload(session.blockName) && (
-                        <Text style={styles.deloadTag}>(deload)</Text>
-                      )}
+                      <Text style={styles.sessionDate}>
+                        {formatCompactDate(session.date)}
+                        {isDeload(session.blockName) && (
+                          <Text style={styles.deloadTag}> (deload)</Text>
+                        )}
+                      </Text>
+                      <Text style={styles.sessionSummary}>
+                        {formatSessionSummary(session)}
+                        {session.avgRpe != null && (
+                          <Text style={styles.sessionRpe}> · RPE {session.avgRpe.toFixed(1)}</Text>
+                        )}
+                      </Text>
                     </View>
-                    <Text style={styles.sessionSummary}>{formatSessionSummary(session)}</Text>
                     {metricValue && (
-                      <Text style={styles.sessionE1rm}>{metricValue}</Text>
-                    )}
-                    {session.avgRpe != null && (
-                      <Text style={styles.sessionRpe}>RPE {session.avgRpe.toFixed(1)}</Text>
+                      <View style={styles.sessionMetricRight}>
+                        <Text style={styles.sessionE1rm}>{metricValue}</Text>
+                        <Text style={styles.sessionE1rmLabel}> e1RM</Text>
+                      </View>
                     )}
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
@@ -428,8 +476,103 @@ export default function ExerciseDetailScreen() {
             </Text>
           </TouchableOpacity>
         )}
+
+        {/* Resources Section */}
+        <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>Resources</Text>
+        <View style={styles.sessionsCard}>
+          {/* Resource links */}
+          {resources.map((resource, ri) => (
+            <TouchableOpacity
+              key={resource.id}
+              style={styles.resourceRow}
+              activeOpacity={0.7}
+              onPress={() => Linking.openURL(resource.url)}
+            >
+              <View style={[styles.resourceIconBox, { backgroundColor: getResourceIconBg(resource.url) }]}>
+                <Ionicons name={getResourceIconName(resource.url)} size={14} color={getResourceIconColor(resource.url)} />
+              </View>
+              <Text style={styles.resourceLabel} numberOfLines={1}>{resource.label}</Text>
+              <View style={styles.resourceActions}>
+                <Ionicons name="open-outline" size={16} color={Colors.textSecondary} />
+                <TouchableOpacity
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={() => {
+                    deleteExerciseResource(resource.id).then(() => {
+                      getExerciseResources(id!).then(setResources);
+                    });
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={16} color={Colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
+          {/* Empty state */}
+          {resources.length === 0 && !showAddResource && (
+            <View style={styles.resourceEmptyState}>
+              <Text style={styles.addResourceEmptyText}>No resources yet</Text>
+            </View>
+          )}
+          {/* Add resource row or form */}
+          {!showAddResource ? (
+            <TouchableOpacity
+              style={[styles.addResourceRow, resources.length > 0 && { borderTopWidth: 1, borderTopColor: Colors.border }]}
+              onPress={() => { setShowAddResource(true); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); }}
+            >
+              <View style={styles.addResourceIcon}>
+                <Ionicons name="add" size={16} color={Colors.indigo} />
+              </View>
+              <Text style={styles.addResourceText}>Add resource</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.addResourceForm}>
+              <Text style={styles.addResourceFormTitle}>Add Resource</Text>
+              <TextInput
+                style={styles.resourceInput}
+                placeholder="Label (e.g. Form Tutorial)"
+                onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
+                placeholderTextColor={Colors.textDim}
+                value={newLabel}
+                onChangeText={setNewLabel}
+                autoFocus
+              />
+              <TextInput
+                style={styles.resourceInput}
+                placeholder="URL (e.g. https://youtube.com/...)"
+                onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
+                placeholderTextColor={Colors.textDim}
+                value={newUrl}
+                onChangeText={setNewUrl}
+                autoCapitalize="none"
+                keyboardType="url"
+              />
+              <View style={styles.addResourceButtons}>
+                <TouchableOpacity
+                  style={styles.resourceCancelButton}
+                  onPress={() => { setShowAddResource(false); setNewLabel(''); setNewUrl(''); }}
+                >
+                  <Text style={styles.resourceCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.resourceSaveButton, (!newLabel.trim() || !newUrl.trim()) && styles.resourceSaveButtonDisabled]}
+                  onPress={() => {
+                    if (!newLabel.trim() || !newUrl.trim()) return;
+                    addExerciseResource(id!, newLabel.trim(), newUrl.trim()).then(() => {
+                      getExerciseResources(id!).then(setResources);
+                      setShowAddResource(false);
+                      setNewLabel('');
+                      setNewUrl('');
+                    });
+                  }}
+                >
+                  <Text style={styles.resourceSaveText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -596,27 +739,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
-    padding: Spacing.lg,
+    overflow: 'hidden',
   },
   sessionDivider: {
     height: 1,
-    backgroundColor: Colors.surface,
-    marginVertical: Spacing.sm,
+    backgroundColor: Colors.border,
   },
   sessionRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
   },
   sessionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    width: 90,
+    flex: 1,
+    marginRight: Spacing.md,
   },
   sessionDate: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
+    color: Colors.text,
+    fontSize: FontSize.body,
+    fontWeight: '500',
   },
   deloadTag: {
     color: Colors.green,
@@ -624,24 +767,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sessionSummary: {
-    flex: 1,
-    color: Colors.text,
+    color: Colors.textSecondary,
     fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-  sessionE1rm: {
-    color: Colors.text,
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-    width: 48,
-    textAlign: 'right',
+    marginTop: 3,
   },
   sessionRpe: {
-    color: Colors.textDim,
-    fontSize: FontSize.xs,
+    color: Colors.indigo,
+  },
+  sessionMetricRight: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexShrink: 0,
+  },
+  sessionE1rm: {
+    color: Colors.indigo,
+    fontSize: FontSize.sm,
     fontWeight: '600',
-    width: 50,
-    textAlign: 'right',
+  },
+  sessionE1rmLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '400',
   },
 
   // View all link
@@ -679,5 +825,121 @@ const styles = StyleSheet.create({
   chartEmptyText: {
     color: Colors.textDim,
     fontSize: FontSize.sm,
+  },
+
+  // Resources
+  resourceIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  resourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  resourceEmptyState: {
+    paddingVertical: Spacing.xxl,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+  },
+  resourceLabel: {
+    flex: 1,
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '500',
+  },
+  resourceActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.lg,
+    marginLeft: Spacing.sm,
+  },
+  addResourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.lg,
+  },
+  addResourceIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: Colors.indigoMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addResourceText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '500',
+  },
+  addResourceEmptyText: {
+    color: Colors.textDim,
+    fontSize: FontSize.sm,
+  },
+  addResourceForm: {
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  addResourceFormTitle: {
+    color: Colors.text,
+    fontSize: FontSize.sm - 1,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+  },
+  resourceInput: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    color: Colors.text,
+    fontSize: FontSize.sm,
+  },
+  addResourceButtons: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: 2,
+  },
+  resourceCancelButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.cardInner,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  resourceCancelText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  resourceSaveButton: {
+    flex: 1,
+    backgroundColor: Colors.indigo,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
+  },
+  resourceSaveButtonDisabled: {
+    opacity: 0.4,
+  },
+  resourceSaveText: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
   },
 });

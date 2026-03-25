@@ -420,8 +420,14 @@ export async function getProtocolConsistency(
 ): Promise<ProtocolItem[]> {
   const db = await getDatabase();
 
+  // Group by protocol_key for warmups (clean names), by type for conditioning
+  // Use COALESCE to prefer protocol_key grouping, falling back to type
   let sql = `SELECT
-       sp.protocol_name as name,
+       COALESCE(sp.protocol_key, sp.type) as group_key,
+       CASE
+         WHEN sp.protocol_key IS NOT NULL THEN sp.protocol_name
+         ELSE CASE sp.type WHEN 'conditioning' THEN 'Conditioning' ELSE sp.type END
+       END as name,
        COUNT(*) as total,
        SUM(sp.completed) as completed
      FROM session_protocols sp
@@ -435,9 +441,9 @@ export async function getProtocolConsistency(
     params.push(programId);
   }
 
-  sql += `\n     GROUP BY sp.protocol_name ORDER BY MIN(sp.type), MIN(sp.sort_order)`;
+  sql += `\n     GROUP BY group_key ORDER BY MIN(sp.type), MIN(sp.sort_order)`;
 
-  const rows = await db.getAllAsync<{ name: string; total: number; completed: number }>(sql, params);
+  const rows = await db.getAllAsync<{ group_key: string; name: string; total: number; completed: number }>(sql, params);
   return rows.map(r => ({ name: r.name, completed: r.completed, total: r.total }));
 }
 

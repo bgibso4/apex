@@ -89,6 +89,7 @@ export default function TrendLineChart({
   const dataMax = maxValue ?? Math.max(...allValues);
   const range = dataMax - dataMin || 1;
   const padding = viewBoxHeight * 0.22; // 22% padding top/bottom — keeps line from feeling zoomed in
+  const scale = height / viewBoxHeight; // compensate for viewBox→render scaling
 
   const toY = (value: number): number => {
     const normalized = (value - dataMin) / range;
@@ -197,7 +198,7 @@ export default function TrendLineChart({
               x1="0" y1={y}
               x2={viewBoxWidth} y2={y}
               stroke={Colors.surface}
-              strokeWidth="0.5"
+              strokeWidth={0.5 / scale}
               opacity={0.5}
             />
           ))}
@@ -228,7 +229,7 @@ export default function TrendLineChart({
                   points={points}
                   fill="none"
                   stroke={strokeColor}
-                  strokeWidth={line.dashed ? 1.5 : 1.8}
+                  strokeWidth={(line.dashed ? 1.5 : 1.8) / scale}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeDasharray={line.dashed ? '6,4' : undefined}
@@ -250,7 +251,7 @@ export default function TrendLineChart({
                     <Circle
                       key={`dot-${li}-${i}`}
                       cx={cx} cy={cy}
-                      r={isLast ? 2.5 : 2}
+                      r={(isLast ? 2.5 : 2) / scale}
                       fill={line.color}
                       opacity={line.dashed ? 0.5 : 1}
                     />

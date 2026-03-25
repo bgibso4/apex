@@ -485,14 +485,17 @@ export default function ExerciseDetailScreen() {
                 style={styles.addResourceRow}
                 onPress={() => { setShowAddResource(true); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); }}
               >
-                <Ionicons name="add" size={18} color={Colors.textMuted} />
+                <View style={styles.addResourceIcon}>
+                  <Ionicons name="add" size={16} color={Colors.indigo} />
+                </View>
                 <Text style={styles.addResourceText}>Add resource</Text>
               </TouchableOpacity>
             ) : (
               <View style={styles.addResourceForm}>
+                <Text style={styles.addResourceFormTitle}>Add Resource</Text>
                 <TextInput
                   style={styles.resourceInput}
-                  placeholder="Label"
+                  placeholder="Label (e.g. Form Tutorial)"
                   onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newLabel}
@@ -501,7 +504,7 @@ export default function ExerciseDetailScreen() {
                 />
                 <TextInput
                   style={styles.resourceInput}
-                  placeholder="URL"
+                  placeholder="URL (e.g. https://youtube.com/...)"
                   onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newUrl}
@@ -550,9 +553,10 @@ export default function ExerciseDetailScreen() {
               </TouchableOpacity>
             ) : (
               <View style={styles.addResourceForm}>
+                <Text style={styles.addResourceFormTitle}>Add Resource</Text>
                 <TextInput
                   style={styles.resourceInput}
-                  placeholder="Label"
+                  placeholder="Label (e.g. Form Tutorial)"
                   onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newLabel}
@@ -561,7 +565,7 @@ export default function ExerciseDetailScreen() {
                 />
                 <TextInput
                   style={styles.resourceInput}
-                  placeholder="URL"
+                  placeholder="URL (e.g. https://youtube.com/...)"
                   onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newUrl}
@@ -856,58 +860,82 @@ const styles = StyleSheet.create({
   resourceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   resourceLabel: {
     flex: 1,
     color: Colors.text,
     fontSize: FontSize.sm,
-    fontWeight: '600',
-    marginRight: Spacing.md,
+    fontWeight: '500',
   },
   resourceActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.lg,
+    gap: Spacing.md,
   },
   addResourceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.sm,
+    gap: Spacing.md,
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.lg,
+  },
+  addResourceIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: Colors.indigoMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addResourceText: {
     color: Colors.textMuted,
     fontSize: FontSize.sm,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   addResourceEmptyText: {
     color: Colors.textDim,
     fontSize: FontSize.sm,
   },
   addResourceForm: {
-    gap: Spacing.sm,
-    paddingVertical: Spacing.sm,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  addResourceFormTitle: {
+    color: Colors.text,
+    fontSize: FontSize.sm - 1,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
   },
   resourceInput: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.button,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.cardInner,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     color: Colors.text,
     fontSize: FontSize.sm,
   },
   addResourceButtons: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: Spacing.sm,
-    marginTop: Spacing.xs,
+    gap: Spacing.md,
+    marginTop: 2,
   },
   resourceCancelButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.button,
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.cardInner,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
   },
   resourceCancelText: {
     color: Colors.textMuted,
@@ -915,10 +943,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   resourceSaveButton: {
+    flex: 1,
     backgroundColor: Colors.indigo,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.button,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.cardInner,
+    alignItems: 'center',
   },
   resourceSaveButtonDisabled: {
     opacity: 0.4,

@@ -74,9 +74,9 @@ describe('getAllExercises', () => {
     const all = await getAllExercises();
     const bench = all.find((e: any) => e.id === 'bench_press');
     expect(bench).toBeDefined();
-    // DB entry should take precedence — custom name preserved
+    // DB entry should take precedence for name, but display group comes from library
     expect(bench!.name).toBe('Bench Press (Custom)');
-    expect(bench!.muscleGroups).toEqual(['Chest', 'Shoulders']);
+    expect(bench!.muscleGroups).toEqual(['Chest']);
   });
 
   it('includes DB-only exercises not in library', async () => {

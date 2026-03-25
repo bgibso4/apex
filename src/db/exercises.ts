@@ -5,7 +5,35 @@
 import * as Crypto from 'expo-crypto';
 
 import { getDatabase } from './database';
-import { EXERCISE_LIBRARY } from '../data/exercise-library';
+import { EXERCISE_LIBRARY, MUSCLE_GROUPS } from '../data/exercise-library';
+
+/** Map granular program muscle groups (e.g., "lats", "quads") to display groups */
+const MUSCLE_GROUP_MAP: Record<string, typeof MUSCLE_GROUPS[number]> = {
+  chest: 'Chest', upper_chest: 'Chest',
+  lats: 'Back', upper_back: 'Back', lower_back: 'Back', traps: 'Back',
+  shoulders: 'Shoulders', lateral_delts: 'Shoulders', rear_delts: 'Shoulders',
+  quads: 'Quads',
+  hamstrings: 'Hamstrings & Glutes', glutes: 'Hamstrings & Glutes', adductors: 'Hamstrings & Glutes', abductors: 'Hamstrings & Glutes',
+  calves: 'Calves', ankles: 'Calves',
+  biceps: 'Arms', triceps: 'Arms', grip: 'Arms',
+  core: 'Abs',
+  cardio: 'Conditioning', full_body: 'Conditioning', legs: 'Conditioning',
+  hips: 'Movement', coordination: 'Movement',
+};
+
+function resolveDisplayGroup(rawGroups: string[]): string {
+  // If already a display group (title-case, in MUSCLE_GROUPS), use it directly
+  const asConst = MUSCLE_GROUPS as readonly string[];
+  for (const g of rawGroups) {
+    if (asConst.includes(g)) return g;
+  }
+  // Otherwise, map the first recognized granular group
+  for (const g of rawGroups) {
+    const mapped = MUSCLE_GROUP_MAP[g.toLowerCase()];
+    if (mapped) return mapped;
+  }
+  return 'Conditioning'; // fallback
+}
 import type { InputField } from '../types/fields';
 
 export interface ExerciseListItem {
@@ -40,14 +68,24 @@ export async function getAllExercises(): Promise<ExerciseListItem[]> {
       ON sl.exercise_id = e.id
   `);
 
-  // Build map from DB rows (DB takes precedence)
+  // Build library lookup for display group resolution
+  const libraryMap = new Map(EXERCISE_LIBRARY.map(e => [e.id, e]));
+
+  // Build map from DB rows
   const exerciseMap = new Map<string, ExerciseListItem>();
   for (const r of rows) {
+    const rawGroups = JSON.parse(r.muscle_groups || '[]') as string[];
+    // Use library's display group if available, otherwise map from granular groups
+    const libEntry = libraryMap.get(r.id);
+    const displayGroup = libEntry
+      ? libEntry.muscleGroup
+      : resolveDisplayGroup(rawGroups);
+
     exerciseMap.set(r.id, {
       id: r.id,
       name: r.name,
       type: r.type,
-      muscleGroups: JSON.parse(r.muscle_groups || '[]'),
+      muscleGroups: [displayGroup],
       inputFields: r.input_fields,
       hasLoggedSets: r.has_logged === 1,
     });

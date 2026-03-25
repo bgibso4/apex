@@ -28,7 +28,7 @@ const TOP_LIFTS = [
 // TODO (#48): Make curated lifts configurable from Settings in a future iteration
 const COMPACT_LIFTS = [
   { id: 'overhead_press', name: 'Overhead Press' },
-  { id: 'front_squat', name: 'Front Squat' },
+  { id: 'barbell_row', name: 'BB Row' },
   { id: 'zercher_squat', name: 'Zercher Squat' },
   { id: 'romanian_deadlift', name: 'RDL' },
 ];

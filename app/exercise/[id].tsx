@@ -510,9 +510,7 @@ export default function ExerciseDetailScreen() {
           {/* Empty state */}
           {resources.length === 0 && !showAddResource && (
             <View style={styles.resourceEmptyState}>
-              <Text style={styles.addResourceEmptyText}>
-                No resources yet {'\u2014'} tap <Text style={{ color: Colors.indigo, fontWeight: '700' }}>+</Text> to add a tutorial link
-              </Text>
+              <Text style={styles.addResourceEmptyText}>No resources yet</Text>
             </View>
           )}
           {/* Add resource row or form */}
@@ -564,6 +562,8 @@ export default function ExerciseDetailScreen() {
                       setShowAddResource(false);
                       setNewLabel('');
                       setNewUrl('');
+                    }).catch((err) => {
+                      console.warn('Failed to save resource:', err);
                     });
                   }}
                 >

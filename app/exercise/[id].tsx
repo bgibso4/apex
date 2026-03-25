@@ -6,8 +6,8 @@
  * Navigated from Progress screen lift cards.
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking } from 'react-native';
+import { useState, useCallback, useMemo, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -294,9 +294,16 @@ export default function ExerciseDetailScreen() {
   // For e1RM we show "lbs", for time-based we don't show unit (it's in the formatted value)
   const showHeroUnit = primaryMetric && primaryMetric.unit !== 'sec';
 
+  const scrollRef = useRef<ScrollView>(null);
+
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -476,7 +483,7 @@ export default function ExerciseDetailScreen() {
             {!showAddResource ? (
               <TouchableOpacity
                 style={styles.addResourceRow}
-                onPress={() => setShowAddResource(true)}
+                onPress={() => { setShowAddResource(true); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); }}
               >
                 <Ionicons name="add" size={18} color={Colors.textMuted} />
                 <Text style={styles.addResourceText}>Add resource</Text>
@@ -486,6 +493,7 @@ export default function ExerciseDetailScreen() {
                 <TextInput
                   style={styles.resourceInput}
                   placeholder="Label"
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newLabel}
                   onChangeText={setNewLabel}
@@ -494,6 +502,7 @@ export default function ExerciseDetailScreen() {
                 <TextInput
                   style={styles.resourceInput}
                   placeholder="URL"
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newUrl}
                   onChangeText={setNewUrl}
@@ -534,7 +543,7 @@ export default function ExerciseDetailScreen() {
             {!showAddResource ? (
               <TouchableOpacity
                 style={styles.addResourceRow}
-                onPress={() => setShowAddResource(true)}
+                onPress={() => { setShowAddResource(true); setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100); }}
               >
                 <Ionicons name="add" size={18} color={Colors.textMuted} />
                 <Text style={styles.addResourceEmptyText}>No resources yet — tap + to add a tutorial link</Text>
@@ -544,6 +553,7 @@ export default function ExerciseDetailScreen() {
                 <TextInput
                   style={styles.resourceInput}
                   placeholder="Label"
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newLabel}
                   onChangeText={setNewLabel}
@@ -552,6 +562,7 @@ export default function ExerciseDetailScreen() {
                 <TextInput
                   style={styles.resourceInput}
                   placeholder="URL"
+                  onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)}
                   placeholderTextColor={Colors.textDim}
                   value={newUrl}
                   onChangeText={setNewUrl}
@@ -589,7 +600,7 @@ export default function ExerciseDetailScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

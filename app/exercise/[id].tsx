@@ -734,16 +734,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.cardInner,
-    padding: Spacing.lg,
+    overflow: 'hidden',
   },
   sessionDivider: {
     height: 1,
-    backgroundColor: Colors.surface,
-    marginVertical: Spacing.sm,
+    backgroundColor: Colors.border,
   },
   sessionRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
   },
   sessionLeft: {
     flexDirection: 'row',

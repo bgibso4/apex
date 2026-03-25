@@ -227,7 +227,7 @@ export default function ExerciseDetailScreen() {
   const formatCompactDate = (dateStr: string) => {
     const d = new Date(dateStr + 'T12:00:00');
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[d.getMonth()]} ${d.getDate()}`;
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   };
 
   const formatSessionSummary = (session: GenericSessionSetHistory) => {
@@ -236,7 +236,7 @@ export default function ExerciseDetailScreen() {
     const types = exerciseFields.map(f => f.type);
 
     if (types.includes('weight') && types.includes('reps')) {
-      return `${first.weight} \u00D7 ${first.reps} \u00D7 ${session.sets.length} sets`;
+      return `${session.sets.length} \u00D7 ${first.reps} @ ${first.weight} lb`;
     }
     if (types.includes('duration')) {
       return `${formatTime(first.duration ?? 0)} \u00D7 ${session.sets.length} sets`;
@@ -435,17 +435,24 @@ export default function ExerciseDetailScreen() {
                   {si > 0 && <View style={styles.sessionDivider} />}
                   <View style={styles.sessionRow}>
                     <View style={styles.sessionLeft}>
-                      <Text style={styles.sessionDate}>{formatCompactDate(session.date)}</Text>
-                      {isDeload(session.blockName) && (
-                        <Text style={styles.deloadTag}>(deload)</Text>
-                      )}
+                      <Text style={styles.sessionDate}>
+                        {formatCompactDate(session.date)}
+                        {isDeload(session.blockName) && (
+                          <Text style={styles.deloadTag}> (deload)</Text>
+                        )}
+                      </Text>
+                      <Text style={styles.sessionSummary}>
+                        {formatSessionSummary(session)}
+                        {session.avgRpe != null && (
+                          <Text style={styles.sessionRpe}> · RPE {session.avgRpe.toFixed(1)}</Text>
+                        )}
+                      </Text>
                     </View>
-                    <Text style={styles.sessionSummary}>{formatSessionSummary(session)}</Text>
                     {metricValue && (
-                      <Text style={styles.sessionE1rm}>{metricValue}</Text>
-                    )}
-                    {session.avgRpe != null && (
-                      <Text style={styles.sessionRpe}>RPE {session.avgRpe.toFixed(1)}</Text>
+                      <View style={styles.sessionMetricRight}>
+                        <Text style={styles.sessionE1rm}>{metricValue}</Text>
+                        <Text style={styles.sessionE1rmLabel}> e1RM</Text>
+                      </View>
                     )}
                   </View>
                 </TouchableOpacity>
@@ -743,19 +750,18 @@ const styles = StyleSheet.create({
   sessionRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: Spacing.lg,
   },
   sessionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    width: 90,
+    flex: 1,
+    marginRight: Spacing.md,
   },
   sessionDate: {
-    color: Colors.textSecondary,
+    color: Colors.text,
     fontSize: FontSize.sm,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   deloadTag: {
     color: Colors.green,
@@ -763,24 +769,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sessionSummary: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-  sessionE1rm: {
-    color: Colors.text,
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-    width: 48,
-    textAlign: 'right',
+    color: Colors.textMuted,
+    fontSize: FontSize.sm - 1,
+    marginTop: 2,
   },
   sessionRpe: {
     color: Colors.textDim,
-    fontSize: FontSize.xs,
+  },
+  sessionMetricRight: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexShrink: 0,
+  },
+  sessionE1rm: {
+    color: Colors.indigo,
+    fontSize: FontSize.sm,
     fontWeight: '600',
-    width: 50,
-    textAlign: 'right',
+  },
+  sessionE1rmLabel: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '400',
   },
 
   // View all link

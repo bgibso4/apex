@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
   },
   sessionDate: {
     color: Colors.text,
-    fontSize: FontSize.sm,
+    fontSize: FontSize.body,
     fontWeight: '500',
   },
   deloadTag: {
@@ -769,12 +769,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sessionSummary: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sm - 1,
-    marginTop: 2,
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    marginTop: 3,
   },
   sessionRpe: {
-    color: Colors.textDim,
+    color: Colors.indigo,
   },
   sessionMetricRight: {
     flexDirection: 'row',

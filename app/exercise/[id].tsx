@@ -710,6 +710,7 @@ const styles = StyleSheet.create({
   bandLabel: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.xs,
   },
   bandLabelDot: {

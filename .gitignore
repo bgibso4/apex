@@ -11,7 +11,8 @@ dist/
 web-build/
 coverage/
 .env
-ios/
+/ios/
+!modules/**/ios/
 android/
 .claude-flow/
 

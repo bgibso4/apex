@@ -24,7 +24,8 @@
       "expo-asset",
       "expo-secure-store",
       "expo-web-browser",
-      "./plugins/withICloudBackup"
+      "./plugins/withICloudBackup",
+      "./modules/icloud-backup"
     ],
     "experiments": {
       "typedRoutes": true

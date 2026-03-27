@@ -24,9 +24,11 @@
       "expo-asset",
       "expo-secure-store",
       "expo-web-browser",
-      "./plugins/withICloudBackup",
-      "./modules/icloud-backup"
+      "./plugins/withICloudBackup"
     ],
+    "autolinking": {
+      "searchPaths": ["./modules"]
+    },
     "experiments": {
       "typedRoutes": true
     }

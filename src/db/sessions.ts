@@ -6,6 +6,7 @@ import { getDatabase, generateId } from './database';
 import type { Session, SetLog, SessionProtocol } from '../types';
 import type { InputField } from '../types/fields';
 import { syncAll } from '../sync/syncClient';
+import { backupToICloud } from './icloudBackup';
 
 /** Create a new session (when user starts a workout) */
 export async function createSession(params: {
@@ -186,9 +187,12 @@ export async function completeSession(sessionId: string): Promise<void> {
     [new Date().toISOString(), sessionId]
   );
 
-  // Trigger background sync after completing a session
+  // Background sync + backup — both fire-and-forget
   syncAll().catch((err) => {
     console.warn('[sync] Post-session sync failed:', err);
+  });
+  backupToICloud().catch((err) => {
+    console.warn('[icloud] Post-session backup failed:', err);
   });
 }
 

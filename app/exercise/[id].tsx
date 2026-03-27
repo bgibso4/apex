@@ -381,7 +381,7 @@ export default function ExerciseDetailScreen() {
                     backgroundColor: getBlockColorOpaque(band.color),
                   }]} />
                   <Text style={styles.bandLabelText} numberOfLines={1}>
-                    {band.label}
+                    {band.label.slice(0, 3)}
                   </Text>
                 </View>
               ))}
@@ -710,6 +710,7 @@ const styles = StyleSheet.create({
   bandLabel: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.xs,
   },
   bandLabelDot: {

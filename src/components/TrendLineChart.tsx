@@ -88,7 +88,8 @@ export default function TrendLineChart({
   const dataMin = minValue ?? Math.min(...allValues);
   const dataMax = maxValue ?? Math.max(...allValues);
   const range = dataMax - dataMin || 1;
-  const padding = viewBoxHeight * 0.1; // 10% padding top/bottom
+  const padding = viewBoxHeight * 0.22; // 22% padding top/bottom — keeps line from feeling zoomed in
+  const scale = height / viewBoxHeight; // compensate for viewBox→render scaling
 
   const toY = (value: number): number => {
     const normalized = (value - dataMin) / range;
@@ -197,7 +198,8 @@ export default function TrendLineChart({
               x1="0" y1={y}
               x2={viewBoxWidth} y2={y}
               stroke={Colors.surface}
-              strokeWidth="1"
+              strokeWidth={0.5 / scale}
+              opacity={0.5}
             />
           ))}
 
@@ -227,44 +229,29 @@ export default function TrendLineChart({
                   points={points}
                   fill="none"
                   stroke={strokeColor}
-                  strokeWidth={line.dashed ? 2 : 2.5}
+                  strokeWidth={(line.dashed ? 1.5 : 1.8) / scale}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeDasharray={line.dashed ? '6,4' : undefined}
                   opacity={line.opacity ?? 1}
                 />
 
-                {/* Data dots */}
+                {/* Data dots — minimal: only last point, or all if sparse */}
                 {showDots && filteredData.map((d, i) => {
                   const cx = toX(i, filteredData.length);
                   const cy = toY(d.value);
                   const isLast = i === filteredData.length - 1;
+                  const isSparse = filteredData.length <= 4;
 
-                  if (isLast) {
-                    // Current point: ring style
-                    return (
-                      <React.Fragment key={`dot-${li}-${i}`}>
-                        <Circle
-                          cx={cx} cy={cy}
-                          r={line.dashed ? 4 : 5}
-                          fill={Colors.bg}
-                          stroke={line.color}
-                          strokeWidth={line.dashed ? 2 : 2.5}
-                          strokeDasharray={line.dashed ? '4,3' : undefined}
-                        />
-                      </React.Fragment>
-                    );
-                  }
-
-                  // Show dots at regular intervals (every 2nd point, or all if <6)
-                  const showEveryN = filteredData.length > 12 ? 3 : filteredData.length > 6 ? 2 : 1;
-                  if (i % showEveryN !== 0 && filteredData.length > 4) return null;
+                  // For sparse data: show small dots on all points
+                  // For dense data: only show dot on the current (last) point
+                  if (!isLast && !isSparse) return null;
 
                   return (
                     <Circle
                       key={`dot-${li}-${i}`}
                       cx={cx} cy={cy}
-                      r={line.dashed ? 3 : (filteredData.length > 10 ? 3 : 3.5)}
+                      r={(isLast ? 2.5 : 2) / scale}
                       fill={line.color}
                       opacity={line.dashed ? 0.5 : 1}
                     />

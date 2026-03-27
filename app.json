@@ -23,8 +23,12 @@
       "expo-sqlite",
       "expo-asset",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/withICloudBackup"
     ],
+    "autolinking": {
+      "searchPaths": ["./modules"]
+    },
     "experiments": {
       "typedRoutes": true
     }

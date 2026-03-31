@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from './colors';
-import { Spacing, FontSize, BorderRadius } from './spacing';
+import { Colors, Spacing, FontSize, BorderRadius } from '@cadre/shared/theme';
 
 /** Shared styles reused across multiple screens */
 export const SharedStyles = StyleSheet.create({

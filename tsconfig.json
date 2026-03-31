@@ -6,6 +6,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@cadre/shared/*": [
+        "./node_modules/@cadre/shared/src/*"
       ]
     }
   },

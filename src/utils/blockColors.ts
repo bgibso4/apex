@@ -4,7 +4,7 @@
  * for known block types, with a cycling palette fallback for unknown blocks.
  */
 
-import { Colors } from '../theme/colors';
+import { Colors } from '@cadre/shared/theme';
 import type { Block } from '../types';
 
 const KNOWN_PATTERNS: [RegExp, string][] = [

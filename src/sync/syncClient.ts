@@ -14,7 +14,7 @@ const engine = new SyncEngine({
 });
 
 // Register each Apex table with its local query and transform logic
-for (const [table, config] of Object.entries(SYNC_TABLES)) {
+for (const [table] of Object.entries(SYNC_TABLES)) {
   engine.registerTable({
     table,
     getChangedRows: async (since: string) => {

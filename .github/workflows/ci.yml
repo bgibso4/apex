@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
       - run: npm ci
       - run: npx tsc --noEmit
 
@@ -32,6 +33,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
       - run: npm ci
       - run: npm run lint
 
@@ -44,5 +46,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
       - run: npm ci
       - run: npm test

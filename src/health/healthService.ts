@@ -17,6 +17,17 @@ export class HealthService {
       if (data) {
         await upsertDailyHealth(data);
       }
+
+      // Re-fetch last 2 days to update finalized strain scores
+      for (let i = 1; i <= 2; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = getLocalDateString(d);
+        const pastData = await this.provider.fetchDaily(dateStr);
+        if (pastData) {
+          await upsertDailyHealth(pastData);
+        }
+      }
     } catch (e) {
       console.warn('Health sync failed (non-blocking):', e);
     }

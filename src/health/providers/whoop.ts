@@ -68,18 +68,12 @@ export class WhoopProvider implements HealthProvider {
     const startISO = `${date}T00:00:00.000Z`;
     const endISO = `${date}T23:59:59.999Z`;
 
-    // Fetch yesterday's cycle for completed strain
-    const yesterday = new Date(date + 'T00:00:00');
-    yesterday.setDate(yesterday.getDate() - 1);
-    const ydayStart = `${yesterday.toISOString().split('T')[0]}T00:00:00.000Z`;
-    const ydayEnd = `${yesterday.toISOString().split('T')[0]}T23:59:59.999Z`;
-
+    // Fetch today's cycle for current strain (updates throughout the day)
     const cycles = await this.apiGet<WhoopPaginatedResponse<WhoopCycleResponse>>(
       token,
-      `/v2/cycle?start=${ydayStart}&end=${ydayEnd}&limit=1`
+      `/v2/cycle?start=${startISO}&end=${endISO}&limit=1`
     );
 
-    // Use yesterday's cycle for strain, but don't block if missing
     const cycle = cycles.records[0] ?? null;
 
     // Fetch today's recovery (contains recovery score, HRV, RHR, SpO2, skin temp)
@@ -119,7 +113,7 @@ export class WhoopProvider implements HealthProvider {
       sleepScore: sleep?.sleep_performance_percentage,
       hrvRmssd: recovery?.hrv_rmssd_milli,
       restingHr: recovery?.resting_heart_rate,
-      strainScore: cycle?.score?.strain,  // yesterday's completed strain
+      strainScore: cycle?.score?.strain,
       sleepDurationMin: sleepDurationMin,
       spo2: recovery?.spo2_percentage,
       skinTempCelsius: recovery?.skin_temp_celsius,

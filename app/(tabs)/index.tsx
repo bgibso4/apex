@@ -19,6 +19,7 @@ import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
 } from '../../src/utils/program';
+import { getLocalDateString } from '../../src/utils/date';
 import { useHealthData, syncHealthData } from '../../src/hooks/useHealthData';
 import HealthCard from '../../src/components/HealthCard';
 import { ProgramTimeline } from '../../src/components/ProgramTimeline';
@@ -54,7 +55,7 @@ export default function HomeScreen() {
   const [displayYear, setDisplayYear] = useState(now.getFullYear());
   const [displayMonth, setDisplayMonth] = useState(now.getMonth());
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const { data: healthData, loading: healthLoading } = useHealthData(today, true);
 
   const loadData = useCallback(async () => {

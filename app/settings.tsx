@@ -38,7 +38,7 @@ export default function SettingsScreen() {
   const [whoopConnected, setWhoopConnected] = useState(false);
   const [whoopLoading, setWhoopLoading] = useState(false);
 
-  const redirectUri = AuthSession.makeRedirectUri({ scheme: 'apex' });
+  const redirectUri = AuthSession.makeRedirectUri({ scheme: 'apex', path: 'oauth/callback' });
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {

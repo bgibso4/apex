@@ -5,13 +5,14 @@ import {
   getDailyHealthRange,
   getMissingDates,
 } from '../db/health';
+import { getLocalDateString } from '../utils/date';
 
 export class HealthService {
   constructor(private provider: HealthProvider) {}
 
   async syncToday(): Promise<void> {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const data = await this.provider.fetchDaily(today);
       if (data) {
         await upsertDailyHealth(data);

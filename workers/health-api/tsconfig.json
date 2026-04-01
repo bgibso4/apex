@@ -13,7 +13,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@cadre/shared/*": ["./node_modules/@cadre/shared/src/*"]
     }
   },
   "include": ["src/**/*.ts", "test/**/*.ts"]

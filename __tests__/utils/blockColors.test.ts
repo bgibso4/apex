@@ -3,7 +3,7 @@
  */
 
 import { getBlockColorMap, getBlockColorMuted, getBlockColorOpaque } from '../../src/utils/blockColors';
-import { Colors } from '../../src/theme/colors';
+import { Colors } from '@cadre/shared/theme';
 import type { Block } from '../../src/types';
 
 function makeBlock(name: string, weeks: number[] = [1]): Block {

@@ -9,6 +9,7 @@
     "tail": "wrangler tail"
   },
   "dependencies": {
+    "@cadre/shared": "github:bgibso4/cadre#v0.1.0",
     "@sentry/cloudflare": "^10.45.0",
     "hono": "^4"
   },

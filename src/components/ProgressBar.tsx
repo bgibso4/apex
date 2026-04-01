@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../theme/colors';
-import { Spacing, FontSize, BorderRadius } from '../theme/spacing';
+import { Colors, Spacing, FontSize, BorderRadius } from '@cadre/shared/theme';
 
 interface Props {
   label: string;

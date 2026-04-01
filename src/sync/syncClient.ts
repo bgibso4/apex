@@ -1,65 +1,30 @@
 // src/sync/syncClient.ts
+import { SyncEngine } from '@cadre/shared/sync';
 import { getDatabase } from '../db/database';
 import { SYNC_TABLES, getSyncQuery, transformRow, type SyncTableName } from './syncConfig';
 import { getLastSync, setLastSync } from './syncStorage';
 import { WHOOP_WORKER_URL, WHOOP_WORKER_API_KEY } from '../health/config';
 
-const EPOCH = '1970-01-01T00:00:00Z';
+const engine = new SyncEngine({
+  apiUrl: WHOOP_WORKER_URL,
+  apiKey: WHOOP_WORKER_API_KEY,
+  appId: 'apex',
+  getLastSync,
+  setLastSync,
+});
 
-/**
- * Sync a single table: query changed rows, transform, push to Worker.
- */
-export async function syncTable(table: SyncTableName): Promise<void> {
-  const db = await getDatabase();
-  const lastSync = await getLastSync(table) ?? EPOCH;
-  const query = getSyncQuery(table);
-
-  const rows = await db.getAllAsync<Record<string, unknown>>(query, [lastSync]);
-
-  if (rows.length === 0) return;
-
-  const records = rows.map((row) => transformRow(table, row));
-
-  const response = await fetch(`${WHOOP_WORKER_URL}/v1/${table}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': WHOOP_WORKER_API_KEY,
+// Register each Apex table with its local query and transform logic
+for (const [table] of Object.entries(SYNC_TABLES)) {
+  engine.registerTable({
+    table,
+    getChangedRows: async (since: string) => {
+      const db = await getDatabase();
+      const query = getSyncQuery(table as SyncTableName);
+      return db.getAllAsync<Record<string, unknown>>(query, [since]);
     },
-    body: JSON.stringify({
-      app_id: 'apex',
-      records,
-    }),
+    transformRow: (row) => transformRow(table as SyncTableName, row),
   });
-
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    console.warn(`[sync] Failed to push ${table}: ${response.status}`, errorBody);
-    return;
-  }
-
-  // Update last-sync to max updated_at of pushed rows
-  const maxUpdatedAt = rows.reduce((max, row) => {
-    const val = row.updated_at as string;
-    return val > max ? val : max;
-  }, '');
-
-  if (maxUpdatedAt) {
-    await setLastSync(table, maxUpdatedAt);
-  }
 }
 
-/**
- * Sync all tables. Tables are independent — one failure doesn't block others.
- */
-export async function syncAll(): Promise<void> {
-  const tables = Object.keys(SYNC_TABLES) as SyncTableName[];
-
-  for (const table of tables) {
-    try {
-      await syncTable(table);
-    } catch (err) {
-      console.warn(`[sync] Error syncing ${table}:`, err);
-    }
-  }
-}
+export const syncAll = () => engine.syncAll();
+export const syncTable = (table: string) => engine.syncTable(table);

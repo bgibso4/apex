@@ -21,6 +21,8 @@ export class WhoopProvider implements HealthProvider {
   id = 'whoop';
   name = 'WHOOP';
 
+  private refreshPromise: Promise<string | null> | null = null;
+
   constructor(private workerUrl: string) {}
 
   // --- Auth ---
@@ -155,6 +157,20 @@ export class WhoopProvider implements HealthProvider {
   }
 
   private async refreshToken(): Promise<string | null> {
+    // Deduplicate concurrent refresh attempts — Whoop uses rotating refresh
+    // tokens, so a second concurrent call would send an already-invalidated
+    // token and trigger an unnecessary sign-out.
+    if (this.refreshPromise) return this.refreshPromise;
+
+    this.refreshPromise = this.doRefresh();
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  private async doRefresh(): Promise<string | null> {
     const refreshToken = await SecureStore.getItemAsync(STORE_KEYS.refreshToken);
     if (!refreshToken) return null;
 
@@ -166,7 +182,11 @@ export class WhoopProvider implements HealthProvider {
       });
 
       if (!response.ok) {
-        await this.disconnect();
+        // Only disconnect on auth errors (token truly revoked).
+        // Transient failures (network, 5xx) should not wipe credentials.
+        if (response.status === 401 || response.status === 403) {
+          await this.disconnect();
+        }
         return null;
       }
 
@@ -174,6 +194,8 @@ export class WhoopProvider implements HealthProvider {
       await this.storeTokens(tokens);
       return tokens.access_token;
     } catch {
+      // Network error — don't disconnect, just return null so caller
+      // falls back gracefully. Next attempt will retry.
       return null;
     }
   }

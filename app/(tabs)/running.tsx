@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { getRunLogs, logRun, getPainTrend, getRunStats, deleteRun, updateRun } from '../../src/db';
 import { getLocalDateString } from '../../src/utils/date';
+import { formatDuration, digitsToMinutes, minutesToDigits, sanitizeDigits } from '../../src/utils/duration';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import type { RunLog } from '../../src/types';
 
@@ -82,8 +83,8 @@ export default function RunningScreen() {
   };
 
   const submitRun = async () => {
-    const durMin = parseFloat(duration);
-    if (isNaN(durMin) || durMin <= 0) return;
+    const durMin = digitsToMinutes(duration);
+    if (durMin <= 0) return;
 
     const dist = parseFloat(distance);
 
@@ -128,7 +129,7 @@ export default function RunningScreen() {
 
   const startEdit = (run: RunLog) => {
     setEditingRun(run);
-    setDuration(String(run.duration_min));
+    setDuration(minutesToDigits(run.duration_min));
     setDistance(run.distance != null && run.distance > 0 ? String(run.distance) : '');
     setPain(run.pain_level);
     setNotes(run.notes ?? '');
@@ -155,7 +156,7 @@ export default function RunningScreen() {
   };
 
   // Calculate pace
-  const durNum = parseFloat(duration);
+  const durNum = digitsToMinutes(duration);
   const distNum = parseFloat(distance);
   const pace = durNum > 0 && distNum > 0
     ? `${Math.floor(durNum / distNum)}:${String(Math.round((durNum / distNum % 1) * 60)).padStart(2, '0')}`
@@ -288,13 +289,12 @@ function LogTab({
             <View style={styles.formInputWithUnit}>
               <TextInput
                 style={styles.formInput}
-                value={duration}
-                onChangeText={setDuration}
-                keyboardType="numeric"
-                placeholder="25"
+                value={formatDuration(duration)}
+                onChangeText={(text) => setDuration(sanitizeDigits(text))}
+                keyboardType="number-pad"
+                placeholder="0:00"
                 placeholderTextColor={Colors.textMuted}
               />
-              <Text style={styles.formUnit}>min</Text>
             </View>
           </View>
           <View style={styles.formField}>
@@ -447,7 +447,7 @@ function LogTab({
                 <View style={styles.runLeft}>
                   <Text style={styles.runDate}>{formatRunDate(run.date)}</Text>
                   <View style={styles.runDetails}>
-                    <Text style={styles.runDetailText}>{run.duration_min} min</Text>
+                    <Text style={styles.runDetailText}>{formatDuration(minutesToDigits(run.duration_min))}</Text>
                     {run.distance != null && run.distance > 0 && (
                       <>
                         <Text style={styles.runDetailSep}>{'\u00B7'}</Text>

@@ -49,8 +49,10 @@ Final set of the final training day logged
 
 A program is complete when the **just-completed session is the last training day of the final week**:
 
-- `session.week_number === program.duration_weeks`, **and**
+- `session.week_number >= program.duration_weeks`, **and**
 - the session's scheduled day is the **last non-rest day** of `weekly_template` in `DAY_ORDER` (rest days trimmed via the existing `getTrainingDays()`).
+
+The `>=` (rather than `===`) keeps detection robust against rows created under the old hardcoded max-12 clamp and against behind-schedule users whose calendar week reached the final week.
 
 Skipped earlier sessions do **not** block completion (per the "final session logged" decision). The check runs in `finishSession()` (`src/hooks/useWorkoutSession.ts`) immediately after `await completeSession(sessionId)` returns.
 
@@ -60,15 +62,13 @@ New pure helper (unit-testable, no DB):
 isFinalTrainingSession(definition, weekNumber, scheduledDay): boolean
 ```
 
-### 2. Progress-based week tracking (the "Week 12 of 11" fix)
+### 2. Week-tracking fix (the "Week 12 of 11" fix)
 
-Replace the calendar-time math in `getCurrentWeek()` with a position **derived from completed sessions**, clamped to `[1, duration_weeks]`:
+`getCurrentWeek()` returns calendar weeks since `activated_date` clamped to a hardcoded `12`. Change it to clamp to the program's own `duration_weeks` (passed in): `max(1, min(weeksSinceActivation, durationWeeks))`. The current week then can never exceed the program length, so `getBlockForWeek()` always resolves and "Unknown Block" cannot appear. Once a program completes, Home stops rendering the week/block header entirely (it shows the completed card).
 
-- Current week = the week of the furthest-progressed scheduled session, advancing to the next week once a week's training days are all logged; never exceeds `duration_weeks`.
-- `activated_date` is retained for date display, not for deriving the week.
-- A completed program no longer renders a week/block header at all — Home switches to the completed card.
+The existing `getCurrentWeek()` test asserting "clamp to max 12" is updated to assert clamping to the passed `durationWeeks`.
 
-This makes overflow structurally impossible. The existing `getCurrentWeek()` test asserting "clamp to max 12" is updated to assert clamping to `duration_weeks` with no overflow.
+> Completion is detected independently of the displayed week (§1), so a behind-schedule user (calendar past the final week) both caps at "Week N of N" and completes correctly when they log the final training day. The one case the calendar-derived week can lag is a user who compresses the program well ahead of schedule — acceptable for v1.
 
 ### 3. State model
 

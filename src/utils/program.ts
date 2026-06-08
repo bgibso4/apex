@@ -40,6 +40,27 @@ export function getTrainingDays(template: ProgramDefinition['program']['weekly_t
     .map(day => ({ day, template: template[day] as DayTemplate }));
 }
 
+/** The last non-rest training day of the week (rest days trimmed). null if none. */
+export function getLastTrainingDay(definition: ProgramDefinition): string | null {
+  const days = getTrainingDays(definition.program.weekly_template);
+  return days.length ? days[days.length - 1].day : null;
+}
+
+/**
+ * Whether a just-completed session is the program's final scheduled workout:
+ * the last training day of the final week. Uses `>=` so legacy rows created
+ * under the old max-12 week clamp (and behind-schedule users) still match.
+ */
+export function isFinalTrainingSession(
+  definition: ProgramDefinition,
+  weekNumber: number,
+  scheduledDay: string
+): boolean {
+  const lastDay = getLastTrainingDay(definition);
+  if (!lastDay) return false;
+  return weekNumber >= definition.program.duration_weeks && scheduledDay === lastDay;
+}
+
 /** Get the exercise targets for a specific week */
 export function getTargetForWeek(slot: ExerciseSlot, weekNumber: number): ExerciseTarget | undefined {
   return slot.targets.find(t => t.weeks.includes(weekNumber));

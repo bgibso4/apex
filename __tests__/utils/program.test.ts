@@ -2,8 +2,10 @@ import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getTargetForWeek, getSuggestedWeight, getCurrentWeek, getTodayKey,
   DAY_ORDER, DAY_NAMES,
+  getLastTrainingDay, isFinalTrainingSession,
 } from '../../src/utils/program';
 import type { Block, ExerciseSlot } from '../../src/types';
+import type { ProgramDefinition } from '../../src/types';
 
 // ── getBlockForWeek ──
 
@@ -191,5 +193,44 @@ describe('DAY_NAMES', () => {
   it('has abbreviated names', () => {
     expect(DAY_NAMES.monday).toBe('Mon');
     expect(DAY_NAMES.saturday).toBe('Sat');
+  });
+});
+
+// ── getLastTrainingDay / isFinalTrainingSession ──
+
+function makeDef(durationWeeks = 11): ProgramDefinition {
+  const day = (name: string) => ({ name, warmup: [], exercises: [] });
+  return {
+    program: {
+      name: 'Test', duration_weeks: durationWeeks, created: '2026-01-01',
+      blocks: [], exercise_definitions: [], warmup_protocols: {},
+      weekly_template: {
+        sunday: { type: 'rest' },
+        monday: day('A'), tuesday: { type: 'rest' }, wednesday: day('B'),
+        thursday: { type: 'rest' }, friday: day('C'),
+        saturday: { type: 'rest' },
+      },
+    },
+  } as ProgramDefinition;
+}
+
+describe('getLastTrainingDay', () => {
+  it('returns the last non-rest day in week order, trimming trailing rest days', () => {
+    expect(getLastTrainingDay(makeDef())).toBe('friday');
+  });
+});
+
+describe('isFinalTrainingSession', () => {
+  it('is true on the last training day of the final week', () => {
+    expect(isFinalTrainingSession(makeDef(11), 11, 'friday')).toBe(true);
+  });
+  it('is true when week_number exceeds duration (legacy max-12 clamp)', () => {
+    expect(isFinalTrainingSession(makeDef(11), 12, 'friday')).toBe(true);
+  });
+  it('is false on an earlier training day of the final week', () => {
+    expect(isFinalTrainingSession(makeDef(11), 11, 'wednesday')).toBe(false);
+  });
+  it('is false before the final week', () => {
+    expect(isFinalTrainingSession(makeDef(11), 10, 'friday')).toBe(false);
   });
 });

@@ -114,9 +114,12 @@ export async function refreshBundledProgram(definition: ProgramDefinition): Prom
 export async function activateProgram(programId: string): Promise<void> {
   const db = await getDatabase();
 
-  // Deactivate any currently active program
+  // Deactivate any currently active program (mark complete, already "seen" — no celebration)
   await db.runAsync(
-    "UPDATE programs SET status = 'completed', updated_at = datetime('now') WHERE status = 'active'"
+    `UPDATE programs SET status = 'completed', completion_seen = 1,
+       completed_date = COALESCE(completed_date, ?), updated_at = datetime('now')
+     WHERE status = 'active'`,
+    [getLocalDateString()]
   );
 
   // Activate this one
@@ -125,6 +128,36 @@ export async function activateProgram(programId: string): Promise<void> {
      WHERE id = ?`,
     [getLocalDateString(), programId]
   );
+}
+
+/** Mark a program complete (training finished). Celebration not yet shown. */
+export async function markProgramComplete(programId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `UPDATE programs SET status = 'completed', completed_date = ?, completion_seen = 0, updated_at = datetime('now')
+     WHERE id = ?`,
+    [getLocalDateString(), programId]
+  );
+}
+
+/** Mark the completion celebration as shown (fires once). */
+export async function markCompletionSeen(programId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    "UPDATE programs SET completion_seen = 1, updated_at = datetime('now') WHERE id = ?",
+    [programId]
+  );
+}
+
+/** Most recently completed program (for the Home completed card). */
+export async function getMostRecentCompletedProgram(): Promise<(Program & { definition: ProgramDefinition }) | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<Program>(
+    `SELECT * FROM programs WHERE status = 'completed'
+     ORDER BY completed_date DESC, updated_at DESC LIMIT 1`
+  );
+  if (!row) return null;
+  return { ...row, definition: JSON.parse(row.definition_json) as ProgramDefinition };
 }
 
 /** Stop an active program, optionally deleting all associated data */

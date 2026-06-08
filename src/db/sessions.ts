@@ -273,6 +273,22 @@ export async function getCompletedSessionForDay(
   );
 }
 
+/** Completed session for the program's final-week last training day (week_number >= duration). */
+export async function getCompletedFinalDaySession(
+  programId: string,
+  lastTrainingDay: string,
+  durationWeeks: number
+): Promise<Session | null> {
+  const db = await getDatabase();
+  return db.getFirstAsync<Session>(
+    `SELECT * FROM sessions
+     WHERE program_id = ? AND scheduled_day = ? AND week_number >= ?
+       AND completed_at IS NOT NULL
+     ORDER BY week_number DESC, date DESC LIMIT 1`,
+    [programId, lastTrainingDay, durationWeeks]
+  );
+}
+
 /** Get exercise names for a list of exercise IDs */
 export async function getExerciseNames(
   exerciseIds: string[]

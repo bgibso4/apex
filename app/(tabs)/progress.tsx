@@ -170,7 +170,7 @@ export default function ProgressScreen() {
         const consistency = await getTrainingConsistency(program.id, trainingDaysPerWeek);
         setConsistencyData(consistency);
         if (program.activated_date) {
-          setCurrentWeek(getCurrentWeek(program.activated_date));
+          setCurrentWeek(getCurrentWeek(program.activated_date, program.duration_weeks));
         }
       }
 

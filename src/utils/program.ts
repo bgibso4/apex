@@ -93,13 +93,13 @@ export function getSuggestedWeight(
   return null;
 }
 
-/** Get the current week number based on program activation date */
-export function getCurrentWeek(activatedDate: string): number {
+/** Current week number from activation date, clamped to the program's length. */
+export function getCurrentWeek(activatedDate: string, durationWeeks: number): number {
   const start = new Date(activatedDate);
   const now = new Date();
   const diffMs = now.getTime() - start.getTime();
   const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
-  return Math.max(1, Math.min(12, diffWeeks + 1));
+  return Math.max(1, Math.min(durationWeeks, diffWeeks + 1));
 }
 
 /** Get today's day of week as a template key */

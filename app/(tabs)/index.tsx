@@ -66,7 +66,7 @@ export default function HomeScreen() {
     const { startDate, endDate } = getMonthDateRange(displayYear, displayMonth);
 
     if (active?.activated_date) {
-      const week = getCurrentWeek(active.activated_date);
+      const week = getCurrentWeek(active.activated_date, active.duration_weeks);
       setCurrentWeek(week);
       const sessions = await getSessionsForWeek(active.id, week);
       setWeekSessions(sessions);

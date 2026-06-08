@@ -152,25 +152,19 @@ describe('getSuggestedWeight', () => {
 describe('getCurrentWeek', () => {
   it('returns 1 for today activation', () => {
     const today = new Date().toISOString().split('T')[0];
-    expect(getCurrentWeek(today)).toBe(1);
+    expect(getCurrentWeek(today, 11)).toBe(1);
   });
-
   it('returns 2 for 8 days ago', () => {
-    const d = new Date();
-    d.setDate(d.getDate() - 8);
-    expect(getCurrentWeek(d.toISOString().split('T')[0])).toBe(2);
+    const d = new Date(); d.setDate(d.getDate() - 8);
+    expect(getCurrentWeek(d.toISOString().split('T')[0], 11)).toBe(2);
   });
-
   it('clamps to minimum of 1', () => {
-    const future = new Date();
-    future.setDate(future.getDate() + 7);
-    expect(getCurrentWeek(future.toISOString().split('T')[0])).toBe(1);
+    const future = new Date(); future.setDate(future.getDate() + 7);
+    expect(getCurrentWeek(future.toISOString().split('T')[0], 11)).toBe(1);
   });
-
-  it('clamps to maximum of 12', () => {
-    const old = new Date();
-    old.setDate(old.getDate() - 365);
-    expect(getCurrentWeek(old.toISOString().split('T')[0])).toBe(12);
+  it('clamps to the program duration (no overflow past the final week)', () => {
+    const old = new Date(); old.setDate(old.getDate() - 365);
+    expect(getCurrentWeek(old.toISOString().split('T')[0], 11)).toBe(11);
   });
 });
 

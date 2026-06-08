@@ -398,7 +398,7 @@ export function useWorkoutSession() {
     }
 
     if (active?.activated_date) {
-      const week = getCurrentWeek(active.activated_date);
+      const week = getCurrentWeek(active.activated_date, active.definition.program.duration_weeks);
       setCurrentWeek(week);
       // Don't reset selectedDay if we're mid-session (preserves title/state on tab switch)
       const effectivePhase = programChanged ? 'select' : phase;

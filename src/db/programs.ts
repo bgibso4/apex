@@ -216,8 +216,10 @@ export async function stopProgram(
     }
   } else {
     await db.runAsync(
-      "UPDATE programs SET status = 'completed', updated_at = datetime('now') WHERE id = ?",
-      [programId]
+      `UPDATE programs SET status = 'completed', completion_seen = 1,
+         completed_date = COALESCE(completed_date, ?), updated_at = datetime('now')
+       WHERE id = ?`,
+      [getLocalDateString(), programId]
     );
   }
 }

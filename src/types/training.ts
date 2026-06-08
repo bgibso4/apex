@@ -12,6 +12,8 @@ export interface Program {
   definition_json: string;
   activated_date?: string;
   bundled_id?: string;
+  completed_date?: string;
+  completion_seen?: number;
 }
 
 export interface Exercise {

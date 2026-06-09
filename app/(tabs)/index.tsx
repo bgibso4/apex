@@ -14,7 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import { APEX_FONT_FAMILY } from '../../src/theme/fonts';
-import { getActiveProgram, getSessionsForWeek, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange } from '../../src/db';
+import { getActiveProgram, getSessionsForWeek, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange, backfillActiveProgramCompletion, getMostRecentCompletedProgram } from '../../src/db';
+import { buildProgramSummary } from '../../src/db/programSummary';
+import { CompletedProgramCard } from '../../src/components/CompletedProgramCard';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
@@ -39,6 +41,22 @@ function getMonthDateRange(year: number, month: number): { startDate: string; en
   return { startDate, endDate };
 }
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtShort(d: string): string {
+  const [, m, day] = d.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${day}`;
+}
+/** "Mar 22 – Jun 7, 2026 · 11 weeks" */
+function formatCompletedRange(start: string | null, end: string | null, weeks: number): string {
+  const wk = `${weeks} weeks`;
+  if (start && end) {
+    const year = end.split('-')[0];
+    return `${fmtShort(start)} – ${fmtShort(end)}, ${year} · ${wk}`;
+  }
+  if (end) return `${fmtShort(end)} · ${wk}`;
+  return wk;
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -50,6 +68,7 @@ export default function HomeScreen() {
   const [todaySessionId, setTodaySessionId] = useState<string | null>(null);
   const [pendingFollowUp, setPendingFollowUp] = useState<RunLog | null>(null);
   const [completedStats, setCompletedStats] = useState<{ durationMin: number; setCount: number } | null>(null);
+  const [completedCard, setCompletedCard] = useState<{ id: string; programName: string; dateRangeLabel: string; prs: number; adherencePct: number } | null>(null);
 
   const now = useMemo(() => new Date(), []);
   const [displayYear, setDisplayYear] = useState(now.getFullYear());
@@ -59,6 +78,9 @@ export default function HomeScreen() {
   const { data: healthData, loading: healthLoading } = useHealthData(today, true);
 
   const loadData = useCallback(async () => {
+    // Retroactively complete a program whose final workout is already logged.
+    await backfillActiveProgramCompletion();
+
     const active = await getActiveProgram();
     setProgram(active);
 
@@ -66,6 +88,7 @@ export default function HomeScreen() {
     const { startDate, endDate } = getMonthDateRange(displayYear, displayMonth);
 
     if (active?.activated_date) {
+      setCompletedCard(null);
       const week = getCurrentWeek(active.activated_date, active.duration_weeks);
       setCurrentWeek(week);
       const sessions = await getSessionsForWeek(active.id, week);
@@ -92,6 +115,26 @@ export default function HomeScreen() {
       // No active program — still load completed sessions for the calendar
       const mSessions = await getAllSessionsForDateRange(startDate, endDate);
       setMonthSessions(mSessions);
+
+      // Resolve completed-program card (or one-time celebration redirect)
+      const completed = await getMostRecentCompletedProgram();
+      if (completed && (completed.completion_seen ?? 0) === 0) {
+        // Fire the one-time celebration, then stop loading the rest of Home.
+        router.push(`/program-complete?programId=${completed.id}&celebrate=1` as any); // cast: typed-routes not regenerated
+        return;
+      }
+      if (completed) {
+        const summary = await buildProgramSummary(completed.id);
+        setCompletedCard({
+          id: completed.id,
+          programName: summary.programName,
+          dateRangeLabel: formatCompletedRange(summary.startDate, summary.endDate, summary.weeks),
+          prs: summary.prs.length,
+          adherencePct: summary.adherencePct,
+        });
+      } else {
+        setCompletedCard(null);
+      }
     }
 
     // Check for pending pain follow-up (independent of program)
@@ -221,19 +264,37 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>{'🏋'}</Text>
-            <Text style={styles.emptyTitle}>No Active Program</Text>
-            <Text style={styles.emptySub}>
-              Choose a training program from the library to get started.
-            </Text>
-            <TouchableOpacity
-              style={styles.browseButton}
-              onPress={() => router.push('/library')}
-            >
-              <Text style={styles.browseButtonText}>Browse Library</Text>
-            </TouchableOpacity>
-          </View>
+          {completedCard ? (
+            <>
+              <CompletedProgramCard
+                programName={completedCard.programName}
+                dateRangeLabel={completedCard.dateRangeLabel}
+                prs={completedCard.prs}
+                adherencePct={completedCard.adherencePct}
+                onViewSummary={() => router.push(`/program-complete?programId=${completedCard.id}&celebrate=0` as any)} // cast: typed-routes not regenerated
+              />
+              <TouchableOpacity
+                style={styles.browseButton}
+                onPress={() => router.push('/library')}
+              >
+                <Text style={styles.browseButtonText}>Start a New Program</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>{'🏋'}</Text>
+              <Text style={styles.emptyTitle}>No Active Program</Text>
+              <Text style={styles.emptySub}>
+                Choose a training program from the library to get started.
+              </Text>
+              <TouchableOpacity
+                style={styles.browseButton}
+                onPress={() => router.push('/library')}
+              >
+                <Text style={styles.browseButtonText}>Browse Library</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <MonthCalendar
             year={displayYear}

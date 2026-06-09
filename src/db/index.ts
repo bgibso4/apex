@@ -1,6 +1,6 @@
 export { getDatabase, generateId, clearAllData, clearSampleData, closeDatabase } from './database';
 export { exportDatabase, importDatabase, getLastExportTimestamp, shouldShowBackupReminder } from './backup';
-export { getActiveProgram, getAllPrograms, importProgram, refreshBundledProgram, activateProgram, stopProgram, markProgramComplete } from './programs';
+export { getActiveProgram, getAllPrograms, importProgram, refreshBundledProgram, activateProgram, stopProgram, markProgramComplete, backfillActiveProgramCompletion, getMostRecentCompletedProgram } from './programs';
 export {
   createSession, updateReadiness,
   insertSessionProtocols, getSessionProtocols, updateProtocolCompletion,

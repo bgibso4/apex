@@ -15,12 +15,14 @@ import {
   getInProgressSession, deleteSession,
   getFullSessionState, getExerciseNames, getExerciseInfo,
   shouldShowBackupReminder, exportDatabase,
+  getSessionById, markProgramComplete,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
 import { getLocalDateString } from '../utils/date';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
+  isFinalTrainingSession,
 } from '../utils/program';
 import { Colors } from '../theme';
 import type { Program, ProgramDefinition, ExerciseSlot, SetLog, Session, SessionProtocol } from '../types';
@@ -77,6 +79,7 @@ export function useWorkoutSession() {
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [phase, setPhase] = useState<WorkoutPhase>('select');
+  const [programCompletedId, setProgramCompletedId] = useState<string | null>(null);
 
   // Readiness
   const [sleep, setSleep] = useState(3);
@@ -1014,6 +1017,15 @@ export function useWorkoutSession() {
     if (!sessionId) return;
     await completeSession(sessionId);
 
+    // Program completion: is this the final scheduled training day?
+    if (program) {
+      const session = await getSessionById(sessionId);
+      if (session && isFinalTrainingSession(program.definition, session.week_number, session.scheduled_day)) {
+        await markProgramComplete(program.id);
+        setProgramCompletedId(program.id);
+      }
+    }
+
     // Detect PRs from current set logs
     const setLogs = await getSetLogsForSession(sessionId);
     const exerciseIds = [...new Set(setLogs.map(s => s.exercise_id))];
@@ -1126,6 +1138,10 @@ export function useWorkoutSession() {
 
     // Phase control (for Edit Warmup)
     setPhase,
+
+    // Program completion
+    programCompletedId,
+    clearProgramCompleted: () => setProgramCompletedId(null),
 
     // Actions
     selectDay,

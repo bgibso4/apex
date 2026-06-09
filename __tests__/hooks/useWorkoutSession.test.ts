@@ -58,6 +58,8 @@ jest.mock('../../src/db', () => ({
   deleteSession: jest.fn(),
   shouldShowBackupReminder: jest.fn(),
   exportDatabase: jest.fn(),
+  getSessionById: jest.fn(),
+  markProgramComplete: jest.fn(),
 }));
 
 jest.mock('../../src/utils/program', () => ({
@@ -67,6 +69,7 @@ jest.mock('../../src/utils/program', () => ({
   getCurrentWeek: jest.fn(),
   getTodayKey: jest.fn(),
   getTargetForWeek: jest.fn(),
+  isFinalTrainingSession: jest.fn(),
   DAY_NAMES: {
     sunday: 'Sun', monday: 'Mon', tuesday: 'Tue',
     wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat',
@@ -87,10 +90,12 @@ import {
   ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
   getExerciseNames, getExerciseInfo, getExerciseNotesForSession, getPRsForSession, detectPRs,
   getInProgressSession, getFullSessionState, deleteSession,
+  getSessionById, markProgramComplete,
 } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek,
+  isFinalTrainingSession,
 } from '../../src/utils/program';
 
 // Cast to jest.Mock
@@ -118,6 +123,8 @@ const mockedDetectPRs = detectPRs as jest.Mock;
 const mockedGetInProgressSession = getInProgressSession as jest.Mock;
 const mockedGetFullSessionState = getFullSessionState as jest.Mock;
 const mockedDeleteSession = deleteSession as jest.Mock;
+const mockedGetSessionById = getSessionById as jest.Mock;
+const mockedMarkProgramComplete = markProgramComplete as jest.Mock;
 
 const mockedGetBlockForWeek = getBlockForWeek as jest.Mock;
 const mockedGetBlockColor = getBlockColor as jest.Mock;
@@ -125,6 +132,7 @@ const mockedGetTrainingDays = getTrainingDays as jest.Mock;
 const mockedGetCurrentWeek = getCurrentWeek as jest.Mock;
 const mockedGetTodayKey = getTodayKey as jest.Mock;
 const mockedGetTargetForWeek = getTargetForWeek as jest.Mock;
+const mockedIsFinalTrainingSession = isFinalTrainingSession as jest.Mock;
 
 // --- Test data factories ---
 
@@ -230,6 +238,9 @@ function setupDefaultMocks() {
   mockedGetInProgressSession.mockResolvedValue(null);
   mockedGetFullSessionState.mockResolvedValue(null);
   mockedDeleteSession.mockResolvedValue(undefined);
+  mockedGetSessionById.mockResolvedValue(null);
+  mockedMarkProgramComplete.mockResolvedValue(undefined);
+  mockedIsFinalTrainingSession.mockReturnValue(false);
 
   mockedGetCurrentWeek.mockReturnValue(1);
   mockedGetTodayKey.mockReturnValue('monday');

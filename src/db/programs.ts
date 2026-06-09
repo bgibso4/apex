@@ -4,6 +4,8 @@
 
 import { getDatabase, generateId } from './database';
 import { getLocalDateString } from '../utils/date';
+import { getLastTrainingDay } from '../utils/program';
+import { getCompletedFinalDaySession } from './sessions';
 import type { Program } from '../types';
 import type { ProgramDefinition } from '../types';
 
@@ -158,6 +160,28 @@ export async function getMostRecentCompletedProgram(): Promise<(Program & { defi
   );
   if (!row) return null;
   return { ...row, definition: JSON.parse(row.definition_json) as ProgramDefinition };
+}
+
+/**
+ * Launch backfill: if the active program's final training day is already logged,
+ * mark the program complete (completion_seen=0 so it celebrates once). Returns
+ * true if it completed a program this call. Idempotent — safe to call on every
+ * launch; the active-program query returns nothing once the program is marked
+ * complete, so it becomes a no-op on subsequent calls.
+ */
+export async function backfillActiveProgramCompletion(): Promise<boolean> {
+  const active = await getActiveProgram();
+  if (!active) return false;
+  const lastDay = getLastTrainingDay(active.definition);
+  if (!lastDay) return false;
+  const finalDone = await getCompletedFinalDaySession(
+    active.id, lastDay, active.definition.program.duration_weeks
+  );
+  if (finalDone) {
+    await markProgramComplete(active.id);
+    return true;
+  }
+  return false;
 }
 
 /** Stop an active program, optionally deleting all associated data */

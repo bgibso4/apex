@@ -9,6 +9,7 @@ import {
   markProgramComplete,
   markCompletionSeen,
   getMostRecentCompletedProgram,
+  backfillActiveProgramCompletion,
 } from '../../src/db/programs';
 import { getCompletedFinalDaySession } from '../../src/db/sessions';
 import { getLocalDateString } from '../../src/utils/date';
@@ -133,6 +134,78 @@ describe('program completion DB', () => {
       const result = await getCompletedFinalDaySession('p1', 'friday', 11);
 
       expect(result).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // backfillActiveProgramCompletion
+  // ---------------------------------------------------------------------------
+  describe('backfillActiveProgramCompletion', () => {
+    const validDefinitionJson = JSON.stringify({
+      program: {
+        name: 'P',
+        duration_weeks: 11,
+        weekly_template: {
+          monday: { name: 'A', warmup: [], exercises: [] },
+          friday: { name: 'C', warmup: [], exercises: [] },
+        },
+      },
+    });
+
+    const activeRow = {
+      id: 'p1',
+      name: 'P',
+      status: 'active',
+      definition_json: validDefinitionJson,
+    };
+
+    const sessionRow = {
+      id: 's1',
+      program_id: 'p1',
+      week_number: 11,
+      scheduled_day: 'friday',
+      completed_at: '2026-06-07T20:00:00.000Z',
+    };
+
+    it('completes the program when the final training day is already logged', async () => {
+      // getActiveProgram uses status = 'active'; getCompletedFinalDaySession uses FROM sessions
+      mockDb.getFirstAsync.mockImplementation((sql: string) => {
+        if (sql.includes("status = 'active'")) return Promise.resolve(activeRow);
+        if (sql.includes('FROM sessions')) return Promise.resolve(sessionRow);
+        return Promise.resolve(null);
+      });
+
+      const result = await backfillActiveProgramCompletion();
+
+      expect(result).toBe(true);
+      // markProgramComplete should have called runAsync with an UPDATE containing status = 'completed'
+      const updateCalls = (mockDb.runAsync.mock.calls as [string, unknown[]][])
+        .filter(([sql]) => sql.includes("status = 'completed'"));
+      expect(updateCalls.length).toBeGreaterThan(0);
+    });
+
+    it('returns false and does not UPDATE when there is no active program', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(null); // no active program
+
+      const result = await backfillActiveProgramCompletion();
+
+      expect(result).toBe(false);
+      expect(mockDb.runAsync).not.toHaveBeenCalled();
+    });
+
+    it('returns false and does not UPDATE when the final day is not yet logged', async () => {
+      mockDb.getFirstAsync.mockImplementation((sql: string) => {
+        if (sql.includes("status = 'active'")) return Promise.resolve(activeRow);
+        if (sql.includes('FROM sessions')) return Promise.resolve(null); // not logged
+        return Promise.resolve(null);
+      });
+
+      const result = await backfillActiveProgramCompletion();
+
+      expect(result).toBe(false);
+      const updateCalls = (mockDb.runAsync.mock.calls as [string, unknown[]][])
+        .filter(([sql]) => sql.includes("status = 'completed'"));
+      expect(updateCalls.length).toBe(0);
     });
   });
 });

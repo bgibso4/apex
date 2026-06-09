@@ -300,16 +300,18 @@ describe('buildProgramSummary', () => {
       mockDb.getFirstAsync.mockImplementation((sql: string) => {
         if (sql.includes('FROM programs')) return Promise.resolve(programRow);
         if (sql.includes('COUNT(*)')) return Promise.resolve({ n: 38 });
+        if (sql.includes('FROM set_logs')) return Promise.resolve({ actual_weight: 365, actual_reps: 2 });
         return Promise.resolve(null);
       });
 
       const fakePrRows = [
         {
           exercise_id: 'back_squat',
+          session_id: 'sess-1',
           name: 'Back Squat',
           record_type: 'e1rm',
           value: 342.7,
-          rep_count: 3,
+          rep_count: null,
           week_number: 9,
           date: '2026-05-01',
         },
@@ -325,9 +327,44 @@ describe('buildProgramSummary', () => {
       expect(pr.name).toBe('Back Squat');
       expect(pr.recordType).toBe('e1rm');
       expect(pr.value).toBe(343); // Math.round(342.7)
-      expect(pr.repCount).toBe(3);
+      expect(pr.repCount).toBeNull();
       expect(pr.weekNumber).toBe(9);
       expect(pr.date).toBe('2026-05-01');
+      // Enriched with the actual PR-setting set
+      expect(pr.weightLb).toBe(365);
+      expect(pr.reps).toBe(2);
+    });
+
+    it('sets weightLb/reps to null when no best set is found', async () => {
+      const def = makeTestDefinition();
+      const programRow = makeProgramRow(def);
+
+      mockDb.getFirstAsync.mockImplementation((sql: string) => {
+        if (sql.includes('FROM programs')) return Promise.resolve(programRow);
+        if (sql.includes('COUNT(*)')) return Promise.resolve({ n: 5 });
+        if (sql.includes('FROM set_logs')) return Promise.resolve(null);
+        return Promise.resolve(null);
+      });
+
+      const fakePrRows = [
+        {
+          exercise_id: 'back_squat',
+          session_id: 'sess-1',
+          name: 'Back Squat',
+          record_type: 'e1rm',
+          value: 200,
+          rep_count: null,
+          week_number: 3,
+          date: '2026-03-15',
+        },
+      ];
+      mockDb.getAllAsync.mockResolvedValue(fakePrRows);
+      (get1RMHistoryWithBlocks as jest.Mock).mockResolvedValue([]);
+
+      const summary = await buildProgramSummary('prog-abc');
+
+      expect(summary.prs[0].weightLb).toBeNull();
+      expect(summary.prs[0].reps).toBeNull();
     });
 
     it('falls back to exercise_id when PR name join is null', async () => {
@@ -337,12 +374,14 @@ describe('buildProgramSummary', () => {
       mockDb.getFirstAsync.mockImplementation((sql: string) => {
         if (sql.includes('FROM programs')) return Promise.resolve(programRow);
         if (sql.includes('COUNT(*)')) return Promise.resolve({ n: 5 });
+        if (sql.includes('FROM set_logs')) return Promise.resolve(null);
         return Promise.resolve(null);
       });
 
       const fakePrRows = [
         {
           exercise_id: 'unknown_lift',
+          session_id: 'sess-2',
           name: null,
           record_type: 'e1rm',
           value: 200,

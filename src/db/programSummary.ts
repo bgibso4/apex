@@ -25,6 +25,8 @@ export interface SummaryPR {
   repCount: number | null;
   weekNumber: number | null;
   date: string;
+  weightLb: number | null;  // actual weight of the PR-setting set
+  reps: number | null;      // actual reps of the PR-setting set
 }
 
 export interface ProgramSummary {
@@ -83,10 +85,10 @@ export async function buildProgramSummary(programId: string): Promise<ProgramSum
   gains.sort((a, b) => b.deltaLb - a.deltaLb);
 
   const prRows = await db.getAllAsync<{
-    exercise_id: string; name: string; record_type: string;
+    exercise_id: string; session_id: string; name: string; record_type: string;
     value: number; rep_count: number | null; week_number: number; date: string;
   }>(
-    `SELECT pr.exercise_id, e.name as name, pr.record_type, pr.value, pr.rep_count,
+    `SELECT pr.exercise_id, pr.session_id, e.name as name, pr.record_type, pr.value, pr.rep_count,
             s.week_number, pr.date
      FROM personal_records pr
      JOIN sessions s ON s.id = pr.session_id
@@ -95,15 +97,29 @@ export async function buildProgramSummary(programId: string): Promise<ProgramSum
      ORDER BY pr.value DESC`,
     [programId]
   );
-  const prs: SummaryPR[] = prRows.map(r => ({
-    exerciseId: r.exercise_id,
-    name: r.name ?? r.exercise_id,
-    recordType: r.record_type,
-    value: Math.round(r.value),
-    repCount: r.rep_count,
-    weekNumber: r.week_number,
-    date: r.date,
-  }));
+  const prs: SummaryPR[] = [];
+  for (const r of prRows) {
+    const bestSet = await db.getFirstAsync<{ actual_weight: number; actual_reps: number }>(
+      `SELECT actual_weight, actual_reps FROM set_logs
+       WHERE session_id = ? AND exercise_id = ?
+         AND status IN ('completed','completed_below')
+         AND actual_weight > 0 AND actual_reps > 0
+       ORDER BY (actual_weight * (1 + actual_reps / 30.0)) DESC
+       LIMIT 1`,
+      [r.session_id, r.exercise_id]
+    );
+    prs.push({
+      exerciseId: r.exercise_id,
+      name: r.name ?? r.exercise_id,
+      recordType: r.record_type,
+      value: Math.round(r.value),
+      repCount: r.rep_count,
+      weekNumber: r.week_number,
+      date: r.date,
+      weightLb: bestSet?.actual_weight ?? null,
+      reps: bestSet?.actual_reps ?? null,
+    });
+  }
 
   return {
     programId,

@@ -37,7 +37,7 @@ function formatShort(isoDate: string): string {
  */
 function formatDateRange(startDate: string | null, endDate: string | null): string {
   if (!startDate && !endDate) return '';
-  if (!startDate) return endDate ? endDate : '';
+  if (!startDate) return endDate ? formatShort(endDate) : '';
   if (!endDate) return formatShort(startDate);
 
   const endYear = endDate.split('-')[0];
@@ -57,7 +57,7 @@ interface DeltaDisplay {
 /** Produces a sign-aware delta label and appropriate color token. */
 function formatDelta(deltaLb: number, deltaPct: number): DeltaDisplay {
   if (deltaLb === 0 && deltaPct === 0) {
-    return { text: '±0 lb ·0%', color: Colors.textSecondary };
+    return { text: '±0 lb · 0%', color: Colors.textSecondary };
   }
   if (deltaLb > 0) {
     return {
@@ -99,11 +99,15 @@ function LiftRow({ gain }: { gain: LiftGain }) {
 }
 
 function PRRow({ pr }: { pr: SummaryPR }) {
-  const repsLabel = pr.repCount != null ? ` × ${pr.repCount}` : '';
   const weekLabel = pr.weekNumber != null ? ` · Week ${pr.weekNumber}` : '';
+  // Use the actual PR-setting set (weightLb × reps) when available;
+  // fall back to just the week label.
+  const detailLine = (pr.weightLb != null && pr.reps != null)
+    ? `${pr.weightLb} × ${pr.reps}${weekLabel}`
+    : `Week ${pr.weekNumber ?? ''}`.trim();
   // Name and detail in one Text node so getByText(exactName) only matches
   // the lift gain section when both sections share the same exercise name.
-  const nameAndDetail = `${pr.name}\n${pr.value}${repsLabel}${weekLabel}`;
+  const nameAndDetail = `${pr.name}\n${detailLine}`;
   return (
     <View style={styles.prCard}>
       <View style={styles.prBadge}>

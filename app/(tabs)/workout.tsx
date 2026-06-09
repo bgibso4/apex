@@ -101,8 +101,7 @@ export default function WorkoutScreen() {
     if (w.programCompletedId) {
       const id = w.programCompletedId;
       w.clearProgramCompleted();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      router.push(`/program-complete?programId=${id}&celebrate=1` as any);
+      router.push(`/program-complete?programId=${id}&celebrate=1` as any); // cast: typed-routes not regenerated
     }
   }, [w.programCompletedId]);
   const progressAnimatedStyle = useAnimatedStyle(() => ({

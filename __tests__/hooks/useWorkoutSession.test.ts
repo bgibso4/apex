@@ -1244,6 +1244,35 @@ describe('useWorkoutSession', () => {
       expect(mockedCompleteSession).not.toHaveBeenCalled();
       expect(hookResult.result.current.phase).toBe('select');
     });
+
+    it('marks the program complete and exposes programCompletedId on the final training day', async () => {
+      const hookResult = await setupWithSession();
+
+      // Override for this test: session is the final training day
+      mockedGetSessionById.mockResolvedValue({
+        id: 'session-1',
+        week_number: 12,
+        scheduled_day: 'monday',
+        program_id: 'prog-1',
+        date: '2025-03-31',
+        started_at: '2025-03-31T10:00:00Z',
+        completed_at: null,
+        notes: null,
+        readiness_sleep: null,
+        readiness_soreness: null,
+        readiness_energy: null,
+      });
+      mockedIsFinalTrainingSession.mockReturnValue(true);
+      mockedGetSetLogsForSession.mockResolvedValue([]);
+      mockedDetectPRs.mockResolvedValue([]);
+
+      await act(async () => {
+        await hookResult.result.current.finishSession();
+      });
+
+      expect(mockedMarkProgramComplete).toHaveBeenCalledWith('prog-1');
+      expect(hookResult.result.current.programCompletedId).toBe('prog-1');
+    });
   });
 
   // -----------------------------------------------------------------------

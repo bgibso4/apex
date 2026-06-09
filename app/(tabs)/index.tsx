@@ -124,14 +124,18 @@ export default function HomeScreen() {
         return;
       }
       if (completed) {
-        const summary = await buildProgramSummary(completed.id);
-        setCompletedCard({
-          id: completed.id,
-          programName: summary.programName,
-          dateRangeLabel: formatCompletedRange(summary.startDate, summary.endDate, summary.weeks),
-          prs: summary.prs.length,
-          adherencePct: summary.adherencePct,
-        });
+        try {
+          const summary = await buildProgramSummary(completed.id);
+          setCompletedCard({
+            id: completed.id,
+            programName: summary.programName,
+            dateRangeLabel: formatCompletedRange(summary.startDate, summary.endDate, summary.weeks),
+            prs: summary.prs.length,
+            adherencePct: summary.adherencePct,
+          });
+        } catch {
+          setCompletedCard(null);
+        }
       } else {
         setCompletedCard(null);
       }
@@ -279,6 +283,9 @@ export default function HomeScreen() {
               >
                 <Text style={styles.browseButtonText}>Start a New Program</Text>
               </TouchableOpacity>
+              {(healthData || healthLoading) && (
+                <HealthCard data={healthData} loading={healthLoading} />
+              )}
             </>
           ) : (
             <View style={styles.emptyState}>

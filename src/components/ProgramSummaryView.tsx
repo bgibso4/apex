@@ -161,7 +161,7 @@ export function ProgramSummaryView({ summary, onPrimary, onSecondary }: ProgramS
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{summary.adherencePct}%</Text>
-          <Text style={styles.statLabel}>COMPLIANCE</Text>
+          <Text style={styles.statLabel}>ADHERENCE</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{summary.prs.length}</Text>

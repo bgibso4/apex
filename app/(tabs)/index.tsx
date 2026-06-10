@@ -276,13 +276,8 @@ export default function HomeScreen() {
                 prs={completedCard.prs}
                 adherencePct={completedCard.adherencePct}
                 onViewSummary={() => router.push(`/program-complete?programId=${completedCard.id}&celebrate=0` as any)} // cast: typed-routes not regenerated
+                onStartNew={() => router.push('/library')}
               />
-              <TouchableOpacity
-                style={styles.browseButton}
-                onPress={() => router.push('/library')}
-              >
-                <Text style={styles.browseButtonText}>Start a New Program</Text>
-              </TouchableOpacity>
               {(healthData || healthLoading) && (
                 <HealthCard data={healthData} loading={healthLoading} />
               )}

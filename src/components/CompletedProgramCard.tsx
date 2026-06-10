@@ -25,6 +25,7 @@ export interface CompletedProgramCardProps {
   prs: number;
   adherencePct: number;
   onViewSummary: () => void;
+  onStartNew: () => void;
 }
 
 export function CompletedProgramCard({
@@ -33,6 +34,7 @@ export function CompletedProgramCard({
   prs,
   adherencePct,
   onViewSummary,
+  onStartNew,
 }: CompletedProgramCardProps) {
   return (
     <View style={styles.card}>
@@ -73,6 +75,18 @@ export function CompletedProgramCard({
         ]}
       >
         <Text style={styles.summaryButtonText}>View full summary  →</Text>
+      </Pressable>
+
+      {/* Start a new program — primary action, matched in size to the summary button */}
+      <Pressable
+        accessibilityRole="button"
+        onPress={onStartNew}
+        style={({ pressed }) => [
+          styles.startButton,
+          pressed && styles.startButtonPressed,
+        ]}
+      >
+        <Text style={styles.startButtonText}>Start a New Program</Text>
       </Pressable>
     </View>
   );
@@ -181,5 +195,23 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     fontWeight: '700',
     color: Colors.indigoLight,
+  },
+
+  // "Start a New Program" — primary, same size as the summary button
+  startButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: BorderRadius.cardInner,
+    backgroundColor: Colors.indigo,
+    marginTop: Spacing.sm,
+  },
+  startButtonPressed: {
+    backgroundColor: Colors.indigoDark,
+  },
+  startButtonText: {
+    fontSize: FontSize.base,
+    fontWeight: '700',
+    color: Colors.text,
   },
 });

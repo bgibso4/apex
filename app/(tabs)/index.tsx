@@ -545,8 +545,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xxxl,
     borderRadius: BorderRadius.md,
     marginTop: Spacing.sm,
+    alignSelf: 'center',
+    alignItems: 'center',
   },
   browseButtonText: {
+    textAlign: 'center',
     color: Colors.text,
     fontSize: FontSize.base,
     fontWeight: '700',

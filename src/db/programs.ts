@@ -4,6 +4,8 @@
 
 import { getDatabase, generateId } from './database';
 import { getLocalDateString } from '../utils/date';
+import { getLastTrainingDay } from '../utils/program';
+import { getCompletedFinalDaySession } from './sessions';
 import type { Program } from '../types';
 import type { ProgramDefinition } from '../types';
 
@@ -114,9 +116,12 @@ export async function refreshBundledProgram(definition: ProgramDefinition): Prom
 export async function activateProgram(programId: string): Promise<void> {
   const db = await getDatabase();
 
-  // Deactivate any currently active program
+  // Deactivate any currently active program (mark complete, already "seen" — no celebration)
   await db.runAsync(
-    "UPDATE programs SET status = 'completed', updated_at = datetime('now') WHERE status = 'active'"
+    `UPDATE programs SET status = 'completed', completion_seen = 1,
+       completed_date = COALESCE(completed_date, ?), updated_at = datetime('now')
+     WHERE status = 'active'`,
+    [getLocalDateString()]
   );
 
   // Activate this one
@@ -125,6 +130,58 @@ export async function activateProgram(programId: string): Promise<void> {
      WHERE id = ?`,
     [getLocalDateString(), programId]
   );
+}
+
+/** Mark a program complete (training finished). Celebration not yet shown. */
+export async function markProgramComplete(programId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `UPDATE programs SET status = 'completed', completed_date = ?, completion_seen = 0, updated_at = datetime('now')
+     WHERE id = ?`,
+    [getLocalDateString(), programId]
+  );
+}
+
+/** Mark the completion celebration as shown (fires once). */
+export async function markCompletionSeen(programId: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    "UPDATE programs SET completion_seen = 1, updated_at = datetime('now') WHERE id = ?",
+    [programId]
+  );
+}
+
+/** Most recently completed program (for the Home completed card). */
+export async function getMostRecentCompletedProgram(): Promise<(Program & { definition: ProgramDefinition }) | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<Program>(
+    `SELECT * FROM programs WHERE status = 'completed'
+     ORDER BY completed_date DESC, updated_at DESC LIMIT 1`
+  );
+  if (!row) return null;
+  return { ...row, definition: JSON.parse(row.definition_json) as ProgramDefinition };
+}
+
+/**
+ * Launch backfill: if the active program's final training day is already logged,
+ * mark the program complete (completion_seen=0 so it celebrates once). Returns
+ * true if it completed a program this call. Idempotent — safe to call on every
+ * launch; the active-program query returns nothing once the program is marked
+ * complete, so it becomes a no-op on subsequent calls.
+ */
+export async function backfillActiveProgramCompletion(): Promise<boolean> {
+  const active = await getActiveProgram();
+  if (!active) return false;
+  const lastDay = getLastTrainingDay(active.definition);
+  if (!lastDay) return false;
+  const finalDone = await getCompletedFinalDaySession(
+    active.id, lastDay, active.definition.program.duration_weeks
+  );
+  if (finalDone) {
+    await markProgramComplete(active.id);
+    return true;
+  }
+  return false;
 }
 
 /** Stop an active program, optionally deleting all associated data */
@@ -183,8 +240,10 @@ export async function stopProgram(
     }
   } else {
     await db.runAsync(
-      "UPDATE programs SET status = 'completed', updated_at = datetime('now') WHERE id = ?",
-      [programId]
+      `UPDATE programs SET status = 'completed', completion_seen = 1,
+         completed_date = COALESCE(completed_date, ?), updated_at = datetime('now')
+       WHERE id = ?`,
+      [getLocalDateString(), programId]
     );
   }
 }

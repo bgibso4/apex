@@ -58,6 +58,8 @@ jest.mock('../../src/db', () => ({
   deleteSession: jest.fn(),
   shouldShowBackupReminder: jest.fn(),
   exportDatabase: jest.fn(),
+  getSessionById: jest.fn(),
+  markProgramComplete: jest.fn(),
 }));
 
 jest.mock('../../src/utils/program', () => ({
@@ -67,6 +69,7 @@ jest.mock('../../src/utils/program', () => ({
   getCurrentWeek: jest.fn(),
   getTodayKey: jest.fn(),
   getTargetForWeek: jest.fn(),
+  isFinalTrainingSession: jest.fn(),
   DAY_NAMES: {
     sunday: 'Sun', monday: 'Mon', tuesday: 'Tue',
     wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat',
@@ -87,10 +90,12 @@ import {
   ensureExerciseExists, getCompletedSessionForDay, getSetLogsForSession,
   getExerciseNames, getExerciseInfo, getExerciseNotesForSession, getPRsForSession, detectPRs,
   getInProgressSession, getFullSessionState, deleteSession,
+  getSessionById, markProgramComplete,
 } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek,
+  isFinalTrainingSession,
 } from '../../src/utils/program';
 
 // Cast to jest.Mock
@@ -118,6 +123,8 @@ const mockedDetectPRs = detectPRs as jest.Mock;
 const mockedGetInProgressSession = getInProgressSession as jest.Mock;
 const mockedGetFullSessionState = getFullSessionState as jest.Mock;
 const mockedDeleteSession = deleteSession as jest.Mock;
+const mockedGetSessionById = getSessionById as jest.Mock;
+const mockedMarkProgramComplete = markProgramComplete as jest.Mock;
 
 const mockedGetBlockForWeek = getBlockForWeek as jest.Mock;
 const mockedGetBlockColor = getBlockColor as jest.Mock;
@@ -125,6 +132,7 @@ const mockedGetTrainingDays = getTrainingDays as jest.Mock;
 const mockedGetCurrentWeek = getCurrentWeek as jest.Mock;
 const mockedGetTodayKey = getTodayKey as jest.Mock;
 const mockedGetTargetForWeek = getTargetForWeek as jest.Mock;
+const mockedIsFinalTrainingSession = isFinalTrainingSession as jest.Mock;
 
 // --- Test data factories ---
 
@@ -230,6 +238,9 @@ function setupDefaultMocks() {
   mockedGetInProgressSession.mockResolvedValue(null);
   mockedGetFullSessionState.mockResolvedValue(null);
   mockedDeleteSession.mockResolvedValue(undefined);
+  mockedGetSessionById.mockResolvedValue(null);
+  mockedMarkProgramComplete.mockResolvedValue(undefined);
+  mockedIsFinalTrainingSession.mockReturnValue(false);
 
   mockedGetCurrentWeek.mockReturnValue(1);
   mockedGetTodayKey.mockReturnValue('monday');
@@ -1232,6 +1243,35 @@ describe('useWorkoutSession', () => {
 
       expect(mockedCompleteSession).not.toHaveBeenCalled();
       expect(hookResult.result.current.phase).toBe('select');
+    });
+
+    it('marks the program complete and exposes programCompletedId on the final training day', async () => {
+      const hookResult = await setupWithSession();
+
+      // Override for this test: session is the final training day
+      mockedGetSessionById.mockResolvedValue({
+        id: 'session-1',
+        week_number: 12,
+        scheduled_day: 'monday',
+        program_id: 'prog-1',
+        date: '2025-03-31',
+        started_at: '2025-03-31T10:00:00Z',
+        completed_at: null,
+        notes: null,
+        readiness_sleep: null,
+        readiness_soreness: null,
+        readiness_energy: null,
+      });
+      mockedIsFinalTrainingSession.mockReturnValue(true);
+      mockedGetSetLogsForSession.mockResolvedValue([]);
+      mockedDetectPRs.mockResolvedValue([]);
+
+      await act(async () => {
+        await hookResult.result.current.finishSession();
+      });
+
+      expect(mockedMarkProgramComplete).toHaveBeenCalledWith('prog-1');
+      expect(hookResult.result.current.programCompletedId).toBe('prog-1');
     });
   });
 

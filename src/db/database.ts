@@ -208,6 +208,15 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       }
     }
 
+    if (currentVersion < 14) {
+      try {
+        await db.execAsync('ALTER TABLE programs ADD COLUMN completed_date TEXT');
+      } catch { /* already exists */ }
+      try {
+        await db.execAsync('ALTER TABLE programs ADD COLUMN completion_seen INTEGER NOT NULL DEFAULT 0');
+      } catch { /* already exists */ }
+    }
+
     // Safety net: ensure critical columns exist regardless of version
     // (handles databases where version was bumped but migrations were skipped)
     for (const col of ['notes TEXT', 'name TEXT', 'is_sample INTEGER DEFAULT 0']) {

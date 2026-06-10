@@ -95,6 +95,15 @@ export default function WorkoutScreen() {
   useEffect(() => {
     progressWidth.value = withTiming(progressPercent, { duration: 300 });
   }, [progressPercent]);
+
+  // Program completion: navigate to celebration screen when final session is done
+  useEffect(() => {
+    if (w.programCompletedId) {
+      const id = w.programCompletedId;
+      w.clearProgramCompleted();
+      router.push(`/program-complete?programId=${id}&celebrate=1` as any); // cast: typed-routes not regenerated
+    }
+  }, [w.programCompletedId]);
   const progressAnimatedStyle = useAnimatedStyle(() => ({
     width: `${progressWidth.value}%`,
   }));

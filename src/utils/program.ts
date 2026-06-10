@@ -40,6 +40,27 @@ export function getTrainingDays(template: ProgramDefinition['program']['weekly_t
     .map(day => ({ day, template: template[day] as DayTemplate }));
 }
 
+/** The last non-rest training day of the week (rest days trimmed). null if none. */
+export function getLastTrainingDay(definition: ProgramDefinition): string | null {
+  const days = getTrainingDays(definition.program.weekly_template);
+  return days.length ? days[days.length - 1].day : null;
+}
+
+/**
+ * Whether a just-completed session is the program's final scheduled workout:
+ * the last training day of the final week. Uses `>=` so legacy rows created
+ * under the old max-12 week clamp (and behind-schedule users) still match.
+ */
+export function isFinalTrainingSession(
+  definition: ProgramDefinition,
+  weekNumber: number,
+  scheduledDay: string
+): boolean {
+  const lastDay = getLastTrainingDay(definition);
+  if (!lastDay) return false;
+  return weekNumber >= definition.program.duration_weeks && scheduledDay === lastDay;
+}
+
 /** Get the exercise targets for a specific week */
 export function getTargetForWeek(slot: ExerciseSlot, weekNumber: number): ExerciseTarget | undefined {
   return slot.targets.find(t => t.weeks.includes(weekNumber));
@@ -72,13 +93,13 @@ export function getSuggestedWeight(
   return null;
 }
 
-/** Get the current week number based on program activation date */
-export function getCurrentWeek(activatedDate: string): number {
+/** Current week number from activation date, clamped to the program's length. */
+export function getCurrentWeek(activatedDate: string, durationWeeks: number): number {
   const start = new Date(activatedDate);
   const now = new Date();
   const diffMs = now.getTime() - start.getTime();
   const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
-  return Math.max(1, Math.min(12, diffWeeks + 1));
+  return Math.max(1, Math.min(durationWeeks, diffWeeks + 1));
 }
 
 /** Get today's day of week as a template key */

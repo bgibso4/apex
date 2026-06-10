@@ -10,6 +10,7 @@ import {
   activateProgram,
   stopProgram,
 } from '../../src/db/programs';
+import { getLocalDateString } from '../../src/utils/date';
 import type { ProgramDefinition } from '../../src/types';
 
 jest.mock('../../src/db/database', () => ({
@@ -234,11 +235,18 @@ describe('programs', () => {
 
       expect(mockDb.runAsync).toHaveBeenCalledTimes(2);
 
-      // First call: deactivate
-      const [sql1] = mockDb.runAsync.mock.calls[0];
+      // Locate the deactivation call (SQL targets WHERE status = 'active')
+      const deactivateCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("WHERE status = 'active'")
+      );
+      expect(deactivateCall).toBeDefined();
+      const [sql1, params1] = deactivateCall!;
       expect(sql1).toContain("UPDATE programs SET status = 'completed'");
-      expect(sql1).toContain("WHERE status = 'active'");
       expect(sql1).toContain('updated_at');
+      // Must suppress celebration and stamp date on superseded program
+      expect(sql1).toContain('completion_seen = 1');
+      expect(sql1).toContain('COALESCE(completed_date');
+      expect(params1).toEqual([getLocalDateString()]);
     });
 
     it('activates the specified program', async () => {
@@ -268,7 +276,10 @@ describe('programs', () => {
       expect(sql).toContain("UPDATE programs SET status = 'completed'");
       expect(sql).toContain('WHERE id = ?');
       expect(sql).toContain('updated_at');
-      expect(params).toEqual(['prog-1']);
+      // Must suppress celebration and stamp date (manual stop ≠ natural completion)
+      expect(sql).toContain('completion_seen = 1');
+      expect(sql).toContain('COALESCE(completed_date');
+      expect(params).toEqual([getLocalDateString(), 'prog-1']);
     });
 
     it('does not delete any session data when keeping data', async () => {

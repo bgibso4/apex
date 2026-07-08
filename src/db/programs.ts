@@ -116,12 +116,18 @@ export async function refreshBundledProgram(definition: ProgramDefinition): Prom
 export async function activateProgram(programId: string): Promise<void> {
   const db = await getDatabase();
 
-  // Deactivate any currently active program (mark complete, already "seen" — no celebration)
+  // Archive any currently active program — switching away means it wasn't finished
   await db.runAsync(
-    `UPDATE programs SET status = 'completed', completion_seen = 1,
+    `UPDATE programs SET status = 'archived',
        completed_date = COALESCE(completed_date, ?), updated_at = datetime('now')
      WHERE status = 'active'`,
     [getLocalDateString()]
+  );
+
+  // Starting a program retires any lingering completed-program card on Home
+  await db.runAsync(
+    `UPDATE programs SET card_dismissed = 1, updated_at = datetime('now')
+     WHERE status = 'completed' AND card_dismissed = 0`
   );
 
   // Activate this one
@@ -164,7 +170,7 @@ export async function restartProgram(programId: string): Promise<string> {
 export async function markProgramComplete(programId: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    `UPDATE programs SET status = 'completed', completed_date = ?, completion_seen = 0, updated_at = datetime('now')
+    `UPDATE programs SET status = 'completed', completed_date = ?, completion_seen = 0, card_dismissed = 0, updated_at = datetime('now')
      WHERE id = ?`,
     [getLocalDateString(), programId]
   );
@@ -179,11 +185,13 @@ export async function markCompletionSeen(programId: string): Promise<void> {
   );
 }
 
-/** Most recently completed program (for the Home completed card). */
+/** Most recently completed program whose Home card hasn't been retired yet.
+ *  The card retires on the next program action (start or stop) — see
+ *  activateProgram / stopProgram. */
 export async function getMostRecentCompletedProgram(): Promise<(Program & { definition: ProgramDefinition }) | null> {
   const db = await getDatabase();
   const row = await db.getFirstAsync<Program>(
-    `SELECT * FROM programs WHERE status = 'completed'
+    `SELECT * FROM programs WHERE status = 'completed' AND card_dismissed = 0
      ORDER BY completed_date DESC, updated_at DESC LIMIT 1`
   );
   if (!row) return null;
@@ -261,17 +269,27 @@ export async function stopProgram(
         "UPDATE programs SET status = 'inactive', activated_date = NULL, updated_at = datetime('now') WHERE id = ?",
         [programId]
       );
+      // Stopping is a program action — retire any lingering completed card
+      await db.runAsync(
+        `UPDATE programs SET card_dismissed = 1, updated_at = datetime('now')
+         WHERE status = 'completed' AND card_dismissed = 0`
+      );
       await db.execAsync('COMMIT');
     } catch (e) {
       await db.execAsync('ROLLBACK');
       throw e;
     }
   } else {
+    // Stopped ≠ completed: archive the run so it never earns a completed card
     await db.runAsync(
-      `UPDATE programs SET status = 'completed', completion_seen = 1,
+      `UPDATE programs SET status = 'archived',
          completed_date = COALESCE(completed_date, ?), updated_at = datetime('now')
        WHERE id = ?`,
       [getLocalDateString(), programId]
+    );
+    await db.runAsync(
+      `UPDATE programs SET card_dismissed = 1, updated_at = datetime('now')
+       WHERE status = 'completed' AND card_dismissed = 0`
     );
   }
 }

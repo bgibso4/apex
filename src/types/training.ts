@@ -15,6 +15,7 @@ export interface Program {
   bundled_id?: string;
   completed_date?: string;
   completion_seen?: number;
+  card_dismissed?: number;
 }
 
 export interface Exercise {

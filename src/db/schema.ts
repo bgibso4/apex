@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS programs (
   bundled_id TEXT,
   updated_at TEXT,
   completed_date TEXT,
-  completion_seen INTEGER NOT NULL DEFAULT 0
+  completion_seen INTEGER NOT NULL DEFAULT 0,
+  card_dismissed INTEGER NOT NULL DEFAULT 0
 );
 
 -- Global exercise library (cross-program)

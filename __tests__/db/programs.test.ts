@@ -8,6 +8,7 @@ import {
   getAllPrograms,
   importProgram,
   activateProgram,
+  restartProgram,
   stopProgram,
 } from '../../src/db/programs';
 import { getLocalDateString } from '../../src/utils/date';
@@ -261,6 +262,90 @@ describe('programs', () => {
       expect(sql2).toContain('updated_at');
       expect(typeof params2[0]).toBe('string'); // date string
       expect(params2[1]).toBe('prog-2');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // restartProgram
+  // ---------------------------------------------------------------------------
+  describe('restartProgram', () => {
+    const sourceRow = {
+      id: 'prog-old',
+      name: 'Functional Athlete',
+      duration_weeks: 11,
+      created_date: '2026-03-21',
+      status: 'completed',
+      definition_json: '{"program":{"name":"Functional Athlete"}}',
+      one_rm_values: null,
+      activated_date: '2026-03-21',
+      is_sample: 0,
+      bundled_id: 'functional-athlete',
+      completed_date: '2026-06-09',
+      completion_seen: 1,
+    };
+
+    it('copies the source program into a fresh inactive row (new id, new created_date)', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(sourceRow);
+
+      const newId = await restartProgram('prog-old');
+
+      expect(newId).toBe('test-prog-id');
+      expect(newId).not.toBe(sourceRow.id);
+
+      // Reads the source program by id
+      const [selectSql, selectParams] = mockDb.getFirstAsync.mock.calls[0];
+      expect(selectSql).toContain('FROM programs WHERE id = ?');
+      expect(selectParams).toEqual(['prog-old']);
+
+      // Inserts a new row copying the definition — NOT an UPDATE of the old row
+      const insertCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes('INSERT INTO programs')
+      );
+      expect(insertCall).toBeDefined();
+      const [insertSql, insertParams] = insertCall!;
+      expect(insertSql).toContain("'inactive'");
+      expect(insertParams[0]).toBe('test-prog-id');
+      expect(insertParams[1]).toBe('Functional Athlete');
+      expect(insertParams[2]).toBe(11);
+      expect(insertParams[3]).toBe(getLocalDateString()); // fresh run, created today
+      expect(insertParams[4]).toBe(sourceRow.definition_json);
+      expect(insertParams[5]).toBe('functional-athlete');
+    });
+
+    it('activates the new row, not the old one (old sessions stay off the new run)', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(sourceRow);
+
+      await restartProgram('prog-old');
+
+      // Any currently active program gets completed with celebration suppressed
+      const deactivateCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("WHERE status = 'active'")
+      );
+      expect(deactivateCall).toBeDefined();
+      expect(deactivateCall![0]).toContain('completion_seen = 1');
+
+      // The activation targets the NEW id — never 'prog-old'
+      const activateCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("SET status = 'active'")
+      );
+      expect(activateCall).toBeDefined();
+      const [activateSql, activateParams] = activateCall!;
+      expect(activateSql).toContain('activated_date = ?');
+      expect(activateParams[activateParams.length - 1]).toBe('test-prog-id');
+
+      // The old row is never switched back to active
+      for (const [sql, params] of mockDb.runAsync.mock.calls) {
+        if (sql.includes("SET status = 'active'")) {
+          expect(params[params.length - 1]).not.toBe('prog-old');
+        }
+      }
+    });
+
+    it('throws when the source program does not exist', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      await expect(restartProgram('missing')).rejects.toThrow();
+      expect(mockDb.runAsync).not.toHaveBeenCalled();
     });
   });
 

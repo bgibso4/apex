@@ -132,6 +132,34 @@ export async function activateProgram(programId: string): Promise<void> {
   );
 }
 
+/**
+ * Restart a completed program as a fresh run: copies the row (same definition,
+ * new id, created today) and activates the copy. Sessions are keyed by
+ * program_id, so the new run starts clean — the old run's sessions and summary
+ * stay attached to the old row and can't re-trigger completion.
+ */
+export async function restartProgram(programId: string): Promise<string> {
+  const db = await getDatabase();
+  const source = await db.getFirstAsync<Program>(
+    'SELECT * FROM programs WHERE id = ?',
+    [programId]
+  );
+  if (!source) throw new Error(`Program not found: ${programId}`);
+
+  const newId = generateId();
+  await db.runAsync(
+    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, bundled_id, is_sample, updated_at)
+     VALUES (?, ?, ?, ?, 'inactive', ?, ?, ?, datetime('now'))`,
+    [
+      newId, source.name, source.duration_weeks, getLocalDateString(),
+      source.definition_json, source.bundled_id ?? null, source.is_sample ?? 0,
+    ]
+  );
+
+  await activateProgram(newId);
+  return newId;
+}
+
 /** Mark a program complete (training finished). Celebration not yet shown. */
 export async function markProgramComplete(programId: string): Promise<void> {
   const db = await getDatabase();

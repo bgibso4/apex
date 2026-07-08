@@ -11,6 +11,7 @@ export interface Program {
   status: 'inactive' | 'active' | 'completed' | 'archived';
   definition_json: string;
   activated_date?: string;
+  is_sample?: number;
   bundled_id?: string;
   completed_date?: string;
   completion_seen?: number;

@@ -8,7 +8,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
-import { getAllPrograms, importProgram, getActiveProgram, activateProgram } from '../src/db';
+import { getAllPrograms, importProgram, getActiveProgram, activateProgram, restartProgram } from '../src/db';
 import { getBlockColor } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
 
@@ -146,6 +146,19 @@ export default function LibraryScreen() {
                   activeOpacity={0.8}
                 >
                   <Text style={styles.activateButtonText}>Activate</Text>
+                </TouchableOpacity>
+              )}
+
+              {isCompleted && (
+                <TouchableOpacity
+                  style={styles.restartButton}
+                  onPress={async () => {
+                    await restartProgram(p.id);
+                    router.back();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.restartButtonText}>Start Again</Text>
                 </TouchableOpacity>
               )}
 
@@ -316,6 +329,22 @@ const styles = StyleSheet.create({
   },
   activateButtonText: {
     color: Colors.text,
+    fontSize: FontSize.base,
+    fontWeight: '700',
+  },
+
+  // Start Again button (completed programs — starts a fresh run)
+  restartButton: {
+    paddingVertical: Spacing.md + 2, // 14px
+    backgroundColor: Colors.indigoMuted,
+    borderWidth: 1,
+    borderColor: Colors.indigoBorderFaint,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
+  restartButtonText: {
+    color: Colors.indigoLight,
     fontSize: FontSize.base,
     fontWeight: '700',
   },

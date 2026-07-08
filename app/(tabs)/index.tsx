@@ -12,7 +12,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
+import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { APEX_FONT_FAMILY } from '../../src/theme/fonts';
 import { getActiveProgram, getSessionsForWeek, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange, backfillActiveProgramCompletion, getMostRecentCompletedProgram } from '../../src/db';
 import { buildProgramSummary } from '../../src/db/programSummary';
@@ -283,19 +283,26 @@ export default function HomeScreen() {
               )}
             </>
           ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>{'🏋'}</Text>
-              <Text style={styles.emptyTitle}>No Active Program</Text>
-              <Text style={styles.emptySub}>
-                Choose a training program from the library to get started.
-              </Text>
-              <TouchableOpacity
-                style={styles.browseButton}
-                onPress={() => router.push('/library')}
-              >
-                <Text style={styles.browseButtonText}>Browse Library</Text>
-              </TouchableOpacity>
-            </View>
+            <>
+              <View style={styles.emptyState}>
+                <View style={styles.emptyGlyphRing}>
+                  <Text style={styles.emptyIcon}>{'🏋'}</Text>
+                </View>
+                <Text style={styles.emptyTitle}>No Active Program</Text>
+                <Text style={styles.emptySub}>
+                  {"Pick a program when you're ready. Your training history stays right here."}
+                </Text>
+                <TouchableOpacity
+                  style={styles.browseButton}
+                  onPress={() => router.push('/library')}
+                >
+                  <Text style={styles.browseButtonText}>Browse Programs</Text>
+                </TouchableOpacity>
+              </View>
+              {(healthData || healthLoading) && (
+                <HealthCard data={healthData} loading={healthLoading} />
+              )}
+            </>
           )}
 
           <MonthCalendar
@@ -513,33 +520,50 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     fontWeight: '500',
   },
-  // Empty state
+  // Empty state — no-program hero card (mockup: home-no-program-2026-07-07)
   emptyState: {
     alignItems: 'center',
-    gap: Spacing.xl,
-    paddingVertical: Spacing.xxxl,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.xl,
+    paddingTop: Spacing.xxxl + Spacing.sm, // 40px
+    paddingBottom: Spacing.xxxl,
+    paddingHorizontal: Spacing.cardPadding,
+  },
+  emptyGlyphRing: {
+    width: ComponentSize.emptyGlyphRingSize,
+    height: ComponentSize.emptyGlyphRingSize,
+    borderRadius: ComponentSize.emptyGlyphRingSize / 2,
+    backgroundColor: Colors.indigoMuted,
+    borderWidth: 1,
+    borderColor: Colors.indigoBorderFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xl,
   },
   emptyIcon: {
-    fontSize: 48,
-    opacity: 0.3,
+    fontSize: FontSize.xxxl,
   },
   emptyTitle: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.xl,
-    fontWeight: '600',
+    color: Colors.text,
+    fontSize: FontSize.subtitle,
+    fontWeight: '800',
+    marginBottom: Spacing.sm,
   },
   emptySub: {
     color: Colors.textDim,
     fontSize: FontSize.md,
     textAlign: 'center',
     lineHeight: 21,
+    maxWidth: 260,
+    marginBottom: Spacing.xxl,
   },
   browseButton: {
     backgroundColor: Colors.indigo,
     paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.xxxl,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.xxxl + Spacing.sm, // 40px
+    borderRadius: BorderRadius.cardInner,
     alignSelf: 'center',
     alignItems: 'center',
   },

@@ -1,15 +1,17 @@
 /**
  * APEX — Program Library Screen
- * Shows bundled programs, completed programs, all-time stats.
+ * Catalog of selectable programs: tap a card to select, floating button activates.
  */
 
 import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeOut, FadeInUp, FadeOutDown, Easing } from 'react-native-reanimated';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
-import { getAllPrograms, importProgram, getActiveProgram, activateProgram } from '../src/db';
-import { getBlockColor } from '../src/utils/program';
+import { getAllPrograms, importProgram, getActiveProgram, activateProgram, restartProgram } from '../src/db';
+import { getBlockColor, buildProgramCatalog } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
 
 // Bundled program — loaded on first launch
@@ -19,6 +21,20 @@ export default function LibraryScreen() {
   const router = useRouter();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [hasActive, setHasActive] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const catalog = buildProgramCatalog(programs);
+  const selected = catalog.find(e => e.program.id === selectedId && e.action) ?? null;
+
+  const handleActivate = async () => {
+    if (!selected?.action) return;
+    if (selected.action.type === 'restart') {
+      await restartProgram(selected.action.programId);
+    } else {
+      await activateProgram(selected.action.programId);
+    }
+    router.back();
+  };
 
   const loadData = useCallback(async () => {
     const all = await getAllPrograms();
@@ -42,7 +58,11 @@ export default function LibraryScreen() {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(useCallback(() => {
+    loadData();
+    // Reset selection whenever the screen is left
+    return () => setSelectedId(null);
+  }, [loadData]));
 
   return (
     <View style={styles.container}>
@@ -60,35 +80,29 @@ export default function LibraryScreen() {
           )}
         </View>
 
-        {/* Program cards — activatable first, completed last */}
-        {[...programs].sort((a, b) => {
-          const order = { active: 0, inactive: 1, completed: 2, archived: 3 };
-          return (order[a.status] ?? 4) - (order[b.status] ?? 4);
-        }).map(p => {
-          const isActive = p.status === 'active';
-          const isCompleted = p.status === 'completed';
+        {/* Program catalog — one card per program, active first */}
+        {catalog.map(({ program: p, isActive, action }) => {
           let def: ProgramDefinition | null = null;
           try { def = JSON.parse(p.definition_json); } catch {}
+          const isSelected = selected?.program.id === p.id;
 
           return (
-            <View
+            <TouchableOpacity
               key={p.id}
               style={[
                 styles.programCard,
                 isActive && styles.programCardActive,
-                isCompleted && styles.programCardCompleted,
+                isSelected && styles.programCardSelected,
               ]}
+              onPress={() => setSelectedId(prev => (prev === p.id ? null : p.id))}
+              disabled={!action}
+              activeOpacity={0.9}
             >
               <View style={styles.programHeader}>
                 <Text style={styles.programName}>{p.name}</Text>
                 {isActive && (
                   <View style={styles.activeBadge}>
                     <Text style={styles.activeBadgeText}>ACTIVE</Text>
-                  </View>
-                )}
-                {isCompleted && (
-                  <View style={styles.completedBadge}>
-                    <Text style={styles.completedBadgeText}>COMPLETED</Text>
                   </View>
                 )}
               </View>
@@ -135,27 +149,13 @@ export default function LibraryScreen() {
                 </View>
               )}
 
-              {/* Actions */}
-              {p.status === 'inactive' && (
-                <TouchableOpacity
-                  style={styles.activateButton}
-                  onPress={async () => {
-                    await activateProgram(p.id);
-                    router.back();
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.activateButtonText}>Activate</Text>
-                </TouchableOpacity>
-              )}
-
               {isActive && (
                 <View style={styles.activeIndicator}>
                   <Ionicons name="checkmark-circle" size={18} color={Colors.green} />
                   <Text style={styles.activeIndicatorText}>Currently Active</Text>
                 </View>
               )}
-            </View>
+            </TouchableOpacity>
           );
         })}
 
@@ -166,6 +166,44 @@ export default function LibraryScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Floating Activate — appears when a program is selected */}
+      {selected && (
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+          pointerEvents="none"
+          style={styles.scrim}
+        >
+          <Svg width="100%" height="100%">
+            <Defs>
+              <LinearGradient id="libraryScrim" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor={Colors.bg} stopOpacity="0" />
+                <Stop offset="0.7" stopColor={Colors.bg} stopOpacity="1" />
+              </LinearGradient>
+            </Defs>
+            <Rect x="0" y="0" width="100%" height="100%" fill="url(#libraryScrim)" />
+          </Svg>
+        </Animated.View>
+      )}
+      {selected && (
+        <Animated.View
+          entering={FadeInUp.duration(200)
+            .easing(Easing.out(Easing.cubic))
+            .withInitialValues({ opacity: 0, transform: [{ translateY: 15 }] })}
+          exiting={FadeOutDown.duration(150)}
+          pointerEvents="box-none"
+          style={styles.floatWrap}
+        >
+          <TouchableOpacity
+            style={styles.floatButton}
+            onPress={handleActivate}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.floatButtonText}>Activate</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -176,7 +214,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingTop: Spacing.screenTop,
     paddingHorizontal: Spacing.screenHorizontal,
-    paddingBottom: Spacing.screenBottom,
+    paddingBottom: ComponentSize.floatingButtonClearance, // last card clears the floating button
   },
 
   // Header
@@ -212,8 +250,14 @@ const styles = StyleSheet.create({
   programCardActive: {
     borderColor: Colors.greenBorderFaint,
   },
-  programCardCompleted: {
-    opacity: 0.7,
+  programCardSelected: {
+    borderColor: Colors.indigo,
+    backgroundColor: Colors.cardHover,
+    shadowColor: Colors.indigo,
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   programHeader: {
     flexDirection: 'row',
@@ -244,19 +288,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  completedBadge: {
-    backgroundColor: `${Colors.textMuted}18`,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  completedBadgeText: {
-    color: Colors.textMuted,
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-
   // Block timeline
   blockTimeline: {
     flexDirection: 'row',
@@ -306,17 +337,35 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Activate button
-  activateButton: {
-    paddingVertical: Spacing.md + 2, // 14px
-    backgroundColor: Colors.indigo,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    marginTop: Spacing.xs,
+  // Floating Activate overlay
+  scrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: ComponentSize.floatingScrimHeight,
   },
-  activateButtonText: {
+  floatWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: Spacing.screenBottom,
+    alignItems: 'center',
+  },
+  floatButton: {
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xxl + Spacing.xxxl, // 56px — content-width pill
+    backgroundColor: Colors.indigo,
+    borderRadius: BorderRadius.pill,
+    shadowColor: Colors.indigo,
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  },
+  floatButtonText: {
     color: Colors.text,
-    fontSize: FontSize.base,
+    fontSize: FontSize.lg,
     fontWeight: '700',
   },
 

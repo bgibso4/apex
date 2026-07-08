@@ -54,6 +54,13 @@ describe('program completion DB', () => {
       expect(params[0]).toBe(getLocalDateString());
       expect(params[1]).toBe('p1');
     });
+
+    it('resets card_dismissed so the completed card shows on Home', async () => {
+      await markProgramComplete('p1');
+
+      const [sql] = mockDb.runAsync.mock.calls[0];
+      expect(sql).toContain('card_dismissed = 0');
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -84,6 +91,7 @@ describe('program completion DB', () => {
       expect(result).toBeNull();
       const [sql] = mockDb.getFirstAsync.mock.calls[0];
       expect(sql).toContain("status = 'completed'");
+      expect(sql).toContain('card_dismissed = 0'); // retired cards never resurface
       expect(sql).toContain('ORDER BY completed_date DESC');
       expect(sql).toContain('LIMIT 1');
     });

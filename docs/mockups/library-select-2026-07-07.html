@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Library: Select & Floating Activate</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #a0a0b8; font-size: 13px; text-align: center;
+    margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .sublabel {
+    color: #6a6a80; font-size: 12px; text-align: center; margin-bottom: 12px;
+    margin-top: -8px;
+  }
+  .phone-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .phone {
+    width: 393px; height: 852px; background: #0a0a0f;
+    border-radius: 44px; overflow: hidden; position: relative;
+    border: 3px solid #2a2a3e; display: flex; flex-direction: column;
+  }
+  .dynamic-island {
+    width: 126px; height: 36px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  }
+  .status-bar {
+    height: 54px; padding: 14px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .modal-header {
+    padding: 8px 24px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .modal-title { color: #ffffff; font-size: 22px; font-weight: 800; }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #1e1e30; display: flex; align-items: center; justify-content: center;
+    color: #6a6a80; font-size: 16px; cursor: pointer;
+  }
+
+  .modal-content {
+    flex: 1; overflow-y: auto; padding: 0 24px 120px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  /* ---- PROGRAM CARDS ---- */
+  .program-card {
+    background: #141420; border: 1px solid #2a2a3e; border-radius: 14px;
+    padding: 20px; cursor: pointer; position: relative;
+    transition: border-color 0.18s, background 0.18s, transform 0.18s;
+  }
+  .program-card:active { transform: scale(0.985); }
+
+  /* Selected state */
+  .program-card.selected {
+    border-color: #6366f1;
+    background: #16162b;
+    box-shadow: 0 0 0 1px #6366f1, 0 8px 28px rgba(99,102,241,0.12);
+  }
+
+  .program-card.active-program { border-color: #22c55e30; cursor: default; }
+  .program-card.active-program:active { transform: none; }
+
+  .program-card-header {
+    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;
+    gap: 10px;
+  }
+  .program-name { color: #ffffff; font-size: 18px; font-weight: 700; flex: 1; }
+  .program-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 4px 8px; border-radius: 6px; text-transform: uppercase;
+  }
+  .program-badge.active { background: #22c55e18; color: #22c55e; }
+
+  .program-duration { color: #6a6a80; font-size: 13px; margin-bottom: 14px; }
+
+  .program-blocks {
+    display: flex; gap: 2px; height: 24px; border-radius: 6px; overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .program-block {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); letter-spacing: 0.3px;
+  }
+  .pb-hyp { background: #6366f130; flex: 4; }
+  .pb-dl { background: #22c55e30; flex: 1; }
+  .pb-str { background: #f59e0b30; flex: 4; }
+  .pb-rea { background: #ec489930; flex: 2; }
+
+  .block-detail-list { display: flex; flex-direction: column; gap: 4px; }
+  .block-detail-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .block-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .block-detail-name { color: #a0a0b8; font-size: 13px; font-weight: 600; flex: 1; }
+  .block-detail-weeks { color: #4a4a5e; font-size: 12px; font-weight: 600; }
+
+  .active-indicator {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px; background: #22c55e10; border: 1px solid #22c55e30;
+    border-radius: 10px; color: #22c55e; font-size: 14px; font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* ---- FLOATING ACTIVATE ---- */
+
+  /* Gradient scrim so cards fade out under the floating button */
+  .float-scrim {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 140px;
+    background: linear-gradient(to top, #0a0a0f 30%, rgba(10,10,15,0));
+    pointer-events: none; z-index: 5;
+    opacity: 0; transition: opacity 0.25s;
+  }
+
+  .float-btn {
+    position: absolute; bottom: 40px; left: 50%; z-index: 6;
+    transform: translateX(-50%) translateY(90px);
+    opacity: 0;
+    transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.22s;
+    background: #6366f1; color: #fff; border: none; cursor: pointer;
+    padding: 17px 56px; border-radius: 999px;
+    font-size: 16px; font-weight: 700; font-family: inherit;
+    box-shadow: 0 10px 30px rgba(99,102,241,0.4), 0 2px 8px rgba(0,0,0,0.4);
+    white-space: nowrap;
+  }
+  .float-btn:hover { background: #4f46e5; }
+
+  .phone.has-selection .float-btn {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  .phone.has-selection .float-scrim { opacity: 1; }
+
+  .hint {
+    color: #4a4a5e; font-size: 12px; text-align: center; padding: 4px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- INTERACTIVE: tap to select -->
+<div class="phone-wrapper">
+  <div class="label">Interactive — tap a program</div>
+  <div class="sublabel">Tap to select · tap again to deselect · tap the other card to switch</div>
+  <div class="phone" id="phone1">
+    <div class="dynamic-island"></div>
+    <div class="status-bar"><span class="time">9:41 AM</span></div>
+
+    <div class="modal-header">
+      <span class="modal-title">Programs</span>
+      <div class="modal-close">×</div>
+    </div>
+
+    <div class="modal-content">
+
+      <div class="program-card js-selectable">
+        <div class="program-card-header">
+          <span class="program-name">Functional Athlete v2</span>
+        </div>
+        <div class="program-duration">12 weeks</div>
+        <div class="program-blocks">
+          <div class="program-block pb-hyp">Hyp</div>
+          <div class="program-block pb-dl">Del</div>
+          <div class="program-block pb-str">Str</div>
+          <div class="program-block pb-dl">Del</div>
+          <div class="program-block pb-rea">Rea</div>
+        </div>
+        <div class="block-detail-list">
+          <div class="block-detail-row"><div class="block-dot" style="background:#6366f1"></div><span class="block-detail-name">Hypertrophy</span><span class="block-detail-weeks">4 weeks</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#22c55e"></div><span class="block-detail-name">Deload</span><span class="block-detail-weeks">1 week</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#f59e0b"></div><span class="block-detail-name">Strength</span><span class="block-detail-weeks">4 weeks</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#22c55e"></div><span class="block-detail-name">Deload</span><span class="block-detail-weeks">1 week</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#ec4899"></div><span class="block-detail-name">Realization</span><span class="block-detail-weeks">2 weeks</span></div>
+        </div>
+      </div>
+
+      <div class="program-card js-selectable">
+        <div class="program-card-header">
+          <span class="program-name">Functional Athlete</span>
+        </div>
+        <div class="program-duration">11 weeks</div>
+        <div class="program-blocks">
+          <div class="program-block pb-hyp">Hyp</div>
+          <div class="program-block pb-dl">Del</div>
+          <div class="program-block pb-str">Str</div>
+          <div class="program-block pb-dl">Del</div>
+          <div class="program-block pb-rea" style="flex:1">Rea</div>
+        </div>
+        <div class="block-detail-list">
+          <div class="block-detail-row"><div class="block-dot" style="background:#6366f1"></div><span class="block-detail-name">Hypertrophy</span><span class="block-detail-weeks">4 weeks</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#22c55e"></div><span class="block-detail-name">Deload</span><span class="block-detail-weeks">1 week</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#f59e0b"></div><span class="block-detail-name">Strength</span><span class="block-detail-weeks">4 weeks</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#22c55e"></div><span class="block-detail-name">Deload</span><span class="block-detail-weeks">1 week</span></div>
+          <div class="block-detail-row"><div class="block-dot" style="background:#ec4899"></div><span class="block-detail-name">Realization</span><span class="block-detail-weeks">1 week</span></div>
+        </div>
+      </div>
+
+      <div class="hint">Tap a program to select it</div>
+
+    </div>
+
+    <div class="float-scrim"></div>
+    <button class="float-btn">Activate</button>
+  </div>
+</div>
+
+<script>
+  // Selection behavior: single-select, tap again to deselect, switching moves it.
+  document.querySelectorAll('.phone').forEach(phone => {
+    const cards = phone.querySelectorAll('.js-selectable');
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const wasSelected = card.classList.contains('selected');
+        cards.forEach(c => c.classList.remove('selected'));
+        if (!wasSelected) card.classList.add('selected');
+        phone.classList.toggle('has-selection', !wasSelected);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

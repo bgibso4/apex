@@ -210,8 +210,8 @@ export async function seedHistoricalProgram(): Promise<number> {
 
   const programId = generateId();
   await db.runAsync(
-    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, one_rm_values, activated_date, is_sample)
-     VALUES (?, ?, ?, ?, 'completed', ?, ?, ?, ?)`,
+    `INSERT INTO programs (id, name, duration_weeks, created_date, status, definition_json, one_rm_values, activated_date, is_sample, card_dismissed)
+     VALUES (?, ?, ?, ?, 'completed', ?, ?, ?, ?, 1)`,
     [programId, 'Foundation Builder', 8, activatedDateStr, definitionJson, oneRmValues, activatedDateStr, 1]
   );
 

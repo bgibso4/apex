@@ -8,6 +8,7 @@ import {
   getAllPrograms,
   importProgram,
   activateProgram,
+  restartProgram,
   stopProgram,
 } from '../../src/db/programs';
 import { getLocalDateString } from '../../src/utils/date';
@@ -230,10 +231,8 @@ describe('programs', () => {
   // activateProgram
   // ---------------------------------------------------------------------------
   describe('activateProgram', () => {
-    it('deactivates existing active program first', async () => {
+    it('archives any existing active program (abandoned, not completed)', async () => {
       await activateProgram('prog-2');
-
-      expect(mockDb.runAsync).toHaveBeenCalledTimes(2);
 
       // Locate the deactivation call (SQL targets WHERE status = 'active')
       const deactivateCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
@@ -241,20 +240,31 @@ describe('programs', () => {
       );
       expect(deactivateCall).toBeDefined();
       const [sql1, params1] = deactivateCall!;
-      expect(sql1).toContain("UPDATE programs SET status = 'completed'");
+      expect(sql1).toContain("UPDATE programs SET status = 'archived'");
       expect(sql1).toContain('updated_at');
-      // Must suppress celebration and stamp date on superseded program
-      expect(sql1).toContain('completion_seen = 1');
+      // Stamp the end date on the superseded program
       expect(sql1).toContain('COALESCE(completed_date');
       expect(params1).toEqual([getLocalDateString()]);
+    });
+
+    it('retires any completed-program cards (starting fresh dismisses old glory)', async () => {
+      await activateProgram('prog-2');
+
+      const dismissCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes('card_dismissed = 1')
+      );
+      expect(dismissCall).toBeDefined();
+      expect(dismissCall![0]).toContain("WHERE status = 'completed'");
     });
 
     it('activates the specified program', async () => {
       await activateProgram('prog-2');
 
-      // Second call: activate
-      const [sql2, params2] = mockDb.runAsync.mock.calls[1];
-      expect(sql2).toContain("SET status = 'active'");
+      const activateCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("SET status = 'active'")
+      );
+      expect(activateCall).toBeDefined();
+      const [sql2, params2] = activateCall!;
       expect(sql2).toContain('one_rm_values = NULL');
       expect(sql2).toContain('activated_date = ?');
       expect(sql2).toContain('WHERE id = ?');
@@ -265,30 +275,124 @@ describe('programs', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // restartProgram
+  // ---------------------------------------------------------------------------
+  describe('restartProgram', () => {
+    const sourceRow = {
+      id: 'prog-old',
+      name: 'Functional Athlete',
+      duration_weeks: 11,
+      created_date: '2026-03-21',
+      status: 'completed',
+      definition_json: '{"program":{"name":"Functional Athlete"}}',
+      one_rm_values: null,
+      activated_date: '2026-03-21',
+      is_sample: 0,
+      bundled_id: 'functional-athlete',
+      completed_date: '2026-06-09',
+      completion_seen: 1,
+    };
+
+    it('copies the source program into a fresh inactive row (new id, new created_date)', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(sourceRow);
+
+      const newId = await restartProgram('prog-old');
+
+      expect(newId).toBe('test-prog-id');
+      expect(newId).not.toBe(sourceRow.id);
+
+      // Reads the source program by id
+      const [selectSql, selectParams] = mockDb.getFirstAsync.mock.calls[0];
+      expect(selectSql).toContain('FROM programs WHERE id = ?');
+      expect(selectParams).toEqual(['prog-old']);
+
+      // Inserts a new row copying the definition — NOT an UPDATE of the old row
+      const insertCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes('INSERT INTO programs')
+      );
+      expect(insertCall).toBeDefined();
+      const [insertSql, insertParams] = insertCall!;
+      expect(insertSql).toContain("'inactive'");
+      expect(insertParams[0]).toBe('test-prog-id');
+      expect(insertParams[1]).toBe('Functional Athlete');
+      expect(insertParams[2]).toBe(11);
+      expect(insertParams[3]).toBe(getLocalDateString()); // fresh run, created today
+      expect(insertParams[4]).toBe(sourceRow.definition_json);
+      expect(insertParams[5]).toBe('functional-athlete');
+    });
+
+    it('activates the new row, not the old one (old sessions stay off the new run)', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(sourceRow);
+
+      await restartProgram('prog-old');
+
+      // Any currently active program gets archived (abandoned, not completed)
+      const deactivateCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("WHERE status = 'active'")
+      );
+      expect(deactivateCall).toBeDefined();
+      expect(deactivateCall![0]).toContain("status = 'archived'");
+
+      // The activation targets the NEW id — never 'prog-old'
+      const activateCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("SET status = 'active'")
+      );
+      expect(activateCall).toBeDefined();
+      const [activateSql, activateParams] = activateCall!;
+      expect(activateSql).toContain('activated_date = ?');
+      expect(activateParams[activateParams.length - 1]).toBe('test-prog-id');
+
+      // The old row is never switched back to active
+      for (const [sql, params] of mockDb.runAsync.mock.calls) {
+        if (sql.includes("SET status = 'active'")) {
+          expect(params[params.length - 1]).not.toBe('prog-old');
+        }
+      }
+    });
+
+    it('throws when the source program does not exist', async () => {
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      await expect(restartProgram('missing')).rejects.toThrow();
+      expect(mockDb.runAsync).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // stopProgram
   // ---------------------------------------------------------------------------
   describe('stopProgram', () => {
-    it('sets status to completed when keeping data', async () => {
+    it('archives the program when keeping data (stopped ≠ completed)', async () => {
       await stopProgram('prog-1', false);
 
-      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
-      const [sql, params] = mockDb.runAsync.mock.calls[0];
-      expect(sql).toContain("UPDATE programs SET status = 'completed'");
+      const archiveCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("UPDATE programs SET status = 'archived'")
+      );
+      expect(archiveCall).toBeDefined();
+      const [sql, params] = archiveCall!;
       expect(sql).toContain('WHERE id = ?');
       expect(sql).toContain('updated_at');
-      // Must suppress celebration and stamp date (manual stop ≠ natural completion)
-      expect(sql).toContain('completion_seen = 1');
+      // Stamp the end date (manual stop ≠ natural completion)
       expect(sql).toContain('COALESCE(completed_date');
       expect(params).toEqual([getLocalDateString(), 'prog-1']);
+    });
+
+    it('retires any completed-program cards when keeping data', async () => {
+      await stopProgram('prog-1', false);
+
+      const dismissCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes('card_dismissed = 1')
+      );
+      expect(dismissCall).toBeDefined();
+      expect(dismissCall![0]).toContain("WHERE status = 'completed'");
     });
 
     it('does not delete any session data when keeping data', async () => {
       await stopProgram('prog-1', false);
 
-      // Only one call: the status update
-      expect(mockDb.runAsync).toHaveBeenCalledTimes(1);
-      const [sql] = mockDb.runAsync.mock.calls[0];
-      expect(sql).not.toContain('DELETE');
+      for (const [sql] of mockDb.runAsync.mock.calls) {
+        expect(sql).not.toContain('DELETE');
+      }
     });
 
     it('deletes all related data when deleteData is true', async () => {
@@ -319,15 +423,25 @@ describe('programs', () => {
     it('sets status to inactive and clears activated_date when deleting data', async () => {
       await stopProgram('prog-1', true);
 
-      const calls = mockDb.runAsync.mock.calls;
-      const lastCall = calls[calls.length - 1];
-      const [sql, params] = lastCall;
-
-      expect(sql).toContain("UPDATE programs SET status = 'inactive'");
+      const inactiveCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes("UPDATE programs SET status = 'inactive'")
+      );
+      expect(inactiveCall).toBeDefined();
+      const [sql, params] = inactiveCall!;
       expect(sql).toContain('activated_date = NULL');
       expect(sql).toContain('WHERE id = ?');
       expect(sql).toContain('updated_at');
       expect(params).toEqual(['prog-1']);
+    });
+
+    it('retires any completed-program cards when deleting data (old cards must not resurface)', async () => {
+      await stopProgram('prog-1', true);
+
+      const dismissCall = mockDb.runAsync.mock.calls.find(([sql]: [string]) =>
+        sql.includes('card_dismissed = 1')
+      );
+      expect(dismissCall).toBeDefined();
+      expect(dismissCall![0]).toContain("WHERE status = 'completed'");
     });
   });
 });

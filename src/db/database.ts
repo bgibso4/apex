@@ -217,6 +217,26 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       } catch { /* already exists */ }
     }
 
+    // v15: stopped ≠ completed. Home's completed card retires on the next
+    // program action (card_dismissed); stopped runs become 'archived'.
+    if (currentVersion < 15) {
+      try {
+        await db.execAsync('ALTER TABLE programs ADD COLUMN card_dismissed INTEGER NOT NULL DEFAULT 0');
+      } catch { /* already exists */ }
+      // Pre-existing completions already had their moment — retire their cards
+      await db.runAsync("UPDATE programs SET card_dismissed = 1 WHERE status = 'completed'");
+      // Re-file legacy stopped runs: 'completed' without any completed
+      // final-week session means the program was stopped, not finished
+      await db.runAsync(`
+        UPDATE programs SET status = 'archived', updated_at = datetime('now')
+        WHERE status = 'completed' AND id NOT IN (
+          SELECT s.program_id FROM sessions s
+          JOIN programs p ON p.id = s.program_id
+          WHERE s.completed_at IS NOT NULL AND s.week_number >= p.duration_weeks
+        )
+      `);
+    }
+
     // Safety net: ensure critical columns exist regardless of version
     // (handles databases where version was bumped but migrations were skipped)
     for (const col of ['notes TEXT', 'name TEXT', 'is_sample INTEGER DEFAULT 0']) {

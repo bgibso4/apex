@@ -290,7 +290,7 @@ export default function HomeScreen() {
                 </View>
                 <Text style={styles.emptyTitle}>No Active Program</Text>
                 <Text style={styles.emptySub}>
-                  Pick a program when you're ready. Your training history stays right here.
+                  {"Pick a program when you're ready. Your training history stays right here."}
                 </Text>
                 <TouchableOpacity
                   style={styles.browseButton}

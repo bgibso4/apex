@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=393">
+<title>Exercise Detail - Resources Section</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+  :root {
+    --bg: #0A0A0F;
+    --card: #141419;
+    --text: #F5F5F7;
+    --muted: #8E8E93;
+    --border: #2C2C2E;
+    --indigo: #6366F1;
+    --red: #EF4444;
+    --red-muted: rgba(239, 68, 68, 0.15);
+    --green: #22C55E;
+    --input-bg: #1C1C21;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    max-width: 393px;
+    margin: 0 auto;
+    padding: 0 16px 60px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  /* --- Header context --- */
+  .page-header {
+    padding: 54px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .back-arrow {
+    color: var(--indigo);
+    font-size: 20px;
+    text-decoration: none;
+  }
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .page-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  /* --- Section label --- */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  /* --- Card --- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  /* --- Recent Sessions rows (context) --- */
+  .session-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .session-row:last-child {
+    border-bottom: none;
+  }
+  .session-date {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .session-detail {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .session-e1rm {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--indigo);
+    text-align: right;
+  }
+  .session-e1rm-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* --- Resource rows --- */
+  .resource-row {
+    display: flex;
+    align-items: center;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .resource-row:last-child {
+    border-bottom: none;
+  }
+  .resource-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .resource-icon.youtube {
+    background: rgba(255, 0, 0, 0.12);
+    color: #FF4444;
+  }
+  .resource-icon.link {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--indigo);
+  }
+  .resource-label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .resource-source {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+  .resource-external {
+    color: var(--muted);
+    font-size: 12px;
+    flex-shrink: 0;
+    opacity: 0.6;
+    margin-right: 6px;
+  }
+  .resource-delete {
+    color: var(--muted);
+    font-size: 13px;
+    flex-shrink: 0;
+    opacity: 0.4;
+    cursor: pointer;
+    padding: 4px;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .resource-delete:hover {
+    opacity: 1;
+    color: var(--red);
+  }
+
+  /* --- Add resource row --- */
+  .add-row {
+    display: flex;
+    align-items: center;
+    padding: 13px 16px;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .add-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .add-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--indigo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .add-text {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* --- Add form (expanded state) --- */
+  .add-form {
+    padding: 14px 16px;
+    display: none;
+  }
+  .add-form.visible {
+    display: block;
+  }
+  .add-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .add-form-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .form-input {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+  .form-input::placeholder {
+    color: rgba(142, 142, 147, 0.5);
+  }
+  .form-input:focus {
+    border-color: var(--indigo);
+  }
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 2px;
+  }
+  .btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity 0.15s;
+  }
+  .btn:active {
+    opacity: 0.8;
+  }
+  .btn-cancel {
+    background: var(--input-bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-save {
+    background: var(--indigo);
+    color: #fff;
+  }
+
+  /* --- Empty state --- */
+  .empty-state {
+    padding: 28px 16px;
+    text-align: center;
+  }
+  .empty-state p {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* --- Variant divider --- */
+  .variant-divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 40px 0 16px;
+  }
+  .variant-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--indigo);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-left: 4px;
+    text-align: center;
+  }
+
+  /* SVG icons inline */
+  svg { display: inline-block; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<!-- Page header for context -->
+<div class="page-header">
+  <a href="#" class="back-arrow">&#8249;</a>
+  <div class="page-title">Bench Press</div>
+</div>
+<div class="page-subtitle">Barbell &middot; Chest, Triceps, Shoulders</div>
+
+<!-- Recent Sessions (context, abbreviated) -->
+<div class="section-label">RECENT SESSIONS</div>
+<div class="card">
+  <div class="session-row">
+    <div>
+      <div class="session-date">Mar 20, 2026</div>
+      <div class="session-detail">4 &times; 5 @ 185 lb</div>
+    </div>
+    <div>
+      <div class="session-e1rm">215 <span class="session-e1rm-label">e1RM</span></div>
+    </div>
+  </div>
+  <div class="session-row">
+    <div>
+      <div class="session-date">Mar 17, 2026</div>
+      <div class="session-detail">4 &times; 6 @ 175 lb</div>
+    </div>
+    <div>
+      <div class="session-e1rm">210 <span class="session-e1rm-label">e1RM</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== RESOURCES SECTION (main focus) ========== -->
+<div class="section-label">RESOURCES</div>
+<div class="card" id="resources-card">
+  <!-- Resource 1: YouTube video -->
+  <div class="resource-row">
+    <div class="resource-icon youtube">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/><path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#141419"/></svg>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <div class="resource-label">Form Tutorial - Jeff Nippard</div>
+    </div>
+    <span class="resource-external">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </span>
+    <span class="resource-delete" title="Remove">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </span>
+  </div>
+
+  <!-- Resource 2: Article link -->
+  <div class="resource-row">
+    <div class="resource-icon link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <div class="resource-label">Arch Setup Guide</div>
+    </div>
+    <span class="resource-external">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </span>
+    <span class="resource-delete" title="Remove">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </span>
+  </div>
+
+  <!-- Resource 3: YouTube video -->
+  <div class="resource-row">
+    <div class="resource-icon youtube">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/><path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#141419"/></svg>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <div class="resource-label">Leg Drive Cues - Alan Thrall</div>
+    </div>
+    <span class="resource-external">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </span>
+    <span class="resource-delete" title="Remove">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </span>
+  </div>
+
+  <!-- Add resource row (collapsed) -->
+  <div class="add-row" id="add-row" onclick="showAddForm()">
+    <div class="add-icon">+</div>
+    <span class="add-text">Add resource</span>
+  </div>
+
+  <!-- Add form (expanded, hidden by default) -->
+  <div class="add-form" id="add-form">
+    <div class="add-form-header">
+      <span class="add-form-title">Add Resource</span>
+    </div>
+    <input class="form-input" type="text" placeholder="Label (e.g. Form Tutorial)" id="label-input">
+    <input class="form-input" type="url" placeholder="URL (e.g. https://youtube.com/...)" id="url-input">
+    <div class="form-actions">
+      <button class="btn btn-cancel" onclick="hideAddForm()">Cancel</button>
+      <button class="btn btn-save" onclick="hideAddForm()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== VARIANT: Empty state ========== -->
+<hr class="variant-divider">
+<div class="variant-label">VARIANT: EMPTY STATE</div>
+
+<div class="section-label">RESOURCES</div>
+<div class="card">
+  <div class="empty-state">
+    <p>No resources yet — tap <strong style="color:var(--indigo)">+</strong> to add a tutorial link</p>
+  </div>
+  <div class="add-row" style="border-top: 1px solid var(--border);">
+    <div class="add-icon">+</div>
+    <span class="add-text">Add resource</span>
+  </div>
+</div>
+
+<!-- ========== VARIANT: Expanded add form ========== -->
+<hr class="variant-divider">
+<div class="variant-label">VARIANT: ADD FORM EXPANDED</div>
+
+<div class="section-label">RESOURCES</div>
+<div class="card">
+  <div class="resource-row">
+    <div class="resource-icon youtube">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/><path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#141419"/></svg>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <div class="resource-label">Form Tutorial - Jeff Nippard</div>
+    </div>
+    <span class="resource-external">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </span>
+    <span class="resource-delete" title="Remove">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    </span>
+  </div>
+
+  <!-- Expanded form shown inline -->
+  <div class="add-form" style="display:block; border-top: 1px solid var(--border);">
+    <div class="add-form-header">
+      <span class="add-form-title">Add Resource</span>
+    </div>
+    <input class="form-input" type="text" placeholder="Label (e.g. Form Tutorial)" value="Pause Bench Tips">
+    <input class="form-input" type="url" placeholder="URL (e.g. https://youtube.com/...)" value="https://youtube.com/watch?v=abc123">
+    <div class="form-actions">
+      <button class="btn btn-cancel">Cancel</button>
+      <button class="btn btn-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showAddForm() {
+  document.getElementById('add-row').style.display = 'none';
+  document.getElementById('add-form').classList.add('visible');
+  document.getElementById('label-input').focus();
+}
+
+function hideAddForm() {
+  document.getElementById('add-row').style.display = 'flex';
+  document.getElementById('add-form').classList.remove('visible');
+  document.getElementById('label-input').value = '';
+  document.getElementById('url-input').value = '';
+}
+</script>
+
+</body>
+</html>

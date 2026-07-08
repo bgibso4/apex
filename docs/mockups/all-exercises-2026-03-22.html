@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — All Exercises</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    padding: 40px 20px;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #0a0a0f;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #2a2a3e;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dynamic-island {
+    width: 126px; height: 36px; background: #000; border-radius: 20px;
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10;
+  }
+
+  .status-bar {
+    height: 54px; padding: 14px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+
+  /* Header */
+  .screen-header {
+    padding: 8px 24px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .back-btn {
+    color: #6366f1; font-size: 22px; font-weight: 500;
+    background: none; border: none; cursor: pointer;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    margin-left: -8px;
+  }
+  .screen-title {
+    color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 0.5px;
+  }
+  .add-btn {
+    color: #6366f1; font-size: 28px; font-weight: 400;
+    background: none; border: none; cursor: pointer;
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Scrollable content */
+  .content {
+    flex: 1; overflow-y: auto; padding: 0 0 34px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Muscle group section */
+  .muscle-group {
+    margin-bottom: 4px;
+  }
+  .group-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .group-header:active {
+    background: #141420;
+  }
+  .group-header-left {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .group-name {
+    color: #8E8E93; font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px;
+  }
+  .group-count {
+    color: #4a4a5e; font-size: 12px; font-weight: 500;
+  }
+  .group-chevron {
+    color: #4a4a5e; font-size: 14px; transition: transform 0.25s ease;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  }
+  .muscle-group.collapsed .group-chevron {
+    transform: rotate(-90deg);
+  }
+
+  /* Divider under group header */
+  .group-divider {
+    height: 1px; background: #2a2a3e; margin: 0 24px;
+  }
+
+  /* Exercise rows */
+  .exercise-list {
+    overflow: hidden; transition: max-height 0.3s ease;
+  }
+  .muscle-group.collapsed .exercise-list {
+    max-height: 0 !important;
+  }
+
+  .exercise-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px;
+    min-height: 60px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .exercise-row:active {
+    background: #141420;
+  }
+
+  .exercise-name {
+    color: #F5F5F7; font-size: 14px; font-weight: 500;
+    flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding-right: 16px;
+  }
+
+  .exercise-metric {
+    flex-shrink: 0; display: flex; align-items: center; gap: 5px;
+    font-size: 13px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  }
+  .metric-value {
+    color: #ffffff;
+  }
+  .trend-arrow {
+    font-size: 15px; font-weight: 700;
+  }
+  .trend-up { color: #22c55e; }
+  .trend-flat { color: #6a6a80; }
+  .trend-down { color: #f59e0b; }
+
+  .exercise-metric.no-data {
+    color: #4a4a5e; font-size: 16px;
+  }
+
+  /* Row separator */
+  .row-separator {
+    height: 1px; background: #1e1e2a; margin: 0 24px 0 24px;
+  }
+
+  /* Bottom safe area */
+  .safe-area-bottom {
+    height: 34px; flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <span style="letter-spacing: 2px;">●●●</span>
+  </div>
+
+  <div class="screen-header">
+    <div class="header-left">
+      <button class="back-btn">‹</button>
+      <span class="screen-title">All Exercises</span>
+    </div>
+    <button class="add-btn">+</button>
+  </div>
+
+  <div class="content">
+
+    <!-- CHEST -->
+    <div class="muscle-group" id="group-chest">
+      <div class="group-header" onclick="toggleGroup('group-chest')">
+        <div class="group-header-left">
+          <span class="group-name">Chest</span>
+          <span class="group-count">6</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Barbell Bench Press</span>
+          <span class="exercise-metric"><span class="metric-value">285 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Close-Grip Bench Press</span>
+          <span class="exercise-metric"><span class="metric-value">225 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Dumbbell Bench Press</span>
+          <span class="exercise-metric"><span class="metric-value">185 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Dumbbell Fly</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Incline Barbell Bench Press</span>
+          <span class="exercise-metric"><span class="metric-value">245 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Incline Dumbbell Bench Press</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACK -->
+    <div class="muscle-group" id="group-back">
+      <div class="group-header" onclick="toggleGroup('group-back')">
+        <div class="group-header-left">
+          <span class="group-name">Back</span>
+          <span class="group-count">6</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Barbell Row</span>
+          <span class="exercise-metric"><span class="metric-value">245 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Cable Row</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Deadlift</span>
+          <span class="exercise-metric"><span class="metric-value">405 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Lat Pulldown</span>
+          <span class="exercise-metric"><span class="metric-value">180 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Pull-Up</span>
+          <span class="exercise-metric"><span class="metric-value">12 reps</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">T-Bar Row</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOULDERS -->
+    <div class="muscle-group" id="group-shoulders">
+      <div class="group-header" onclick="toggleGroup('group-shoulders')">
+        <div class="group-header-left">
+          <span class="group-name">Shoulders</span>
+          <span class="group-count">5</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Arnold Press</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Face Pull</span>
+          <span class="exercise-metric"><span class="metric-value">85 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Lateral Raise</span>
+          <span class="exercise-metric"><span class="metric-value">30 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Overhead Press</span>
+          <span class="exercise-metric"><span class="metric-value">175 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Rear Delt Fly</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUADS -->
+    <div class="muscle-group" id="group-quads">
+      <div class="group-header" onclick="toggleGroup('group-quads')">
+        <div class="group-header-left">
+          <span class="group-name">Quads</span>
+          <span class="group-count">5</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Back Squat</span>
+          <span class="exercise-metric"><span class="metric-value">365 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Bulgarian Split Squat</span>
+          <span class="exercise-metric"><span class="metric-value">155 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Front Squat</span>
+          <span class="exercise-metric"><span class="metric-value">275 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Leg Extension</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Leg Press</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HAMSTRINGS & GLUTES (collapsed) -->
+    <div class="muscle-group collapsed" id="group-hams">
+      <div class="group-header" onclick="toggleGroup('group-hams')">
+        <div class="group-header-left">
+          <span class="group-name">Hamstrings & Glutes</span>
+          <span class="group-count">5</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Glute Bridge</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Hip Thrust</span>
+          <span class="exercise-metric"><span class="metric-value">315 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Leg Curl</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Romanian Deadlift</span>
+          <span class="exercise-metric"><span class="metric-value">275 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Stiff-Leg Deadlift</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALVES -->
+    <div class="muscle-group" id="group-calves">
+      <div class="group-header" onclick="toggleGroup('group-calves')">
+        <div class="group-header-left">
+          <span class="group-name">Calves</span>
+          <span class="group-count">3</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Calf Raise (Machine)</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Seated Calf Raise</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Standing Calf Raise</span>
+          <span class="exercise-metric"><span class="metric-value">225 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARMS -->
+    <div class="muscle-group" id="group-arms">
+      <div class="group-header" onclick="toggleGroup('group-arms')">
+        <div class="group-header-left">
+          <span class="group-name">Arms</span>
+          <span class="group-count">6</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Barbell Curl</span>
+          <span class="exercise-metric"><span class="metric-value">115 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Dumbbell Curl</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Hammer Curl</span>
+          <span class="exercise-metric"><span class="metric-value">45 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Skull Crusher</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Tricep Dip</span>
+          <span class="exercise-metric"><span class="metric-value">+90 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Tricep Pushdown</span>
+          <span class="exercise-metric"><span class="metric-value">65 lbs</span> <span class="trend-arrow trend-down">↓</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABS -->
+    <div class="muscle-group" id="group-abs">
+      <div class="group-header" onclick="toggleGroup('group-abs')">
+        <div class="group-header-left">
+          <span class="group-name">Abs</span>
+          <span class="group-count">4</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Ab Wheel Rollout</span>
+          <span class="exercise-metric"><span class="metric-value">12 reps</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Cable Crunch</span>
+          <span class="exercise-metric"><span class="metric-value">110 lbs</span> <span class="trend-arrow trend-flat">→</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Hanging Leg Raise</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Plank</span>
+          <span class="exercise-metric"><span class="metric-value">1:30</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONDITIONING -->
+    <div class="muscle-group" id="group-conditioning">
+      <div class="group-header" onclick="toggleGroup('group-conditioning')">
+        <div class="group-header-left">
+          <span class="group-name">Conditioning</span>
+          <span class="group-count">4</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Battle Ropes</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Box Jump</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Farmer's Walk</span>
+          <span class="exercise-metric"><span class="metric-value">100 lbs</span> <span class="trend-arrow trend-up">↑</span></span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Sled Push</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOVEMENT -->
+    <div class="muscle-group" id="group-movement">
+      <div class="group-header" onclick="toggleGroup('group-movement')">
+        <div class="group-header-left">
+          <span class="group-name">Movement</span>
+          <span class="group-count">4</span>
+        </div>
+        <div class="group-chevron">▾</div>
+      </div>
+      <div class="group-divider"></div>
+      <div class="exercise-list">
+        <div class="exercise-row">
+          <span class="exercise-name">Band Pull-Apart</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Foam Roll</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">Hip 90/90</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+        <div class="row-separator"></div>
+        <div class="exercise-row">
+          <span class="exercise-name">World's Greatest Stretch</span>
+          <span class="exercise-metric no-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="safe-area-bottom"></div>
+  </div>
+</div>
+
+<script>
+function toggleGroup(id) {
+  const group = document.getElementById(id);
+  group.classList.toggle('collapsed');
+}
+</script>
+
+</body>
+</html>

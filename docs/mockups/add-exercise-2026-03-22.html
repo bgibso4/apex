@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Exercise — APEX Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+  :root {
+    --bg: #0A0A0F;
+    --card: #141419;
+    --text: #F5F5F7;
+    --muted: #8E8E93;
+    --border: #2C2C2E;
+    --indigo: #6366F1;
+    --indigo-muted: rgba(99, 102, 241, 0.35);
+    --input-bg: #1C1C21;
+    --backdrop: rgba(0, 0, 0, 0.6);
+    --radius-modal: 20px;
+    --radius-chip: 20px;
+    --radius-input: 12px;
+    --radius-button: 14px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .device-frame {
+    width: 393px;
+    min-height: 852px;
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* Fake background content to show behind modal */
+  .bg-content {
+    padding: 60px 20px 20px;
+    opacity: 0.3;
+  }
+  .bg-content h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .bg-placeholder {
+    height: 56px;
+    background: var(--card);
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* Backdrop */
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--backdrop);
+    z-index: 10;
+    cursor: pointer;
+  }
+
+  /* Modal sheet */
+  .modal {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: var(--card);
+    border-radius: var(--radius-modal) var(--radius-modal) 0 0;
+    padding: 12px 20px 40px;
+    max-height: 85%;
+    overflow-y: auto;
+  }
+
+  /* Drag handle */
+  .drag-handle {
+    width: 36px;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    margin: 0 auto 16px;
+  }
+
+  /* Header */
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .cancel-link {
+    font-size: 16px;
+    color: var(--indigo);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 4px 0;
+  }
+  .cancel-link:active {
+    opacity: 0.7;
+  }
+
+  /* Form sections */
+  .form-section {
+    margin-bottom: 24px;
+  }
+  .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  /* Text input */
+  .text-input {
+    width: 100%;
+    height: 50px;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-input);
+    color: var(--text);
+    font-size: 17px;
+    padding: 0 16px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .text-input::placeholder {
+    color: var(--muted);
+  }
+  .text-input:focus {
+    border-color: var(--indigo);
+  }
+
+  /* Chip row */
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .chip-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip {
+    flex-shrink: 0;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: var(--radius-chip);
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .chip:active {
+    transform: scale(0.96);
+  }
+  .chip.selected {
+    background: var(--indigo);
+    border-color: var(--indigo);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Save button */
+  .save-button {
+    width: 100%;
+    height: 54px;
+    border-radius: var(--radius-button);
+    border: none;
+    background: var(--indigo);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+    letter-spacing: -0.2px;
+  }
+  .save-button:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  .save-button:disabled {
+    background: var(--indigo-muted);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+  }
+</style>
+</head>
+<body>
+
+<div class="device-frame">
+  <!-- Simulated background (All Exercises screen) -->
+  <div class="bg-content">
+    <h1>All Exercises</h1>
+    <div class="bg-placeholder"></div>
+    <div class="bg-placeholder"></div>
+    <div class="bg-placeholder"></div>
+    <div class="bg-placeholder"></div>
+    <div class="bg-placeholder"></div>
+    <div class="bg-placeholder"></div>
+  </div>
+
+  <!-- Backdrop -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Modal -->
+  <div class="modal">
+    <div class="drag-handle"></div>
+
+    <div class="modal-header">
+      <span class="modal-title">New Exercise</span>
+      <button class="cancel-link" id="cancelBtn">Cancel</button>
+    </div>
+
+    <!-- Exercise Name -->
+    <div class="form-section">
+      <div class="form-label">Name</div>
+      <input
+        type="text"
+        class="text-input"
+        id="exerciseName"
+        placeholder="Exercise name"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+
+    <!-- Type -->
+    <div class="form-section">
+      <div class="form-label">Type</div>
+      <div class="chip-row" data-group="type">
+        <button class="chip" data-value="main">Main</button>
+        <button class="chip selected" data-value="accessory">Accessory</button>
+        <button class="chip" data-value="core">Core</button>
+        <button class="chip" data-value="conditioning">Conditioning</button>
+      </div>
+    </div>
+
+    <!-- Muscle Group -->
+    <div class="form-section">
+      <div class="form-label">Muscle Group</div>
+      <div class="chip-row" data-group="muscle">
+        <button class="chip selected" data-value="chest">Chest</button>
+        <button class="chip" data-value="back">Back</button>
+        <button class="chip" data-value="shoulders">Shoulders</button>
+        <button class="chip" data-value="quads">Quads</button>
+        <button class="chip" data-value="hamstrings-glutes">Hamstrings & Glutes</button>
+        <button class="chip" data-value="calves">Calves</button>
+        <button class="chip" data-value="arms">Arms</button>
+        <button class="chip" data-value="abs">Abs</button>
+        <button class="chip" data-value="conditioning">Conditioning</button>
+        <button class="chip" data-value="movement">Movement</button>
+      </div>
+    </div>
+
+    <!-- Input Fields Preset -->
+    <div class="form-section">
+      <div class="form-label">Input Fields</div>
+      <div class="chip-row" data-group="preset">
+        <button class="chip selected" data-value="weight-reps">Weight + Reps</button>
+        <button class="chip" data-value="reps-only">Reps Only</button>
+        <button class="chip" data-value="weight-distance">Weight + Distance</button>
+        <button class="chip" data-value="distance-time">Distance + Time</button>
+        <button class="chip" data-value="duration">Duration</button>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <button class="save-button" id="saveBtn" disabled>Save</button>
+  </div>
+</div>
+
+<script>
+  // Chip toggle: single-select within each group
+  document.querySelectorAll('.chip-row').forEach(row => {
+    row.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      row.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+    });
+  });
+
+  // Enable/disable save based on name input
+  const nameInput = document.getElementById('exerciseName');
+  const saveBtn = document.getElementById('saveBtn');
+
+  nameInput.addEventListener('input', () => {
+    saveBtn.disabled = nameInput.value.trim().length === 0;
+  });
+
+  // Cancel / backdrop dismiss
+  document.getElementById('cancelBtn').addEventListener('click', dismiss);
+  document.getElementById('backdrop').addEventListener('click', dismiss);
+
+  function dismiss() {
+    document.querySelector('.modal').style.transform = 'translateY(100%)';
+    document.querySelector('.modal').style.transition = 'transform 0.3s ease';
+    document.getElementById('backdrop').style.opacity = '0';
+    document.getElementById('backdrop').style.transition = 'opacity 0.3s ease';
+  }
+
+  // Save action
+  saveBtn.addEventListener('click', () => {
+    if (!saveBtn.disabled) {
+      const name = nameInput.value.trim();
+      const type = document.querySelector('[data-group="type"] .selected')?.dataset.value;
+      const muscle = document.querySelector('[data-group="muscle"] .selected')?.dataset.value;
+      const preset = document.querySelector('[data-group="preset"] .selected')?.dataset.value;
+      alert(`Saved:\n${name}\nType: ${type}\nMuscle: ${muscle}\nFields: ${preset}`);
+    }
+  });
+</script>
+
+</body>
+</html>

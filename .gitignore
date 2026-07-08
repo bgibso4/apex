@@ -23,3 +23,6 @@ expo-env.d.ts
 # @end expo-cli
 # Superpowers brainstorm scratch dir
 .superpowers/
+
+# macOS
+.DS_Store

@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, FadeInUp, FadeOutDown, Easing } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
 import { getAllPrograms, importProgram, getActiveProgram, activateProgram, restartProgram } from '../src/db';
@@ -188,8 +188,10 @@ export default function LibraryScreen() {
       )}
       {selected && (
         <Animated.View
-          entering={SlideInDown.springify().damping(18)}
-          exiting={SlideOutDown.duration(200)}
+          entering={FadeInUp.duration(200)
+            .easing(Easing.out(Easing.cubic))
+            .withInitialValues({ opacity: 0, transform: [{ translateY: 15 }] })}
+          exiting={FadeOutDown.duration(150)}
           pointerEvents="box-none"
           style={styles.floatWrap}
         >

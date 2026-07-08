@@ -31,4 +31,8 @@ export const ComponentSize = {
   // Legend / indicator dots
   legendDotSize: 8,
   bandDotSize: 6,
+
+  // Floating action button overlay (library Activate)
+  floatingScrimHeight: 140,
+  floatingButtonClearance: 120,
 } as const;

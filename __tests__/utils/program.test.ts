@@ -3,8 +3,9 @@ import {
   getTargetForWeek, getSuggestedWeight, getCurrentWeek, getTodayKey,
   DAY_ORDER, DAY_NAMES,
   getLastTrainingDay, isFinalTrainingSession,
+  buildProgramCatalog,
 } from '../../src/utils/program';
-import type { Block, ExerciseSlot } from '../../src/types';
+import type { Block, ExerciseSlot, Program } from '../../src/types';
 import type { ProgramDefinition } from '../../src/types';
 
 // ── getBlockForWeek ──
@@ -226,5 +227,75 @@ describe('isFinalTrainingSession', () => {
   });
   it('is false before the final week', () => {
     expect(isFinalTrainingSession(makeDef(11), 10, 'friday')).toBe(false);
+  });
+});
+
+// ── buildProgramCatalog ──
+
+describe('buildProgramCatalog', () => {
+  const row = (overrides: Partial<Program>): Program => ({
+    id: 'p1',
+    name: 'Functional Athlete',
+    duration_weeks: 11,
+    created_date: '2026-03-21',
+    status: 'inactive',
+    definition_json: '{}',
+    ...overrides,
+  });
+
+  it('groups runs of the same program into one catalog entry (by bundled_id)', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'run-1', status: 'completed', bundled_id: 'fa', created_date: '2026-03-21' }),
+      row({ id: 'run-2', status: 'active', bundled_id: 'fa', created_date: '2026-07-07' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('run-2');
+    expect(catalog[0].isActive).toBe(true);
+    expect(catalog[0].action).toBeNull();
+  });
+
+  it('falls back to name as identity when bundled_id is missing', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'run-1', status: 'completed' }),
+      row({ id: 'run-2', status: 'completed', created_date: '2026-07-01' }),
+      row({ id: 'other', name: 'Functional Athlete v2', status: 'inactive' }),
+    ]);
+
+    expect(catalog).toHaveLength(2);
+    const names = catalog.map(e => e.program.name);
+    expect(names).toContain('Functional Athlete');
+    expect(names).toContain('Functional Athlete v2');
+  });
+
+  it('offers activate when the program has a never-run (inactive) row', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'run-1', status: 'inactive', bundled_id: 'fa' }),
+    ]);
+
+    expect(catalog[0].isActive).toBe(false);
+    expect(catalog[0].action).toEqual({ type: 'activate', programId: 'run-1' });
+  });
+
+  it('offers restart from the most recent run when all runs are completed', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'run-old', status: 'completed', bundled_id: 'fa', created_date: '2026-01-01' }),
+      row({ id: 'run-new', status: 'completed', bundled_id: 'fa', created_date: '2026-03-21' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('run-new');
+    expect(catalog[0].isActive).toBe(false);
+    expect(catalog[0].action).toEqual({ type: 'restart', programId: 'run-new' });
+  });
+
+  it('puts the active program first, then newest programs', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'v2', name: 'Functional Athlete v2', status: 'completed', created_date: '2026-06-01' }),
+      row({ id: 'v3', name: 'Functional Athlete v3', status: 'inactive', created_date: '2026-07-07' }),
+      row({ id: 'v1', name: 'Functional Athlete', status: 'active', created_date: '2026-03-21' }),
+    ]);
+
+    expect(catalog.map(e => e.program.id)).toEqual(['v1', 'v3', 'v2']);
   });
 });

@@ -9,7 +9,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
 import { getAllPrograms, importProgram, getActiveProgram, activateProgram, restartProgram } from '../src/db';
-import { getBlockColor } from '../src/utils/program';
+import { getBlockColor, buildProgramCatalog } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
 
 // Bundled program — loaded on first launch
@@ -60,13 +60,8 @@ export default function LibraryScreen() {
           )}
         </View>
 
-        {/* Program cards — activatable first, completed last */}
-        {[...programs].sort((a, b) => {
-          const order = { active: 0, inactive: 1, completed: 2, archived: 3 };
-          return (order[a.status] ?? 4) - (order[b.status] ?? 4);
-        }).map(p => {
-          const isActive = p.status === 'active';
-          const isCompleted = p.status === 'completed';
+        {/* Program catalog — one card per program, active first */}
+        {buildProgramCatalog(programs).map(({ program: p, isActive, action }) => {
           let def: ProgramDefinition | null = null;
           try { def = JSON.parse(p.definition_json); } catch {}
 
@@ -76,7 +71,6 @@ export default function LibraryScreen() {
               style={[
                 styles.programCard,
                 isActive && styles.programCardActive,
-                isCompleted && styles.programCardCompleted,
               ]}
             >
               <View style={styles.programHeader}>
@@ -84,11 +78,6 @@ export default function LibraryScreen() {
                 {isActive && (
                   <View style={styles.activeBadge}>
                     <Text style={styles.activeBadgeText}>ACTIVE</Text>
-                  </View>
-                )}
-                {isCompleted && (
-                  <View style={styles.completedBadge}>
-                    <Text style={styles.completedBadgeText}>COMPLETED</Text>
                   </View>
                 )}
               </View>
@@ -136,29 +125,20 @@ export default function LibraryScreen() {
               )}
 
               {/* Actions */}
-              {p.status === 'inactive' && (
+              {action && (
                 <TouchableOpacity
                   style={styles.activateButton}
                   onPress={async () => {
-                    await activateProgram(p.id);
+                    if (action.type === 'restart') {
+                      await restartProgram(action.programId);
+                    } else {
+                      await activateProgram(action.programId);
+                    }
                     router.back();
                   }}
                   activeOpacity={0.8}
                 >
                   <Text style={styles.activateButtonText}>Activate</Text>
-                </TouchableOpacity>
-              )}
-
-              {isCompleted && (
-                <TouchableOpacity
-                  style={styles.restartButton}
-                  onPress={async () => {
-                    await restartProgram(p.id);
-                    router.back();
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.restartButtonText}>Start Again</Text>
                 </TouchableOpacity>
               )}
 
@@ -225,9 +205,6 @@ const styles = StyleSheet.create({
   programCardActive: {
     borderColor: Colors.greenBorderFaint,
   },
-  programCardCompleted: {
-    opacity: 0.7,
-  },
   programHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -257,19 +234,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  completedBadge: {
-    backgroundColor: `${Colors.textMuted}18`,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  completedBadgeText: {
-    color: Colors.textMuted,
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-
   // Block timeline
   blockTimeline: {
     flexDirection: 'row',
@@ -329,22 +293,6 @@ const styles = StyleSheet.create({
   },
   activateButtonText: {
     color: Colors.text,
-    fontSize: FontSize.base,
-    fontWeight: '700',
-  },
-
-  // Start Again button (completed programs — starts a fresh run)
-  restartButton: {
-    paddingVertical: Spacing.md + 2, // 14px
-    backgroundColor: Colors.indigoMuted,
-    borderWidth: 1,
-    borderColor: Colors.indigoBorderFaint,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    marginTop: Spacing.xs,
-  },
-  restartButtonText: {
-    color: Colors.indigoLight,
     fontSize: FontSize.base,
     fontWeight: '700',
   },

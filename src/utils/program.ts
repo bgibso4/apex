@@ -3,7 +3,7 @@
  * Helpers for working with program definitions at runtime.
  */
 
-import type { ProgramDefinition, Block, DayTemplate, ExerciseSlot, ExerciseTarget } from '../types';
+import type { Program, ProgramDefinition, Block, DayTemplate, ExerciseSlot, ExerciseTarget } from '../types';
 import { calculateTargetWeight } from '../db/metrics';
 import { getBlockColorMap } from './blockColors';
 
@@ -91,6 +91,62 @@ export function getSuggestedWeight(
 
   // Priority 3: no suggestion
   return null;
+}
+
+/** One selectable program in the library catalog (may span multiple runs). */
+export interface ProgramCatalogEntry {
+  /** Representative row: the active run, else the most recent run */
+  program: Program;
+  isActive: boolean;
+  /** How to start this program — null when it's already the active one */
+  action: { type: 'activate' | 'restart'; programId: string } | null;
+}
+
+/**
+ * Collapse program rows (one per run) into a catalog of selectable programs.
+ * Identity is bundled_id, falling back to name for legacy rows. A never-run
+ * inactive row is activated directly; a program whose runs are all finished
+ * starts again via restart (fresh run row).
+ */
+export function buildProgramCatalog(programs: Program[]): ProgramCatalogEntry[] {
+  const groups = new Map<string, Program[]>();
+  for (const p of programs) {
+    const key = p.bundled_id ?? p.name;
+    const group = groups.get(key);
+    if (group) group.push(p);
+    else groups.set(key, [p]);
+  }
+
+  const entries: ProgramCatalogEntry[] = [];
+  for (const group of groups.values()) {
+    const newestFirst = [...group].sort((a, b) =>
+      b.created_date.localeCompare(a.created_date)
+    );
+    const active = newestFirst.find(p => p.status === 'active');
+    const inactive = newestFirst.find(p => p.status === 'inactive');
+
+    if (active) {
+      entries.push({ program: active, isActive: true, action: null });
+    } else if (inactive) {
+      entries.push({
+        program: inactive,
+        isActive: false,
+        action: { type: 'activate', programId: inactive.id },
+      });
+    } else {
+      const latest = newestFirst[0];
+      entries.push({
+        program: latest,
+        isActive: false,
+        action: { type: 'restart', programId: latest.id },
+      });
+    }
+  }
+
+  return entries.sort((a, b) => {
+    if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+    return b.program.created_date.localeCompare(a.program.created_date);
+  });
 }
 
 /** Current week number from activation date, clamped to the program's length. */

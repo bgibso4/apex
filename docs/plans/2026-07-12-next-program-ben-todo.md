@@ -17,6 +17,7 @@ Things to figure out personally (not blocking the build — the program ships wi
 
 - [ ] **Core circuit contents.** Currently just "3 rounds, 2-3 exercises" on Sun/Mon/Wed. Define per-day menus at some point (D6 follow-up).
 - [ ] **Incline bench 1RM seed.** Estimated 265 (~85% of flat 315). Week 1 @ 75% = ~200 for 4×8 — confirm it lands at RPE 6-7 and adjust the seed if not.
+- [ ] **Refresh ALL main-lift 1RM seeds before activation.** The seeds in the JSON are your March numbers (Squat 315, Row 245, OHP 180, Zercher 225, RDL 205) and the app's e1RM trend never feeds back into them. Check current estimated 1RMs on the Progress tab; update `functional-athlete-pillars.json` seeds to match (weights recompute automatically via the launch refresh).
 - [ ] **D14 audit review.** Once all exercises are final, review the full line-by-line prescription before it ships (known fix already in: DB curls 2→3 sets).
 
 ## Technique fixes carried into this program

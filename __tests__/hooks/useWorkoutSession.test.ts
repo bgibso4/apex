@@ -149,7 +149,7 @@ function makeProgram(overrides: Record<string, unknown> = {}) {
     status: 'active' as const,
     definition_json: '{}',
     activated_date: '2025-01-01',
-    one_rm_values: { squat: 300, bench_press: 225 },
+    one_rm_values: null,
     definition: {
       program: {
         name: 'Test Program',

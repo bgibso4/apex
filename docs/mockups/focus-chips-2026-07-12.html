@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APEX — Focus Chips Mock</title>
+<style>
+  :root {
+    --bg: #0a0a0f; --card: #141420; --card-inset: #181824; --surface: #1e1e30;
+    --border: #2a2a3e; --border-lt: #3a3a4e;
+    --text: #ffffff; --text2: #a0a0b8; --dim: #6a6a80; --muted: #4a4a5e;
+    --indigo: #6366f1; --indigo-lt: #818cf8; --green: #22c55e; --amber: #f59e0b; --pink: #ec4899;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #060609; color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    padding: 32px 20px 60px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+  .sub { color: var(--dim); font-size: 13px; margin-bottom: 20px; max-width: 60ch; text-align: center; }
+  .row { display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .frame-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .caption { color: var(--dim); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .phone {
+    width: 390px; max-width: 92vw; background: var(--bg);
+    border: 1px solid var(--border-lt); border-radius: 40px; padding: 54px 20px 40px;
+    min-height: 480px;
+  }
+
+  /* chips (the proposal) */
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--indigo-lt); background: #6366f118; border: 1px solid #6366f145;
+    border-radius: 999px; padding: 3px 9px;
+  }
+
+  /* ---- home dashboard ---- */
+  .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+  .logo { font-size: 17px; font-weight: 900; letter-spacing: 3px; }
+  .logo b { color: var(--indigo); }
+  .gear { color: var(--dim); font-size: 18px; }
+  .program-name { font-size: 21px; font-weight: 800; letter-spacing: -0.4px; }
+  .home .chips { margin-top: 8px; }
+  .program-week { color: var(--text2); font-size: 13px; margin-top: 8px; }
+  .program-week b { color: var(--indigo-lt); font-weight: 600; }
+  .timeline { display: flex; gap: 3px; margin-top: 14px; }
+  .tl-seg { height: 6px; border-radius: 3px; flex: 1; }
+  .tl-seg.cur { outline: 2px solid rgba(255,255,255,0.7); outline-offset: 1px; }
+  .ghost-card { margin-top: 22px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; height: 108px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
+
+  /* ---- library ---- */
+  .sheet-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+  .pcard { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+  .pcard.active { border-color: #6366f130; }
+  .pcard-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .pcard-name { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+  .badge-active { font-size: 9px; font-weight: 800; letter-spacing: 1px; color: var(--green); background: #22c55e15; border: 1px solid #22c55e40; border-radius: 6px; padding: 3px 7px; }
+  .badge-done { font-size: 9px; font-weight: 800; letter-spacing: 1px; color: var(--amber); background: #f59e0b12; border: 1px solid #f59e0b35; border-radius: 6px; padding: 3px 7px; }
+  .pcard .chips { margin-top: 9px; }
+  .pcard-duration { color: var(--dim); font-size: 12px; margin-top: 9px; }
+  .block-bar { display: flex; gap: 3px; margin-top: 12px; }
+  .bseg { height: 22px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; letter-spacing: 0.5px; color: rgba(255,255,255,0.5); }
+</style>
+</head>
+<body>
+  <h1>Focus chips — proposal</h1>
+  <p class="sub">Optional <code>focus</code> field on the program definition, rendered as chips directly under the program name. Programs without the field (old Functional Athlete) show nothing new.</p>
+
+  <div class="row">
+    <div class="frame-wrap">
+      <div class="caption">Home — dashboard</div>
+      <div class="phone home">
+        <div class="home-header">
+          <div class="logo"><b>A</b>PEX</div>
+          <div class="gear">⚙︎</div>
+        </div>
+        <div class="program-name">Functional Athlete — Pillars</div>
+        <div class="chips">
+          <span class="chip">Hips</span><span class="chip">Core</span><span class="chip">Back</span>
+        </div>
+        <div class="program-week">Week 1 of 11 — <b>Hypertrophy</b></div>
+        <div class="timeline">
+          <span class="tl-seg cur" style="background:var(--indigo)"></span>
+          <span class="tl-seg" style="background:#6366f150"></span>
+          <span class="tl-seg" style="background:#6366f150"></span>
+          <span class="tl-seg" style="background:#6366f150"></span>
+          <span class="tl-seg" style="background:#22c55e50"></span>
+          <span class="tl-seg" style="background:#f59e0b50"></span>
+          <span class="tl-seg" style="background:#f59e0b50"></span>
+          <span class="tl-seg" style="background:#f59e0b50"></span>
+          <span class="tl-seg" style="background:#f59e0b50"></span>
+          <span class="tl-seg" style="background:#22c55e50"></span>
+          <span class="tl-seg" style="background:#ec489950"></span>
+        </div>
+        <div class="ghost-card">…today's session card, health bar, etc…</div>
+      </div>
+    </div>
+
+    <div class="frame-wrap">
+      <div class="caption">Library — program cards</div>
+      <div class="phone">
+        <div class="sheet-title">Program Library</div>
+
+        <div class="pcard active">
+          <div class="pcard-head">
+            <span class="pcard-name">Functional Athlete — Pillars</span>
+            <span class="badge-active">ACTIVE</span>
+          </div>
+          <div class="chips">
+            <span class="chip">Hips</span><span class="chip">Core</span><span class="chip">Back</span>
+          </div>
+          <div class="pcard-duration">11 weeks</div>
+          <div class="block-bar">
+            <span class="bseg" style="flex:4;background:#6366f130">HYP</span>
+            <span class="bseg" style="flex:1;background:#22c55e30">DEL</span>
+            <span class="bseg" style="flex:4;background:#f59e0b30">STR</span>
+            <span class="bseg" style="flex:1;background:#22c55e30">DEL</span>
+            <span class="bseg" style="flex:1;background:#ec489930">REA</span>
+          </div>
+        </div>
+
+        <div class="pcard">
+          <div class="pcard-head">
+            <span class="pcard-name">Functional Athlete</span>
+            <span class="badge-done">COMPLETED</span>
+          </div>
+          <div class="pcard-duration">11 weeks &nbsp;·&nbsp; no focus field → no chips</div>
+          <div class="block-bar">
+            <span class="bseg" style="flex:4;background:#6366f130">HYP</span>
+            <span class="bseg" style="flex:1;background:#22c55e30">DEL</span>
+            <span class="bseg" style="flex:4;background:#f59e0b30">STR</span>
+            <span class="bseg" style="flex:1;background:#22c55e30">DEL</span>
+            <span class="bseg" style="flex:1;background:#ec489930">REA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

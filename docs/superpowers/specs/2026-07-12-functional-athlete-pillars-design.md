@@ -33,18 +33,17 @@ Main lifts and 1RM seeds: Back Squat 315 · **Incline Bench Press 265 (new — e
 
 **Sunday — Athletic Power & Conditioning** (warmup: jump rope, full ankle, dynamic)
 1. Back Squat — main, %1RM wave
-2. Trap Bar Squat → Box Jump — 4×(3+1) @ 185 (3 sets deload); note: hamstring-bias cues (deeper hinge, hips back)
-3. Tri-set (superset `sunday-triset`, wave 3/3/4/4/2/4/4/5/5/3/6): SkiErg 250m · Farmer's Carry 40m @ 88 · KB Swings ×10 @ 88
-4. **Sprints (new)** — programmed as 5 × 80m (do 4-6 by feel; strides/skip if not feeling good), walk-back recovery, logged by distance. Deload weeks: no sprint target — verify the app hides an exercise with no target for the week; if not, program 2×80m strides
-5. Lying Leg Curl — 3×15 @ 100 (alternative: nordic curl — improvised setups documented in Ben's todo)
-6. **Core Circuit (new placement)** — 3 rounds, 2-3 exercises
-Finisher: 5-8 min assault bike / row / speed rope
+2. Trap Bar Squat → Box Jump — 4×(3+1) @ **225** (3 sets deload); note: hamstring-bias cues (deeper hinge, hips back)
+3. **Quad-set** (superset `sunday-circuit`, wave 3/3/4/4/2/4/4/5/5/3/6): SkiErg 250m · Farmer's Carry **60m** @ 88 · KB Swings ×10 @ 88 · **Sprint 80m (new)** — sprint by feel: strides instead if not feeling good; logged by distance
+4. Lying Leg Curl — 3×15 @ 100 (alternative: nordic curl — improvised setups documented in Ben's todo)
+5. **Core Circuit (new placement)** — 3 rounds, 2-3 exercises
+No conditioning finisher — the quad-set is the conditioning.
 
 **Monday — Upper Strength · Heavy Pull** (warmup: jump rope, abbreviated ankle, dynamic)
 1. Weighted Pull-up — 3×8 @ +35
 2. **Incline Bench Press (new main)** — %1RM wave, seed 265
 3. Barbell Row — main, %1RM wave (form audit noted)
-4. **Weighted Dips (new)** — 3×8 @ +70 (Ben's chosen start; shoulder-aware ROM)
+4. **Dips, weighted (reused id `dips`)** — 3×8 @ +70 (Ben's chosen start; shoulder-aware ROM)
 5. Face Pulls — 3×15 @ 40 (rear-delt contraction fix: lighter, slower, external-rotate at end range)
 6. **Tricep superset (moved from Wed)** `monday-tricep`: Pushdown 3×8 @ 60 · Overhead Extension 3×8 @ 45
 7. Core Circuit — 3 rounds
@@ -59,12 +58,12 @@ Finisher: 5-8 min
 Removed: standalone BW Cossack (absorbed by step-out).
 
 **Wednesday — Upper Power · Push** (warmup: jump rope, abbreviated ankle, dynamic)
-1. **Snatch-Grip High Pull (new, replaces DB Hang High Pull)** — 4×4 wks 1-4 / 3×3 deloads / 4×3 wks 6-9 / 3×3 wk 11; ~75 lb start; goes first
+1. **Snatch-Grip High Pull (new, replaces DB Hang High Pull)** — **4×4 @ ~75 lb, constant sets/reps/weight for the whole program** (no between-block rep micro-tweaks); deloads 3×4; goes first
 2. Overhead Press — main, %1RM wave (shoulder mobility work continues alongside)
-3. Superset `wednesday-plyo-lat` (moved up): Plyo Push-up (4×5; 2×3 deloads; 3×5 wk11) · Lat Pulldown (4×8 @ 125/side; 2×8 deloads)
+3. Superset `wednesday-plyo-lat` (moved up): Plyo Push-up ×5 · Lat Pulldown ×8 @ 125/side — **reps never deload; sets always match across the superset**: 4 sets normal weeks, 2 sets deloads, 3 sets wk 11
 4. **Hammer Row (new)** — 3×10/side, auto-reg; chest-supported, no lower-back cost
 5. Lateral Raises — 3×10 @ 25
-6. **Carry + curls superset (moved from Mon)** `wednesday-carry-curl`: Farmer's Carry 3×40m @ 88 · DB Curls **3**×12 @ 35 (set-count fix: was 2)
+6. **Carry + curls superset (moved from Mon)** `wednesday-carry-curl`: Farmer's Carry 3×**60m** @ 88 · DB Curls **3**×12 @ 35 (set-count fix: was 2)
 7. Core Circuit — 3 rounds
 Finisher: 5-8 min
 Cut: incline burnout (D13), incline DB press (slot absorbed).
@@ -86,22 +85,31 @@ Finisher: row
 5. Hip Adduction — 3×12 @ 110
 6. Pogo Hops — 3×15
 
-### New exercise definitions (all NEW ids — existing ids are never renamed)
+### Exercise definitions — reuse existing ids where they exist
+
+The in-code exercise library (`src/data/exercise-library.ts`) and DB `exercises` table already contain several of these movements. Reusing their ids links any existing ad-hoc logs into the program's history and keeps the exercise picker deduplicated. Program import upserts name/type/input_fields for reused ids.
+
+**Reused ids:**
+
+| id | name (after upsert) | notes |
+|---|---|---|
+| `incline_bench_bb` | Incline Bench Press | promoted to `main`, `uses_1rm`, `one_rm: 265` (renamed from "Incline Bench - BB") |
+| `dips` | Dips | input gains weight field (added load) alongside reps; program prescribes +70 |
+| `hammer_row` | Hammer Row | as-is |
+| `bulgarian_split_squat` | Bulgarian Split Squat | fills the generic split-squat slot until D15 picks a variant (keeps trend continuity with FA); a different variant later gets its own id at that point |
+| `standing_calf_raises` | Standing Calf Raises | close stance is a slot note |
+
+**Genuinely new ids:**
 
 | id | name | type | notes |
 |---|---|---|---|
-| `incline_bench_press` | Incline Bench Press | main | `uses_1rm`, `one_rm: 265` |
-| `weighted_dips` | Weighted Dips | accessory | input: weight (added) + reps |
 | `snatch_grip_high_pull` | Snatch-Grip High Pull | power | upper_back, traps, rear_delts, glutes |
-| `hammer_row` | Hammer Row | accessory | track weight per side |
 | `copenhagen_plank` | Copenhagen Plank | movement | input: duration; adductors + core |
 | `step_out_squat` | Step-Out Squat | movement | adductors, hip stabilizers, quads |
 | `hip_ir_liftoff` | 90/90 Hip IR Lift-off | movement | input: reps |
-| `calf_raises` | Calf Raises | accessory | calves |
 | `sprints` | Sprints | conditioning | input: distance (m) |
 | `landmine_rotation` | Landmine Rotation | core | input: reps |
 | `box_jump_lateral` | One-Foot Lateral Box Jump | power | alternatives: `box_jump` |
-| `split_squat` | Split Squat | accessory | generic slot; variant is a technique detail (D15). If the variant later gets its own name, update this definition's `name` — history relabels globally, which is acceptable for a generic slot |
 
 Program metadata: `id: "functional-athlete-pillars"`, `name: "Functional Athlete — Pillars"`, `duration_weeks: 11`, **`focus: ["hips", "core", "back"]`** (new optional field).
 

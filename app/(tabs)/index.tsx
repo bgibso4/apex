@@ -17,6 +17,7 @@ import { APEX_FONT_FAMILY } from '../../src/theme/fonts';
 import { getActiveProgram, getSessionsForWeek, getCompletedSessionForDay, getSetLogsForSession, getPendingPainFollowUp, updateRunPain24h, getAllSessionsForDateRange, backfillActiveProgramCompletion, getMostRecentCompletedProgram } from '../../src/db';
 import { buildProgramSummary } from '../../src/db/programSummary';
 import { CompletedProgramCard } from '../../src/components/CompletedProgramCard';
+import { FocusChips } from '../../src/components/FocusChips';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, DAY_NAMES, DAY_ORDER
@@ -376,6 +377,7 @@ export default function HomeScreen() {
         <Animated.View entering={shouldAnimate ? FadeInDown.delay(0).duration(300) : undefined}>
           <View style={styles.programContext}>
             <Text style={styles.programName}>{def.name}</Text>
+            <FocusChips focus={def.focus} style={styles.focusChips} />
             <Text style={styles.programWeek}>
               Week {currentWeek} of {def.duration_weeks} — {' '}
               <Text style={{ color: blockColor, fontWeight: '600' }}>{block?.name ?? 'Unknown Block'}</Text>
@@ -514,6 +516,9 @@ const styles = StyleSheet.create({
     fontSize: FontSize.subtitle,
     fontWeight: '700',
     marginBottom: Spacing.xs,
+  },
+  focusChips: {
+    marginTop: Spacing.sm,
   },
   programWeek: {
     color: Colors.textSecondary,

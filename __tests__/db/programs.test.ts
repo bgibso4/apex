@@ -5,6 +5,7 @@
 import { getDatabase, generateId } from '../../src/db/database';
 import {
   getActiveProgram,
+  getProgramById,
   getAllPrograms,
   importProgram,
   activateProgram,
@@ -13,10 +14,15 @@ import {
 } from '../../src/db/programs';
 import { getLocalDateString } from '../../src/utils/date';
 import type { ProgramDefinition } from '../../src/types';
+import { getSeed1RM } from '../../src/db/metrics';
 
 jest.mock('../../src/db/database', () => ({
   getDatabase: jest.fn(),
   generateId: jest.fn(() => 'test-prog-id'),
+}));
+
+jest.mock('../../src/db/metrics', () => ({
+  getSeed1RM: jest.fn().mockResolvedValue(null),
 }));
 
 function createMockDb() {
@@ -65,6 +71,7 @@ describe('programs', () => {
     jest.clearAllMocks();
     mockDb = createMockDb();
     (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+    (getSeed1RM as jest.Mock).mockReset().mockResolvedValue(null);
   });
 
   // ---------------------------------------------------------------------------
@@ -265,12 +272,12 @@ describe('programs', () => {
       );
       expect(activateCall).toBeDefined();
       const [sql2, params2] = activateCall!;
-      expect(sql2).toContain('one_rm_values = NULL');
+      expect(sql2).toContain('one_rm_values = ?');
       expect(sql2).toContain('activated_date = ?');
       expect(sql2).toContain('WHERE id = ?');
       expect(sql2).toContain('updated_at');
-      expect(typeof params2[0]).toBe('string'); // date string
-      expect(params2[1]).toBe('prog-2');
+      expect(typeof params2[1]).toBe('string'); // date string
+      expect(params2[2]).toBe('prog-2');
     });
   });
 
@@ -442,6 +449,110 @@ describe('programs', () => {
       );
       expect(dismissCall).toBeDefined();
       expect(dismissCall![0]).toContain("WHERE status = 'completed'");
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getProgramById
+  // ---------------------------------------------------------------------------
+  describe('getProgramById', () => {
+    it('returns the program row with parsed definition', async () => {
+      const mockDb = createMockDb();
+      (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+      const def = makeProgramDef({ name: 'Old Program' });
+      mockDb.getFirstAsync.mockResolvedValue({
+        id: 'prog-1',
+        name: 'Old Program',
+        status: 'archived',
+        definition_json: JSON.stringify(def),
+      });
+
+      const result = await getProgramById('prog-1');
+
+      expect(mockDb.getFirstAsync).toHaveBeenCalledWith(
+        expect.stringContaining('WHERE id = ?'),
+        ['prog-1']
+      );
+      expect(result?.name).toBe('Old Program');
+      expect(result?.definition.program.name).toBe('Old Program');
+    });
+
+    it('returns null when the program does not exist', async () => {
+      const mockDb = createMockDb();
+      (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      expect(await getProgramById('missing')).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // activateProgram 1RM seeding
+  // ---------------------------------------------------------------------------
+  describe('activateProgram 1RM seeding', () => {
+    function defWithMains(): string {
+      return JSON.stringify({
+        program: {
+          id: 'test-prog',
+          name: 'Test',
+          duration_weeks: 11,
+          created: '2026-07-12',
+          blocks: [],
+          weekly_template: {},
+          warmup_protocols: {},
+          exercise_definitions: [
+            { id: 'back_squat', name: 'Back Squat', type: 'main', muscle_groups: [], uses_1rm: true, one_rm: 315 },
+            { id: 'incline_bench_bb', name: 'Incline Bench Press', type: 'main', muscle_groups: [], uses_1rm: true, one_rm: 265 },
+            { id: 'face_pulls', name: 'Face Pulls', type: 'accessory', muscle_groups: [] },
+          ],
+        },
+      });
+    }
+
+    it('stores computed seeds, falling back to definition one_rm when history is empty', async () => {
+      const mockDb = createMockDb();
+      (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+      mockDb.getFirstAsync.mockResolvedValue({ definition_json: defWithMains() });
+      (getSeed1RM as jest.Mock)
+        .mockResolvedValueOnce(348)   // back_squat: computed from history
+        .mockResolvedValueOnce(null); // incline: no history -> definition seed
+
+      await activateProgram('prog-1');
+
+      const activateCall = (mockDb.runAsync as jest.Mock).mock.calls.find(
+        c => (c[0] as string).includes("SET status = 'active'")
+      );
+      expect(activateCall).toBeDefined();
+      expect(activateCall![0]).toContain('one_rm_values = ?');
+      const stored = JSON.parse(activateCall![1][0]);
+      expect(stored).toEqual({ back_squat: 348, incline_bench_bb: 265 });
+      // accessories without uses_1rm are never seeded
+      expect(getSeed1RM).toHaveBeenCalledTimes(2);
+    });
+
+    it('stores NULL seeds when the definition is unparseable', async () => {
+      const mockDb = createMockDb();
+      (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+      mockDb.getFirstAsync.mockResolvedValue({ definition_json: 'not json' });
+
+      await activateProgram('prog-1');
+
+      const activateCall = (mockDb.runAsync as jest.Mock).mock.calls.find(
+        c => (c[0] as string).includes("SET status = 'active'")
+      );
+      expect(activateCall![1][0]).toBeNull();
+    });
+
+    it('still archives the previously active program and retires completed cards', async () => {
+      const mockDb = createMockDb();
+      (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+      mockDb.getFirstAsync.mockResolvedValue({ definition_json: defWithMains() });
+
+      await activateProgram('prog-1');
+
+      const sqls = (mockDb.runAsync as jest.Mock).mock.calls.map(c => c[0] as string);
+      expect(sqls.some(s => s.includes("SET status = 'archived'"))).toBe(true);
+      expect(sqls.some(s => s.includes('card_dismissed = 1'))).toBe(true);
     });
   });
 });

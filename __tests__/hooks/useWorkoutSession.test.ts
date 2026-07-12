@@ -70,6 +70,10 @@ jest.mock('../../src/utils/program', () => ({
   getTodayKey: jest.fn(),
   getTargetForWeek: jest.fn(),
   isFinalTrainingSession: jest.fn(),
+  // Real implementation — pure, already unit-tested in program.test.ts. Existing
+  // fixtures' one_rm_values (where set) aren't valid JSON strings, so this falls
+  // through to the definition value, preserving prior test behavior.
+  resolveOneRm: jest.requireActual('../../src/utils/program').resolveOneRm,
   DAY_NAMES: {
     sunday: 'Sun', monday: 'Mon', tuesday: 'Tue',
     wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat',
@@ -145,7 +149,7 @@ function makeProgram(overrides: Record<string, unknown> = {}) {
     status: 'active' as const,
     definition_json: '{}',
     activated_date: '2025-01-01',
-    one_rm_values: { squat: 300, bench_press: 225 },
+    one_rm_values: null,
     definition: {
       program: {
         name: 'Test Program',
@@ -518,6 +522,24 @@ describe('useWorkoutSession', () => {
 
       // bench_press has percent=0.75 and one_rm=225 from exercise definition (not program.one_rm_values)
       expect(mockedCalculateTargetWeight).toHaveBeenCalledWith(225, 0.75);
+    });
+
+    it('prefers the activation-seeded 1RM (program.one_rm_values) over the exercise definition value', async () => {
+      setupDefaultMocks();
+      const prog = makeProgram({ one_rm_values: JSON.stringify({ bench_press: 275 }) });
+      mockedGetActiveProgram.mockResolvedValue(prog);
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+
+      // bench_press's definition one_rm is 225, but the run seed (275) wins.
+      expect(mockedCalculateTargetWeight).toHaveBeenCalledWith(275, 0.75);
     });
 
     it('calls getLastSessionForExercise without program ID (cross-program history)', async () => {
@@ -1496,6 +1518,29 @@ describe('useWorkoutSession', () => {
           expect(set.status).toBe('pending');
         }
       }
+    });
+
+    it('prefers the activation-seeded 1RM (program.one_rm_values) over the exercise definition value on restore', async () => {
+      setupDefaultMocks();
+      const prog = makeProgram({ one_rm_values: JSON.stringify({ bench_press: 275 }) });
+      mockedGetActiveProgram.mockResolvedValue(prog);
+
+      const session = makeInProgressSession();
+      mockedGetInProgressSession.mockResolvedValue(session);
+      mockedGetFullSessionState.mockResolvedValue(makeFullSessionState(session, [], {}));
+
+      const { result } = renderHook(() => useWorkoutSession());
+
+      await waitFor(() => {
+        expect(result.current.phase).toBe('warmup');
+      });
+
+      // bench_press's definition one_rm is 225, but the run seed (275) wins.
+      expect(mockedCalculateTargetWeight).toHaveBeenCalledWith(275, 0.75);
+      const bench = result.current.exercises.find(e => e.slot.exercise_id === 'bench_press');
+      expect(bench).toBeDefined();
+      // mockedCalculateTargetWeight: Math.round(oneRm * pct / 5) * 5
+      expect(bench!.sets[0].targetWeight).toBe(Math.round(275 * 0.75 / 5) * 5);
     });
 
     it('does not call getInProgressSession on subsequent loadData calls (re-trigger prevention)', async () => {

@@ -14,8 +14,7 @@ import * as ExpoSplashScreen from 'expo-splash-screen';
 import { Colors } from '../src/theme';
 import { CUSTOM_FONTS } from '../src/theme/fonts';
 import { getDatabase, refreshBundledProgram } from '../src/db';
-import type { ProgramDefinition } from '../src/types';
-import FA_V2 from '../src/data/functional-athlete.json';
+import { BUNDLED_PROGRAMS } from '../src/data/bundled-programs';
 import { SplashScreen } from '../src/components/SplashScreen';
 import { useSyncOnOpen } from '../src/sync/useSyncOnOpen';
 
@@ -31,9 +30,15 @@ export default function RootLayout() {
     (async () => {
       // Run DB init, font loading, and asset preloading in parallel
       await Promise.all([
-        getDatabase().then(() =>
-          refreshBundledProgram(FA_V2 as unknown as ProgramDefinition)
-        ),
+        getDatabase().then(async () => {
+          for (const def of BUNDLED_PROGRAMS) {
+            try {
+              await refreshBundledProgram(def);
+            } catch (e) {
+              console.warn(`Bundled program refresh failed (${def.program.name}):`, e);
+            }
+          }
+        }),
         Object.keys(CUSTOM_FONTS).length > 0
           ? Font.loadAsync(CUSTOM_FONTS)
           : Promise.resolve(),

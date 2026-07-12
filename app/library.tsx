@@ -11,11 +11,12 @@ import Animated, { FadeIn, FadeOut, FadeInUp, FadeOutDown, Easing } from 'react-
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/theme';
 import { getAllPrograms, importProgram, getActiveProgram, activateProgram, restartProgram } from '../src/db';
-import { getBlockColor, buildProgramCatalog } from '../src/utils/program';
+import { getBlockColor, buildProgramCatalog, isBundledProgramImported } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
+import { FocusChips } from '../src/components/FocusChips';
 
-// Bundled program — loaded on first launch
-import FA_V2 from '../src/data/functional-athlete.json';
+// Bundled programs — auto-imported on first library open
+import { BUNDLED_PROGRAMS } from '../src/data/bundled-programs';
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -43,16 +44,12 @@ export default function LibraryScreen() {
     const active = await getActiveProgram();
     setHasActive(!!active);
 
-    // Auto-import bundled program if it doesn't exist yet (by bundled_id or name)
-    const bundledDef = FA_V2 as unknown as ProgramDefinition;
-    const bundledId = bundledDef.program.id;
-    const bundledName = bundledDef.program.name;
-    const alreadyImported = all.some(p => {
-      if (bundledId && p.bundled_id === bundledId) return true;
-      return p.name === bundledName;
-    });
-    if (!alreadyImported) {
-      await importProgram(bundledDef);
+    // Auto-import any bundled programs that don't exist yet (by bundled_id or name)
+    const missing = BUNDLED_PROGRAMS.filter(def => !isBundledProgramImported(all, def));
+    for (const def of missing) {
+      await importProgram(def);
+    }
+    if (missing.length > 0) {
       const refreshed = await getAllPrograms();
       setPrograms(refreshed);
     }
@@ -106,6 +103,8 @@ export default function LibraryScreen() {
                   </View>
                 )}
               </View>
+
+              <FocusChips focus={def?.program.focus} style={styles.focusChips} />
 
               <Text style={styles.programDuration}>
                 {p.duration_weeks} weeks
@@ -270,6 +269,9 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: '700',
     flex: 1,
+  },
+  focusChips: {
+    marginTop: Spacing.sm,
   },
   programDuration: {
     color: Colors.textDim,

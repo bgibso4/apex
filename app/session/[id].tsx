@@ -9,7 +9,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../src/theme';
 import {
-  getSessionById, getSetLogsForSession, getExerciseInfo, getActiveProgram,
+  getSessionById, getSetLogsForSession, getExerciseInfo, getProgramById,
   getExerciseNotesForSession, getPRsForSession,
   updateSet, updateSessionNotes, updateProtocolCompletion,
   saveExerciseNote, deleteExerciseNote,
@@ -83,7 +83,7 @@ export default function SessionDetailScreen() {
       const monthDay = sessionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
       // Get block name and resolve session name from program
-      const program = await getActiveProgram();
+      const program = await getProgramById(s.program_id);
       let blockLabel = s.block_name;
       if (program) {
         const block = getBlockForWeek(program.definition.program.blocks, s.week_number);

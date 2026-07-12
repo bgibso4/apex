@@ -134,12 +134,21 @@ export function buildProgramCatalog(programs: Program[]): ProgramCatalogEntry[] 
         action: { type: 'activate', programId: inactive.id },
       });
     } else {
+      // No active/inactive row — every row in this group is completed or
+      // archived. Restart is only offered when the latest run finished
+      // (completed) or the program is bundled (so a stopped/archived run
+      // can still be relaunched from its shipped definition). An archived,
+      // non-bundled group (e.g. the v16-archived legacy draft) has no
+      // startable definition to restart from, so it's dropped from the
+      // catalog entirely — the row itself stays in the DB, just untappable.
       const latest = newestFirst[0];
-      entries.push({
-        program: latest,
-        isActive: false,
-        action: { type: 'restart', programId: latest.id },
-      });
+      if (latest.status === 'completed' || latest.bundled_id) {
+        entries.push({
+          program: latest,
+          isActive: false,
+          action: { type: 'restart', programId: latest.id },
+        });
+      }
     }
   }
 
@@ -161,4 +170,33 @@ export function getCurrentWeek(activatedDate: string, durationWeeks: number): nu
 /** Get today's day of week as a template key */
 export function getTodayKey(): string {
   return DAY_ORDER[new Date().getDay()];
+}
+
+/** Resolve the working 1RM for an exercise: the run's activation-time seeds
+ *  first (programs.one_rm_values JSON), then the definition's seed value. */
+export function resolveOneRm(
+  oneRmValuesJson: string | null | undefined,
+  exerciseId: string,
+  definitionOneRm: number | undefined
+): number | undefined {
+  if (oneRmValuesJson) {
+    try {
+      const seeds = JSON.parse(oneRmValuesJson) as Record<string, unknown>;
+      const seed = seeds[exerciseId];
+      if (typeof seed === 'number' && seed > 0) return seed;
+    } catch {
+      // fall through to the definition seed
+    }
+  }
+  return definitionOneRm;
+}
+
+/** True if a bundled definition already has a row (by bundled_id, name fallback for legacy rows) */
+export function isBundledProgramImported(
+  programs: Pick<Program, 'bundled_id' | 'name'>[],
+  def: ProgramDefinition
+): boolean {
+  const bundledId = def.program.id;
+  const name = def.program.name;
+  return programs.some(p => (bundledId && p.bundled_id === bundledId) || p.name === name);
 }

@@ -6,6 +6,7 @@ import { getDatabase, generateId } from './database';
 import { getLocalDateString } from '../utils/date';
 import { getLastTrainingDay } from '../utils/program';
 import { getCompletedFinalDaySession } from './sessions';
+import { getSeed1RM } from './metrics';
 import type { Program } from '../types';
 import type { ProgramDefinition } from '../types';
 
@@ -14,6 +15,21 @@ export async function getActiveProgram(): Promise<(Program & { definition: Progr
   const db = await getDatabase();
   const row = await db.getFirstAsync<Program>(
     "SELECT * FROM programs WHERE status = 'active' LIMIT 1"
+  );
+  if (!row) return null;
+
+  const definition = JSON.parse(row.definition_json) as ProgramDefinition;
+  return { ...row, definition };
+}
+
+/** Get any program by row id, with parsed definition (for viewing past sessions) */
+export async function getProgramById(
+  programId: string
+): Promise<(Program & { definition: ProgramDefinition }) | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<Program>(
+    'SELECT * FROM programs WHERE id = ? LIMIT 1',
+    [programId]
   );
   if (!row) return null;
 
@@ -130,11 +146,33 @@ export async function activateProgram(programId: string): Promise<void> {
      WHERE status = 'completed' AND card_dismissed = 0`
   );
 
+  // Seed this run's working 1RMs from recent training history: best e1RM in
+  // the seed window per main lift, definition seed as cold-start fallback.
+  const row = await db.getFirstAsync<{ definition_json: string }>(
+    'SELECT definition_json FROM programs WHERE id = ?',
+    [programId]
+  );
+  let oneRmJson: string | null = null;
+  if (row) {
+    try {
+      const def = JSON.parse(row.definition_json) as ProgramDefinition;
+      const seeds: Record<string, number> = {};
+      for (const ex of def.program.exercise_definitions) {
+        if (!ex.uses_1rm) continue;
+        const seed = (await getSeed1RM(ex.id)) ?? ex.one_rm;
+        if (seed) seeds[ex.id] = seed;
+      }
+      if (Object.keys(seeds).length > 0) oneRmJson = JSON.stringify(seeds);
+    } catch {
+      // Unparseable definition — read-time fallback to definition seeds covers it
+    }
+  }
+
   // Activate this one
   await db.runAsync(
-    `UPDATE programs SET status = 'active', one_rm_values = NULL, activated_date = ?, updated_at = datetime('now')
+    `UPDATE programs SET status = 'active', one_rm_values = ?, activated_date = ?, updated_at = datetime('now')
      WHERE id = ?`,
-    [getLocalDateString(), programId]
+    [oneRmJson, getLocalDateString(), programId]
   );
 }
 

@@ -38,7 +38,8 @@
         ],
         "testMatch": [
           "**/__tests__/utils/**",
-          "**/__tests__/db/**"
+          "**/__tests__/db/**",
+          "**/__tests__/data/**"
         ],
         "moduleNameMapper": {
           "^expo-file-system/legacy$": "expo-file-system",

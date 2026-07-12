@@ -1,0 +1,759 @@
+<title>APEX — Next Program Draft</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0a0f;
+    --card: #141420;
+    --card-inset: #181824;
+    --surface: #1e1e30;
+    --border: #2a2a3e;
+    --border-lt: #3a3a4e;
+    --text: #ffffff;
+    --text2: #a0a0b8;
+    --dim: #6a6a80;
+    --muted: #4a4a5e;
+    --indigo: #6366f1;
+    --indigo-lt: #818cf8;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --cyan: #06b6d4;
+    --pink: #ec4899;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45;
+    padding-bottom: 80px;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding: 0 16px; }
+
+  /* ---------- header ---------- */
+  header { padding: 28px 0 14px; }
+  .eyebrow { color: var(--dim); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-top: 4px; text-wrap: balance; }
+  h1 .wt { color: var(--dim); font-size: 13px; font-weight: 600; letter-spacing: 0; vertical-align: middle; margin-left: 6px; }
+  .goals { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .goal { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; padding: 5px 10px; border-radius: 999px; border: 1px solid; }
+  .goal.focus { color: var(--indigo-lt); border-color: #6366f150; background: #6366f118; }
+  .goal.maint { color: var(--dim); border-color: var(--border); background: transparent; font-weight: 600; }
+  .subnote { color: var(--text2); font-size: 13px; margin-top: 10px; max-width: 56ch; }
+
+  /* ---------- sticky selector ---------- */
+  .controls {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(10,10,15,0.88);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0 0;
+  }
+  .weeks { display: flex; gap: 5px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
+  .weeks::-webkit-scrollbar { display: none; }
+  .wk {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text2); font-size: 13px; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; font-variant-numeric: tabular-nums;
+  }
+  .wk small { font-size: 8px; font-weight: 800; letter-spacing: 0.5px; opacity: 0.85; }
+  .wk[data-block="H"] { border-color: #6366f140; } .wk[data-block="H"] small { color: var(--indigo-lt); }
+  .wk[data-block="D"] { border-color: #22c55e40; } .wk[data-block="D"] small { color: var(--green); }
+  .wk[data-block="S"] { border-color: #f59e0b40; } .wk[data-block="S"] small { color: var(--amber); }
+  .wk[data-block="P"] { border-color: #ec489940; } .wk[data-block="P"] small { color: var(--pink); }
+  .wk.sel[data-block="H"] { background: #6366f128; border-color: var(--indigo); color: var(--text); }
+  .wk.sel[data-block="D"] { background: #22c55e22; border-color: var(--green); color: var(--text); }
+  .wk.sel[data-block="S"] { background: #f59e0b22; border-color: var(--amber); color: var(--text); }
+  .wk.sel[data-block="P"] { background: #ec489922; border-color: var(--pink); color: var(--text); }
+  .blockline { font-size: 12px; color: var(--text2); padding-bottom: 8px; font-variant-numeric: tabular-nums; }
+  .blockline b { font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; font-size: 11px; }
+
+  .days { display: flex; gap: 4px; padding-bottom: 10px; }
+  .day-tab {
+    flex: 1; position: relative; padding: 8px 0 7px; border-radius: 9px;
+    border: 1px solid transparent; background: transparent;
+    color: var(--dim); font-size: 12px; font-weight: 800; letter-spacing: 0.5px;
+    cursor: pointer; text-align: center;
+  }
+  .day-tab.sel { background: var(--surface); border-color: var(--border-lt); color: var(--text); }
+  .day-tab .dcount {
+    position: absolute; top: 3px; right: 5px; min-width: 14px; height: 14px; border-radius: 7px;
+    background: var(--amber); color: #0a0a0f; font-size: 9px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; padding: 0 3px;
+  }
+
+  /* ---------- legend ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 0 2px; }
+  .lg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dim); font-weight: 600; }
+  .dot { width: 8px; height: 8px; border-radius: 4px; }
+
+  /* ---------- day panel ---------- */
+  .day-head { padding: 14px 0 4px; }
+  .day-head h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+  .day-head .focus-line { color: var(--text2); font-size: 13px; margin-top: 2px; }
+  .warmup { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0 2px; }
+  .warmup .wu-label { color: var(--dim); font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+  .chip { font-size: 11px; color: var(--text2); background: var(--card-inset); border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; font-weight: 600; }
+  .chip.old { text-decoration: line-through; opacity: 0.45; }
+  .chip.new-chip { color: var(--cyan); border-color: #06b6d440; }
+
+  /* ---------- exercise cards ---------- */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px; margin-top: 10px; scroll-margin-top: 130px;
+  }
+  .card.decision { border-color: #f59e0b45; }
+  .card.new { border-color: #22c55e40; }
+  .card.ghost { border-style: dashed; background: transparent; }
+  .card.flash { animation: flash 1.6s ease-out 1; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 3px #f59e0b90; } 100% { box-shadow: 0 0 0 3px transparent; } }
+  @media (prefers-reduced-motion: reduce) { .card.flash { animation: none; outline: 2px solid var(--amber); } }
+
+  .ex-top { display: flex; align-items: baseline; gap: 8px; }
+  .ex-num { color: var(--muted); font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .ex-name { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .badge { font-size: 9px; font-weight: 800; letter-spacing: 0.8px; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; }
+  .b-main { color: var(--indigo-lt); background: #6366f11c; border: 1px solid #6366f145; }
+  .b-cat { color: var(--dim); background: var(--card-inset); border: 1px solid var(--border); }
+  .b-new { color: var(--green); background: #22c55e15; border: 1px solid #22c55e40; }
+  .b-changed { color: var(--cyan); background: #06b6d415; border: 1px solid #06b6d440; }
+  .b-decision { color: var(--amber); background: #f59e0b15; border: 1px solid #f59e0b45; }
+  .b-ss { color: var(--pink); background: #ec489912; border: 1px solid #ec489940; }
+  .b-must { color: var(--text); background: var(--surface); border: 1px solid var(--border-lt); }
+
+  .spec { margin-top: 10px; font-variant-numeric: tabular-nums; }
+  .spec .line1 { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; }
+  .spec .line1 .u { font-size: 13px; font-weight: 600; color: var(--text2); }
+  .spec .line2 { font-size: 12px; color: var(--dim); margin-top: 2px; font-weight: 600; }
+  .note { margin-top: 9px; font-size: 12.5px; color: var(--text2); border-left: 2px solid var(--border-lt); padding-left: 9px; }
+  .note b { color: var(--text); font-weight: 700; }
+
+  .opts { margin-top: 11px; display: flex; flex-direction: column; gap: 7px; }
+  .opt { background: var(--card-inset); border: 1px solid var(--border); border-radius: 10px; padding: 10px 11px; }
+  .opt .o-head { display: flex; align-items: baseline; gap: 7px; }
+  .opt .o-key { color: var(--amber); font-size: 11px; font-weight: 800; }
+  .opt .o-title { font-size: 13px; font-weight: 700; }
+  .opt .o-spec { font-size: 12px; color: var(--indigo-lt); font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .opt .o-body { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .opt.lean { border-color: #f59e0b50; }
+  .lean-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.8px; color: var(--amber); text-transform: uppercase; }
+
+  .finisher { margin-top: 12px; color: var(--dim); font-size: 12px; font-weight: 600; display: flex; gap: 7px; align-items: baseline; }
+  .finisher b { color: var(--text2); font-size: 10px; letter-spacing: 1px; font-weight: 800; }
+
+  /* ---------- sections ---------- */
+  .section-label { color: var(--dim); font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; margin: 26px 0 4px; }
+  .dec-row {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 11px 12px; margin-top: 8px; cursor: pointer; color: var(--text); font: inherit;
+  }
+  .dec-row:active { background: var(--surface); }
+  .dec-num { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 8px; background: #f59e0b18; border: 1px solid #f59e0b45; color: var(--amber); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .dec-body { flex: 1; min-width: 0; }
+  .dec-title { font-size: 13px; font-weight: 700; }
+  .dec-sub { font-size: 11.5px; color: var(--dim); margin-top: 1px; }
+  .dec-day { flex: 0 0 auto; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: var(--text2); background: var(--card-inset); border: 1px solid var(--border); padding: 3px 7px; border-radius: 6px; }
+  .dec-row.done { opacity: 0.7; }
+  .dec-num.done { background: #22c55e15; border-color: #22c55e40; color: var(--green); }
+
+  .plain-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 10px; }
+  .plain-card h3 { font-size: 14px; font-weight: 800; }
+  .plain-card p, .plain-card li { font-size: 12.5px; color: var(--text2); }
+  .plain-card ul { margin: 8px 0 0 16px; display: flex; flex-direction: column; gap: 5px; }
+
+  /* ---------- load map ---------- */
+  .load-toggle { display: flex; gap: 6px; margin-bottom: 12px; }
+  .load-toggle button {
+    font: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+    color: var(--dim); background: var(--card-inset); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 12px; cursor: pointer;
+  }
+  .load-toggle button.sel { color: var(--text); background: var(--surface); border-color: var(--border-lt); }
+  .hm { display: flex; flex-direction: column; gap: 2px; }
+  .hm-row { display: grid; grid-template-columns: 108px repeat(6, 1fr); gap: 2px; align-items: center; }
+  .hm-label { font-size: 10.5px; font-weight: 700; color: var(--text2); padding-right: 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; }
+  .hm-label .g { width: 5px; height: 5px; border-radius: 3px; background: var(--indigo-lt); flex: 0 0 auto; }
+  .hm-label.dimmed { color: var(--dim); font-weight: 600; }
+  .hm-head { font-size: 9px; font-weight: 800; letter-spacing: 0.6px; color: var(--dim); text-align: center; padding-bottom: 3px; }
+  .hm-cell { height: 24px; border-radius: 4px; background: var(--card-inset); border: 1px solid transparent; cursor: pointer; padding: 0; }
+  .hm-cell.z { background: transparent; border-color: var(--border); opacity: 0.5; cursor: default; }
+  .hm-cell.on { outline: 2px solid var(--text); outline-offset: 1px; }
+  .ramp { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 10px; color: var(--dim); font-weight: 600; }
+  .ramp .step { width: 22px; height: 10px; border-radius: 3px; }
+  .cell-detail { margin-top: 12px; background: var(--card-inset); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12px; color: var(--text2); min-height: 44px; }
+  .cell-detail b { color: var(--text); }
+  .cell-detail .row { display: flex; justify-content: space-between; gap: 10px; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .vb-row { display: grid; grid-template-columns: 108px 1fr 34px; gap: 8px; align-items: center; margin-top: 7px; }
+  .vb-label { font-size: 10.5px; font-weight: 700; color: var(--text2); display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; }
+  .vb-track { display: flex; gap: 2px; height: 16px; }
+  .vb-seg { height: 16px; }
+  .vb-seg.direct { background: var(--indigo); border-radius: 0 4px 4px 0; }
+  .vb-seg.direct:only-child { border-radius: 0 4px 4px 0; }
+  .vb-seg.indirect { background: #3b3e8f; border-radius: 0 4px 4px 0; }
+  .vb-seg.first { border-radius: 0; }
+  .vb-val { font-size: 11px; font-weight: 700; color: var(--text2); font-variant-numeric: tabular-nums; text-align: right; }
+  .vb-legend { display: flex; gap: 14px; margin-top: 12px; font-size: 10.5px; color: var(--dim); font-weight: 600; align-items: center; flex-wrap: wrap; }
+  .vb-legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; vertical-align: -2px; margin-right: 4px; }
+  .flag { display: flex; gap: 9px; align-items: baseline; background: var(--card); border: 1px solid #f59e0b30; border-radius: 10px; padding: 9px 12px; margin-top: 7px; font-size: 12px; color: var(--text2); }
+  .flag .fi { color: var(--amber); font-weight: 800; font-size: 11px; }
+  .load-table { width: 100%; border-collapse: collapse; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+  .load-table th, .load-table td { padding: 4px 5px; text-align: right; border-bottom: 1px solid var(--border); color: var(--text2); }
+  .load-table th { color: var(--dim); font-size: 9px; letter-spacing: 0.5px; }
+  .load-table td:first-child, .load-table th:first-child { text-align: left; }
+  .methodology { margin-top: 12px; font-size: 11px; color: var(--muted); line-height: 1.55; }
+
+  footer { margin-top: 30px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+  button:focus-visible, .wk:focus-visible { outline: 2px solid var(--indigo-lt); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">APEX · Next Program · Draft 1 · 2026-07-12</div>
+    <h1>Functional Athlete II <span class="wt">(working title)</span></h1>
+    <div class="goals">
+      <span class="goal focus">HIPS</span>
+      <span class="goal focus">CORE</span>
+      <span class="goal focus">BACK</span>
+      <span class="goal maint">chest · maint</span>
+      <span class="goal maint">shoulders · maint</span>
+      <span class="goal maint">arms · maint</span>
+      <span class="goal maint">foot/ankle · home</span>
+    </div>
+    <div class="subnote">Same 11-week skeleton as Functional Athlete. Pick a week to see exact weights, reps and RPE for every lift. Amber = still needs a call from you.</div>
+  </header>
+</div>
+
+<div class="controls"><div class="wrap">
+  <div class="weeks" id="weeks"></div>
+  <div class="blockline" id="blockline"></div>
+  <div class="days" id="days"></div>
+</div></div>
+
+<div class="wrap">
+  <div class="legend">
+    <span class="lg"><span class="dot" style="background:var(--muted)"></span>Unchanged</span>
+    <span class="lg"><span class="dot" style="background:var(--cyan)"></span>Changed</span>
+    <span class="lg"><span class="dot" style="background:var(--green)"></span>New</span>
+    <span class="lg"><span class="dot" style="background:var(--amber)"></span>Decision needed</span>
+  </div>
+
+  <div id="daypanel"></div>
+
+  <div class="section-label">Weekly load map — week <span id="lmweek"></span></div>
+  <div class="plain-card">
+    <div class="load-toggle">
+      <button id="lt-hm" class="sel" onclick="setLoadView('hm')">Heatmap</button>
+      <button id="lt-tb" onclick="setLoadView('table')">Table</button>
+    </div>
+    <div id="loadgrid"></div>
+    <div class="ramp" id="ramp"></div>
+    <div class="cell-detail" id="celldetail">Tap a cell to see which exercises load that muscle that day.</div>
+  </div>
+
+  <div class="section-label">Weekly volume by muscle</div>
+  <div class="plain-card">
+    <div id="volbars"></div>
+    <div class="vb-legend">
+      <span><span class="sw" style="background:var(--indigo)"></span>Direct sets</span>
+      <span><span class="sw" style="background:#3b3e8f"></span>Indirect (× 0.5)</span>
+      <span><span class="g" style="display:inline-block;width:5px;height:5px;border-radius:3px;background:var(--indigo-lt);margin-right:4px"></span>Program goal</span>
+    </div>
+  </div>
+
+  <div class="section-label">Recovery watch — back-to-back days</div>
+  <div id="recovery"></div>
+  <div class="methodology">
+    Load = hard sets × muscle role (primary 1.0, secondary 0.5), recomputed per selected week (deloads cool the map).
+    Assumes current leans on open decisions: incline BB press (D1), dips (D2), generic split squat (D15).
+    Easy run (Tue) and conditioning finishers are excluded — they're systemic, not set-based. Saturday is rest.
+    Lower Back reads low by design: the map counts dynamic sets only, and the erectors' main work here is isometric —
+    squats, Zerchers, rows, and RDLs load them hard on every rep without showing up as "sets".
+  </div>
+
+  <div class="section-label" id="decisions">Decisions — <span id="deccount"></span> still open</div>
+  <div id="declist"></div>
+
+  <div class="section-label">Home protocol · daily-ish, off the couch</div>
+  <div class="plain-card">
+    <ul>
+      <li><b style="color:var(--text)">Foot &amp; ankle</b> — wobble board (new toy), short foot, toe yoga, single-leg balance. Gym volume on this drops to warm-up maintenance only.</li>
+      <li><b style="color:var(--text)">Neck</b> — equipment's already at home. Just has to actually happen.</li>
+    </ul>
+  </div>
+
+  <div class="section-label">Programming cleanup (D14)</div>
+  <div class="plain-card">
+    <p>Line-by-line audit of every day before this ships — known example: DB curls were 2 sets, should be 3 (already fixed in this draft). Sweep for any other set counts, weights, and notes that drifted from reality.</p>
+  </div>
+
+  <footer>
+    Weights computed from current 1RMs — Squat 315 · Bench 315 · Row 245 · Zercher 225 · RDL 205 · OHP 180 — rounded to 5 lb.
+    Incline bench option shown at an estimated 1RM of 265 (~85% of flat bench) until tested.
+    Accessory weights are last-session auto-regulated; numbers shown are current working weights.
+    Source: docs/mockups/next-program-draft-2026-07-12.html
+  </footer>
+</div>
+
+<script>
+// ---------- skeleton ----------
+const WAVE = {
+  1:{block:'Hypertrophy',code:'H',sets:4,reps:8,pct:75,rpe:'6-7'},
+  2:{block:'Hypertrophy',code:'H',sets:4,reps:8,pct:77,rpe:'7'},
+  3:{block:'Hypertrophy',code:'H',sets:4,reps:8,pct:79,rpe:'7-8'},
+  4:{block:'Hypertrophy',code:'H',sets:4,reps:8,pct:81,rpe:'8'},
+  5:{block:'Deload',code:'D',sets:3,reps:8,pct:65,rpe:'4-5'},
+  6:{block:'Strength',code:'S',sets:4,reps:5,pct:80,rpe:'7'},
+  7:{block:'Strength',code:'S',sets:4,reps:5,pct:83,rpe:'7-8'},
+  8:{block:'Strength',code:'S',sets:4,reps:5,pct:85,rpe:'8'},
+  9:{block:'Strength',code:'S',sets:4,reps:5,pct:87,rpe:'8-9'},
+  10:{block:'Deload',code:'D',sets:3,reps:5,pct:70,rpe:'4-5'},
+  11:{block:'Peak',code:'P',sets:3,reps:3,pct:90,rpe:'8-9'}
+};
+const RM = { squat:315, bench:315, ohp:180, zercher:225, rdl:205, row:245, incline:265 };
+const rnd5 = w => Math.round(w/5)*5;
+const isDeload = w => w===5 || w===10;
+const acc = (w,s) => isDeload(w) ? Math.max(1,s-1) : s;          // accessory set wave
+const triSets = {1:3,2:3,3:4,4:4,5:2,6:4,7:4,8:5,9:5,10:3,11:6}; // Sunday tri-set wave
+const RUN = {1:'15 min easy',2:'15 min easy',3:'18 min easy',4:'20 min easy',5:'12 min very easy',
+  6:'20 min easy',7:'22 min easy',8:'22 min + 3-4 pickups',9:'25 min + 4-5 pickups',10:'12 min very easy',11:'25 min + pickups'};
+
+// spec helpers -> {l1, l2}
+const mainSpec = rm => w => { const v = WAVE[w];
+  return { l1: `${v.sets} × ${v.reps} @ ${rnd5(rm*v.pct/100)} <span class="u">lb</span>`,
+           l2: `${v.pct}% of ${rm} · RPE ${v.rpe}` }; };
+const accSpec = (sets,reps,wt,extra) => w =>
+  ({ l1: `${acc(w,sets)} × ${reps}${wt?` @ ${wt} <span class="u">lb</span>`:''}`,
+     l2: (isDeload(w)?'deload — lighter · ':'') + 'auto-reg · RPE 7-8' + (extra?` · ${extra}`:'') });
+const fixed = (l1,l2) => () => ({l1, l2: l2||''});
+
+// ---------- decisions ----------
+const DECISIONS = [
+  {id:'D1', day:'mon', st:'open', title:'Heavy press: which lift owns Monday?', sub:'Dips = lower chest + triceps, so incline covers what dips don’t', anchor:'mon-press'},
+  {id:'D2', day:'mon', st:'leaning', title:'Second chest: weighted dips', sub:'Fastest setup in the gym · shoulder on-ramp is mandatory', anchor:'mon-chest2'},
+  {id:'D9', day:'fri', st:'leaning', title:'Landmine row stays — pair with landmine rotations?', sub:'Same bar, same footprint, adds rotational core — yes/no', anchor:'fri-landmine'},
+  {id:'D15', day:'thu', st:'open', title:'Split squat variant — exploring', sub:'Logged as a generic split squat until you pick', anchor:'thu-split'},
+  {id:'D4', day:'wed', st:'done', title:'Explosive pull: snatch-grip high pull', sub:'Wide grip — the upper back finishes the pull', anchor:'wed-pull'},
+  {id:'D10', day:'fri', st:'done', title:'Cossack = strength (Fri) · step-out = movement (Tue)', sub:'Confirmed', anchor:'fri-cossack'},
+  {id:'D11', day:'sun', st:'done', title:'Explosive contrast: keep trap bar → box jump', sub:'No runway for broad jumps — hamstring-bias cues instead', anchor:'sun-contrast'},
+  {id:'D12', day:'tue', st:'done', title:'Tuesday IR work: 90/90 hip IR lift-offs', sub:'Locked — box elevation is the progression', anchor:'tue-hipir'},
+  {id:'D3', day:'wed', st:'done', title:'4th back exercise: Hammer Row', sub:'Wednesday, after the pulldown superset', anchor:'wed-back4'},
+  {id:'D5', day:'tue', st:'done', title:'Hip block structure locked', sub:'Copenhagen + step-out superset → IR strength → mobility last', anchor:'tue-hips'},
+  {id:'D6', day:'sun', st:'done', title:'Sunday core: standard circuit after leg curls', sub:'Define per-day core menus later', anchor:'sun-core'},
+  {id:'D7', day:'sun', st:'done', title:'Sprints: 4-6 × 80 m, by feel', sub:'Distance is the metric, not time', anchor:'sun-sprints'},
+  {id:'D8', day:'mon', st:'done', title:'Swap: triceps Monday, carries + curls Wednesday', sub:'Kills the Sun/Mon back-to-back carries', anchor:'mon-tri'},
+  {id:'D13', day:'wed', st:'done', title:'Incline burnout: cut', sub:'No time — Hammer Row takes that budget', anchor:null}
+];
+
+// ---------- program ----------
+const DAYS = [
+{ id:'sun', tab:'SUN', name:'Athletic Power & Conditioning', focus:'Highest intensity day · locked structure, two additions',
+  warmup:[{t:'Jump Rope 3m'},{t:'Full Ankle 10m'},{t:'Dynamic 5m'}],
+  finisher:'5-8 min: Assault Bike, Row, or Speed Rope',
+  items:[
+    {name:'Back Squat', cat:'main', status:'keep', spec:mainSpec(RM.squat),
+      note:'Keep grinding squat mobility alongside.'},
+    {name:'Trap Bar Squat → Box Jump', cat:'power', status:'keep', anchor:'sun-contrast',
+      spec:w=>({l1:`${(isDeload(w)?3:4)} × (3 + 1) @ 185 <span class="u">lb</span>`, l2:'contrast set: 3 squats + 1 explosive jump'}),
+      note:'<b>Settled (D11)</b> — no runway for broad jumps in the gym, so the incumbent keeps the slot with a hamstring bias: deeper hinge, hips back on the squats, jump stays max-intent.'},
+    {name:'SkiErg 250m', cat:'conditioning', status:'keep', ss:'TRI-SET',
+      spec:w=>({l1:`${triSets[w]} × 250 <span class="u">m</span>`, l2:'minimal rest through the tri-set'})},
+    {name:"Farmer's Carry", cat:'conditioning', status:'keep', ss:'TRI-SET',
+      spec:w=>({l1:`${triSets[w]} × 40 <span class="u">m</span> @ 88 <span class="u">lb</span>`, l2:'per round'})},
+    {name:'KB Swings (Heavy)', cat:'conditioning', status:'keep', ss:'TRI-SET',
+      spec:w=>({l1:`${triSets[w]} × 10 @ 88 <span class="u">lb</span>`, l2:'circuit is working — tune, don’t rebuild. Work the assault bike in ("deadly").'})},
+    {name:'Sprints', cat:'conditioning', status:'new', anchor:'sun-sprints',
+      spec:w=>({l1: isDeload(w) ? 'skip on deload' : '4-6 × 80 <span class="u">m</span>', l2:'walk-back recovery · distance is the metric'}),
+      note:'<b>Settled (D7)</b> — by feel on the day: feeling good = sprint, anything less = strides or skip. Logged by distance, not time.'},
+    {name:'Lying Leg Curl', cat:'accessory', status:'keep', spec:accSpec(3,15,100),
+      note:'Listed alternative: Nordic curls, no machine required — ankles under a padded Smith bar (lowest setting) or the lat-pulldown thigh pads, band from the rack for assistance, eccentric-only 2×3-5 to start.'},
+    {name:'Core Circuit', cat:'core', status:'new', anchor:'sun-core',
+      spec:fixed('3 rounds','2-3 exercises — same format as Mon/Wed'),
+      note:'<b>Settled (D6)</b> — standard core circuit, placed after leg curls. Later pass: define what each day’s core block actually contains.'},
+  ]},
+
+{ id:'mon', tab:'MON', name:'Upper Strength — Heavy Pull', focus:'Back is the priority; chest slot in question',
+  warmup:[{t:'Jump Rope 3m'},{t:'Abbrev. Ankle 5m'},{t:'Dynamic 5m'}],
+  finisher:'5-8 min: KB Swings, Row, or Assault Bike',
+  items:[
+    {name:'Weighted Pull-up', cat:'accessory', status:'keep', spec:accSpec(3,8,'+35')},
+    {name:'Heavy Press — TBD', cat:'main', status:'decision', dec:'D1', anchor:'mon-press',
+      spec:()=>({l1:'', l2:''}),
+      note:'<b>D1</b> — still open, but D2 narrowed it: with dips covering the flat/decline plane, the case for incline here got stronger. Live pairings:',
+      opts:[
+        {key:'A', title:'Incline BB main + dips second', specFn:mainSpec(RM.incline),
+         body:'Cleanest plane coverage: heavy upper-chest wave, flat-ish compound behind it. Flat bench fully retires; new incline trend seeded ~265.'},
+        {key:'B', title:'Flat BB main + dips second', specFn:mainSpec(RM.bench),
+         body:'Keeps the 315 trend line — but both movements press the same plane; no upper chest all week.'},
+        {key:'C', title:'Flat BB main + incline BB speed-run second', specFn:mainSpec(RM.bench),
+         body:'Your parenthetical. Both barbells, both planes — but two bench setups is the slowest option on the clock.'}
+      ]},
+    {name:'Barbell Row', cat:'main', status:'keep', spec:mainSpec(RM.row),
+      note:'Form audit before week 1 — watch the videos, lock the hinge.'},
+    {name:'Second Chest — Weighted Dips', cat:'accessory', status:'decision', dec:'D2', anchor:'mon-chest2',
+      spec:()=>({l1:'', l2:''}),
+      note:'<b>D2 · leaning dips</b> — fastest setup in the gym. Shoulder on-ramp is mandatory: weeks 1-2 bodyweight, controlled ROM, add load only if the shoulder stays quiet.',
+      opts:[
+        {key:'A', title:'Weighted Dips', lean:true, specFn:w=>({l1:`${acc(w,3)} × 8 · BW wks 1-2, then +load`, l2:'auto-reg · RPE 7-8'}),
+         body:'Quick, heavy, compound. Slight forward lean, don’t bottom out — the shoulder decides the ROM.'},
+        {key:'B', title:'Incline BB speed-run', specFn:accSpec(3,8,null),
+         body:'Only if D1 stays flat BB — pairing C on the card above.'},
+        {key:'C', title:'Cable Fly / Pec Deck', specFn:accSpec(3,12,null,'squeeze 1s'),
+         body:'The bail-out if dips argue with the shoulder. Pure contraction, zero cost.'}
+      ]},
+    {name:'Face Pulls', cat:'accessory', status:'changed', spec:accSpec(3,15,40),
+      note:'<b>Rear delt fix</b> — contractions haven’t been honest. Lighter, slower, external-rotate hard at the end range.'},
+    {name:'Tricep Pushdown', cat:'accessory', status:'changed', ss:'SUPERSET', anchor:'mon-tri',
+      spec:accSpec(3,8,60),
+      note:'<b>Settled (D8)</b> — tricep superset moves here from Wednesday; carries + curls go the other way. Carries now land Sun / Wed instead of back-to-back.'},
+    {name:'Overhead Tricep Extension', cat:'accessory', status:'changed', ss:'SUPERSET',
+      spec:accSpec(3,8,45)},
+    {name:'Core Circuit', cat:'core', status:'keep', spec:fixed('3 rounds','2-3 exercises')},
+  ]},
+
+{ id:'tue', tab:'TUE', name:'Run + Hips', focus:'Renamed from "Run + Movement" — this is now the hip day',
+  warmup:[{t:'Full Ankle + Mobility 18m', old:true},{t:'Jump Rope 3m', nw:true},{t:'Abbrev. Ankle 5m', nw:true},{t:'Light Dynamic', nw:true}],
+  finisher:null,
+  items:[
+    {name:'Easy Run', cat:'conditioning', status:'keep',
+      spec:w=>({l1:RUN[w], l2:'genuinely easy — this stays the cardio focus'}),
+      note:'<b>Changed order</b>: trimmed warm-up, run first, get it done — mobility moves after.'},
+    {name:'Copenhagen Plank', cat:'movement', status:'new', ss:'SUPERSET', anchor:'tue-hips',
+      spec:w=>({l1:`${acc(w,3)} × 20-30<span class="u">s</span> /side`, l2:'adductor strength + core — double-counts both goals'}),
+      note:'<b>Settled (D5)</b> — block order: this superset → IR strength → mobility last. Setup still TBD: flat bench (padded) vs plyo box; start knee-supported short lever, earn the straight-leg version.'},
+    {name:"Pete's Step-Out Squat", cat:'movement', status:'new', ss:'SUPERSET',
+      spec:w=>({l1:`${acc(w,3)} × 6-8 /side · light KB`, l2:'movement dose — opens the hips post-run'}),
+      note:'Paired with Copenhagen. Kept light here — the loaded/strength version question lives at D10 (Friday).'},
+    {name:'90/90 Hip IR Lift-offs', cat:'movement', status:'new', anchor:'tue-hipir',
+      spec:fixed('2-3 × 6-8 /side','2s pause at the top'),
+      note:'<b>Settled (D12)</b> — locked in. Progression: seated lift-offs → foot elevated on a box → add holds or ankle weight.'},
+    {name:'Hip Mobility Flow', cat:'movement', status:'changed',
+      spec:fixed('5-8 min','90/90 switches + extra left IR live here'),
+      note:'Moved to close the session — mobility lands best on warm hips.'},
+  ]},
+
+{ id:'wed', tab:'WED', name:'Upper Power — Push', focus:'Explosive slot goes to the back; Hammer Row joins; burnout cut',
+  warmup:[{t:'Jump Rope 3m'},{t:'Abbrev. Ankle 5m'},{t:'Dynamic 5m'}],
+  finisher:'5-8 min: Jump Rope, Assault Bike, or Row',
+  items:[
+    {name:'Snatch-Grip High Pull', cat:'power', status:'changed', anchor:'wed-pull',
+      spec:w=>({l1:`${isDeload(w)?3:4} × ${w<5?4:3} @ ~75 <span class="u">lb</span> start`, l2:'goes first — nervous system freshest'}),
+      note:'<b>Settled (D4)</b> — replaces DB hang high pull. Wide grip, elbows high and wide, let scap retraction finish the pull. The back owns the explosive slot now.'},
+    {name:'Overhead Press', cat:'main', status:'keep', spec:mainSpec(RM.ohp),
+      note:'Shoulder still slightly tweaked — keep the shoulder mobility work running alongside; be honest on the day.'},
+    {name:'Plyo Push-up', cat:'power', status:'changed', ss:'SUPERSET',
+      spec:w=>({l1:`${w===5||w===10?2:(w===11?3:4)} × ${isDeload(w)?3:5}`, l2:'scapular control focus'}),
+      note:'Moves up to fill the incline-DB-press slot.'},
+    {name:'Lat Pulldown', cat:'accessory', status:'changed', ss:'SUPERSET',
+      spec:w=>({l1:`${w===5||w===10?2:4} × 8 @ 125 <span class="u">/side</span>`, l2:'Hammer machine'}),
+      note:'Moves up with the plyo push-up superset.'},
+    {name:'Hammer Row', cat:'accessory', status:'new', anchor:'wed-back4',
+      spec:accSpec(3,10,null,'per side'),
+      note:'<b>Settled (D3)</b> — the 4th back movement. Chest-supported on the machine, zero lower-back cost (rows + RDL + Zercher already tax the erectors). Weekly back stack: pull-ups, BB row, pulldowns, Hammer row.'},
+    {name:'Lateral Raises', cat:'accessory', status:'keep', spec:accSpec(3,10,25)},
+    {name:"Farmer's Carry", cat:'accessory', status:'changed', ss:'SUPERSET',
+      spec:w=>({l1:`${acc(w,3)} × 40 <span class="u">m</span> @ 88 <span class="u">lb</span>`, l2:'moved from Monday (D8) — carries now Sun / Wed'})},
+    {name:'DB Curls', cat:'accessory', status:'changed', ss:'SUPERSET',
+      spec:fixed('3 × 12 @ 35 lb','auto-reg · RPE 7-8'),
+      note:'Fixed: was 2 sets, should be 3 (D14 cleanup).'},
+    {name:'Core Circuit', cat:'core', status:'keep', spec:fixed('3 rounds','2-3 exercises')},
+  ]},
+
+{ id:'thu', tab:'THU', name:'Lower Strength & Development', focus:'Order locked; hip thrust humbled; calves finally on the books',
+  warmup:[{t:'Jump Rope 3m'},{t:'Full Ankle 10m'},{t:'Dynamic 5m'}],
+  finisher:'Row',
+  items:[
+    {name:'Zercher Squat', cat:'main', status:'keep', spec:mainSpec(RM.zercher),
+      note:'Staying — the variation has earned it. (Alt: front squat.)'},
+    {name:'Hip Thrust', cat:'accessory', status:'changed',
+      spec:w=>({l1:`${acc(w,3)} × 12 @ 225 <span class="u">lb base</span>`, l2:'down from 245 · RPE 7 · earn every 10 lb back'}),
+      note:'<b>No ego, but no sandbagging either</b> — 225 is the floor, per you. The fix is execution, not just weight: 2-second squeeze, posterior tilt, stop shy of lumbar takeover.'},
+    {name:'Split Squat — variant TBD', cat:'accessory', status:'changed', dec:'D15', anchor:'thu-split',
+      spec:accSpec(3,8,null,'per side'),
+      note:'<b>D15 · exploring</b> — logged as a generic split squat until you pick. On the table so far: BB step-back lunge (the one you tried — already at the rack, hip/glute-dominant), BB back-rack Bulgarian (stable, easy to progress), or fixing the KB version. The slot doesn’t move either way.'},
+    {name:'Romanian Deadlift', cat:'main', status:'keep', spec:mainSpec(RM.rdl),
+      note:'Order stays Zercher → thrust → split squat → RDL for now; leaving the rack and coming back isn’t worth it.'},
+    {name:'Close-Stance Smith Squat', cat:'accessory', status:'keep', spec:accSpec(3,8,225,'burnout'),
+      note:'Keep the fun one. Hip activation work beside the machine while you’re there.'},
+    {name:'Calf Raises', cat:'accessory', status:'new', spec:accSpec(3,12,null,'slow eccentric, pause at stretch'),
+      note:'Was happening ad hoc — now actually programmed. Close stance, on the Smith.'},
+  ]},
+
+{ id:'fri', tab:'FRI', name:'Athletic Lower & Agility', focus:'Movement quality day · most freedom to change',
+  warmup:[{t:'Jump Rope 3m'},{t:'Full Ankle 10m'},{t:'Dynamic 5m'},{t:'Agility Drills 7m'}],
+  finisher:null,
+  items:[
+    {name:'Box Jump — 1-Foot Lateral Sequence', cat:'power', status:'changed',
+      spec:w=>({l1:`${isDeload(w)?3:4} × ${isDeload(w)?2:3} <span class="u">/side</span>`, l2:'reps down vs standard box jump — single-leg + technical'}),
+      note:'New variation: start beside the box → single-foot jump up → lateral hop down to the other foot in front → jump up off that foot. Revert to standard if it doesn’t feel right.'},
+    {name:'Landmine Explosive Row', cat:'power', status:'keep', dec:'D9', anchor:'fri-landmine',
+      spec:w=>({l1:`${acc(w,3)} × 12 @ 45 <span class="u">plate</span>`, l2:'one-arm row → press transition'}),
+      note:'<b>D9 · row stays</b> (no floor space for med-ball work). One open add-on: superset it with <b>landmine rotations</b> — same bar, same footprint. Bar held at chest height, sweep hip-to-hip with soft arms, 2×8/side after each row set. Turns the slot into an explicit rotational-core block for zero extra space. Yes/no?'},
+    {name:'Cossack Squat (loaded)', cat:'movement', status:'keep', anchor:'fri-cossack',
+      spec:accSpec(3,8,50,'per side — progress the load'),
+      note:'<b>Settled (D10)</b> — this is the strength one: stable base, progress past 50 lb into end-range adduction. The step-out lives Tuesday as the movement dose.'},
+    {name:'Hip Abduction', cat:'accessory', status:'keep', must:true, spec:accSpec(3,12,120)},
+    {name:'Hip Adduction', cat:'accessory', status:'keep', must:true, spec:accSpec(3,12,110),
+      note:'Non-negotiable pair. (This is why the internal-rotation work lives on Tuesday — doing it after these is a nightmare.)'},
+    {name:'Pogo Hops', cat:'power', status:'keep', spec:accSpec(3,15,null)},
+  ]},
+
+{ id:'sat', tab:'SAT', name:'Rest', focus:'Full rest — home protocol only if anything',
+  warmup:[], finisher:null,
+  items:[
+    {name:'Foot & Ankle (home)', cat:'movement', status:'keep', spec:fixed('wobble board + short foot','couch-adjacent, 10 min')},
+    {name:'Neck (home)', cat:'movement', status:'keep', spec:fixed('the equipment exists','make it a habit hook')},
+  ]},
+];
+
+// ---------- render ----------
+let curWeek = 1, curDay = 'sun';
+const $ = s => document.querySelector(s);
+
+function decCountFor(dayId){ return DECISIONS.filter(d=>d.day===dayId && d.st!=='done').length; }
+
+function renderControls(){
+  $('#weeks').innerHTML = Object.keys(WAVE).map(w=>{
+    const v=WAVE[w];
+    return `<button class="wk ${+w===curWeek?'sel':''}" data-block="${v.code}" onclick="setWeek(${w})">${w}<small>${v.code==='H'?'HYP':v.code==='D'?'DEL':v.code==='S'?'STR':'PEAK'}</small></button>`;
+  }).join('');
+  const v=WAVE[curWeek];
+  const bc = v.code==='H'?'var(--indigo-lt)':v.code==='D'?'var(--green)':v.code==='S'?'var(--amber)':'var(--pink)';
+  $('#blockline').innerHTML = `<b style="color:${bc}">Week ${curWeek} · ${v.block}</b> — mains ${v.sets}×${v.reps} @ ${v.pct}% · RPE ${v.rpe}${isDeload(curWeek)?' · accessories drop a set, go lighter':''}`;
+  $('#days').innerHTML = DAYS.map(d=>{
+    const n = decCountFor(d.id);
+    return `<button class="day-tab ${d.id===curDay?'sel':''}" onclick="setDay('${d.id}')">${d.tab}${n?`<span class="dcount">${n}</span>`:''}</button>`;
+  }).join('');
+}
+
+function badgeRow(it){
+  const b=[];
+  if(it.cat==='main') b.push('<span class="badge b-main">Main · %1RM</span>');
+  else b.push(`<span class="badge b-cat">${it.cat}</span>`);
+  if(it.must) b.push('<span class="badge b-must">Must-do</span>');
+  if(it.ss) b.push(`<span class="badge b-ss">${it.ss}</span>`);
+  if(it.status==='new') b.push('<span class="badge b-new">New</span>');
+  if(it.status==='changed') b.push('<span class="badge b-changed">Changed</span>');
+  if(it.dec) b.push(`<span class="badge b-decision">${it.dec} · Decision</span>`);
+  return `<div class="badges">${b.join('')}</div>`;
+}
+
+function renderDay(){
+  const d = DAYS.find(x=>x.id===curDay);
+  let html = `<div class="day-head"><h2>${d.name}</h2><div class="focus-line">${d.focus}</div>`;
+  if(d.warmup.length){
+    html += `<div class="warmup"><span class="wu-label">WARM-UP</span>` +
+      d.warmup.map(w=>`<span class="chip ${w.old?'old':''} ${w.nw?'new-chip':''}">${w.t}</span>`).join('') + `</div>`;
+  }
+  html += `</div>`;
+  let n=0;
+  html += d.items.map(it=>{
+    n++;
+    const cls = it.status==='decision'||it.dec ? (it.status==='ghost'?'ghost decision':'decision') :
+                it.status==='ghost' ? 'ghost' : it.status==='new' ? 'new' : '';
+    const sp = it.spec(curWeek);
+    let inner = `<div class="ex-top"><span class="ex-num">${String(n).padStart(2,'0')}</span><span class="ex-name">${it.name}</span></div>`;
+    inner += badgeRow(it);
+    if(sp.l1) inner += `<div class="spec"><div class="line1">${sp.l1}</div>${sp.l2?`<div class="line2">${sp.l2}</div>`:''}</div>`;
+    if(it.note) inner += `<div class="note">${it.note}</div>`;
+    if(it.opts){
+      inner += `<div class="opts">` + it.opts.map(o=>{
+        const os = o.specFn ? o.specFn(curWeek) : null;
+        return `<div class="opt ${o.lean?'lean':''}"><div class="o-head"><span class="o-key">${o.key}</span><span class="o-title">${o.title}</span>${o.lean?'<span class="lean-tag">· leaning</span>':''}</div>${os&&os.l1?`<div class="o-spec">${os.l1}${os.l2?` · ${os.l2}`:''}</div>`:''}${o.body?`<div class="o-body">${o.body}</div>`:''}</div>`;
+      }).join('') + `</div>`;
+    }
+    return `<div class="card ${cls}" ${it.anchor?`id="${it.anchor}"`:''}>${inner}</div>`;
+  }).join('');
+  if(d.finisher) html += `<div class="finisher"><b>FINISHER</b> ${d.finisher}</div>`;
+  $('#daypanel').innerHTML = html;
+}
+
+function renderDecisions(){
+  const open = DECISIONS.filter(d=>d.st!=='done');
+  $('#deccount').textContent = open.length;
+  const row = d=>{
+    const day = DAYS.find(x=>x.id===d.day);
+    const click = d.anchor ? `jumpTo('${d.day}','${d.anchor}')` : `setDay('${d.day}')`;
+    return `<button class="dec-row ${d.st==='done'?'done':''}" onclick="${click}">
+      <span class="dec-num ${d.st==='done'?'done':''}">${d.st==='done'?'✓':d.id.slice(1)}</span>
+      <span class="dec-body"><span class="dec-title">${d.title}</span><br><span class="dec-sub">${d.sub}</span></span>
+      <span class="dec-day">${day.tab}</span></button>`;
+  };
+  $('#declist').innerHTML = open.map(row).join('')
+    + `<div class="section-label" style="margin-top:18px">Settled</div>`
+    + DECISIONS.filter(d=>d.st==='done').map(row).join('');
+}
+
+// ---------- load model ----------
+// [key, label, tag] — anatomical order for the heatmap
+const MUSCLES = [
+  ['quads','Quads',''], ['glutes','Glutes','goal'], ['hams','Hamstrings',''],
+  ['adductors','Adductors','goal'], ['hipstab','Hip Stabilizers','goal'], ['calves','Calves',''],
+  ['erectors','Lower Back',''], ['core','Core','goal'],
+  ['lats','Lats','goal'], ['upperback','Upper Back & Traps','goal'], ['reardelts','Rear Delts',''],
+  ['chest','Chest','maint'], ['delts','Delts (front/side)','maint'],
+  ['triceps','Triceps','maint'], ['biceps','Biceps','maint'], ['grip','Grip','']
+];
+const LOAD_DAYS = ['sun','mon','tue','wed','thu','fri'];
+const DAY_LBL = {sun:'SUN',mon:'MON',tue:'TUE',wed:'WED',thu:'THU',fri:'FRI'};
+const mset = w => WAVE[w].sets;
+// * = assumes the current lean on an open decision
+const LX = [
+  {d:'sun', n:'Back Squat', s:mset, m:{quads:1,glutes:.5,core:.5,erectors:.5}},
+  {d:'sun', n:'Trap Bar + Jump', s:w=>isDeload(w)?3:4, m:{quads:1,glutes:.5,calves:.5}},
+  {d:'sun', n:'SkiErg', s:w=>triSets[w], m:{lats:.5,core:.5}},
+  {d:'sun', n:"Farmer's Carry", s:w=>triSets[w], m:{grip:1,core:.5,upperback:.5}},
+  {d:'sun', n:'KB Swings', s:w=>triSets[w], m:{hams:1,glutes:.5,core:.5}},
+  {d:'sun', n:'Sprints', s:w=>isDeload(w)?0:5, m:{hams:1,glutes:.5,calves:.5}},
+  {d:'sun', n:'Leg Curl', s:w=>acc(w,3), m:{hams:1}},
+  {d:'sun', n:'Core Circuit', s:()=>3, m:{core:1}},
+  {d:'mon', n:'Weighted Pull-up', s:w=>acc(w,3), m:{lats:1,biceps:.5,upperback:.5}},
+  {d:'mon', n:'Incline BB Press*', s:mset, m:{chest:1,delts:.5,triceps:.5}},
+  {d:'mon', n:'Barbell Row', s:mset, m:{upperback:1,lats:.5,biceps:.5,erectors:.5}},
+  {d:'mon', n:'Weighted Dips*', s:w=>acc(w,3), m:{chest:1,triceps:.5,delts:.5}},
+  {d:'mon', n:'Face Pulls', s:w=>acc(w,3), m:{reardelts:1,upperback:.5}},
+  {d:'mon', n:'Tricep Superset', s:w=>acc(w,3)*2, m:{triceps:1}},
+  {d:'mon', n:'Core Circuit', s:()=>3, m:{core:1}},
+  {d:'tue', n:'Copenhagen Plank', s:w=>acc(w,3), m:{adductors:1,core:.5}},
+  {d:'tue', n:'Step-Out Squat', s:w=>acc(w,3), m:{adductors:.5,hipstab:.5,quads:.5}},
+  {d:'tue', n:'90/90 IR Lift-offs', s:()=>2, m:{hipstab:1}},
+  {d:'wed', n:'Snatch-Grip High Pull', s:w=>isDeload(w)?3:4, m:{upperback:1,reardelts:.5,glutes:.5}},
+  {d:'wed', n:'Overhead Press', s:mset, m:{delts:1,triceps:.5,core:.5}},
+  {d:'wed', n:'Plyo Push-up', s:w=>(w===5||w===10)?2:(w===11?3:4), m:{chest:1,triceps:.5}},
+  {d:'wed', n:'Lat Pulldown', s:w=>(w===5||w===10)?2:4, m:{lats:1,upperback:.5,biceps:.5}},
+  {d:'wed', n:'Hammer Row', s:w=>acc(w,3), m:{upperback:1,lats:.5,biceps:.5}},
+  {d:'wed', n:'Lateral Raises', s:w=>acc(w,3), m:{delts:1}},
+  {d:'wed', n:"Farmer's Carry", s:w=>acc(w,3), m:{grip:1,core:.5,upperback:.5}},
+  {d:'wed', n:'DB Curls', s:()=>3, m:{biceps:1}},
+  {d:'wed', n:'Core Circuit', s:()=>3, m:{core:1}},
+  {d:'thu', n:'Zercher Squat', s:mset, m:{quads:1,glutes:.5,core:.5,upperback:.5,erectors:.5}},
+  {d:'thu', n:'Hip Thrust', s:w=>acc(w,3), m:{glutes:1,hams:.5}},
+  {d:'thu', n:'Split Squat (variant TBD)', s:w=>acc(w,3), m:{glutes:1,quads:.5,hipstab:.5}},
+  {d:'thu', n:'Romanian Deadlift', s:mset, m:{hams:1,glutes:.5,erectors:.5}},
+  {d:'thu', n:'Smith Close Squat', s:w=>acc(w,3), m:{quads:1}},
+  {d:'thu', n:'Calf Raises', s:w=>acc(w,3), m:{calves:1}},
+  {d:'fri', n:'1-Foot Lateral Box Jump', s:w=>isDeload(w)?3:4, m:{calves:.5,quads:.5,glutes:.5,hipstab:.5}},
+  {d:'fri', n:'Landmine Explosive Row', s:w=>acc(w,3), m:{upperback:1,reardelts:.5,core:.5}},
+  {d:'fri', n:'Cossack Squat', s:w=>acc(w,3), m:{adductors:1,quads:.5}},
+  {d:'fri', n:'Hip Abduction', s:w=>acc(w,3), m:{hipstab:1}},
+  {d:'fri', n:'Hip Adduction', s:w=>acc(w,3), m:{adductors:1}},
+  {d:'fri', n:'Pogo Hops', s:w=>acc(w,3), m:{calves:1}}
+];
+// sequential indigo ramp, dark -> bright = light -> heavy (monotone lightness)
+const RAMP = ['#232345','#2f3172','#3d41a5','#4f55d2','#7c86f8'];
+const rampColor = v => v<=0 ? null : RAMP[Math.min(RAMP.length-1, Math.floor((v-0.01)/2))];
+
+function loadMatrix(w){
+  const cells = {};   // 'muscle|day' -> {total, items:[{n, sets, wt}]}
+  for(const ex of LX){
+    const sets = ex.s(w);
+    if(!sets) continue;
+    for(const [mus, wt] of Object.entries(ex.m)){
+      const k = mus+'|'+ex.d;
+      (cells[k] ||= {total:0, items:[]});
+      cells[k].total += sets*wt;
+      cells[k].items.push({n:ex.n, sets, wt});
+    }
+  }
+  return cells;
+}
+const fmt1 = v => (Math.round(v*10)/10).toString();
+
+let loadView = 'hm', selCell = null;
+function setLoadView(v){ loadView=v; selCell=null; renderLoad(); }
+function pickCell(mus, day){ selCell = mus+'|'+day; renderLoad(); }
+
+function renderLoad(){
+  const w = curWeek, cells = loadMatrix(w);
+  document.getElementById('lmweek').textContent = w + ' · ' + WAVE[w].block.toLowerCase();
+  document.getElementById('lt-hm').className = loadView==='hm'?'sel':'';
+  document.getElementById('lt-tb').className = loadView==='table'?'sel':'';
+
+  if(loadView==='hm'){
+    let html = `<div class="hm"><div class="hm-row"><span></span>` +
+      LOAD_DAYS.map(d=>`<span class="hm-head">${DAY_LBL[d]}</span>`).join('') + `</div>`;
+    for(const [key,label,tag] of MUSCLES){
+      html += `<div class="hm-row"><span class="hm-label ${tag==='maint'?'dimmed':''}">${tag==='goal'?'<span class="g"></span>':''}${label}</span>`;
+      for(const d of LOAD_DAYS){
+        const c = cells[key+'|'+d], v = c?c.total:0, col = rampColor(v);
+        const on = selCell===key+'|'+d ? 'on' : '';
+        html += col
+          ? `<button class="hm-cell ${on}" style="background:${col}" onclick="pickCell('${key}','${d}')" aria-label="${label} ${DAY_LBL[d]}: ${fmt1(v)} sets"></button>`
+          : `<button class="hm-cell z" tabindex="-1" aria-hidden="true"></button>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+    document.getElementById('loadgrid').innerHTML = html;
+    document.getElementById('ramp').innerHTML =
+      `<span>light</span>` + RAMP.map(c=>`<span class="step" style="background:${c}"></span>`).join('') + `<span>heavy</span><span style="margin-left:8px">(weighted sets: 0-2 · 2-4 · 4-6 · 6-8 · 8+)</span>`;
+    const cd = document.getElementById('celldetail');
+    if(selCell && cells[selCell]){
+      const [mus, day] = selCell.split('|');
+      const m = MUSCLES.find(x=>x[0]===mus), c = cells[selCell];
+      cd.innerHTML = `<b>${m[1]} — ${DAY_LBL[day]}</b> · ${fmt1(c.total)} weighted sets` +
+        c.items.map(i=>`<div class="row"><span>${i.n}</span><span>${i.sets} × ${i.wt===1?'direct':'half'}</span></div>`).join('');
+    } else {
+      cd.textContent = 'Tap a cell to see which exercises load that muscle that day.';
+    }
+  } else {
+    let html = `<div style="overflow-x:auto"><table class="load-table"><tr><th>Muscle</th>` +
+      LOAD_DAYS.map(d=>`<th>${DAY_LBL[d]}</th>`).join('') + `<th>WK</th></tr>`;
+    for(const [key,label] of MUSCLES){
+      let tot=0;
+      const tds = LOAD_DAYS.map(d=>{ const v=cells[key+'|'+d]?.total||0; tot+=v; return `<td>${v?fmt1(v):'—'}</td>`; }).join('');
+      html += `<tr><td>${label}</td>${tds}<td><b style="color:var(--text)">${fmt1(tot)}</b></td></tr>`;
+    }
+    html += `</table></div>`;
+    document.getElementById('loadgrid').innerHTML = html;
+    document.getElementById('ramp').innerHTML = '';
+    document.getElementById('celldetail').textContent = 'Weighted sets per muscle per day. WK = weekly total.';
+  }
+
+  // volume bars, sorted desc
+  const rows = MUSCLES.map(([key,label,tag])=>{
+    let direct=0, indirect=0;
+    for(const d of LOAD_DAYS){
+      const c = cells[key+'|'+d]; if(!c) continue;
+      for(const i of c.items){ if(i.wt===1) direct+=i.sets; else indirect+=i.sets*i.wt; }
+    }
+    return {key,label,tag,direct,indirect,total:direct+indirect};
+  }).sort((a,b)=>b.total-a.total);
+  const max = Math.max(...rows.map(r=>r.total), 1);
+  document.getElementById('volbars').innerHTML = rows.map(r=>{
+    const dw = r.direct/max*100, iw = r.indirect/max*100;
+    return `<div class="vb-row"><span class="vb-label ${r.tag==='maint'?'dimmed':''}" style="${r.tag==='maint'?'color:var(--dim)':''}">${r.tag==='goal'?'<span class="g" style="width:5px;height:5px;border-radius:3px;background:var(--indigo-lt);display:inline-block"></span>':''}${r.label}</span>` +
+      `<span class="vb-track">${r.direct?`<span class="vb-seg direct ${r.indirect?'first':''}" style="width:${dw}%"></span>`:''}${r.indirect?`<span class="vb-seg indirect" style="width:${iw}%"></span>`:''}</span>` +
+      `<span class="vb-val">${fmt1(r.total)}</span></div>`;
+  }).join('');
+
+  // recovery flags: consecutive days both >= 2.5 weighted sets
+  const flags = [];
+  for(const [key,label] of MUSCLES){
+    for(let i=0;i<LOAD_DAYS.length-1;i++){
+      const a = cells[key+'|'+LOAD_DAYS[i]]?.total||0, b = cells[key+'|'+LOAD_DAYS[i+1]]?.total||0;
+      if(a>=2.5 && b>=2.5) flags.push({label, from:DAY_LBL[LOAD_DAYS[i]], to:DAY_LBL[LOAD_DAYS[i+1]], a, b});
+    }
+  }
+  document.getElementById('recovery').innerHTML = flags.length
+    ? flags.map(f=>`<div class="flag"><span class="fi">▲</span><span><b style="color:var(--text)">${f.label}</b> — ${f.from} (${fmt1(f.a)}) → ${f.to} (${fmt1(f.b)}) back-to-back. Fine if the second day is genuinely light/explosive; worth watching.</span></div>`).join('')
+    : `<div class="flag"><span class="fi">✓</span><span>No muscle gets hit hard on consecutive days this week.</span></div>`;
+}
+
+function setWeek(w){ curWeek=w; renderControls(); renderDay(); renderLoad(); }
+function setDay(id){ curDay=id; renderControls(); renderDay(); }
+function jumpTo(day, anchor){
+  setDay(day);
+  requestAnimationFrame(()=>{
+    const el = document.getElementById(anchor);
+    if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  });
+}
+
+renderControls(); renderDay(); renderDecisions(); renderLoad();
+</script>

@@ -22,7 +22,7 @@ import { getLocalDateString } from '../utils/date';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
-  isFinalTrainingSession,
+  isFinalTrainingSession, resolveOneRm,
 } from '../utils/program';
 import { Colors } from '../theme';
 import type { Program, ProgramDefinition, ExerciseSlot, SetLog, Session, SessionProtocol } from '../types';
@@ -236,7 +236,7 @@ export function useWorkoutSession() {
       if (!target) continue;
 
       const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
-      const oneRm = exerciseDef?.one_rm;
+      const oneRm = resolveOneRm(active.one_rm_values, slot.exercise_id, exerciseDef?.one_rm);
       const reps = target.reps == null ? 0 : typeof target.reps === 'string' ? parseInt(target.reps) || 8 : target.reps;
 
       let suggestedWeight = 0;
@@ -477,7 +477,7 @@ export function useWorkoutSession() {
       if (!target) continue;
 
       const exerciseDef = def.exercise_definitions.find(e => e.id === slot.exercise_id);
-      const oneRm = exerciseDef?.one_rm;
+      const oneRm = resolveOneRm(program.one_rm_values, slot.exercise_id, exerciseDef?.one_rm);
 
       // Ensure exercise exists in DB (guards against missing exercise_definitions)
       await ensureExerciseExists({

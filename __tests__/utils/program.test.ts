@@ -3,7 +3,8 @@ import {
   getTargetForWeek, getSuggestedWeight, getCurrentWeek, getTodayKey,
   DAY_ORDER, DAY_NAMES,
   getLastTrainingDay, isFinalTrainingSession,
-  buildProgramCatalog,
+  buildProgramCatalog, isBundledProgramImported,
+  resolveOneRm,
 } from '../../src/utils/program';
 import type { Block, ExerciseSlot, Program } from '../../src/types';
 import type { ProgramDefinition } from '../../src/types';
@@ -297,5 +298,101 @@ describe('buildProgramCatalog', () => {
     ]);
 
     expect(catalog.map(e => e.program.id)).toEqual(['v1', 'v3', 'v2']);
+  });
+
+  it('excludes an archived-only group with no bundled_id (v16-archived legacy draft)', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'legacy-v2', name: 'Functional Athlete v2', status: 'archived', bundled_id: undefined }),
+    ]);
+
+    expect(catalog).toHaveLength(0);
+  });
+
+  it('offers restart for an archived-only group that has a bundled_id (stopped bundled program)', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'run-1', status: 'archived', bundled_id: 'fa', created_date: '2026-03-21' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('run-1');
+    expect(catalog[0].isActive).toBe(false);
+    expect(catalog[0].action).toEqual({ type: 'restart', programId: 'run-1' });
+  });
+
+  it('offers restart for a completed-only group with no bundled_id (seeded sample program)', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'sample-1', name: 'Sample Program', status: 'completed', bundled_id: undefined, created_date: '2026-03-21' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('sample-1');
+    expect(catalog[0].isActive).toBe(false);
+    expect(catalog[0].action).toEqual({ type: 'restart', programId: 'sample-1' });
+  });
+
+  it('still surfaces the active program first even when an inert archived group would otherwise be excluded', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'legacy-v2', name: 'Functional Athlete v2', status: 'archived', bundled_id: undefined }),
+      row({ id: 'active-1', name: 'Functional Athlete', status: 'active', bundled_id: 'fa', created_date: '2026-07-07' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('active-1');
+    expect(catalog[0].isActive).toBe(true);
+  });
+});
+
+// ── isBundledProgramImported ──
+
+describe('isBundledProgramImported', () => {
+  const def = {
+    program: { id: 'functional-athlete-pillars', name: 'Functional Athlete — Pillars' },
+  } as any;
+
+  it('matches by bundled_id', () => {
+    const programs = [{ bundled_id: 'functional-athlete-pillars', name: 'Renamed Later' }] as any[];
+    expect(isBundledProgramImported(programs, def)).toBe(true);
+  });
+
+  it('falls back to name match for legacy rows without bundled_id', () => {
+    const programs = [{ bundled_id: null, name: 'Functional Athlete — Pillars' }] as any[];
+    expect(isBundledProgramImported(programs, def)).toBe(true);
+  });
+
+  it('returns false when neither matches', () => {
+    const programs = [{ bundled_id: 'functional-athlete', name: 'Functional Athlete' }] as any[];
+    expect(isBundledProgramImported(programs, def)).toBe(false);
+  });
+});
+
+// ── resolveOneRm ──
+
+describe('resolveOneRm', () => {
+  const seeds = JSON.stringify({ back_squat: 348, barbell_row: 260 });
+
+  it('prefers the run seed over the definition value', () => {
+    expect(resolveOneRm(seeds, 'back_squat', 315)).toBe(348);
+  });
+
+  it('falls back to the definition value when the exercise has no seed', () => {
+    expect(resolveOneRm(seeds, 'incline_bench_bb', 265)).toBe(265);
+  });
+
+  it('falls back when the column is null or undefined', () => {
+    expect(resolveOneRm(null, 'back_squat', 315)).toBe(315);
+    expect(resolveOneRm(undefined, 'back_squat', 315)).toBe(315);
+  });
+
+  it('falls back on invalid JSON', () => {
+    expect(resolveOneRm('not json', 'back_squat', 315)).toBe(315);
+  });
+
+  it('ignores non-positive or non-numeric seeds', () => {
+    expect(resolveOneRm(JSON.stringify({ back_squat: 0 }), 'back_squat', 315)).toBe(315);
+    expect(resolveOneRm(JSON.stringify({ back_squat: 'x' }), 'back_squat', 315)).toBe(315);
+  });
+
+  it('returns undefined when nothing resolves (accessory without 1RM)', () => {
+    expect(resolveOneRm(null, 'face_pulls', undefined)).toBeUndefined();
   });
 });

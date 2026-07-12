@@ -10,6 +10,8 @@ export interface ProgramDefinition {
     id?: string;
     name: string;
     duration_weeks: number;
+    /** Optional goal tags rendered as chips on program cards (e.g. ["hips","core","back"]) */
+    focus?: string[];
     created: string;
     blocks: Block[];
     weekly_template: WeeklyTemplate;

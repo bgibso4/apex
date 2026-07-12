@@ -4,6 +4,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { CREATE_TABLES, SCHEMA_VERSION } from './schema';
+import { archiveLegacyV2Programs } from './migrations';
 
 let db: SQLite.SQLiteDatabase | null = null;
 
@@ -235,6 +236,13 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
           WHERE s.completed_at IS NOT NULL AND s.week_number >= p.duration_weeks
         )
       `);
+    }
+
+    // v16: archive the orphaned pre-launch "Functional Athlete v2" row —
+    // obsolete 12-week draft, unmatchable by the bundled refresh, and
+    // accidentally activatable until now. Archived, not deleted.
+    if (currentVersion < 16) {
+      await archiveLegacyV2Programs(db);
     }
 
     // Safety net: ensure critical columns exist regardless of version

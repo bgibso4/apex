@@ -32,7 +32,11 @@ export default function RootLayout() {
       await Promise.all([
         getDatabase().then(async () => {
           for (const def of BUNDLED_PROGRAMS) {
-            await refreshBundledProgram(def);
+            try {
+              await refreshBundledProgram(def);
+            } catch (e) {
+              console.warn(`Bundled program refresh failed (${def.program.name}):`, e);
+            }
           }
         }),
         Object.keys(CUSTOM_FONTS).length > 0

@@ -10,6 +10,8 @@ export interface Program {
   created_date: string;
   status: 'inactive' | 'active' | 'completed' | 'archived';
   definition_json: string;
+  /** Per-run working 1RMs seeded at activation: JSON Record<exercise_id, number> */
+  one_rm_values?: string | null;
   activated_date?: string;
   is_sample?: number;
   bundled_id?: string;

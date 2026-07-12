@@ -21,6 +21,21 @@ export async function getActiveProgram(): Promise<(Program & { definition: Progr
   return { ...row, definition };
 }
 
+/** Get any program by row id, with parsed definition (for viewing past sessions) */
+export async function getProgramById(
+  programId: string
+): Promise<(Program & { definition: ProgramDefinition }) | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<Program>(
+    'SELECT * FROM programs WHERE id = ? LIMIT 1',
+    [programId]
+  );
+  if (!row) return null;
+
+  const definition = JSON.parse(row.definition_json) as ProgramDefinition;
+  return { ...row, definition };
+}
+
 /** Get all programs (for Program Library) */
 export async function getAllPrograms(): Promise<Program[]> {
   const db = await getDatabase();

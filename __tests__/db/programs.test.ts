@@ -5,6 +5,7 @@
 import { getDatabase, generateId } from '../../src/db/database';
 import {
   getActiveProgram,
+  getProgramById,
   getAllPrograms,
   importProgram,
   activateProgram,
@@ -442,6 +443,40 @@ describe('programs', () => {
       );
       expect(dismissCall).toBeDefined();
       expect(dismissCall![0]).toContain("WHERE status = 'completed'");
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getProgramById
+  // ---------------------------------------------------------------------------
+  describe('getProgramById', () => {
+    it('returns the program row with parsed definition', async () => {
+      const mockDb = createMockDb();
+      (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+      const def = makeProgramDef({ name: 'Old Program' });
+      mockDb.getFirstAsync.mockResolvedValue({
+        id: 'prog-1',
+        name: 'Old Program',
+        status: 'archived',
+        definition_json: JSON.stringify(def),
+      });
+
+      const result = await getProgramById('prog-1');
+
+      expect(mockDb.getFirstAsync).toHaveBeenCalledWith(
+        expect.stringContaining('WHERE id = ?'),
+        ['prog-1']
+      );
+      expect(result?.name).toBe('Old Program');
+      expect(result?.definition.program.name).toBe('Old Program');
+    });
+
+    it('returns null when the program does not exist', async () => {
+      const mockDb = createMockDb();
+      (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+      mockDb.getFirstAsync.mockResolvedValue(null);
+
+      expect(await getProgramById('missing')).toBeNull();
     });
   });
 });

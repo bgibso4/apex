@@ -58,7 +58,7 @@ Finisher: 5-8 min
 Removed: standalone BW Cossack (absorbed by step-out).
 
 **Wednesday — Upper Power · Push** (warmup: jump rope, abbreviated ankle, dynamic)
-1. **Snatch-Grip High Pull (new, replaces DB Hang High Pull)** — **4×4 @ ~75 lb, constant sets/reps/weight for the whole program** (no between-block rep micro-tweaks); deloads 3×4; goes first
+1. **Snatch-Grip High Pull (new, replaces DB Hang High Pull)** — **4×4 @ 155 lb, constant sets/reps/weight for the whole program** (no between-block rep micro-tweaks); deloads 3×4; goes first. Reference points: 135 is easy, ~185 possible with straps; straps optional (probably yes)
 2. Overhead Press — main, %1RM wave (shoulder mobility work continues alongside)
 3. Superset `wednesday-plyo-lat` (moved up): Plyo Push-up ×5 · Lat Pulldown ×8 @ 125/side — **reps never deload; sets always match across the superset**: 4 sets normal weeks, 2 sets deloads, 3 sets wk 11
 4. **Hammer Row (new)** — 3×10/side, auto-reg; chest-supported, no lower-back cost

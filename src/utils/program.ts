@@ -172,6 +172,25 @@ export function getTodayKey(): string {
   return DAY_ORDER[new Date().getDay()];
 }
 
+/** Resolve the working 1RM for an exercise: the run's activation-time seeds
+ *  first (programs.one_rm_values JSON), then the definition's seed value. */
+export function resolveOneRm(
+  oneRmValuesJson: string | null | undefined,
+  exerciseId: string,
+  definitionOneRm: number | undefined
+): number | undefined {
+  if (oneRmValuesJson) {
+    try {
+      const seeds = JSON.parse(oneRmValuesJson) as Record<string, unknown>;
+      const seed = seeds[exerciseId];
+      if (typeof seed === 'number' && seed > 0) return seed;
+    } catch {
+      // fall through to the definition seed
+    }
+  }
+  return definitionOneRm;
+}
+
 /** True if a bundled definition already has a row (by bundled_id, name fallback for legacy rows) */
 export function isBundledProgramImported(
   programs: Pick<Program, 'bundled_id' | 'name'>[],

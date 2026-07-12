@@ -4,6 +4,7 @@ import {
   DAY_ORDER, DAY_NAMES,
   getLastTrainingDay, isFinalTrainingSession,
   buildProgramCatalog, isBundledProgramImported,
+  resolveOneRm,
 } from '../../src/utils/program';
 import type { Block, ExerciseSlot, Program } from '../../src/types';
 import type { ProgramDefinition } from '../../src/types';
@@ -361,5 +362,37 @@ describe('isBundledProgramImported', () => {
   it('returns false when neither matches', () => {
     const programs = [{ bundled_id: 'functional-athlete', name: 'Functional Athlete' }] as any[];
     expect(isBundledProgramImported(programs, def)).toBe(false);
+  });
+});
+
+// ── resolveOneRm ──
+
+describe('resolveOneRm', () => {
+  const seeds = JSON.stringify({ back_squat: 348, barbell_row: 260 });
+
+  it('prefers the run seed over the definition value', () => {
+    expect(resolveOneRm(seeds, 'back_squat', 315)).toBe(348);
+  });
+
+  it('falls back to the definition value when the exercise has no seed', () => {
+    expect(resolveOneRm(seeds, 'incline_bench_bb', 265)).toBe(265);
+  });
+
+  it('falls back when the column is null or undefined', () => {
+    expect(resolveOneRm(null, 'back_squat', 315)).toBe(315);
+    expect(resolveOneRm(undefined, 'back_squat', 315)).toBe(315);
+  });
+
+  it('falls back on invalid JSON', () => {
+    expect(resolveOneRm('not json', 'back_squat', 315)).toBe(315);
+  });
+
+  it('ignores non-positive or non-numeric seeds', () => {
+    expect(resolveOneRm(JSON.stringify({ back_squat: 0 }), 'back_squat', 315)).toBe(315);
+    expect(resolveOneRm(JSON.stringify({ back_squat: 'x' }), 'back_squat', 315)).toBe(315);
+  });
+
+  it('returns undefined when nothing resolves (accessory without 1RM)', () => {
+    expect(resolveOneRm(null, 'face_pulls', undefined)).toBeUndefined();
   });
 });

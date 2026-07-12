@@ -13,6 +13,7 @@ import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../src/t
 import { getAllPrograms, importProgram, getActiveProgram, activateProgram, restartProgram } from '../src/db';
 import { getBlockColor, buildProgramCatalog, isBundledProgramImported } from '../src/utils/program';
 import type { Program, ProgramDefinition } from '../src/types';
+import { FocusChips } from '../src/components/FocusChips';
 
 // Bundled programs — auto-imported on first library open
 import { BUNDLED_PROGRAMS } from '../src/data/bundled-programs';
@@ -102,6 +103,8 @@ export default function LibraryScreen() {
                   </View>
                 )}
               </View>
+
+              <FocusChips focus={def?.program.focus} style={styles.focusChips} />
 
               <Text style={styles.programDuration}>
                 {p.duration_weeks} weeks
@@ -266,6 +269,9 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: '700',
     flex: 1,
+  },
+  focusChips: {
+    marginTop: Spacing.sm,
   },
   programDuration: {
     color: Colors.textDim,

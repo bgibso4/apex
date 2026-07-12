@@ -3,7 +3,7 @@ import {
   getTargetForWeek, getSuggestedWeight, getCurrentWeek, getTodayKey,
   DAY_ORDER, DAY_NAMES,
   getLastTrainingDay, isFinalTrainingSession,
-  buildProgramCatalog,
+  buildProgramCatalog, isBundledProgramImported,
 } from '../../src/utils/program';
 import type { Block, ExerciseSlot, Program } from '../../src/types';
 import type { ProgramDefinition } from '../../src/types';
@@ -297,5 +297,28 @@ describe('buildProgramCatalog', () => {
     ]);
 
     expect(catalog.map(e => e.program.id)).toEqual(['v1', 'v3', 'v2']);
+  });
+});
+
+// ── isBundledProgramImported ──
+
+describe('isBundledProgramImported', () => {
+  const def = {
+    program: { id: 'functional-athlete-pillars', name: 'Functional Athlete — Pillars' },
+  } as any;
+
+  it('matches by bundled_id', () => {
+    const programs = [{ bundled_id: 'functional-athlete-pillars', name: 'Renamed Later' }] as any[];
+    expect(isBundledProgramImported(programs, def)).toBe(true);
+  });
+
+  it('falls back to name match for legacy rows without bundled_id', () => {
+    const programs = [{ bundled_id: null, name: 'Functional Athlete — Pillars' }] as any[];
+    expect(isBundledProgramImported(programs, def)).toBe(true);
+  });
+
+  it('returns false when neither matches', () => {
+    const programs = [{ bundled_id: 'functional-athlete', name: 'Functional Athlete' }] as any[];
+    expect(isBundledProgramImported(programs, def)).toBe(false);
   });
 });

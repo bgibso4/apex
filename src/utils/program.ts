@@ -162,3 +162,13 @@ export function getCurrentWeek(activatedDate: string, durationWeeks: number): nu
 export function getTodayKey(): string {
   return DAY_ORDER[new Date().getDay()];
 }
+
+/** True if a bundled definition already has a row (by bundled_id, name fallback for legacy rows) */
+export function isBundledProgramImported(
+  programs: Pick<Program, 'bundled_id' | 'name'>[],
+  def: ProgramDefinition
+): boolean {
+  const bundledId = def.program.id;
+  const name = def.program.name;
+  return programs.some(p => (bundledId && p.bundled_id === bundledId) || p.name === name);
+}

@@ -1,4 +1,15 @@
-import { calculateEpley, calculateTargetWeight } from '../../src/db/metrics';
+import { calculateEpley, calculateTargetWeight, getSeed1RM } from '../../src/db/metrics';
+import { getDatabase } from '../../src/db/database';
+
+jest.mock('../../src/db/database', () => ({
+  getDatabase: jest.fn(),
+}));
+
+function createMockDb() {
+  return {
+    getAllAsync: jest.fn().mockResolvedValue([]),
+  };
+}
 
 describe('calculateEpley', () => {
   it('returns the weight itself for a 1-rep max', () => {
@@ -56,5 +67,49 @@ describe('calculateTargetWeight', () => {
   it('handles small percentages', () => {
     // 300 × 0.50 = 150
     expect(calculateTargetWeight(300, 50)).toBe(150);
+  });
+});
+
+describe('getSeed1RM', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns the max Epley e1RM across returned sets', async () => {
+    const mockDb = createMockDb();
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+    mockDb.getAllAsync.mockResolvedValue([
+      { actual_weight: 315, actual_reps: 3 },  // Epley 347
+      { actual_weight: 275, actual_reps: 8 },  // Epley 348 (the max)
+      { actual_weight: 225, actual_reps: 8 },  // deload — loses to the max
+    ]);
+
+    const seed = await getSeed1RM('back_squat');
+
+    expect(seed).toBe(348);
+  });
+
+  it('returns null when no qualifying sets exist', async () => {
+    const mockDb = createMockDb();
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    expect(await getSeed1RM('incline_bench_bb')).toBeNull();
+  });
+
+  it('bounds the window: last 60 days AND last 10 sessions containing the exercise, qualifying sets only', async () => {
+    const mockDb = createMockDb();
+    (getDatabase as jest.Mock).mockResolvedValue(mockDb);
+    mockDb.getAllAsync.mockResolvedValue([]);
+
+    await getSeed1RM('back_squat');
+
+    const [sql, params] = mockDb.getAllAsync.mock.calls[0];
+    expect(sql).toContain("date('now', '-60 days')");
+    expect(sql).toContain('LIMIT 10');
+    expect(sql).toContain("status IN ('completed', 'completed_below')");
+    expect(sql).toContain('actual_weight > 0');
+    expect(sql).toContain('actual_reps > 0');
+    expect(params).toEqual(['back_squat', 'back_squat']);
   });
 });

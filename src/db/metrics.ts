@@ -66,6 +66,49 @@ export async function getEstimated1RM(exerciseId: string): Promise<Estimated1RM 
   return best;
 }
 
+/** Window for activation-time 1RM seeding */
+export const SEED_1RM_WINDOW = { maxSessions: 10, maxDays: 60 } as const;
+
+/**
+ * Best (max) Epley e1RM from recent history, for seeding a new program run's
+ * working 1RMs at activation. Window: sets from the last 10 sessions
+ * containing the exercise AND the last 60 days — whichever is more
+ * restrictive. Max across the window makes deload/low-RPE weeks harmless.
+ * Returns null when no qualifying sets exist (caller falls back to the
+ * definition's seed value).
+ */
+export async function getSeed1RM(exerciseId: string): Promise<number | null> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<{ actual_weight: number; actual_reps: number }>(
+    `SELECT sl.actual_weight, sl.actual_reps
+     FROM set_logs sl
+     JOIN sessions s ON s.id = sl.session_id
+     WHERE sl.exercise_id = ?
+       AND sl.status IN ('completed', 'completed_below')
+       AND sl.actual_weight > 0
+       AND sl.actual_reps > 0
+       AND s.date >= date('now', '-${SEED_1RM_WINDOW.maxDays} days')
+       AND sl.session_id IN (
+         SELECT id FROM (
+           SELECT DISTINCT s2.id, s2.date
+           FROM set_logs sl2
+           JOIN sessions s2 ON s2.id = sl2.session_id
+           WHERE sl2.exercise_id = ?
+           ORDER BY s2.date DESC
+           LIMIT ${SEED_1RM_WINDOW.maxSessions}
+         )
+       )`,
+    [exerciseId, exerciseId]
+  );
+
+  let best = 0;
+  for (const row of rows) {
+    const e1rm = calculateEpley(row.actual_weight, row.actual_reps);
+    if (e1rm > best) best = e1rm;
+  }
+  return best > 0 ? best : null;
+}
+
 /** Get 1RM history for an exercise (for sparkline charts) */
 export async function get1RMHistory(
   exerciseId: string,

@@ -134,12 +134,21 @@ export function buildProgramCatalog(programs: Program[]): ProgramCatalogEntry[] 
         action: { type: 'activate', programId: inactive.id },
       });
     } else {
+      // No active/inactive row — every row in this group is completed or
+      // archived. Restart is only offered when the latest run finished
+      // (completed) or the program is bundled (so a stopped/archived run
+      // can still be relaunched from its shipped definition). An archived,
+      // non-bundled group (e.g. the v16-archived legacy draft) has no
+      // startable definition to restart from, so it's dropped from the
+      // catalog entirely — the row itself stays in the DB, just untappable.
       const latest = newestFirst[0];
-      entries.push({
-        program: latest,
-        isActive: false,
-        action: { type: 'restart', programId: latest.id },
-      });
+      if (latest.status === 'completed' || latest.bundled_id) {
+        entries.push({
+          program: latest,
+          isActive: false,
+          action: { type: 'restart', programId: latest.id },
+        });
+      }
     }
   }
 

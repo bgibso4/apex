@@ -298,6 +298,47 @@ describe('buildProgramCatalog', () => {
 
     expect(catalog.map(e => e.program.id)).toEqual(['v1', 'v3', 'v2']);
   });
+
+  it('excludes an archived-only group with no bundled_id (v16-archived legacy draft)', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'legacy-v2', name: 'Functional Athlete v2', status: 'archived', bundled_id: undefined }),
+    ]);
+
+    expect(catalog).toHaveLength(0);
+  });
+
+  it('offers restart for an archived-only group that has a bundled_id (stopped bundled program)', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'run-1', status: 'archived', bundled_id: 'fa', created_date: '2026-03-21' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('run-1');
+    expect(catalog[0].isActive).toBe(false);
+    expect(catalog[0].action).toEqual({ type: 'restart', programId: 'run-1' });
+  });
+
+  it('offers restart for a completed-only group with no bundled_id (seeded sample program)', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'sample-1', name: 'Sample Program', status: 'completed', bundled_id: undefined, created_date: '2026-03-21' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('sample-1');
+    expect(catalog[0].isActive).toBe(false);
+    expect(catalog[0].action).toEqual({ type: 'restart', programId: 'sample-1' });
+  });
+
+  it('still surfaces the active program first even when an inert archived group would otherwise be excluded', () => {
+    const catalog = buildProgramCatalog([
+      row({ id: 'legacy-v2', name: 'Functional Athlete v2', status: 'archived', bundled_id: undefined }),
+      row({ id: 'active-1', name: 'Functional Athlete', status: 'active', bundled_id: 'fa', created_date: '2026-07-07' }),
+    ]);
+
+    expect(catalog).toHaveLength(1);
+    expect(catalog[0].program.id).toBe('active-1');
+    expect(catalog[0].isActive).toBe(true);
+  });
 });
 
 // ── isBundledProgramImported ──

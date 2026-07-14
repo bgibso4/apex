@@ -16,11 +16,15 @@ import {
   getFullSessionState, getExerciseNames, getExerciseInfo,
   shouldShowBackupReminder, exportDatabase,
   getSessionById, markProgramComplete,
-  getLatestAdjustment,
+  getLatestAdjustment, getWeightIncrement, recordAdjustment,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
 import { getLocalDateString } from '../utils/date';
-import { getMostCommonWeight, resolveWorkingWeight } from '../utils/progression';
+import {
+  getMostCommonWeight, resolveWorkingWeight,
+  parseRpeThreshold, evaluateProgression,
+} from '../utils/progression';
+import type { ProgressionSuggestion } from '../utils/progression';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
@@ -47,6 +51,46 @@ function checkHitTarget(vals: Record<string, number>, set: SetState): boolean {
   // Time: actual <= target (faster is better)
   if (set.targetTime != null && (vals.time ?? 0) > set.targetTime) return false;
   return true;
+}
+
+/** Collapse exIdx and expand the next exercise with pending sets (superset-aware). */
+function advanceAfterExercise(prev: ExerciseState[], exIdx: number): ExerciseState[] {
+  const next = [...prev];
+  const group = next[exIdx].supersetGroup;
+
+  if (group) {
+    const groupIndices = next
+      .map((ex, i) => ex.supersetGroup === group ? i : -1)
+      .filter(i => i >= 0);
+    const posInGroup = groupIndices.indexOf(exIdx);
+    for (let offset = 1; offset < groupIndices.length; offset++) {
+      const candidate = groupIndices[(posInGroup + offset) % groupIndices.length];
+      if (next[candidate].sets.some(s => s.status === 'pending')) {
+        next[exIdx] = { ...next[exIdx], expanded: false };
+        next[candidate] = { ...next[candidate], expanded: true };
+        return next;
+      }
+    }
+    // Entire group done: collapse all members, advance past the group
+    for (const gi of groupIndices) next[gi] = { ...next[gi], expanded: false };
+    const maxGroupIdx = Math.max(...groupIndices);
+    for (let i = maxGroupIdx + 1; i < next.length; i++) {
+      if (next[i].sets.some(s => s.status === 'pending')) {
+        next[i] = { ...next[i], expanded: true };
+        break;
+      }
+    }
+    return next;
+  }
+
+  next[exIdx] = { ...next[exIdx], expanded: false };
+  for (let i = exIdx + 1; i < next.length; i++) {
+    if (next[i].sets.some(s => s.status === 'pending')) {
+      next[i] = { ...next[i], expanded: true };
+      break;
+    }
+  }
+  return next;
 }
 
 export type WorkoutPhase = 'select' | 'readiness' | 'warmup' | 'logging' | 'complete';
@@ -83,6 +127,15 @@ export function useWorkoutSession() {
 
   // Exercise logging
   const [exercises, setExercises] = useState<ExerciseState[]>([]);
+
+  // Pending RPE-driven progression suggestion (issue #45)
+  const [pendingSuggestion, setPendingSuggestion] = useState<{
+    exerciseIdx: number;
+    kind: 'increase' | 'decrease';
+    currentWeight: number;
+    suggestedWeight: number;
+    accepted: boolean;
+  } | null>(null);
 
   // Override modal
   const [overrideModal, setOverrideModal] = useState<{
@@ -803,73 +856,85 @@ export function useWorkoutSession() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
-  /** Set RPE for an exercise (persists to all completed sets), then auto-advance */
+  /** Set RPE for an exercise (persists to all completed sets), then advance or suggest */
   const setRPE = async (exIdx: number, rpe: number) => {
     const ex = exercises[exIdx];
 
-    // Update all completed sets in DB with this RPE
     for (const set of ex.sets) {
       if (set.id && (set.status === 'completed' || set.status === 'completed_below')) {
         await updateSet(set.id, { rpe });
       }
     }
 
+    let suggestion: ProgressionSuggestion = null;
+    if (!ex.isAdhoc && program) {
+      const block = getBlockForWeek(program.definition.program.blocks, currentWeek);
+      const rpeThreshold = parseRpeThreshold(block?.accessory_scheme?.rpe_target);
+      if (ex.slot.category === 'accessory' && rpeThreshold != null) {
+        const increment = await getWeightIncrement(ex.slot.exercise_id);
+        suggestion = evaluateProgression({
+          category: ex.slot.category,
+          rpe,
+          rpeThreshold,
+          increment,
+          currentSets: ex.sets.map(s => ({
+            status: s.status,
+            weight: s.actualWeight ?? s.targetWeight,
+            reps: s.actualReps,
+            targetReps: s.targetReps,
+          })),
+          lastSessionSets: ex.lastSets ?? [],
+        });
+      }
+    }
+
+    if (suggestion) {
+      setExercises(prev => {
+        const next = [...prev];
+        next[exIdx] = { ...next[exIdx], rpe };
+        return next;
+      });
+      setPendingSuggestion({ exerciseIdx: exIdx, ...suggestion, accepted: false });
+      return; // card stays open until the chip is resolved
+    }
+
+    setPendingSuggestion(null); // re-tapped RPE no longer qualifies → clear any chip
     setExercises(prev => {
       const next = [...prev];
       next[exIdx] = { ...next[exIdx], rpe };
-
-      const group = next[exIdx].supersetGroup;
-
-      if (group) {
-        // Superset-aware advance
-        const groupIndices = next
-          .map((ex, i) => ex.supersetGroup === group ? i : -1)
-          .filter(i => i >= 0);
-
-        // Check if any group member still has pending sets
-        const posInGroup = groupIndices.indexOf(exIdx);
-        let groupAdvanceTarget = -1;
-        for (let offset = 1; offset < groupIndices.length; offset++) {
-          const candidate = groupIndices[(posInGroup + offset) % groupIndices.length];
-          if (next[candidate].sets.some(s => s.status === 'pending')) {
-            groupAdvanceTarget = candidate;
-            break;
-          }
-        }
-
-        if (groupAdvanceTarget >= 0) {
-          // Stay in group: advance to next group member with pending sets
-          next[exIdx] = { ...next[exIdx], rpe, expanded: false };
-          next[groupAdvanceTarget] = { ...next[groupAdvanceTarget], expanded: true };
-        } else {
-          // Entire group is done: collapse all group members, advance past the group
-          for (const gi of groupIndices) {
-            next[gi] = { ...next[gi], expanded: false };
-          }
-          next[exIdx] = { ...next[exIdx], rpe, expanded: false };
-          const maxGroupIdx = Math.max(...groupIndices);
-          for (let i = maxGroupIdx + 1; i < next.length; i++) {
-            if (next[i].sets.some(s => s.status === 'pending')) {
-              next[i] = { ...next[i], expanded: true };
-              break;
-            }
-          }
-        }
-      } else {
-        // Non-superset: original linear advance
-        if (exIdx < next.length - 1) {
-          next[exIdx] = { ...next[exIdx], rpe, expanded: false };
-          for (let i = exIdx + 1; i < next.length; i++) {
-            if (next[i].sets.some(s => s.status === 'pending')) {
-              next[i] = { ...next[i], expanded: true };
-              break;
-            }
-          }
-        }
-      }
-
-      return next;
+      return advanceAfterExercise(next, exIdx);
     });
+  };
+
+  /** Accept the pending suggestion: record it, confirm briefly, then advance */
+  const acceptSuggestion = async () => {
+    if (!pendingSuggestion || pendingSuggestion.accepted || !sessionId || !program) return;
+    const { exerciseIdx, currentWeight, suggestedWeight, kind } = pendingSuggestion;
+    const ex = exercises[exerciseIdx];
+
+    await recordAdjustment({
+      exerciseId: ex.slot.exercise_id,
+      programId: program.id,
+      sessionId,
+      oldWeight: currentWeight,
+      newWeight: suggestedWeight,
+      reason: kind === 'increase' ? 'easy' : 'misses',
+    });
+
+    setPendingSuggestion(prev => (prev ? { ...prev, accepted: true } : prev));
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => {
+      setPendingSuggestion(null);
+      setExercises(prev => advanceAfterExercise(prev, exerciseIdx));
+    }, 900);
+  };
+
+  /** Dismiss the pending suggestion: save nothing, advance as normal */
+  const dismissSuggestion = () => {
+    if (!pendingSuggestion) return;
+    const { exerciseIdx } = pendingSuggestion;
+    setPendingSuggestion(null);
+    setExercises(prev => advanceAfterExercise(prev, exerciseIdx));
   };
 
   /** Submit readiness and move to warmup */
@@ -1100,6 +1165,9 @@ export function useWorkoutSession() {
     conditioningDone,
     dayNames: DAY_NAMES,
 
+    // Progression suggestion (issue #45)
+    pendingSuggestion,
+
     // Readiness
     sleep, setSleep,
     soreness, setSoreness,
@@ -1162,6 +1230,8 @@ export function useWorkoutSession() {
     saveOverride,
     saveOverrideToAll,
     setRPE,
+    acceptSuggestion,
+    dismissSuggestion,
     submitReadiness,
     submitWarmup,
     finishSession,

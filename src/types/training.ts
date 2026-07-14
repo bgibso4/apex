@@ -27,6 +27,7 @@ export interface Exercise {
   muscle_groups: string; // JSON array stored as string
   alternatives: string;  // JSON array stored as string
   input_fields?: string; // JSON array of InputField stored as string
+  weight_increment?: number | null;
 }
 
 export interface Session {
@@ -109,4 +110,15 @@ export interface Estimated1RM {
   from_weight: number;
   from_reps: number;
   date: string;
+}
+
+export interface WeightAdjustment {
+  id: string;
+  exercise_id: string;
+  program_id: string;
+  session_id: string;
+  old_weight: number;
+  new_weight: number;
+  reason: 'easy' | 'misses';
+  created_at: string;
 }

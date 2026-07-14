@@ -4,7 +4,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { CREATE_TABLES, SCHEMA_VERSION } from './schema';
-import { archiveLegacyV2Programs } from './migrations';
+import { archiveLegacyV2Programs, ensureProgressionSchema } from './migrations';
 
 let db: SQLite.SQLiteDatabase | null = null;
 
@@ -243,6 +243,11 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
     // accidentally activatable until now. Archived, not deleted.
     if (currentVersion < 16) {
       await archiveLegacyV2Programs(db);
+    }
+
+    // v17: RPE auto-progression schema (issue #45)
+    if (currentVersion < 17) {
+      await ensureProgressionSchema(db);
     }
 
     // Safety net: ensure critical columns exist regardless of version

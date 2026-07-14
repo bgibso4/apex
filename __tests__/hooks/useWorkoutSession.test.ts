@@ -60,6 +60,9 @@ jest.mock('../../src/db', () => ({
   exportDatabase: jest.fn(),
   getSessionById: jest.fn(),
   markProgramComplete: jest.fn(),
+  getLatestAdjustment: jest.fn(),
+  getWeightIncrement: jest.fn(),
+  recordAdjustment: jest.fn(),
 }));
 
 jest.mock('../../src/utils/program', () => ({
@@ -95,6 +98,7 @@ import {
   getExerciseNames, getExerciseInfo, getExerciseNotesForSession, getPRsForSession, detectPRs,
   getInProgressSession, getFullSessionState, deleteSession,
   getSessionById, markProgramComplete,
+  getLatestAdjustment, getWeightIncrement,
 } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
@@ -129,6 +133,8 @@ const mockedGetFullSessionState = getFullSessionState as jest.Mock;
 const mockedDeleteSession = deleteSession as jest.Mock;
 const mockedGetSessionById = getSessionById as jest.Mock;
 const mockedMarkProgramComplete = markProgramComplete as jest.Mock;
+const mockedGetLatestAdjustment = getLatestAdjustment as jest.Mock;
+const mockedGetWeightIncrement = getWeightIncrement as jest.Mock;
 
 const mockedGetBlockForWeek = getBlockForWeek as jest.Mock;
 const mockedGetBlockColor = getBlockColor as jest.Mock;
@@ -245,6 +251,8 @@ function setupDefaultMocks() {
   mockedGetSessionById.mockResolvedValue(null);
   mockedMarkProgramComplete.mockResolvedValue(undefined);
   mockedIsFinalTrainingSession.mockReturnValue(false);
+  mockedGetLatestAdjustment.mockResolvedValue(null);
+  mockedGetWeightIncrement.mockResolvedValue(5);
 
   mockedGetCurrentWeek.mockReturnValue(1);
   mockedGetTodayKey.mockReturnValue('monday');
@@ -1897,6 +1905,101 @@ describe('useWorkoutSession', () => {
       // bench_press should remain expanded (no auto-advance for non-superset)
       expect(result.current.exercises[0].expanded).toBe(true);
       expect(result.current.exercises[1].expanded).toBe(false);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Adjustment-aware weight pre-fill (issue #45)
+  // -----------------------------------------------------------------------
+  describe('adjustment-aware weight pre-fill', () => {
+    /**
+     * Program fixture with a single accessory slot ('dips') on monday, no
+     * percent target (so the pre-fill falls through to adjustment/history),
+     * with default_weight 70 as the final fallback.
+     */
+    function setupAccessoryProgram() {
+      const prog = makeProgram({
+        definition: {
+          program: {
+            name: 'Test Program',
+            duration_weeks: 12,
+            created: '2025-01-01',
+            blocks: [
+              { name: 'Hypertrophy', weeks: [1, 2, 3, 4], emphasis: 'hypertrophy', main_lift_scheme: {} },
+            ],
+            weekly_template: {
+              monday: {
+                name: 'Upper A',
+                warmup: [],
+                exercises: [
+                  {
+                    exercise_id: 'dips',
+                    category: 'accessory' as const,
+                    default_weight: 70,
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 3, reps: 10 }],
+                  },
+                ],
+              },
+            },
+            exercise_definitions: [
+              { id: 'dips', name: 'Dips', type: 'accessory', muscle_groups: ['chest'] },
+            ],
+            warmup_protocols: {},
+          },
+        },
+      });
+
+      setupDefaultMocks();
+      mockedGetActiveProgram.mockResolvedValue(prog);
+      mockedGetTrainingDays.mockReturnValue([
+        { day: 'monday', template: prog.definition.program.weekly_template.monday },
+      ]);
+
+      return prog;
+    }
+
+    it('pre-fills an accepted, un-trained adjustment weight for an accessory', async () => {
+      setupAccessoryProgram();
+      mockedGetLastSessionForExercise.mockResolvedValue([
+        { session_id: 'sess-X', set_number: 1, actual_weight: 70, actual_reps: 10, status: 'completed' },
+      ]);
+      mockedGetLatestAdjustment.mockResolvedValue({
+        id: 'a1', exercise_id: 'dips', program_id: 'p1', session_id: 'sess-X',
+        old_weight: 70, new_weight: 75, reason: 'easy', created_at: '2026-07-13',
+      });
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+
+      expect(hookResult.result.current.exercises[0].sets[0].targetWeight).toBe(75);
+    });
+
+    it('ignores an adjustment superseded by a newer completed session', async () => {
+      setupAccessoryProgram();
+      mockedGetLastSessionForExercise.mockResolvedValue([
+        { session_id: 'sess-Y', set_number: 1, actual_weight: 95, actual_reps: 10, status: 'completed' },
+      ]);
+      mockedGetLatestAdjustment.mockResolvedValue({
+        id: 'a1', exercise_id: 'dips', program_id: 'p1', session_id: 'sess-X',
+        old_weight: 70, new_weight: 75, reason: 'easy', created_at: '2026-07-13',
+      });
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+
+      expect(hookResult.result.current.exercises[0].sets[0].targetWeight).toBe(95);
     });
   });
 });

@@ -16,10 +16,11 @@ import {
   getFullSessionState, getExerciseNames, getExerciseInfo,
   shouldShowBackupReminder, exportDatabase,
   getSessionById, markProgramComplete,
+  getLatestAdjustment,
 } from '../db';
 import type { PRRecord } from '../db/personal-records';
 import { getLocalDateString } from '../utils/date';
-import { getMostCommonWeight } from '../utils/progression';
+import { getMostCommonWeight, resolveWorkingWeight } from '../utils/progression';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getCurrentWeek, getTodayKey, getTargetForWeek, DAY_NAMES,
@@ -58,6 +59,7 @@ export interface ExerciseState {
   expanded: boolean;
   lastWeight?: number;
   lastReps?: number;
+  lastSets?: SetLog[];
   isAdhoc?: boolean;
   inputFields?: InputField[];
   supersetGroup?: string;
@@ -238,7 +240,15 @@ export function useWorkoutSession() {
       const lastSets = await getLastSessionForExercise(slot.exercise_id);
       const lastWeight = getMostCommonWeight(lastSets);
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
-      const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
+      const adjustment = slot.category === 'accessory'
+        ? await getLatestAdjustment(slot.exercise_id)
+        : null;
+      const weight = resolveWorkingWeight({
+        percentWeight: suggestedWeight,
+        adjustment,
+        lastSets,
+        defaultWeight: slot.default_weight,
+      });
 
       // Merge logged sets into the template sets
       const logged = logsByExercise[slot.exercise_id] || [];
@@ -292,6 +302,7 @@ export function useWorkoutSession() {
         expanded: false,
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
+        lastSets,
         inputFields: getFieldsForExercise(exerciseDef?.input_fields),
         supersetGroup: slot.superset_group,
       });
@@ -489,7 +500,15 @@ export function useWorkoutSession() {
       const lastSets = await getLastSessionForExercise(slot.exercise_id);
       const lastWeight = getMostCommonWeight(lastSets);
       const lastReps = lastSets.length > 0 ? lastSets[0].actual_reps : undefined;
-      const weight = suggestedWeight || lastWeight || slot.default_weight || 0;
+      const adjustment = slot.category === 'accessory'
+        ? await getLatestAdjustment(slot.exercise_id)
+        : null;
+      const weight = resolveWorkingWeight({
+        percentWeight: suggestedWeight,
+        adjustment,
+        lastSets,
+        defaultWeight: slot.default_weight,
+      });
 
       const sets: SetState[] = Array.from({ length: target.sets }, (_, i) => ({
         setNumber: i + 1,
@@ -519,6 +538,7 @@ export function useWorkoutSession() {
         expanded: exStates.length === 0,
         lastWeight: lastWeight ?? undefined,
         lastReps: lastReps ?? undefined,
+        lastSets,
         inputFields: getFieldsForExercise(exerciseDef?.input_fields),
         supersetGroup: slot.superset_group,
       });

@@ -61,13 +61,24 @@ Tough two weeks — drop to 65 next time?      [ ✓ Yes ]  [ ✕ ]
 
 Two additions, shown only for exercises with `type === 'accessory'`:
 
-1. **Progression history** — a compact section listing accepted adjustments, newest
-   first: `75 lbs  ↑ from 70 · felt easy  ·  Jul 20`. Manual weight edits do not appear
-   here (they're visible in the existing session history).
-2. **Weight increment** — an editable row (`Increment: 5 lbs`). Applies to this exercise
-   across all programs, indefinitely.
+1. **Progression history** — a compact card listing accepted adjustments, newest first:
+   `75 lbs  ↑ from 70 · felt easy  ·  Jul 13`. Manual weight edits do not appear here
+   (they're visible in the session history). Capped at **3 entries**, with a
+   `View all ›` link opening a full-page list of every adjustment.
+2. **Weight increment** — an editable row (`Increment: 5 lbs`) inside the progression
+   card. Applies to this exercise across all programs, indefinitely.
 
-Non-accessory exercise pages are unchanged.
+Ordering and caps (2026-07-14 mockup review):
+
+- The **session history card sits above the progression history card** — it's the more
+  important of the two.
+- Session history is capped at **5 rows**, also with a `View all ›` link to a full-page
+  list of all sessions for the exercise.
+- The two `View all` targets are lightweight full-screen list pages (same row styling as
+  the cards, scrollable, nothing else).
+
+Non-accessory exercise pages are unchanged apart from the session-history cap/link,
+which applies everywhere the section exists.
 
 ## Rules (precise)
 
@@ -159,10 +170,13 @@ never revert a manual change.
   restore paths).
 - **`ExerciseCard`**: render the chip when a suggestion is pending; hold collapse until
   resolved.
-- **`app/exercise/[id].tsx`**: progression history section + increment editor
+- **`app/exercise/[id].tsx`**: session history reordered above the new progression
+  history card (capped 5 / 3, each with `View all ›`) + increment editor
   (accessories only).
+- **Full history list pages**: two lightweight scrollable list screens (progression
+  adjustments / exercise sessions), reachable only from the `View all ›` links.
 
-No new screens or navigation changes.
+No other navigation changes.
 
 ## Out of Scope (v1)
 

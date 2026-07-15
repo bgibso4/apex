@@ -525,7 +525,7 @@ export default function ExerciseDetailScreen() {
             <View style={styles.sessionsCard}>
               {adjustments.length === 0 && (
                 <View style={styles.progressionEmptyState}>
-                  <Text style={styles.emptyText}>No adjustments yet \u2014 log accessory sets and rate the RPE</Text>
+                  <Text style={styles.emptyText}>{'No adjustments yet \u2014 log accessory sets and rate the RPE'}</Text>
                 </View>
               )}
               {adjustments.map((adj, ai) => (

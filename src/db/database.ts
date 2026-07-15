@@ -4,7 +4,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { CREATE_TABLES, SCHEMA_VERSION } from './schema';
-import { archiveLegacyV2Programs } from './migrations';
+import { archiveLegacyV2Programs, ensureProgressionSchema } from './migrations';
 
 let db: SQLite.SQLiteDatabase | null = null;
 
@@ -245,6 +245,11 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       await archiveLegacyV2Programs(db);
     }
 
+    // v17: RPE auto-progression schema (issue #45)
+    if (currentVersion < 17) {
+      await ensureProgressionSchema(db);
+    }
+
     // Safety net: ensure critical columns exist regardless of version
     // (handles databases where version was bumped but migrations were skipped)
     for (const col of ['notes TEXT', 'name TEXT', 'is_sample INTEGER DEFAULT 0']) {
@@ -287,6 +292,7 @@ export async function clearAllData(): Promise<void> {
     DELETE FROM programs;
     DELETE FROM run_logs;
     DELETE FROM weekly_checkins;
+    DELETE FROM weight_adjustments;
     DELETE FROM exercises;
   `);
 }

@@ -1,0 +1,123 @@
+<!--
+  APEX mockup — RPE auto-progression suggestion chip (workout card)
+  Issue #45 · spec: docs/plans/2026-07-13-rpe-auto-progression-design.md
+  Designed in Claude Design (claude.ai/design), exported 2026-07-14 and converted to static HTML.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APEX — RPE suggestion chip mockup</title>
+<style>
+  body{margin:0;background:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding:48px}
+  .state-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#4a4a5e;margin:24px 0 10px}
+  .state-label:first-child{margin-top:0}
+</style>
+</head>
+<body>
+<div style="width:375px;display:flex;flex-direction:column">
+
+  <!-- STATE: increase -->
+  <div class="state-label">Increase — RPE 6 tapped, all sets at target</div>
+  <div style="background:#141420;border:1px solid #6366f130;border-radius:14px;overflow:hidden;margin-bottom:8px">
+    <div style="padding:20px">
+      <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:4px">Dips</div>
+      <div style="color:#4a4a5e;font-size:12px;margin-bottom:16px">RPE 7-8 &nbsp;·&nbsp; Last 70 lbs</div>
+      <div style="display:flex;padding:0 4px 8px">
+        <span style="flex:1;text-align:center;color:#4a4a5e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Set</span>
+        <span style="flex:1;text-align:center;color:#4a4a5e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Weight<span style="display:block;font-size:9px;color:#6a6a80;text-transform:none;letter-spacing:0">lbs</span></span>
+        <span style="flex:1;text-align:center;color:#4a4a5e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Reps</span>
+        <span style="flex:none;width:60px"></span>
+      </div>
+      <div style="display:flex;align-items:center;padding:12px 4px;border-top:1px solid #1e1e30">
+        <span style="flex:1;text-align:center;color:#4a4a5e;font-size:14px;font-weight:700">1</span>
+        <span style="flex:1;text-align:center;color:#22c55e;font-size:15px;font-weight:600">70</span>
+        <span style="flex:1;text-align:center;color:#22c55e;font-size:15px;font-weight:600">10</span>
+        <span style="flex:none;width:60px;display:flex;justify-content:flex-end"><span style="width:56px;height:36px;border-radius:8px;border:2px solid #22c55e40;background:#22c55e15;color:#22c55e;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</span></span>
+      </div>
+      <div style="display:flex;align-items:center;padding:12px 4px;border-top:1px solid #1e1e30">
+        <span style="flex:1;text-align:center;color:#4a4a5e;font-size:14px;font-weight:700">2</span>
+        <span style="flex:1;text-align:center;color:#22c55e;font-size:15px;font-weight:600">70</span>
+        <span style="flex:1;text-align:center;color:#22c55e;font-size:15px;font-weight:600">10</span>
+        <span style="flex:none;width:60px;display:flex;justify-content:flex-end"><span style="width:56px;height:36px;border-radius:8px;border:2px solid #22c55e40;background:#22c55e15;color:#22c55e;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</span></span>
+      </div>
+      <div style="display:flex;align-items:center;padding:12px 4px;border-top:1px solid #1e1e30">
+        <span style="flex:1;text-align:center;color:#4a4a5e;font-size:14px;font-weight:700">3</span>
+        <span style="flex:1;text-align:center;color:#22c55e;font-size:15px;font-weight:600">70</span>
+        <span style="flex:1;text-align:center;color:#22c55e;font-size:15px;font-weight:600">10</span>
+        <span style="flex:none;width:60px;display:flex;justify-content:flex-end"><span style="width:56px;height:36px;border-radius:8px;border:2px solid #22c55e40;background:#22c55e15;color:#22c55e;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</span></span>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #1e1e30">
+        <div style="color:#4a4a5e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">How hard was this?</div>
+        <div style="display:flex;gap:8px">
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #6366f1;background:#6366f1;color:#fff;font-size:14px;font-weight:600;text-align:center">6</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">7</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">8</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">9</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">10</span>
+        </div>
+        <!-- suggestion chip -->
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px;background:#181824;border:1px solid #2a2a3e;border-radius:10px;padding:8px 8px 8px 12px">
+          <span style="flex:none;width:22px;height:22px;border-radius:11px;background:#22c55e20;color:#22c55e;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">↑</span>
+          <span style="flex:1;color:#a0a0b8;font-size:13px;line-height:1.35">Felt easy — <span style="color:#fff;font-weight:600">75 lbs</span> next time?</span>
+          <span style="flex:none;width:44px;height:36px;border-radius:8px;background:#22c55e15;border:1px solid #22c55e40;color:#22c55e;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</span>
+          <span style="flex:none;width:44px;height:36px;border-radius:8px;background:transparent;border:1px solid #2a2a3e;color:#6a6a80;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">✕</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #1e1e30;color:#4a4a5e;font-size:13px">+ Add note</div>
+    </div>
+  </div>
+
+  <!-- STATE: decrease -->
+  <div class="state-label">Decrease — two missed sessions in a row</div>
+  <div style="background:#141420;border:1px solid #6366f130;border-radius:14px;overflow:hidden;margin-bottom:8px">
+    <div style="padding:20px">
+      <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:4px">Lat Pulldown</div>
+      <div style="color:#4a4a5e;font-size:12px;margin-bottom:16px">RPE 7-8 &nbsp;·&nbsp; Last 70 lbs</div>
+      <div>
+        <div style="color:#4a4a5e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">How hard was this?</div>
+        <div style="display:flex;gap:8px">
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">6</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">7</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">8</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #6366f1;background:#6366f1;color:#fff;font-size:14px;font-weight:600;text-align:center">9</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">10</span>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px;background:#181824;border:1px solid #2a2a3e;border-radius:10px;padding:8px 8px 8px 12px">
+          <span style="flex:none;width:22px;height:22px;border-radius:11px;background:#f59e0b20;color:#f59e0b;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">↓</span>
+          <span style="flex:1;color:#a0a0b8;font-size:13px;line-height:1.35">Tough two weeks — drop to <span style="color:#fff;font-weight:600">65</span> next time?</span>
+          <span style="flex:none;width:44px;height:36px;border-radius:8px;background:#22c55e15;border:1px solid #22c55e40;color:#22c55e;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</span>
+          <span style="flex:none;width:44px;height:36px;border-radius:8px;background:transparent;border:1px solid #2a2a3e;color:#6a6a80;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">✕</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #1e1e30;color:#4a4a5e;font-size:13px">+ Add note</div>
+    </div>
+  </div>
+
+  <!-- STATE: accepted -->
+  <div class="state-label">Accepted — brief confirmation, then card collapses</div>
+  <div style="background:#141420;border:1px solid #6366f130;border-radius:14px;overflow:hidden;margin-bottom:8px">
+    <div style="padding:20px">
+      <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:4px">Dips</div>
+      <div style="color:#4a4a5e;font-size:12px;margin-bottom:16px">RPE 7-8 &nbsp;·&nbsp; Last 70 lbs</div>
+      <div>
+        <div style="color:#4a4a5e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">How hard was this?</div>
+        <div style="display:flex;gap:8px">
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #6366f1;background:#6366f1;color:#fff;font-size:14px;font-weight:600;text-align:center">6</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">7</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">8</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">9</span>
+          <span style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #2a2a3e;background:transparent;color:#a0a0b8;font-size:14px;font-weight:600;text-align:center">10</span>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px;background:#22c55e10;border:1px solid #22c55e30;border-radius:10px;padding:11px 12px">
+          <span style="flex:none;width:22px;height:22px;border-radius:11px;background:#22c55e;color:#0a0a0f;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>
+          <span style="flex:1;color:#22c55e;font-size:13px;font-weight:600">75 lbs locked in for next session</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #1e1e30;color:#4a4a5e;font-size:13px">+ Add note</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

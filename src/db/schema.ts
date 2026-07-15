@@ -3,7 +3,7 @@
  * All tables and indexes for the local database.
  */
 
-export const SCHEMA_VERSION = 16;
+export const SCHEMA_VERSION = 17;
 
 export const CREATE_TABLES = `
 -- Programs table: stores imported program definitions
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS exercises (
   muscle_groups TEXT NOT NULL DEFAULT '[]',
   alternatives TEXT NOT NULL DEFAULT '[]',
   input_fields TEXT,
+  weight_increment REAL,
   is_sample INTEGER DEFAULT 0,
   updated_at TEXT
 );
@@ -208,4 +209,18 @@ CREATE TABLE IF NOT EXISTS exercise_resources (
 );
 
 CREATE INDEX IF NOT EXISTS idx_exercise_resources_exercise ON exercise_resources(exercise_id);
+
+-- Accepted auto-progression adjustments (issue #45)
+CREATE TABLE IF NOT EXISTS weight_adjustments (
+  id TEXT PRIMARY KEY,
+  exercise_id TEXT NOT NULL,
+  program_id TEXT NOT NULL,
+  session_id TEXT NOT NULL,
+  old_weight REAL NOT NULL,
+  new_weight REAL NOT NULL,
+  reason TEXT NOT NULL CHECK (reason IN ('easy','misses')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_weight_adjustments_exercise ON weight_adjustments(exercise_id, created_at DESC);
 `;

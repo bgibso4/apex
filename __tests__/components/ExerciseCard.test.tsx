@@ -420,3 +420,51 @@ describe('ExerciseCard with input_fields', () => {
     expect(screen.getByText('\u2014')).toBeTruthy();
   });
 });
+
+describe('progression suggestion chip', () => {
+  const doneProps = {
+    ...defaultProps,
+    expanded: true,
+    sets: makeSets(3, 'completed'),
+    rpe: 7,
+  };
+
+  it('renders the increase chip with copy and weight', () => {
+    render(<ExerciseCard {...doneProps}
+      suggestion={{ kind: 'increase', suggestedWeight: 75, accepted: false }} />);
+    expect(screen.getByText(/Felt easy/)).toBeTruthy();
+    expect(screen.getByText(/75 lbs/)).toBeTruthy();
+  });
+
+  it('renders the decrease chip copy', () => {
+    render(<ExerciseCard {...doneProps}
+      suggestion={{ kind: 'decrease', suggestedWeight: 65, accepted: false }} />);
+    expect(screen.getByText(/Tough two weeks/)).toBeTruthy();
+    expect(screen.getByText(/65 lbs/)).toBeTruthy();
+  });
+
+  it('fires accept and dismiss callbacks', () => {
+    const onAccept = jest.fn();
+    const onDismiss = jest.fn();
+    render(<ExerciseCard {...doneProps}
+      suggestion={{ kind: 'increase', suggestedWeight: 75, accepted: false }}
+      onAcceptSuggestion={onAccept} onDismissSuggestion={onDismiss} />);
+    fireEvent.press(screen.getByTestId('suggestion-accept'));
+    expect(onAccept).toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId('suggestion-dismiss'));
+    expect(onDismiss).toHaveBeenCalled();
+  });
+
+  it('shows the locked-in confirmation once accepted', () => {
+    render(<ExerciseCard {...doneProps}
+      suggestion={{ kind: 'increase', suggestedWeight: 75, accepted: true }} />);
+    expect(screen.getByText('75 lbs locked in for next session')).toBeTruthy();
+    expect(screen.queryByTestId('suggestion-accept')).toBeNull();
+  });
+
+  it('renders no chip without a suggestion', () => {
+    render(<ExerciseCard {...doneProps} />);
+    expect(screen.queryByTestId('suggestion-accept')).toBeNull();
+    expect(screen.queryByText(/Felt easy/)).toBeNull();
+  });
+});

@@ -40,6 +40,9 @@ export interface ExerciseCardProps {
   onNoteChange?: (note: string) => void;
   inputFields?: InputField[];
   nextUpLabel?: string;
+  suggestion?: { kind: 'increase' | 'decrease'; suggestedWeight: number; accepted: boolean } | null;
+  onAcceptSuggestion?: () => void;
+  onDismissSuggestion?: () => void;
 }
 
 function formatDuration(seconds: number): string {
@@ -66,6 +69,7 @@ export function ExerciseCard({
   lastWeight, lastReps, blockColor,
   onToggleExpand, onCompleteSet, onLongPressSet, onSetRPE,
   onLongPressCard, note, onNoteChange, inputFields, nextUpLabel,
+  suggestion, onAcceptSuggestion, onDismissSuggestion,
 }: ExerciseCardProps) {
   const allDone = sets.every(s => s.status !== 'pending');
   const completedCount = sets.filter(s => s.status !== 'pending').length;
@@ -209,6 +213,41 @@ export function ExerciseCard({
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+        )}
+
+        {/* Progression suggestion chip (issue #45) */}
+        {allDone && suggestion && !suggestion.accepted && (
+          <View style={styles.suggestionChip}>
+            <View style={[
+              styles.suggestionBadge,
+              suggestion.kind === 'increase' ? styles.suggestionBadgeUp : styles.suggestionBadgeDown,
+            ]}>
+              <Text style={suggestion.kind === 'increase' ? styles.suggestionArrowUp : styles.suggestionArrowDown}>
+                {suggestion.kind === 'increase' ? '↑' : '↓'}
+              </Text>
+            </View>
+            <Text style={styles.suggestionText}>
+              {suggestion.kind === 'increase' ? 'Felt easy — ' : 'Tough two weeks — drop to '}
+              <Text style={styles.suggestionWeight}>{suggestion.suggestedWeight} lbs</Text>
+              {' next time?'}
+            </Text>
+            <TouchableOpacity testID="suggestion-accept" style={styles.suggestionAccept} onPress={onAcceptSuggestion}>
+              <Text style={styles.suggestionAcceptText}>{'✓'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity testID="suggestion-dismiss" style={styles.suggestionDismiss} onPress={onDismissSuggestion}>
+              <Text style={styles.suggestionDismissText}>{'✕'}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {allDone && suggestion?.accepted && (
+          <View style={styles.suggestionConfirm}>
+            <View style={styles.suggestionConfirmBadge}>
+              <Text style={styles.suggestionConfirmCheck}>{'✓'}</Text>
+            </View>
+            <Text style={styles.suggestionConfirmText}>
+              {suggestion.suggestedWeight} lbs locked in for next session
+            </Text>
           </View>
         )}
 
@@ -488,4 +527,75 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     minHeight: 36,
   },
+
+  // Progression suggestion chip
+  suggestionChip: {
+    marginTop: Spacing.sm + 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm + 2,
+    backgroundColor: Colors.cardInset,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    paddingLeft: Spacing.md,
+    paddingRight: Spacing.sm,
+  },
+  suggestionBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: BorderRadius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestionBadgeUp: { backgroundColor: Colors.greenMuted },
+  suggestionBadgeDown: { backgroundColor: Colors.amberMuted },
+  suggestionArrowUp: { color: Colors.green, fontSize: FontSize.sm, fontWeight: '700' },
+  suggestionArrowDown: { color: Colors.amber, fontSize: FontSize.sm, fontWeight: '700' },
+  suggestionText: { flex: 1, color: Colors.textSecondary, fontSize: FontSize.body, lineHeight: 18 },
+  suggestionWeight: { color: Colors.text, fontWeight: '600' },
+  suggestionAccept: {
+    width: ComponentSize.buttonLarge,
+    height: ComponentSize.setButtonHeight,
+    borderRadius: BorderRadius.button,
+    backgroundColor: Colors.greenFaint,
+    borderWidth: 1,
+    borderColor: Colors.greenBorderFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestionAcceptText: { color: Colors.green, fontSize: FontSize.base, fontWeight: '700' },
+  suggestionDismiss: {
+    width: ComponentSize.buttonLarge,
+    height: ComponentSize.setButtonHeight,
+    borderRadius: BorderRadius.button,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestionDismissText: { color: Colors.textDim, fontSize: FontSize.md, fontWeight: '600' },
+  suggestionConfirm: {
+    marginTop: Spacing.sm + 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm + 2,
+    backgroundColor: Colors.greenFaint,
+    borderWidth: 1,
+    borderColor: Colors.greenBorderFaint,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md - 1,
+    paddingHorizontal: Spacing.md,
+  },
+  suggestionConfirmBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: BorderRadius.pill,
+    backgroundColor: Colors.green,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestionConfirmCheck: { color: Colors.bg, fontSize: FontSize.sm, fontWeight: '800' },
+  suggestionConfirmText: { flex: 1, color: Colors.green, fontSize: FontSize.body, fontWeight: '600' },
 });

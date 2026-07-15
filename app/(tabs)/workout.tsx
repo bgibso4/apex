@@ -425,6 +425,9 @@ export default function WorkoutScreen() {
                         w.openOverride(exIdx, setIdx);
                       }}
                       onSetRPE={(rpe) => w.setRPE(exIdx, rpe)}
+                      suggestion={w.pendingSuggestion?.exerciseId === ex.slot.exercise_id && !ex.isAdhoc ? w.pendingSuggestion : null}
+                      onAcceptSuggestion={w.acceptSuggestion}
+                      onDismissSuggestion={w.dismissSuggestion}
                       onLongPressCard={() => {
                         if (!w.reorderMode) w.enterReorderMode();
                       }}
@@ -481,6 +484,9 @@ export default function WorkoutScreen() {
                           w.openOverride(exIdx, setIdx);
                         }}
                         onSetRPE={(rpe) => w.setRPE(exIdx, rpe)}
+                        suggestion={w.pendingSuggestion?.exerciseId === ex.slot.exercise_id && !ex.isAdhoc ? w.pendingSuggestion : null}
+                        onAcceptSuggestion={w.acceptSuggestion}
+                        onDismissSuggestion={w.dismissSuggestion}
                         onLongPressCard={() => {
                           if (!w.reorderMode) w.enterReorderMode();
                         }}

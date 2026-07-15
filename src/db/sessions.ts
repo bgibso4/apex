@@ -307,20 +307,20 @@ export async function getExerciseNames(
   return map;
 }
 
-/** Get exercise names and input_fields for a list of exercise IDs */
+/** Get exercise names, type, and input_fields for a list of exercise IDs */
 export async function getExerciseInfo(
   exerciseIds: string[]
-): Promise<Record<string, { name: string; inputFields: string | null }>> {
+): Promise<Record<string, { name: string; type: string; inputFields: string | null }>> {
   if (exerciseIds.length === 0) return {};
   const db = await getDatabase();
   const placeholders = exerciseIds.map(() => '?').join(',');
-  const rows = await db.getAllAsync<{ id: string; name: string; input_fields: string | null }>(
-    `SELECT id, name, input_fields FROM exercises WHERE id IN (${placeholders})`,
+  const rows = await db.getAllAsync<{ id: string; name: string; type: string; input_fields: string | null }>(
+    `SELECT id, name, type, input_fields FROM exercises WHERE id IN (${placeholders})`,
     exerciseIds
   );
-  const result: Record<string, { name: string; inputFields: string | null }> = {};
+  const result: Record<string, { name: string; type: string; inputFields: string | null }> = {};
   for (const row of rows) {
-    result[row.id] = { name: row.name, inputFields: row.input_fields };
+    result[row.id] = { name: row.name, type: row.type, inputFields: row.input_fields };
   }
   return result;
 }

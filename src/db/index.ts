@@ -28,3 +28,7 @@ export { getAllExercises, insertExercise } from './exercises';
 export type { ExerciseListItem } from './exercises';
 export { getExerciseResources, addExerciseResource, deleteExerciseResource } from './exerciseResources';
 export type { ExerciseResource } from './exerciseResources';
+export {
+  recordAdjustment, getLatestAdjustment, getAdjustmentHistory,
+  getWeightIncrement, setWeightIncrement, DEFAULT_WEIGHT_INCREMENT,
+} from './weightAdjustments';

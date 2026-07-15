@@ -60,6 +60,9 @@ jest.mock('../../src/db', () => ({
   exportDatabase: jest.fn(),
   getSessionById: jest.fn(),
   markProgramComplete: jest.fn(),
+  getLatestAdjustment: jest.fn(),
+  getWeightIncrement: jest.fn(),
+  recordAdjustment: jest.fn(),
 }));
 
 jest.mock('../../src/utils/program', () => ({
@@ -95,6 +98,7 @@ import {
   getExerciseNames, getExerciseInfo, getExerciseNotesForSession, getPRsForSession, detectPRs,
   getInProgressSession, getFullSessionState, deleteSession,
   getSessionById, markProgramComplete,
+  getLatestAdjustment, getWeightIncrement, recordAdjustment,
 } from '../../src/db';
 import {
   getBlockForWeek, getBlockColor, getTrainingDays,
@@ -129,6 +133,9 @@ const mockedGetFullSessionState = getFullSessionState as jest.Mock;
 const mockedDeleteSession = deleteSession as jest.Mock;
 const mockedGetSessionById = getSessionById as jest.Mock;
 const mockedMarkProgramComplete = markProgramComplete as jest.Mock;
+const mockedGetLatestAdjustment = getLatestAdjustment as jest.Mock;
+const mockedGetWeightIncrement = getWeightIncrement as jest.Mock;
+const mockedRecordAdjustment = recordAdjustment as jest.Mock;
 
 const mockedGetBlockForWeek = getBlockForWeek as jest.Mock;
 const mockedGetBlockColor = getBlockColor as jest.Mock;
@@ -245,6 +252,8 @@ function setupDefaultMocks() {
   mockedGetSessionById.mockResolvedValue(null);
   mockedMarkProgramComplete.mockResolvedValue(undefined);
   mockedIsFinalTrainingSession.mockReturnValue(false);
+  mockedGetLatestAdjustment.mockResolvedValue(null);
+  mockedGetWeightIncrement.mockResolvedValue(5);
 
   mockedGetCurrentWeek.mockReturnValue(1);
   mockedGetTodayKey.mockReturnValue('monday');
@@ -1897,6 +1906,304 @@ describe('useWorkoutSession', () => {
       // bench_press should remain expanded (no auto-advance for non-superset)
       expect(result.current.exercises[0].expanded).toBe(true);
       expect(result.current.exercises[1].expanded).toBe(false);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Adjustment-aware weight pre-fill (issue #45)
+  // -----------------------------------------------------------------------
+  describe('adjustment-aware weight pre-fill', () => {
+    /**
+     * Program fixture with a single accessory slot ('dips') on monday, no
+     * percent target (so the pre-fill falls through to adjustment/history),
+     * with default_weight 70 as the final fallback.
+     */
+    function setupAccessoryProgram() {
+      const prog = makeProgram({
+        definition: {
+          program: {
+            name: 'Test Program',
+            duration_weeks: 12,
+            created: '2025-01-01',
+            blocks: [
+              { name: 'Hypertrophy', weeks: [1, 2, 3, 4], emphasis: 'hypertrophy', main_lift_scheme: {} },
+            ],
+            weekly_template: {
+              monday: {
+                name: 'Upper A',
+                warmup: [],
+                exercises: [
+                  {
+                    exercise_id: 'dips',
+                    category: 'accessory' as const,
+                    default_weight: 70,
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 3, reps: 10 }],
+                  },
+                ],
+              },
+            },
+            exercise_definitions: [
+              { id: 'dips', name: 'Dips', type: 'accessory', muscle_groups: ['chest'] },
+            ],
+            warmup_protocols: {},
+          },
+        },
+      });
+
+      setupDefaultMocks();
+      mockedGetActiveProgram.mockResolvedValue(prog);
+      mockedGetTrainingDays.mockReturnValue([
+        { day: 'monday', template: prog.definition.program.weekly_template.monday },
+      ]);
+
+      return prog;
+    }
+
+    it('pre-fills an accepted, un-trained adjustment weight for an accessory', async () => {
+      setupAccessoryProgram();
+      mockedGetLastSessionForExercise.mockResolvedValue([
+        { session_id: 'sess-X', set_number: 1, actual_weight: 70, actual_reps: 10, status: 'completed' },
+      ]);
+      mockedGetLatestAdjustment.mockResolvedValue({
+        id: 'a1', exercise_id: 'dips', program_id: 'p1', session_id: 'sess-X',
+        old_weight: 70, new_weight: 75, reason: 'easy', created_at: '2026-07-13',
+      });
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+
+      expect(hookResult.result.current.exercises[0].sets[0].targetWeight).toBe(75);
+    });
+
+    it('ignores an adjustment superseded by a newer completed session', async () => {
+      setupAccessoryProgram();
+      mockedGetLastSessionForExercise.mockResolvedValue([
+        { session_id: 'sess-Y', set_number: 1, actual_weight: 95, actual_reps: 10, status: 'completed' },
+      ]);
+      mockedGetLatestAdjustment.mockResolvedValue({
+        id: 'a1', exercise_id: 'dips', program_id: 'p1', session_id: 'sess-X',
+        old_weight: 70, new_weight: 75, reason: 'easy', created_at: '2026-07-13',
+      });
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+
+      expect(hookResult.result.current.exercises[0].sets[0].targetWeight).toBe(95);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Suggestion state machine (issue #45)
+  // -----------------------------------------------------------------------
+  describe('suggestion state machine (issue #45)', () => {
+    /**
+     * Program fixture with a single accessory slot ('dips') on monday, no
+     * percent target, default_weight 70, 3x10 — and a block with an
+     * accessory_scheme RPE threshold of 7-8, so a qualifying RPE fires a
+     * progression suggestion.
+     */
+    const blockWithScheme = {
+      name: 'Hypertrophy', weeks: [1, 2, 3, 4], emphasis: 'hypertrophy', main_lift_scheme: {},
+      accessory_scheme: { rpe_target: '7-8' },
+    };
+
+    async function setupSuggestionSession(lastSessionSets: unknown[] = []) {
+      const prog = makeProgram({
+        definition: {
+          program: {
+            name: 'Test Program',
+            duration_weeks: 12,
+            created: '2025-01-01',
+            blocks: [blockWithScheme],
+            weekly_template: {
+              monday: {
+                name: 'Upper A',
+                warmup: [],
+                exercises: [
+                  {
+                    exercise_id: 'dips',
+                    category: 'accessory' as const,
+                    default_weight: 70,
+                    targets: [{ weeks: [1, 2, 3, 4], sets: 3, reps: 10 }],
+                  },
+                ],
+              },
+            },
+            exercise_definitions: [
+              { id: 'dips', name: 'Dips', type: 'accessory', muscle_groups: ['chest'] },
+            ],
+            warmup_protocols: {},
+          },
+        },
+      });
+
+      setupDefaultMocks();
+      mockedGetActiveProgram.mockResolvedValue(prog);
+      mockedGetTrainingDays.mockReturnValue([
+        { day: 'monday', template: prog.definition.program.weekly_template.monday },
+      ]);
+      mockedGetBlockForWeek.mockReturnValue(blockWithScheme);
+      mockedGetLastSessionForExercise.mockResolvedValue(lastSessionSets);
+
+      const hookResult = renderHook(() => useWorkoutSession());
+      await waitFor(() => {
+        expect(hookResult.result.current.selectedDay).toBe('monday');
+      });
+
+      await act(async () => {
+        await hookResult.result.current.startSession();
+      });
+      await act(async () => {
+        await hookResult.result.current.submitWarmup();
+      });
+
+      // Complete all 3 sets at 70x10 (actuals default to target values)
+      for (let i = 0; i < 3; i++) {
+        await act(async () => {
+          await hookResult.result.current.completeSetAction(0, i);
+        });
+      }
+
+      return hookResult;
+    }
+
+    it('offers an increase after a qualifying RPE and holds the card open', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 7);
+      });
+
+      expect(result.current.pendingSuggestion).toMatchObject({
+        exerciseId: 'dips', kind: 'increase', currentWeight: 70, suggestedWeight: 75, accepted: false,
+      });
+      expect(result.current.exercises[0].expanded).toBe(true); // not collapsed yet
+    });
+
+    it('does not suggest when RPE is above threshold, and advances normally', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 8);
+      });
+
+      expect(result.current.pendingSuggestion).toBeNull();
+      expect(result.current.exercises[0].expanded).toBe(false);
+    });
+
+    it('accept records the adjustment, flips to accepted, then advances after the delay', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 7);
+      });
+      await act(async () => {
+        await result.current.acceptSuggestion();
+      });
+
+      expect(mockedRecordAdjustment).toHaveBeenCalledWith(expect.objectContaining({
+        oldWeight: 70, newWeight: 75, reason: 'easy',
+      }));
+      expect(result.current.pendingSuggestion?.accepted).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(result.current.pendingSuggestion).toBeNull();
+      expect(result.current.exercises[0].expanded).toBe(false);
+    });
+
+    it('dismiss records nothing and advances', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 7);
+      });
+      act(() => {
+        result.current.dismissSuggestion();
+      });
+
+      expect(mockedRecordAdjustment).not.toHaveBeenCalled();
+      expect(result.current.pendingSuggestion).toBeNull();
+      expect(result.current.exercises[0].expanded).toBe(false);
+    });
+
+    it('accept records a decrease adjustment when misses repeat at the same weight', async () => {
+      const { result } = await setupSuggestionSession([
+        { session_id: 'sess-prev', set_number: 1, actual_weight: 70, actual_reps: 8, status: 'completed_below' },
+        { session_id: 'sess-prev', set_number: 2, actual_weight: 70, actual_reps: 10, status: 'completed' },
+        { session_id: 'sess-prev', set_number: 3, actual_weight: 70, actual_reps: 10, status: 'completed' },
+      ]);
+
+      // Override set 1 down to 8 reps this session too — misses at the same 70 modal weight
+      act(() => {
+        result.current.openOverride(0, 0);
+      });
+      act(() => {
+        result.current.setOverrideValues({ weight: 70, reps: 8 });
+      });
+      await act(async () => {
+        await result.current.saveOverride();
+      });
+
+      await act(async () => {
+        await result.current.setRPE(0, 9); // above threshold — rules out the increase path
+      });
+
+      expect(result.current.pendingSuggestion).toMatchObject({
+        exerciseId: 'dips', kind: 'decrease', currentWeight: 70, suggestedWeight: 65, accepted: false,
+      });
+
+      await act(async () => {
+        await result.current.acceptSuggestion();
+      });
+
+      expect(mockedRecordAdjustment).toHaveBeenCalledWith(expect.objectContaining({
+        oldWeight: 70, newWeight: 65, reason: 'misses',
+      }));
+    });
+
+    it('clears a pending suggestion on finishSession so it cannot leak into the next session', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 7);
+      });
+      expect(result.current.pendingSuggestion).not.toBeNull();
+
+      await act(async () => {
+        await result.current.finishSession();
+      });
+
+      expect(result.current.pendingSuggestion).toBeNull();
+    });
+
+    it('clears a pending suggestion when a new session is started', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 7);
+      });
+      expect(result.current.pendingSuggestion).not.toBeNull();
+
+      await act(async () => {
+        await result.current.startSession();
+      });
+
+      expect(result.current.pendingSuggestion).toBeNull();
     });
   });
 });

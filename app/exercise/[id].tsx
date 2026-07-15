@@ -515,7 +515,7 @@ export default function ExerciseDetailScreen() {
         {exerciseType === 'accessory' && (
           <>
             <View style={styles.progressionHeader}>
-              <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>Progression</Text>
+              <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>Progression History</Text>
               {adjustments.length >= 3 && (
                 <TouchableOpacity onPress={() => router.push(`/exercise/progression?id=${id}`)}>
                   <Text style={styles.viewAllText}>View all {'\u203a'}</Text>
@@ -524,7 +524,9 @@ export default function ExerciseDetailScreen() {
             </View>
             <View style={styles.sessionsCard}>
               {adjustments.length === 0 && (
-                <Text style={styles.emptyText}>No adjustments yet \u2014 log accessory sets and rate the RPE</Text>
+                <View style={styles.progressionEmptyState}>
+                  <Text style={styles.emptyText}>No adjustments yet \u2014 log accessory sets and rate the RPE</Text>
+                </View>
               )}
               {adjustments.map((adj, ai) => (
                 <View key={adj.id}>
@@ -1034,7 +1036,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xxl,
     marginBottom: Spacing.md,
   },
-  adjustmentRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
+  adjustmentRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg },
   adjustmentBadge: {
     width: 24, height: 24, borderRadius: BorderRadius.pill,
     alignItems: 'center', justifyContent: 'center',
@@ -1049,7 +1051,7 @@ const styles = StyleSheet.create({
   adjustmentDate: { color: Colors.textMuted, fontSize: FontSize.sm, width: 48, textAlign: 'right' },
   incrementRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: Spacing.md + 2, borderTopWidth: 1, borderTopColor: Colors.surface,
+    paddingTop: Spacing.md + 2, paddingHorizontal: Spacing.lg, borderTopWidth: 1, borderTopColor: Colors.surface,
   },
   incrementLabel: { color: Colors.textSecondary, fontSize: FontSize.md, fontWeight: '600' },
   incrementPill: {
@@ -1058,4 +1060,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.indigoMuted, borderRadius: BorderRadius.button,
   },
   incrementPillText: { color: Colors.indigoLight, fontSize: FontSize.body, fontWeight: '700' },
+  progressionEmptyState: {
+    paddingVertical: Spacing.xxl,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+  },
 });

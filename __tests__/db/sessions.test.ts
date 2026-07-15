@@ -20,6 +20,7 @@ import {
   getSessionById,
   getCompletedSessionForDay,
   getExerciseNames,
+  getExerciseInfo,
   ensureExerciseExists,
   getLastSessionForExercise,
   getFullSessionState,
@@ -615,6 +616,20 @@ describe('sessions', () => {
       const [sql, params] = mockDb.getAllAsync.mock.calls[0];
       expect(sql).toContain('IN (?)');
       expect(params).toEqual(['curl']);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getExerciseInfo
+  // ---------------------------------------------------------------------------
+  describe('getExerciseInfo', () => {
+    it('selects id, name, type and input_fields', async () => {
+      mockDb.getAllAsync.mockResolvedValue([
+        { id: 'dips', name: 'Dips', type: 'accessory', input_fields: null },
+      ]);
+      const result = await getExerciseInfo(['dips']);
+      expect(mockDb.getAllAsync.mock.calls[0][0]).toMatch(/SELECT id, name, type, input_fields FROM exercises/);
+      expect(result['dips']).toEqual({ name: 'Dips', type: 'accessory', inputFields: null });
     });
   });
 

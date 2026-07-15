@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,8 +25,12 @@ import {
   getExerciseResources,
   addExerciseResource,
   deleteExerciseResource,
+  getAdjustmentHistory,
+  getWeightIncrement,
+  setWeightIncrement,
 } from '../../src/db';
 import type { E1RMHistoryPoint, ExercisePrimaryMetric, MetricHistoryPoint, GenericSessionSetHistory, ExerciseResource } from '../../src/db';
+import type { WeightAdjustment } from '../../src/types';
 import { getFieldsForExercise, supportsE1RM, InputField } from '../../src/types/fields';
 import TrendLineChart from '../../src/components/TrendLineChart';
 import { getBlockColorMap, buildBands, getBlockColorOpaque } from '../../src/utils/blockColors';
@@ -130,10 +134,13 @@ export default function ExerciseDetailScreen() {
   const [chartTitle, setChartTitle] = useState('1RM Progression');
   const [recentSessions, setRecentSessions] = useState<GenericSessionSetHistory[]>([]);
   const [totalSessions, setTotalSessions] = useState(0);
-  const [showCount, setShowCount] = useState(5);
+  const showCount = 5;
   const [activatedDate, setActivatedDate] = useState<string | undefined>();
   const [blocks, setBlocks] = useState<{ name: string }[]>([]);
   const [exerciseName, setExerciseName] = useState<string>('');
+  const [exerciseType, setExerciseType] = useState<string>('');
+  const [adjustments, setAdjustments] = useState<WeightAdjustment[]>([]);
+  const [increment, setIncrement] = useState(5);
   const [exerciseFields, setExerciseFields] = useState<InputField[]>([]);
   const [isE1RMExercise, setIsE1RMExercise] = useState(true);
   const [resources, setResources] = useState<ExerciseResource[]>([]);
@@ -153,6 +160,16 @@ export default function ExerciseDetailScreen() {
     const info = exerciseInfoMap[id];
     const name = info?.name ?? id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     setExerciseName(name);
+
+    setExerciseType(info?.type ?? '');
+    if (info?.type === 'accessory') {
+      const [adj, inc] = await Promise.all([
+        getAdjustmentHistory(id, 3),
+        getWeightIncrement(id),
+      ]);
+      setAdjustments(adj);
+      setIncrement(inc);
+    }
 
     const fields = getFieldsForExercise(info?.inputFields ?? null);
     setExerciseFields(fields);
@@ -201,7 +218,7 @@ export default function ExerciseDetailScreen() {
     setRecentSessions(sets);
     setTotalSessions(count);
     setResources(exerciseResources);
-  }, [id, timeRange, showCount]);
+  }, [id, timeRange]);
 
   useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
@@ -305,6 +322,23 @@ export default function ExerciseDetailScreen() {
     if (/instagram\.com/i.test(url)) return 'rgba(225, 48, 108, 0.12)';
     if (/tiktok\.com/i.test(url)) return 'rgba(245, 245, 247, 0.08)';
     return Colors.indigoMuted;
+  };
+
+  const editIncrement = () => {
+    Alert.alert(
+      'Weight increment',
+      'Jump size used by progression suggestions for this exercise.',
+      [
+        ...[2.5, 5, 10, 15].map(v => ({
+          text: `${v} lbs${v === increment ? '  ✓' : ''}`,
+          onPress: async () => {
+            await setWeightIncrement(id!, v);
+            setIncrement(v);
+          },
+        })),
+        { text: 'Cancel', style: 'cancel' as const },
+      ]
+    );
   };
 
   // Format the hero value for display
@@ -469,12 +503,60 @@ export default function ExerciseDetailScreen() {
         {totalSessions > showCount && (
           <TouchableOpacity
             style={styles.viewAllButton}
-            onPress={() => setShowCount(totalSessions)}
+            onPress={() => router.push(`/exercise/sessions?id=${id}`)}
           >
             <Text style={styles.viewAllText}>
               View all {totalSessions} sessions {'\u2192'}
             </Text>
           </TouchableOpacity>
+        )}
+
+        {/* Progression (RPE auto-progression, issue #45) */}
+        {exerciseType === 'accessory' && (
+          <>
+            <View style={styles.progressionHeader}>
+              <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>Progression</Text>
+              {adjustments.length >= 3 && (
+                <TouchableOpacity onPress={() => router.push(`/exercise/progression?id=${id}`)}>
+                  <Text style={styles.viewAllText}>View all {'\u203a'}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <View style={styles.sessionsCard}>
+              {adjustments.length === 0 && (
+                <Text style={styles.emptyText}>No adjustments yet \u2014 log accessory sets and rate the RPE</Text>
+              )}
+              {adjustments.map((adj, ai) => (
+                <View key={adj.id}>
+                  {ai > 0 && <View style={styles.sessionDivider} />}
+                  <View style={styles.adjustmentRow}>
+                    <View style={[
+                      styles.adjustmentBadge,
+                      adj.reason === 'easy' ? styles.adjustmentBadgeUp : styles.adjustmentBadgeDown,
+                    ]}>
+                      <Text style={adj.reason === 'easy' ? styles.adjustmentArrowUp : styles.adjustmentArrowDown}>
+                        {adj.new_weight > adj.old_weight ? '\u2191' : '\u2193'}
+                      </Text>
+                    </View>
+                    <Text style={styles.adjustmentWeight}>
+                      {adj.new_weight} lbs <Text style={styles.adjustmentFrom}>from {adj.old_weight}</Text>
+                    </Text>
+                    <Text style={styles.adjustmentReason}>
+                      {adj.reason === 'easy' ? 'felt easy' : '2 missed'}
+                    </Text>
+                    <Text style={styles.adjustmentDate}>{formatCompactDate(adj.created_at)}</Text>
+                  </View>
+                </View>
+              ))}
+              <View style={styles.incrementRow}>
+                <Text style={styles.incrementLabel}>Weight increment</Text>
+                <TouchableOpacity style={styles.incrementPill} onPress={editIncrement}>
+                  <Text style={styles.incrementPillText}>{increment} lbs</Text>
+                  <Ionicons name="pencil-outline" size={11} color={Colors.textDim} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
         )}
 
         {/* Resources Section */}
@@ -943,4 +1025,37 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '700',
   },
+
+  // Progression (RPE auto-progression, issue #45)
+  progressionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.xxl,
+    marginBottom: Spacing.md,
+  },
+  adjustmentRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
+  adjustmentBadge: {
+    width: 24, height: 24, borderRadius: BorderRadius.pill,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  adjustmentBadgeUp: { backgroundColor: Colors.greenMuted },
+  adjustmentBadgeDown: { backgroundColor: Colors.amberMuted },
+  adjustmentArrowUp: { color: Colors.green, fontSize: FontSize.body, fontWeight: '700' },
+  adjustmentArrowDown: { color: Colors.amber, fontSize: FontSize.body, fontWeight: '700' },
+  adjustmentWeight: { flex: 1, color: Colors.text, fontSize: FontSize.base, fontWeight: '600' },
+  adjustmentFrom: { color: Colors.textDim, fontSize: FontSize.body, fontWeight: '400' },
+  adjustmentReason: { color: Colors.textDim, fontSize: FontSize.sm },
+  adjustmentDate: { color: Colors.textMuted, fontSize: FontSize.sm, width: 48, textAlign: 'right' },
+  incrementRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: Spacing.md + 2, borderTopWidth: 1, borderTopColor: Colors.surface,
+  },
+  incrementLabel: { color: Colors.textSecondary, fontSize: FontSize.md, fontWeight: '600' },
+  incrementPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 6, paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.indigoMuted, borderRadius: BorderRadius.button,
+  },
+  incrementPillText: { color: Colors.indigoLight, fontSize: FontSize.body, fontWeight: '700' },
 });

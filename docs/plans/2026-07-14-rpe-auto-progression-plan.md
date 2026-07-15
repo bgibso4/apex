@@ -756,7 +756,7 @@ git commit -m "feat: weight pre-fill honors un-trained accepted adjustments (#45
 
 ```ts
 pendingSuggestion: {
-  exerciseIdx: number;
+  exerciseId: string;   // identity, not index — reorder/add/delete during the chip window must not retarget it
   kind: 'increase' | 'decrease';
   currentWeight: number;
   suggestedWeight: number;
@@ -1171,7 +1171,7 @@ git commit -m "feat: suggestion chip UI in ExerciseCard — increase/decrease/ac
 - [ ] **Step 1: Add the three props at BOTH render sites**, next to the existing `onSetRPE={(rpe) => w.setRPE(exIdx, rpe)}` lines:
 
 ```tsx
-suggestion={w.pendingSuggestion?.exerciseIdx === exIdx ? w.pendingSuggestion : null}
+suggestion={w.pendingSuggestion?.exerciseId === ex.slot.exercise_id && !ex.isAdhoc ? w.pendingSuggestion : null}
 onAcceptSuggestion={w.acceptSuggestion}
 onDismissSuggestion={w.dismissSuggestion}
 ```

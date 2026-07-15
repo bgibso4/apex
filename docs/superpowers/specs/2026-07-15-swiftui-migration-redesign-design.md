@@ -22,7 +22,7 @@ This is three efforts braided together, sequenced so each feeds the next:
 | North star | Personal-first, with App Store-ready seams (secrets out of source, clean boundaries, no architectural dead-ends). App Store is a later phase, not a rewrite. |
 | Cloud | Cadre ecosystem stays. Cloudflare Worker + D1 survive as-is; Swift re-implements the sync client. CloudKit is a documented future option, not v1. |
 | Redesign depth | Evolve the dark instrument-panel DNA. Open-ended art-direction exploration first; no candidate cap. |
-| RN app policy | Frozen: critical bugs + trivial QoL only (#69 decided; #67 a candidate, decided at Phase 0 kickoff). All feature/redesign work happens once, in Swift. **Precondition:** PR #77 (#45 RPE auto-progression, schema v17) merges to main before the freeze takes effect — main is at v16 until then. |
+| RN app policy | Frozen: critical bugs + trivial QoL only (#69 decided; #67 a candidate, decided at Phase 0 kickoff). All feature/redesign work happens once, in Swift. **Precondition (satisfied 2026-07-15):** PR #77 (#45 RPE auto-progression, schema v17) merged to main, so the freeze baseline and the v17 migration anchor are live. |
 | Repo | Same repo, sibling directory `apex-ios/`. The fork is logical, not physical. |
 | Cutover bar | Parity + redesigned core flows. New-feature issues (#64, #71, #73, #63, #49) come after cutover, Swift-only. |
 | Build sequence | Design the whole app before building: art direction → full-app design campaign → foundation + flow-by-flow implementation. A small number of deferrable views may be designed later. |
@@ -173,7 +173,7 @@ Boundary rule (binding): mocks exist only at protocol seams. A test that needs t
 | #67 keyboard covers notes | Candidate trivial RN fix now (freeze exception); systematically handled in Swift |
 | #69 redundant save prompt | Trivial RN fix now (freeze exception); properly resolved in Swift finish flow |
 | #64 program overview, #71 off-program training, #73 run history, #63 history browsing, #49 check-ins | Phase 5 (entry points reserved in Phase 1 navigation) |
-| #45 RPE auto-progression | Built on PR #77 (open); merging it is a prerequisite of the RN freeze and the migration anchor; ports with the domain core |
+| #45 RPE auto-progression | Built on PR #77 (merged 2026-07-15, satisfying the freeze/anchor prerequisite); ports with the domain core |
 
 ## Out of Scope (v1)
 
@@ -195,7 +195,7 @@ Each phase gets its own plan (and spec where design is non-trivial), in order:
 
 ## Existing-System Reference (audit, 2026-07-15)
 
-Key facts the plans above rest on; this section is the committed record of the 2026-07-15 audit — anything finer-grained is regenerated from the codebase at plan time. **Baseline note:** these figures describe `feat/rpe-auto-progression` (PR #77, open), not today's main — main is schema v16 with no progression engine or `weight_adjustments` table.
+Key facts the plans above rest on; this section is the committed record of the 2026-07-15 audit — anything finer-grained is regenerated from the codebase at plan time. **Baseline note:** these figures were audited on `feat/rpe-auto-progression` (PR #77); since its merge on 2026-07-15 they describe main as well.
 
 - **DB:** `apex.db`, schema v17 (pending PR #77; v16 on main), 13 application tables (12 at v16; the live file also contains SQLite-internal `sqlite_sequence`), WAL, FK cascades, JSON-as-TEXT (no JSON1 functions), no triggers/FTS/views. GRDB-compatible as-is; SwiftData ruled out (cannot adopt a raw existing schema).
 - **Domain:** ~2,500 LOC pure logic in `src/utils/` + compute portions of `src/db/metrics.ts`, `personal-records.ts`, `programSummary.ts`; ~59 test files / ~737 cases (the DB suites are mock-based SQL-string assertions — no real SQLite engine runs in Jest); no e2e suite exists today despite CLAUDE.md claiming one.

@@ -129,8 +129,12 @@ export function useWorkoutSession() {
   const [exercises, setExercises] = useState<ExerciseState[]>([]);
 
   // Pending RPE-driven progression suggestion (issue #45)
+  // Keyed by exercise identity (not array index) — moveExercise/enterReorderMode/
+  // addAdhocExercise/delete actions can mutate `exercises` during the chip's
+  // display window, which would otherwise leave a stale index pointing at the
+  // wrong exercise (or past the end of the array) by the time accept/dismiss runs.
   const [pendingSuggestion, setPendingSuggestion] = useState<{
-    exerciseIdx: number;
+    exerciseId: string;
     kind: 'increase' | 'decrease';
     currentWeight: number;
     suggestedWeight: number;
@@ -894,7 +898,7 @@ export function useWorkoutSession() {
         next[exIdx] = { ...next[exIdx], rpe };
         return next;
       });
-      setPendingSuggestion({ exerciseIdx: exIdx, ...suggestion, accepted: false });
+      setPendingSuggestion({ exerciseId: ex.slot.exercise_id, ...suggestion, accepted: false });
       return; // card stays open until the chip is resolved
     }
 
@@ -909,11 +913,10 @@ export function useWorkoutSession() {
   /** Accept the pending suggestion: record it, confirm briefly, then advance */
   const acceptSuggestion = async () => {
     if (!pendingSuggestion || pendingSuggestion.accepted || !sessionId || !program) return;
-    const { exerciseIdx, currentWeight, suggestedWeight, kind } = pendingSuggestion;
-    const ex = exercises[exerciseIdx];
+    const { exerciseId, currentWeight, suggestedWeight, kind } = pendingSuggestion;
 
     await recordAdjustment({
-      exerciseId: ex.slot.exercise_id,
+      exerciseId,
       programId: program.id,
       sessionId,
       oldWeight: currentWeight,
@@ -925,16 +928,22 @@ export function useWorkoutSession() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setTimeout(() => {
       setPendingSuggestion(null);
-      setExercises(prev => advanceAfterExercise(prev, exerciseIdx));
+      setExercises(prev => {
+        const idx = prev.findIndex(e => !e.isAdhoc && e.slot.exercise_id === exerciseId);
+        return idx >= 0 ? advanceAfterExercise(prev, idx) : prev;
+      });
     }, 900);
   };
 
   /** Dismiss the pending suggestion: save nothing, advance as normal */
   const dismissSuggestion = () => {
     if (!pendingSuggestion) return;
-    const { exerciseIdx } = pendingSuggestion;
+    const { exerciseId } = pendingSuggestion;
     setPendingSuggestion(null);
-    setExercises(prev => advanceAfterExercise(prev, exerciseIdx));
+    setExercises(prev => {
+      const idx = prev.findIndex(e => !e.isAdhoc && e.slot.exercise_id === exerciseId);
+      return idx >= 0 ? advanceAfterExercise(prev, idx) : prev;
+    });
   };
 
   /** Submit readiness and move to warmup */

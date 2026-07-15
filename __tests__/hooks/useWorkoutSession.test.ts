@@ -2019,7 +2019,7 @@ describe('useWorkoutSession', () => {
       accessory_scheme: { rpe_target: '7-8' },
     };
 
-    async function setupSuggestionSession() {
+    async function setupSuggestionSession(lastSessionSets: unknown[] = []) {
       const prog = makeProgram({
         definition: {
           program: {
@@ -2055,6 +2055,7 @@ describe('useWorkoutSession', () => {
         { day: 'monday', template: prog.definition.program.weekly_template.monday },
       ]);
       mockedGetBlockForWeek.mockReturnValue(blockWithScheme);
+      mockedGetLastSessionForExercise.mockResolvedValue(lastSessionSets);
 
       const hookResult = renderHook(() => useWorkoutSession());
       await waitFor(() => {
@@ -2086,7 +2087,7 @@ describe('useWorkoutSession', () => {
       });
 
       expect(result.current.pendingSuggestion).toMatchObject({
-        exerciseIdx: 0, kind: 'increase', currentWeight: 70, suggestedWeight: 75, accepted: false,
+        exerciseId: 'dips', kind: 'increase', currentWeight: 70, suggestedWeight: 75, accepted: false,
       });
       expect(result.current.exercises[0].expanded).toBe(true); // not collapsed yet
     });
@@ -2138,6 +2139,41 @@ describe('useWorkoutSession', () => {
       expect(mockedRecordAdjustment).not.toHaveBeenCalled();
       expect(result.current.pendingSuggestion).toBeNull();
       expect(result.current.exercises[0].expanded).toBe(false);
+    });
+
+    it('accept records a decrease adjustment when misses repeat at the same weight', async () => {
+      const { result } = await setupSuggestionSession([
+        { session_id: 'sess-prev', set_number: 1, actual_weight: 70, actual_reps: 8, status: 'completed_below' },
+        { session_id: 'sess-prev', set_number: 2, actual_weight: 70, actual_reps: 10, status: 'completed' },
+        { session_id: 'sess-prev', set_number: 3, actual_weight: 70, actual_reps: 10, status: 'completed' },
+      ]);
+
+      // Override set 1 down to 8 reps this session too — misses at the same 70 modal weight
+      act(() => {
+        result.current.openOverride(0, 0);
+      });
+      act(() => {
+        result.current.setOverrideValues({ weight: 70, reps: 8 });
+      });
+      await act(async () => {
+        await result.current.saveOverride();
+      });
+
+      await act(async () => {
+        await result.current.setRPE(0, 9); // above threshold — rules out the increase path
+      });
+
+      expect(result.current.pendingSuggestion).toMatchObject({
+        exerciseId: 'dips', kind: 'decrease', currentWeight: 70, suggestedWeight: 65, accepted: false,
+      });
+
+      await act(async () => {
+        await result.current.acceptSuggestion();
+      });
+
+      expect(mockedRecordAdjustment).toHaveBeenCalledWith(expect.objectContaining({
+        oldWeight: 70, newWeight: 65, reason: 'misses',
+      }));
     });
   });
 });

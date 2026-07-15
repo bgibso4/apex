@@ -1,0 +1,145 @@
+<!-- @dsCard group="Context" -->
+<meta charset="utf-8">
+<title>Redesign Brief — APEX Design System</title>
+<style>
+  :root {
+    --bg:#0a0a0f; --card:#141420; --card-inset:#181824; --surface:#1e1e30;
+    --border:#2a2a3e; --border-lt:#3a3a4e;
+    --text:#ffffff; --text-2:#a0a0b8; --text-dim:#6a6a80; --text-muted:#4a4a5e;
+    --accent:#6366f1; --accent-lt:#818cf8; --accent-dk:#4f46e5; --accent-tint:#6366f11f;
+    --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    --good-tint:#22c55e1f; --warn-tint:#f59e0b1f; --bad-tint:#ef44441f;
+    --blk-hyp:#6366f1; --blk-str:#f59e0b; --blk-del:#22c55e; --blk-rea:#ec4899;
+    --radius-card:16px; --radius-inner:12px; --radius-btn:10px; --radius-pill:999px;
+  }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--bg); color:var(--text); padding:32px; max-width:760px; margin:0 auto; }
+  section { margin-bottom:40px; }
+  h1 { font-size:28px; font-weight:800; letter-spacing:-0.5px; }
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); margin-bottom:14px; }
+  h2 .n { color:var(--accent-lt); margin-right:6px; }
+  .thesis { color:var(--text-2); font-size:15px; line-height:1.55; margin-top:10px; }
+  .eyebrow { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-card); padding:20px; }
+  .card + .card { margin-top:14px; }
+  .card p { color:var(--text-2); font-size:14px; line-height:1.6; }
+  .card p + p { margin-top:10px; }
+  .pill { display:inline-block; padding:5px 12px; border-radius:var(--radius-pill); font-size:10px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.6px; background:var(--accent-tint); color:var(--accent-lt);
+          border:1px solid var(--accent-dk); }
+  .open-pill { background:var(--warn-tint); color:var(--warn); border:1px solid var(--warn); }
+  ul { padding-left:18px; color:var(--text-2); font-size:14px; line-height:1.6; }
+  li { margin-bottom:8px; }
+  li:last-child { margin-bottom:0; }
+  li b { color:var(--text); font-weight:600; }
+  .issue-list { list-style:none; padding-left:0; }
+  .issue-list li { display:flex; gap:12px; align-items:baseline; padding:11px 0; border-bottom:1px solid var(--border); }
+  .issue-list li:last-child { border-bottom:none; }
+  .issue-tag { flex:0 0 auto; min-width:38px; text-align:center; padding:3px 8px; border-radius:var(--radius-pill);
+               font-size:11px; font-weight:700; background:var(--surface); color:var(--text-2);
+               border:1px solid var(--border-lt); font-variant-numeric:tabular-nums; }
+  .issue-list span.desc { color:var(--text-2); font-size:14px; line-height:1.5; }
+  .swatch-inline { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:5px; }
+  .cap { font-size:11px; color:var(--text-muted); margin-top:8px; }
+  code { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:1px 6px;
+         font-size:13px; color:var(--text-2); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .blocks-inline { display:inline-flex; height:8px; width:80px; border-radius:var(--radius-pill); overflow:hidden; gap:2px; vertical-align:middle; }
+  .blocks-inline div { height:100%; }
+</style>
+
+<section id="intro">
+  <div class="eyebrow">Context · Phase 0 Kickoff</div>
+  <h1>Redesign Brief</h1>
+  <p class="thesis">Standing context for this project — read first, every session. APEX today is a React Native strength-training app; this document is the brief for rebuilding it native in SwiftUI with a full visual and interaction redesign. Because this page documents the app <em>as it exists today</em>, the palette in this page's <code>:root</code> is today's production palette, not a candidate direction.</p>
+</section>
+
+<section id="what-this-is">
+  <h2><span class="n">1</span>What this is</h2>
+  <div class="card">
+    <p>APEX is being rebuilt native — SwiftUI, targeting iOS 26 — with a full visual and flow redesign, not a like-for-like port. This claude.ai/design project is the design hub for that effort.</p>
+    <p>The pipeline has three stages, each landing in its own part of this project: art-direction rounds are pushed as candidate pages into <code>specimens/</code>; once a direction is locked, it's codified into <code>foundations/</code> (colors, typography, spacing, core components); every subsequent screen is then designed here against that locked foundation.</p>
+    <p>Mockups produced in Claude Design are exported, converted to static HTML, and committed to <code>docs/mockups/</code> in the app repo. That folder — not this project, not memory — remains the implementation contract that engineering builds against.</p>
+  </div>
+</section>
+
+<section id="the-bar">
+  <h2><span class="n">2</span>The bar</h2>
+  <div class="card">
+    <p>Production-grade, lovable, Ive-grade restraint. The product's soul is minimal touches to complete a goal — a set logged exactly as prescribed should take one tap, nothing more.</p>
+    <p><b style="color:var(--text)">Binding rule:</b> every redesigned flow must reduce or hold its interaction count versus today. It may never increase it. A redesign that looks cleaner but takes more taps has failed the bar.</p>
+  </div>
+</section>
+
+<section id="what-stays">
+  <h2><span class="n">3</span>What stays</h2>
+  <ul>
+    <li><b>Dark-first, instrument-panel DNA</b> — the app reads like a cockpit display, not a consumer social app.</li>
+    <li><b>The APEX name and the ΛPEX wordmark</b>, set in Orbitron 800.</li>
+    <li><b>Uppercase eyebrow labels over large numerals</b> — the app's core typographic signature for stats and metrics.</li>
+    <li><b>Hairline-bordered flat cards</b> as the primary content container.</li>
+    <li><b>No vanity metrics</b> — every number shown must be actionable or tell a story.</li>
+    <li><b>State is sacred</b> — in-progress sessions survive app kills and restore to the exact position on relaunch.</li>
+  </ul>
+</section>
+
+<section id="what-changes">
+  <h2><span class="n">4</span>What changes</h2>
+  <ul>
+    <li>The indigo <code>#6366f1</code> accent — today's <code>--accent</code>, shown throughout this page's own styling — is retired. A new accent is one of the first things a candidate direction proposes.</li>
+    <li>Cleaner and more minimal throughout — fewer competing visual elements per screen.</li>
+    <li>Typography refined — weights, scale, and rhythm revisited, not just recolored.</li>
+    <li>A specific list of interaction flows get fixed as part of the redesign, not left as-is — see the next section.</li>
+  </ul>
+</section>
+
+<section id="flow-fixes">
+  <h2><span class="n">5</span>Flow fixes to design in</h2>
+  <p class="thesis" style="margin-top:0 0 14px 0">Each of these is a known problem in the current app, carried in as a requirement for the corresponding redesigned flow — not an afterthought to patch later.</p>
+  <div class="card" style="margin-top:14px">
+    <ul class="issue-list">
+      <li><span class="issue-tag">#66</span><span class="desc"><b style="color:var(--text)">Workout logging</b> — a mis-tap collapses the row; there's no way to add or remove sets; adding/reordering exercises is janky; tap targets are too small.</span></li>
+      <li><span class="issue-tag">#70</span><span class="desc"><b style="color:var(--text)">Session memory</b> — an in-progress session must surface on Home, not just be recoverable from inside Workout.</span></li>
+      <li><span class="issue-tag">#46</span><span class="desc"><b style="color:var(--text)">Warmup protocols</b> — warmup steps need to be expandable, not a flat undifferentiated list.</span></li>
+      <li><span class="issue-tag">#68</span><span class="desc"><b style="color:var(--text)">PRs & trends</b> — personal records need to be viewable, and trend charts need to be readable, not decorative.</span></li>
+      <li><span class="issue-tag">#67</span><span class="desc"><b style="color:var(--text)">Keyboard handling</b> — the keyboard must never cover note input fields.</span></li>
+      <li><span class="issue-tag">#65</span><span class="desc"><b style="color:var(--text)">Session timestamps</b> — session timestamps must be editable after the fact.</span></li>
+      <li><span class="issue-tag">#69</span><span class="desc"><b style="color:var(--text)">Save prompt</b> — kill the redundant post-workout save prompt.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="liquid-glass">
+  <h2><span class="n">6</span>The Liquid Glass question</h2>
+  <div class="card">
+    <span class="pill open-pill">Open — answer per direction</span>
+    <p style="margin-top:12px">iOS 26 introduces Liquid Glass, a system-wide material language. APEX's stance on it is an open question each candidate direction must answer explicitly, not by accident — and it should be answered <b style="color:var(--text)">separately</b> for three surfaces:</p>
+    <ul style="margin-top:10px">
+      <li><b>Tab bar</b> — embrace, resist, or blend?</li>
+      <li><b>Sheets</b> (modals) — embrace, resist, or blend?</li>
+      <li><b>Cards</b> — embrace, resist, or blend?</li>
+    </ul>
+    <p style="margin-top:10px">The three answers need not match — a direction might, for example, embrace native glass materials for the tab bar and sheets while keeping cards flat and hairline-bordered to preserve the instrument-panel read.</p>
+  </div>
+</section>
+
+<section id="constraints">
+  <h2><span class="n">7</span>Constraints</h2>
+  <ul>
+    <li><b>SwiftUI / iOS 26 native</b> — Swift Charts for all charts, Dynamic Type support throughout, <code>.sheet</code> for modal presentation.</li>
+    <li><b>Dark-only for v1</b> — no light mode to design or support.</li>
+    <li><b>Block color-coding must survive in some form</b> — the four training-block categories (hypertrophy, strength, deload, reactivation) are today color-coded
+      <span class="blocks-inline"><div style="flex:1;background:var(--blk-hyp)"></div><div style="flex:1;background:var(--blk-str)"></div><div style="flex:1;background:var(--blk-del)"></div><div style="flex:1;background:var(--blk-rea)"></div></span>
+      and that distinction needs to carry forward, even if the specific hues change.</li>
+    <li><b>Running keeps a distinct accent</b> — the supplementary-goal tab reads as visually separate from the core lifting accent.</li>
+    <li><b>The 4-step text ramp and semantic good / warn / bad colors continue as concepts</b> — the specific hex values are open, but the structure (a four-level text-emphasis hierarchy; green/amber/red semantics for good/warn/bad states) is not.</li>
+  </ul>
+</section>
+
+<section id="rounds">
+  <h2><span class="n">8</span>How rounds work</h2>
+  <div class="card">
+    <p>Each round, Ben reacts to every specimen individually — <b style="color:var(--text)">keep</b>, <b style="color:var(--text)">kill</b>, or <b style="color:var(--text)">blend</b> — with notes, in claude.ai/design.</p>
+    <p>Those reactions produce round N+1: killed directions drop, kept ones continue, blended ones combine. There is no cap on the number of rounds — this runs until the direction is right, not until a round budget is spent.</p>
+    <p>Exit criterion: Ben declares a direction locked. That single act triggers foundations codification (colors, typography, spacing, core components written into <code>foundations/</code>) and generation of the canonical <code>tokens.json</code>, which every downstream consumer — the Swift app, the shared TS theme, this design-system project itself — then generates from.</p>
+  </div>
+</section>

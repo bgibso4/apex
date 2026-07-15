@@ -39,8 +39,6 @@
                font-size:11px; font-weight:700; background:var(--surface); color:var(--text-2);
                border:1px solid var(--border-lt); font-variant-numeric:tabular-nums; }
   .issue-list span.desc { color:var(--text-2); font-size:14px; line-height:1.5; }
-  .swatch-inline { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:5px; }
-  .cap { font-size:11px; color:var(--text-muted); margin-top:8px; }
   code { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:1px 6px;
          font-size:13px; color:var(--text-2); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
   .blocks-inline { display:inline-flex; height:8px; width:80px; border-radius:var(--radius-pill); overflow:hidden; gap:2px; vertical-align:middle; }
@@ -94,7 +92,7 @@
 
 <section id="flow-fixes">
   <h2><span class="n">5</span>Flow fixes to design in</h2>
-  <p class="thesis" style="margin-top:0 0 14px 0">Each of these is a known problem in the current app, carried in as a requirement for the corresponding redesigned flow — not an afterthought to patch later.</p>
+  <p class="thesis" style="margin:0 0 14px 0">Each of these is a known problem in the current app, carried in as a requirement for the corresponding redesigned flow — not an afterthought to patch later.</p>
   <div class="card" style="margin-top:14px">
     <ul class="issue-list">
       <li><span class="issue-tag">#66</span><span class="desc"><b style="color:var(--text)">Workout logging</b> — a mis-tap collapses the row; there's no way to add or remove sets; adding/reordering exercises is janky; tap targets are too small.</span></li>
@@ -127,7 +125,7 @@
   <ul>
     <li><b>SwiftUI / iOS 26 native</b> — Swift Charts for all charts, Dynamic Type support throughout, <code>.sheet</code> for modal presentation.</li>
     <li><b>Dark-only for v1</b> — no light mode to design or support.</li>
-    <li><b>Block color-coding must survive in some form</b> — the four training-block categories (hypertrophy, strength, deload, reactivation) are today color-coded
+    <li><b>Block color-coding must survive in some form</b> — the four training-block categories (hypertrophy, strength, deload, realization) are today color-coded
       <span class="blocks-inline"><div style="flex:1;background:var(--blk-hyp)"></div><div style="flex:1;background:var(--blk-str)"></div><div style="flex:1;background:var(--blk-del)"></div><div style="flex:1;background:var(--blk-rea)"></div></span>
       and that distinction needs to carry forward, even if the specific hues change.</li>
     <li><b>Running keeps a distinct accent</b> — the supplementary-goal tab reads as visually separate from the core lifting accent.</li>

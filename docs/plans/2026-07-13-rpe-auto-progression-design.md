@@ -146,9 +146,10 @@ Current order in `useWorkoutSession`:
 New order inserts one step:
 
 1. `%1RM` calc (main lifts — unchanged, adjustments never apply)
-2. **Latest `weight_adjustments` row for the exercise, iff `created_at` is newer than
-   the last completed session containing that exercise** — i.e. "accepted but not yet
-   trained at"
+2. **Latest `weight_adjustments` row for the exercise, iff it was accepted during the
+   most recent completed session containing that exercise (`adjustment.session_id ===`
+   that session's id), or there is no completed session yet** — i.e. "accepted but not
+   yet trained at". Any session completed after the acceptance supersedes it.
 3. Last session's most common weight (existing behavior)
 4. `slot.default_weight`
 5. 0

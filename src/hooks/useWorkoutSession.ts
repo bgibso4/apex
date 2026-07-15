@@ -256,6 +256,7 @@ export function useWorkoutSession() {
     restoredNotes: Record<string, string>,
     restoredProtocols: SessionProtocol[]
   ) => {
+    setPendingSuggestion(null); // restoring a session must not inherit a stale chip
     const def = active.definition.program;
     const week = session.week_number;
 
@@ -514,6 +515,8 @@ export function useWorkoutSession() {
   /** Start a workout session */
   const startSession = async () => {
     if (!selectedTemplate || !block || !program || !def) return;
+
+    setPendingSuggestion(null); // new session must not inherit a chip from the last one
 
     const id = await createSession({
       programId: program.id,
@@ -1094,11 +1097,13 @@ export function useWorkoutSession() {
     setExerciseNotes({});
     setSessionNotes('');
     setProtocols([]);
+    setPendingSuggestion(null);
   };
 
   /** Complete the session */
   const finishSession = async () => {
     if (!sessionId) return;
+    setPendingSuggestion(null); // finishing must not let a chip survive into the next session
     await completeSession(sessionId);
 
     // Program completion: is this the final scheduled training day?

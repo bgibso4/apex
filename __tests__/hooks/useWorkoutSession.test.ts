@@ -2175,5 +2175,35 @@ describe('useWorkoutSession', () => {
         oldWeight: 70, newWeight: 65, reason: 'misses',
       }));
     });
+
+    it('clears a pending suggestion on finishSession so it cannot leak into the next session', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 7);
+      });
+      expect(result.current.pendingSuggestion).not.toBeNull();
+
+      await act(async () => {
+        await result.current.finishSession();
+      });
+
+      expect(result.current.pendingSuggestion).toBeNull();
+    });
+
+    it('clears a pending suggestion when a new session is started', async () => {
+      const { result } = await setupSuggestionSession();
+
+      await act(async () => {
+        await result.current.setRPE(0, 7);
+      });
+      expect(result.current.pendingSuggestion).not.toBeNull();
+
+      await act(async () => {
+        await result.current.startSession();
+      });
+
+      expect(result.current.pendingSuggestion).toBeNull();
+    });
   });
 });

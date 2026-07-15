@@ -292,6 +292,7 @@ export async function clearAllData(): Promise<void> {
     DELETE FROM programs;
     DELETE FROM run_logs;
     DELETE FROM weekly_checkins;
+    DELETE FROM weight_adjustments;
     DELETE FROM exercises;
   `);
 }

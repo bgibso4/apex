@@ -1,0 +1,240 @@
+<!-- @dsCard group="References" -->
+<meta charset="utf-8">
+<title>Nord Accents v8 — APEX</title>
+<style>
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:#0B0B0C; color:#EDEDEF; padding:36px 28px; }
+  .intro { max-width:820px; margin:0 auto 36px; }
+  .intro h1 { font-size:24px; font-weight:800; letter-spacing:-0.4px; }
+  .intro p { color:#9A9AA2; font-size:14px; line-height:1.6; margin-top:10px; }
+  .intro b { color:#D6D6DA; font-weight:600; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:32px; max-width:1500px; margin:0 auto; }
+  .direction { display:flex; flex-direction:column; gap:14px; }
+  .d-title { font-size:15px; font-weight:700; }
+  .d-title span { color:#77777f; font-weight:500; font-size:12px; margin-left:8px; }
+  .caption { color:#8B8B93; font-size:12px; line-height:1.55; }
+  .caption b { color:#C9C9CF; font-weight:600; }
+
+  .phone { border-radius:28px; padding:22px 18px 18px; border:1px solid #242428; min-height:540px; }
+  .p-week { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .p-title { font-size:20px; font-weight:800; letter-spacing:-0.3px; color:var(--text); margin:3px 0 16px; }
+  .card { border:1px solid var(--border); border-top:1px solid var(--border-lt); border-radius:10px; padding:15px;
+          background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%); }
+  .ex-name { font-size:14px; font-weight:700; color:var(--text); }
+  .ex-rx { font-size:11px; color:var(--dim); margin-top:2px; }
+  .set { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .set:last-of-type { border-bottom:none; }
+  .set .n { width:16px; font-size:11px; font-weight:700; color:var(--mute); }
+  .set .v { flex:1; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--text); }
+  .set.done .v { color:var(--good); }
+  .set.pend .v { color:var(--dim); }
+  .tap { min-width:44px; height:32px; border-radius:6px; border:1.5px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--mute); }
+  .set.done .tap { background:var(--good-t); border-color:transparent; color:var(--good); }
+  .set.curr .tap { border-color:var(--tint); color:var(--tint); }
+  .stat { margin-top:14px; }
+  .stat .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .stat .num { font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); line-height:1.1; }
+  .stat .num small { font-size:13px; color:var(--dim); font-weight:600; }
+  .stat .delta { font-size:11px; font-weight:600; color:var(--good); margin-top:2px; }
+  .btn { margin-top:16px; text-align:center; padding:13px; border-radius:8px;
+         background:var(--tint); color:var(--btn-txt); font-size:14px; font-weight:700; }
+
+  .spec { border:1px solid #222226; border-radius:12px; padding:12px 14px; background:#101012; }
+  .spec h3 { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:#66666e; margin-bottom:8px; }
+  .spec .rows { display:grid; grid-template-columns:1fr 1fr; gap:3px 18px; }
+  .spec .row { display:flex; align-items:center; gap:7px; font-size:10.5px; color:#9A9AA2; }
+  .spec .row i { width:10px; height:10px; border-radius:3px; border:1px solid #2A2A2E; flex:none; }
+  .spec .row code { color:#6E6E76; margin-left:auto; font-size:10px; }
+  .spec .meta { margin-top:8px; font-size:10.5px; color:#77777f; }
+
+  /* R — reference: Precision Blue (v6-A leader, neutral-cool field) */
+  .R { --card-top:#14161B; --card-base:#0E1013; --border:#20232A; --border-lt:#2C3039;
+       --text:#EDEEF0; --dim:#8F9098; --mute:#55575F;
+       --tint:#659BC8; --good:#6CA383; --good-t:#6CA3831a; --btn-txt:#0B0C0E; }
+  .R .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #141A22 0%, #0C0E11 55%, #090A0C 100%); }
+
+  /* shared Nord fog field for NB / NS / NV */
+  .NB, .NS, .NV { --card-top:#141719; --card-base:#0E1112; --border:#222629; --border-lt:#2F353A;
+       --text:#EFF2F3; --dim:#909A9E; --mute:#565E62; --good:#6CA383; --good-t:#6CA3831a; --btn-txt:#0A0C0D; }
+  .NB .phone, .NS .phone, .NV .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #171B1E 0%, #0C0E0F 55%, #090A0B 100%); }
+  /* NB — Nord + the leader's dusty blue */
+  .NB { --tint:#659BC8; }
+  /* NS — Nord + forged steel (iron pushed to the muted ceiling) */
+  .NS { --tint:#6E96B4; }
+  /* NV — Nord + dusty violet */
+  .NV { --tint:#8A91C9; }
+</style>
+
+<div class="intro">
+  <h1>Nord accents — one variable</h1>
+  <p>Round history: Sumi is dead (warm cast rejected); Nord's fog temperament survives, but its weathered-steel accent
+     (<code>#7E96A6</code>, spread 40) was confirmed too quiet to carry <i>now</i>. This page holds the <b>fog field
+     constant</b> and varies only the accent, so the comparison is single-variable. Moss stays as "earned" in all frames.
+     Judge one thing: standing back from the screen, does the current set's outline grab you? The halo stays fog in all
+     three Nord frames for experimental cleanliness — at tokens time it takes the winning accent's cast.</p>
+</div>
+
+<div class="grid">
+
+  <div class="direction R">
+    <div class="d-title">R · Reference <span>Precision Blue — neutral-cool field, current leader</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Reference:</b> neutral-cool field + dusty blue <code>#659BC8</code>, as locked in the charter's
+      leading candidate. The bar the Nord frames must beat.</div>
+  </div>
+
+  <div class="direction NB">
+    <div class="d-title">NB · Nord + Blue <span>fog field, the leader's accent</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>The direct fix:</b> keep Nord's fog temperament, borrow the accent already proven loud enough.
+      Dusty blue on fog-gray reads slightly softer than on the neutral-cool field — the fog absorbs some of its edge.
+      <b>Judge:</b> is fog-vs-neutral-cool a real difference worth having, once the accent is identical? If you can't tell
+      this from R at a glance, the fog cast isn't earning its complexity.</div>
+    <div class="spec">
+      <h3>Spec — fog + blue</h3>
+      <div class="rows">
+        <div class="row"><i style="background:#171B1E"></i>Halo (fog)<code>#171B1E</code></div>
+        <div class="row"><i style="background:#141719"></i>Card top<code>#141719</code></div>
+        <div class="row"><i style="background:#0C0E0F"></i>Field mid<code>#0C0E0F</code></div>
+        <div class="row"><i style="background:#0E1112"></i>Card base<code>#0E1112</code></div>
+        <div class="row"><i style="background:#090A0B"></i>Field base<code>#090A0B</code></div>
+        <div class="row"><i style="background:#222629"></i>Border<code>#222629</code></div>
+        <div class="row"><i style="background:#EFF2F3"></i>Text<code>#EFF2F3</code></div>
+        <div class="row"><i style="background:#2F353A"></i>Border light<code>#2F353A</code></div>
+        <div class="row"><i style="background:#909A9E"></i>Secondary<code>#909A9E</code></div>
+        <div class="row"><i style="background:#659BC8"></i>Accent (blue)<code>#659BC8</code></div>
+        <div class="row"><i style="background:#565E62"></i>Muted<code>#565E62</code></div>
+        <div class="row"><i style="background:#6CA383"></i>Logged (moss)<code>#6CA383</code></div>
+      </div>
+      <div class="meta">Radius 10px / 6px nested · button text #0A0C0D · accent spread 99</div>
+    </div>
+  </div>
+
+  <div class="direction NS">
+    <div class="d-title">NS · Nord + Forged Steel <span>iron pushed to the muted ceiling</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>The compromise:</b> iron reforged — the steel accent pushed from spread 40 to spread 70, the
+      loudest a color can be before it stops feeling weathered. Keeps the "nothing shines in the north" temperament while
+      giving <i>now</i> an actual voice. Sits exactly between v7's too-quiet iron and the blue.
+      <b>Judge:</b> at arm's length, does the current set's outline register instantly — or is it still working too hard?</div>
+    <div class="spec">
+      <h3>Spec — fog + forged steel</h3>
+      <div class="rows">
+        <div class="row"><i style="background:#171B1E"></i>Halo (fog)<code>#171B1E</code></div>
+        <div class="row"><i style="background:#141719"></i>Card top<code>#141719</code></div>
+        <div class="row"><i style="background:#0C0E0F"></i>Field mid<code>#0C0E0F</code></div>
+        <div class="row"><i style="background:#0E1112"></i>Card base<code>#0E1112</code></div>
+        <div class="row"><i style="background:#090A0B"></i>Field base<code>#090A0B</code></div>
+        <div class="row"><i style="background:#222629"></i>Border<code>#222629</code></div>
+        <div class="row"><i style="background:#EFF2F3"></i>Text<code>#EFF2F3</code></div>
+        <div class="row"><i style="background:#2F353A"></i>Border light<code>#2F353A</code></div>
+        <div class="row"><i style="background:#909A9E"></i>Secondary<code>#909A9E</code></div>
+        <div class="row"><i style="background:#6E96B4"></i>Accent (steel)<code>#6E96B4</code></div>
+        <div class="row"><i style="background:#565E62"></i>Muted<code>#565E62</code></div>
+        <div class="row"><i style="background:#6CA383"></i>Logged (moss)<code>#6CA383</code></div>
+      </div>
+      <div class="meta">Radius 10px / 6px nested · button text #0A0C0D · accent spread 70 — the muted ceiling</div>
+    </div>
+  </div>
+
+  <div class="direction NV">
+    <div class="d-title">NV · Nord + Violet <span>fog field, the other original candidate</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>The wildcard:</b> the dusty violet from the original Precision Tool, sitting on Nord's fog.
+      Violet is intrinsically louder against gray than blue is (no shared coolness to hide in), so it may carry <i>now</i>
+      best of all three — at the cost of a softer, moodier read.
+      <b>Judge:</b> does violet on fog stay disciplined, or drift lavender/moody in a way that breaks the instrument feel?</div>
+    <div class="spec">
+      <h3>Spec — fog + violet</h3>
+      <div class="rows">
+        <div class="row"><i style="background:#171B1E"></i>Halo (fog)<code>#171B1E</code></div>
+        <div class="row"><i style="background:#141719"></i>Card top<code>#141719</code></div>
+        <div class="row"><i style="background:#0C0E0F"></i>Field mid<code>#0C0E0F</code></div>
+        <div class="row"><i style="background:#0E1112"></i>Card base<code>#0E1112</code></div>
+        <div class="row"><i style="background:#090A0B"></i>Field base<code>#090A0B</code></div>
+        <div class="row"><i style="background:#222629"></i>Border<code>#222629</code></div>
+        <div class="row"><i style="background:#EFF2F3"></i>Text<code>#EFF2F3</code></div>
+        <div class="row"><i style="background:#2F353A"></i>Border light<code>#2F353A</code></div>
+        <div class="row"><i style="background:#909A9E"></i>Secondary<code>#909A9E</code></div>
+        <div class="row"><i style="background:#8A91C9"></i>Accent (violet)<code>#8A91C9</code></div>
+        <div class="row"><i style="background:#565E62"></i>Muted<code>#565E62</code></div>
+        <div class="row"><i style="background:#6CA383"></i>Logged (moss)<code>#6CA383</code></div>
+      </div>
+      <div class="meta">Radius 10px / 6px nested · button text #0A0C0D · accent spread 63</div>
+    </div>
+  </div>
+
+</div>

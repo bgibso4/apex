@@ -26,10 +26,11 @@
 </style>
 
 <h1>APEX Design Language</h1>
-<p class="sub">The direction lock, decided 2026-07-21 after six exploration rounds
-  (<code>references/</code> v1→v6). This page is the framing that dictates every screen designed in Phase 1.
-  <b>Locked:</b> mindset, structure, light, color model, typography. <b>Open parameter:</b> the primary accent hue —
-  swappable in one line once <code>tokens.json</code> exists.</p>
+<p class="sub">The direction lock, decided 2026-07-21 after eight exploration rounds
+  (<code>references/</code> v1→v8). This page is the framing that dictates every screen designed in Phase 1.
+  <b>Locked:</b> mindset, structure, light, color model, typography. <b>Accent parameter:</b> dusty blue
+  <code>#659BC8</code> is the confirmed default after v7/v8 challenge rounds; violet <code>#8A91C9</code> is retained as
+  the alternate token value — final play happens in <code>tokens.json</code>.</p>
 
 <h2>The mindset — seven laws <span class="locked">· locked</span></h2>
 <ol>
@@ -71,7 +72,7 @@
 <h2>The color model — two hues <span class="locked">· locked model</span> <span class="open">· open hue</span></h2>
 <table>
   <tr><th>Token</th><th>Value</th><th>Meaning</th></tr>
-  <tr><td>accent.primary</td><td><b>PARAMETER</b> — candidates <i class="dot" style="background:#659BC8"></i><code>#659BC8</code> dusty blue · <i class="dot" style="background:#8A91C9"></i><code>#8A91C9</code> dusty violet</td><td><i>now</i>: current set, selection, primary CTA. Halo cast derives from it. Swapped by changing one token.</td></tr>
+  <tr><td>accent.primary</td><td><b>PARAMETER</b> — default <i class="dot" style="background:#659BC8"></i><code>#659BC8</code> dusty blue (confirmed v8) · alternate <i class="dot" style="background:#8A91C9"></i><code>#8A91C9</code> dusty violet</td><td><i>now</i>: current set, selection, primary CTA. Halo cast derives from it. Swapped by changing one token.</td></tr>
   <tr><td>state.logged</td><td><i class="dot" style="background:#6CA383"></i><code>#6CA383</code> moss</td><td><i>earned</i>: logged sets, completions, positive deltas. The secondary hue exists so done-vs-now never shares a color — kept deliberately.</td></tr>
   <tr><td>tints</td><td>10% alpha derivatives</td><td>chip fills, suggestion backgrounds — always derived, never hand-picked</td></tr>
 </table>
@@ -103,4 +104,7 @@
 <h2>What this replaces</h2>
 <p>The indigo <code>#6366f1</code> system documented in <code>context/current-state-inventory.html</code>, and the
   Round 1 specimens (retired). The exploration trail lives in the repo at <code>docs/design-system/references/</code>
-  v1→v6; the winning frame is v6-A ("Precision Blue, two-hue") with the accent left parametric.</p>
+  v1→v8; the winning frame is <b>v6-A "Precision Blue, two-hue"</b>, which then survived the v7/v8 challenge rounds:
+  warm-ink (Sumi) and fog (Nord) field casts rejected in favor of the neutral-cool field; seal-clay, weathered-iron,
+  forged-steel, and violet-on-fog accents rejected in favor of the dusty blue. Single-hue (v6-B), pure monochrome
+  (Quiet Professional), and glacial (Summit) were eliminated earlier.</p>

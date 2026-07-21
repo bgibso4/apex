@@ -1,0 +1,152 @@
+<!-- @dsCard group="References" -->
+<meta charset="utf-8">
+<title>Gradient Hybrid v4 — APEX</title>
+<style>
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:#0B0B0C; color:#EDEDEF; padding:36px 28px; }
+  .intro { max-width:820px; margin:0 auto 36px; }
+  .intro h1 { font-size:24px; font-weight:800; letter-spacing:-0.4px; }
+  .intro p { color:#9A9AA2; font-size:14px; line-height:1.6; margin-top:10px; }
+  .intro b { color:#D6D6DA; font-weight:600; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:28px; max-width:1500px; margin:0 auto; }
+  .direction { display:flex; flex-direction:column; gap:14px; }
+  .d-title { font-size:15px; font-weight:700; }
+  .d-title span { color:#77777f; font-weight:500; font-size:12px; margin-left:8px; }
+  .caption { color:#8B8B93; font-size:12px; line-height:1.55; }
+  .caption b { color:#C9C9CF; font-weight:600; }
+
+  .phone { border-radius:28px; padding:22px 18px 18px; border:1px solid #242428;
+           background:var(--bg); min-height:540px; }
+  .p-week { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .p-title { font-size:20px; font-weight:800; letter-spacing:-0.3px; color:var(--text); margin:3px 0 16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:15px; }
+  .ex-name { font-size:14px; font-weight:700; color:var(--text); }
+  .ex-rx { font-size:11px; color:var(--dim); margin-top:2px; }
+  .set { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .set:last-of-type { border-bottom:none; }
+  .set .n { width:16px; font-size:11px; font-weight:700; color:var(--mute); }
+  .set .v { flex:1; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--text); }
+  .set.done .v { color:var(--good); }
+  .set.pend .v { color:var(--dim); }
+  .tap { min-width:44px; height:32px; border-radius:calc(var(--r) - 4px); border:1.5px solid var(--border);
+         display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--mute); }
+  .set.done .tap { background:var(--good-t); border-color:transparent; color:var(--good); }
+  .set.curr .tap { border-color:var(--tint); color:var(--tint); }
+  .stat { margin-top:14px; }
+  .stat .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .stat .num { font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); line-height:1.1; }
+  .stat .num small { font-size:13px; color:var(--dim); font-weight:600; }
+  .stat .delta { font-size:11px; font-weight:600; color:var(--good); margin-top:2px; }
+  .btn { margin-top:16px; text-align:center; padding:13px; border-radius:calc(var(--r) - 2px);
+         background:var(--tint); color:var(--btn-txt); font-size:14px; font-weight:700; }
+
+  /* shared Precision Tool tokens for A and B */
+  .g3ref, .hybrid { --dim:#8F9098; --mute:#55575F; --text:#EDEEF0;
+        --tint:#8A91C9; --good:#6CA383; --good-t:#6CA3831a; --btn-txt:#0B0C0E; --r:10px; }
+  /* A — G3 as shipped in v3: glow background, flat cards */
+  .g3ref { --card:#0F1114; --border:#1C1F24; }
+  .g3ref .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #191B29 0%, #0D0E13 55%, #090A0C 100%); }
+  /* B — HYBRID: G3 glow + G4 card light, both at half strength */
+  .hybrid { --border:#20232A; }
+  .hybrid .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #161821 0%, #0C0D11 55%, #090A0C 100%); }
+  .hybrid .card { background:linear-gradient(180deg, #14161B 0%, #0E1013 100%); border-top-color:#2C3039; }
+  /* C — G4 as shipped in v3: flat bg, gradient cards (Quiet Professional) */
+  .g4ref { --border:#222226; --text:#F1F1EF; --dim:#8F8F8C; --mute:#565654;
+        --tint:#E2E0D8; --good:#E2E0D8; --good-t:#E2E0D81a; --btn-txt:#0F0F10; --r:8px; }
+  .g4ref .phone { background:#0B0B0C; }
+  .g4ref .card { background:linear-gradient(180deg, #17171A 0%, #111113 100%);
+              border-color:#2A2A2E; border-top-color:#38383D; }
+  .g4ref .p-week { letter-spacing:1.8px; }
+  .g4ref .stat .eyebrow { letter-spacing:1.6px; }
+  .g4ref .btn { text-transform:uppercase; letter-spacing:1.2px; font-size:13px; }
+  .g4ref .p-title { font-size:22px; letter-spacing:-0.4px; }
+  .g4ref .ex-name { font-size:15px; }
+</style>
+
+<div class="intro">
+  <h1>The hybrid — G3's glow + G4's card light</h1>
+  <p>One light source, told twice: the halo lights the <b>room</b>, the card gradients light the <b>objects</b>.
+     To keep the total atmosphere at the same level as either parent, both effects run at roughly half strength in the
+     hybrid — the halo is dimmer than G3's and the card gradient shallower than G4's. Depth should sum, not stack.
+     Parents flank it for comparison.</p>
+</div>
+
+<div class="grid">
+
+  <div class="direction g3ref">
+    <div class="d-title">A · G3 as-is <span>glow background, flat cards</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Reference:</b> v3's G3 unchanged — the Raycast/Linear halo doing all the depth work; cards stay flat.</div>
+  </div>
+
+  <div class="direction hybrid">
+    <div class="d-title">B · Hybrid <span>★ glow + card light, half strength each</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>The blend:</b> Precision Tool's palette and typography; a dimmed violet-cast halo settles behind the
+      header while each card catches its own subtle overhead light (brighter face and top edge, darker base). The physical
+      story is coherent — one lamp above the screen. <b>Tuning knobs if this wins:</b> halo intensity, halo hue (violet cast
+      vs pure neutral), card-gradient depth, and whether the halo breathes during a live session.</div>
+  </div>
+
+  <div class="direction g4ref">
+    <div class="d-title">C · G4 as-is <span>flat bg, gradient cards</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Reference:</b> v3's G4 unchanged — Quiet Professional's monochrome with machined card light, no
+      background gradient at all.</div>
+  </div>
+
+</div>

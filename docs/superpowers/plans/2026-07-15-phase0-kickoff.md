@@ -35,11 +35,11 @@
   `--bg --card --card-inset --surface --border --border-lt --text --text-2 --text-dim --text-muted --accent --accent-lt --accent-dk --accent-tint --good --warn --bad --good-tint --warn-tint --bad-tint --blk-hyp --blk-str --blk-del --blk-rea --radius-card --radius-inner --radius-btn --radius-pill`
 - Produces: the section skeleton every specimen fills: `#thesis`, `#palette`, `#type`, `#card-language`, `#hero`, `#stance`, `#tensions`
 
-- [ ] **Step 1: Create the directories**
+- [x] **Step 1: Create the directories**
 
 Run: `mkdir -p /Users/ben/projects/apex/docs/design-system/{templates,context,specimens}`
 
-- [ ] **Step 2: Write the template**
+- [x] **Step 2: Write the template**
 
 Write `docs/design-system/templates/specimen-template.html`. NOTE: the template is not synced to claude.ai (only `context/` and `specimens/` are); its first line is a comment explaining that. Full content:
 
@@ -175,12 +175,12 @@ Write `docs/design-system/templates/specimen-template.html`. NOTE: the template 
 </section>
 ```
 
-- [ ] **Step 3: Verify the template renders**
+- [x] **Step 3: Verify the template renders**
 
 Run: `open /Users/ben/projects/apex/docs/design-system/templates/specimen-template.html`
 Expected: renders with the deliberately-garish placeholder magenta accent (proves every visual element flows through the vars), all seven sections visible, no console/network activity.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/design-system/templates/specimen-template.html
@@ -198,7 +198,7 @@ git commit -m "design: phase 0 specimen template (#61)"
 - Consumes: spec sections (Principles, Phase 0, Phase 1, Issue Disposition)
 - Produces: remote page `context/redesign-brief.html` — the standing context Ben and future design sessions read first
 
-- [ ] **Step 1: Write the brief**
+- [x] **Step 1: Write the brief**
 
 First line: `<!-- @dsCard group="Context" -->`. Reuse the template's CSS approach (current-state palette in `:root` — this page documents today, so today's tokens are correct here). Content sections, with this exact substance:
 
@@ -211,12 +211,12 @@ First line: `<!-- @dsCard group="Context" -->`. Reuse the template's CSS approac
 7. **Constraints** — SwiftUI/iOS 26 native (Swift Charts for all charts, Dynamic Type, `.sheet` modals); dark-only for v1; block color-coding (HYP/STR/DEL/REA) must survive in some form; Running keeps a distinct accent; 4-step text ramp and semantic good/warn/bad continue as concepts.
 8. **How rounds work** — Ben reacts per specimen (keep / kill / blend + notes) in claude.ai/design; reactions produce round N+1; no cap on rounds; exit = Ben declares the direction locked, which triggers foundations codification + `tokens.json`.
 
-- [ ] **Step 2: Verify render + marker**
+- [x] **Step 2: Verify render + marker**
 
 Run: `head -1 docs/design-system/context/redesign-brief.html` → expected: `<!-- @dsCard group="Context" -->`
 Run: `open docs/design-system/context/redesign-brief.html` → renders, self-contained.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/context/redesign-brief.html
@@ -234,11 +234,11 @@ git commit -m "design: phase 0 redesign brief (#61)"
 - Consumes: current token values (Global Constraints block above), component inventory below
 - Produces: remote page `context/current-state-inventory.html`
 
-- [ ] **Step 1: Regenerate the raw counts (verification of audit data, not re-derivation)**
+- [x] **Step 1: Regenerate the raw counts (verification of audit data, not re-derivation)**
 
 Run: `ls /Users/ben/projects/apex/src/components/ | wc -l` (expect ~21 files) and `grep -rc "StyleSheet.create" /Users/ben/projects/apex/app /Users/ben/projects/apex/src/components | grep -v ':0' | wc -l` (expect ~34). If materially different from the audit, update the numbers in the page.
 
-- [ ] **Step 2: Write the inventory page**
+- [x] **Step 2: Write the inventory page**
 
 First line: `<!-- @dsCard group="Context" -->`. Current-state tokens in `:root`. Sections:
 
@@ -247,11 +247,11 @@ First line: `<!-- @dsCard group="Context" -->`. Current-state tokens in `:root`.
 3. **Known debt the redesign fixes** — no shared component-style layer (~34 duplicated per-screen style blocks); ~10 hardcoded color escapes (pain palettes ×2, resource brand hexes, SupersetGroup/WeekRow literals, settings rgba badges, ProgramTimeline white-alphas); section-label drift (11px vs 10px, letterspacing 0.5 vs 1.0).
 4. **Screen census** — the 15 routes with one line each (Home, Workout, Progress, Running, Library, Exercises, History, Settings, Program-complete, exercise/[id], exercise/progression, exercise/sessions, session/[id], plus modals).
 
-- [ ] **Step 3: Verify render + marker**
+- [x] **Step 3: Verify render + marker**
 
 Run: `head -1 docs/design-system/context/current-state-inventory.html` → `<!-- @dsCard group="Context" -->`; `open` it → renders.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/design-system/context/current-state-inventory.html
@@ -269,7 +269,7 @@ git commit -m "design: phase 0 current-state inventory (#61)"
 - Consumes: template contract from Task 1
 - Produces: synced card in group "Art Direction — Round 1"
 
-- [ ] **Step 1: Copy template and replace `:root` + first line**
+- [x] **Step 1: Copy template and replace `:root` + first line**
 
 First line: `<!-- @dsCard group="Art Direction — Round 1" -->`. `:root`:
 
@@ -284,18 +284,18 @@ First line: `<!-- @dsCard group="Art Direction — Round 1" -->`. `:root`:
 --radius-card:16px; --radius-inner:12px; --radius-btn:10px; --radius-pill:999px;
 ```
 
-- [ ] **Step 2: Fill the copy**
+- [x] **Step 2: Fill the copy**
 
 - Thesis: warmth and effort. The world shifts from blue-black to forge-black — warm near-black backgrounds, ember orange as the single hero accent. Keeps the instrument-panel readouts; trades the cool software feel for something physical, like heated metal. The gym is warm; the app should be too.
 - Card rules: matte flat cards, 1px warm-hairline borders carry elevation; ember appears only on the current action and primary CTA — never decoration; insets one step warmer, not lighter.
 - Stance: **blend** — Liquid Glass for chrome (tab bar, sheets) with warm tint; content cards stay matte and opaque.
 - Tensions: warn-amber vs ember proximity (warning moves to gold `#EAB308` — enough separation?); does warm-black read "premium" or "brown" on OLED at low brightness?; HYP block color = accent — same overload the indigo had today, keep or break?; SF Pro Rounded for hero numerals — warmer, or too soft?
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `head -1 docs/design-system/specimens/2026-07-15-r1-forged-ember.html` → dsCard marker. Run: `grep -c '#6366f1' docs/design-system/specimens/2026-07-15-r1-forged-ember.html` → `0`. `open` it → all seven sections render in the ember palette; hex below `:root`: `grep -nE '#[0-9a-fA-F]{3,8}' <file> | grep -v ':root' | grep -vE '^\s*[0-9]+:\s*--'` → only `:root` lines.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/design-system/specimens/2026-07-15-r1-forged-ember.html
@@ -311,7 +311,7 @@ git commit -m "design: art direction R1 — Forged Ember (#61)"
 
 **Interfaces:** same as Task 4.
 
-- [ ] **Step 1: Copy template, first line dsCard marker (same group), replace `:root`**
+- [x] **Step 1: Copy template, first line dsCard marker (same group), replace `:root`**
 
 ```css
 --bg:#0A0A0A; --card:#141414; --card-inset:#181818; --surface:#1F1F1F;
@@ -324,16 +324,16 @@ git commit -m "design: art direction R1 — Forged Ember (#61)"
 --radius-card:16px; --radius-inner:12px; --radius-btn:10px; --radius-pill:999px;
 ```
 
-- [ ] **Step 2: Fill the copy**
+- [x] **Step 2: Fill the copy**
 
 - Thesis: maximal restraint — the most Ive direction. Pure neutral grayscale architecture; hierarchy carried by luminance and weight, not color. One volt accent, rationed to the single next action; Apple's system semantic colors (dark palette) for outcomes only. If everything is quiet, the one loud thing is unmissable.
 - Card rules: flat, hairline `#2A2A2A` borders, zero glow/shadow/gradient; luminance steps do all elevation; volt never appears twice on one screen.
 - Stance: **resist** — fully flat, no materials anywhere; the discipline *is* the identity.
 - Tensions: block colors become luminance-graded monochrome (+ volt for realization/peak only) — does periodization stay legible without hue-coding?; is volt too "sport brand" vs a cooler signal (white/`#0A84FF`)?; monochrome may undercut the semantic green "logged" satisfaction — is `--good` on taps enough?
 
-- [ ] **Step 3: Verify** — same three checks as Task 4 Step 3, against this file.
+- [x] **Step 3: Verify** — same three checks as Task 4 Step 3, against this file.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/design-system/specimens/2026-07-15-r1-graphite-mono.html
@@ -349,7 +349,7 @@ git commit -m "design: art direction R1 — Graphite Mono (#61)"
 
 **Interfaces:** same as Task 4.
 
-- [ ] **Step 1: Copy template, first line dsCard marker (same group), replace `:root`**
+- [x] **Step 1: Copy template, first line dsCard marker (same group), replace `:root`**
 
 ```css
 --bg:#060807; --card:#0E1310; --card-inset:#121815; --surface:#18211B;
@@ -362,16 +362,16 @@ git commit -m "design: art direction R1 — Graphite Mono (#61)"
 --radius-card:16px; --radius-inner:12px; --radius-btn:10px; --radius-pill:999px;
 ```
 
-- [ ] **Step 2: Fill the copy**
+- [x] **Step 2: Fill the copy**
 
 - Thesis: the instrument-panel DNA taken to its natural conclusion — an aviation/HUD readout. Green-black world, phosphor emerald readouts, tabular/monospaced numerals (SF Mono for data readouts). APEX as cockpit: you glance, you know, you act.
 - Card rules: darkest direction; borders barely-there green-tinted hairlines; data glows subtly (accent on numerals themselves, not chrome); accent doubles as `--good` — logging *is* the green moment.
 - Stance: **embrace for overlays** — Liquid Glass sheets/tab bar with phosphor tint over the green-black field; cards stay flat so readouts stay legible.
 - Tensions: accent==good collapses "current" vs "done" into one hue — does the hero card still read state at a glance?; Running's cyan sits close to emerald — shift Running to `#22D3EE` or give it a new identity?; SF Mono readouts: instrument-authentic or gimmick?; is green-black too close to "terminal hacker" vs premium?
 
-- [ ] **Step 3: Verify** — same three checks as Task 4 Step 3, against this file.
+- [x] **Step 3: Verify** — same three checks as Task 4 Step 3, against this file.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/design-system/specimens/2026-07-15-r1-phosphor.html
@@ -388,19 +388,19 @@ git commit -m "design: art direction R1 — Phosphor (#61)"
 - Consumes: the five files from Tasks 2–6
 - Produces: remote paths `context/redesign-brief.html`, `context/current-state-inventory.html`, `specimens/2026-07-15-r1-{forged-ember,graphite-mono,phosphor}.html`
 
-- [ ] **Step 1: Verify the target project**
+- [x] **Step 1: Verify the target project**
 
 Invoke DesignSync `get_project` with projectId `d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0`. Expected: name "APEX Design System", `type: PROJECT_TYPE_DESIGN_SYSTEM`, `canEdit: true`. STOP if not.
 
-- [ ] **Step 2: Read remote structure**
+- [x] **Step 2: Read remote structure**
 
 Invoke DesignSync `list_files`. Expected: existing `foundations/…`, `components/…`, `context/…` paths from the 2026-07-14 sync. Confirm none of the five new paths already exist (if `context/redesign-brief.html` exists from prior work, it will be overwritten — that's intended; note it to Ben in Task 8).
 
-- [ ] **Step 3: Finalize the plan and write**
+- [x] **Step 3: Finalize the plan and write**
 
 Invoke DesignSync `finalize_plan` with: projectId as above; `localDir: "/Users/ben/projects/apex/docs/design-system"`; `writes: ["context/redesign-brief.html", "context/current-state-inventory.html", "specimens/*.html"]`. Then `write_files` with the planId and the five files as `{path, localPath}` pairs (localPath relative to localDir, equal to path).
 
-- [ ] **Step 4: Verify remote**
+- [x] **Step 4: Verify remote**
 
 Invoke DesignSync `list_files` again. Expected: all five paths present.
 
@@ -411,11 +411,11 @@ Invoke DesignSync `list_files` again. Expected: all five paths present.
 **Files:**
 - Modify: `docs/superpowers/plans/2026-07-15-phase0-kickoff.md` (tick checkboxes)
 
-- [ ] **Step 1: Push the branch**
+- [x] **Step 1: Push the branch**
 
 Run: `git push` (branch `docs/swiftui-migration-spec`, updates PR #78). Do NOT merge.
 
-- [ ] **Step 2: Hand off**
+- [x] **Step 2: Hand off**
 
 Tell Ben, in the final message: open **claude.ai/design → APEX Design System → Design System pane**; the "Art Direction — Round 1" group holds the three specimens; "Context" holds the brief + inventory. Ask for per-specimen reactions — **keep / kill / blend, plus anything the direction gets wrong or right** — in whatever form is easiest (notes in the app, voice-memo dump, or a message here). State the loop: reactions → Round 2 specimens (same pipeline, `specimens/<date>-r2-*.html`) → repeat without cap → Ben declares lock → foundations codification + `tokens.json` plan (spec decomposition item 3) kicks off. Remind him the Foundation plan (spec decomposition item 2) can proceed in parallel any time — it has no design dependency.
 

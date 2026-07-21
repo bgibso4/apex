@@ -1,0 +1,106 @@
+<!-- @dsCard group="Context" -->
+<meta charset="utf-8">
+<title>APEX Design Language — Direction Lock</title>
+<style>
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  :root { --bg:#0B0B0C; --card:#121214; --border:#222226; --text:#EDEDEF; --text2:#9A9AA2; --dim:#6E6E76; }
+  body { background:var(--bg); color:var(--text); padding:40px 28px; max-width:860px; margin:0 auto; }
+  h1 { font-size:26px; font-weight:800; letter-spacing:-0.4px; }
+  .sub { color:var(--text2); font-size:14px; line-height:1.6; margin-top:10px; }
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.3px; color:var(--dim); margin:36px 0 14px; }
+  p, li { color:var(--text2); font-size:14px; line-height:1.62; }
+  b { color:#D6D6DA; font-weight:600; }
+  ol { padding-left:20px; display:flex; flex-direction:column; gap:10px; }
+  ul { padding-left:18px; display:flex; flex-direction:column; gap:6px; }
+  code { color:#C9C9CF; font-size:12.5px; background:#161618; padding:1px 5px; border-radius:4px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { text-align:left; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--dim);
+       padding:6px 10px; border-bottom:1px solid var(--border); }
+  td { padding:6px 10px; border-bottom:1px solid #1A1A1D; color:var(--text2); }
+  td:first-child { color:#C9C9CF; }
+  td i.dot { width:11px; height:11px; border-radius:3px; border:1px solid #2A2A2E; display:inline-block;
+             vertical-align:-1px; margin-right:7px; }
+  .locked { color:#6CA383; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .open { color:#C7A75C; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .callout { border:1px solid var(--border); border-radius:12px; padding:16px 18px; background:var(--card); margin-top:12px; }
+</style>
+
+<h1>APEX Design Language</h1>
+<p class="sub">The direction lock, decided 2026-07-21 after six exploration rounds
+  (<code>references/</code> v1→v6). This page is the framing that dictates every screen designed in Phase 1.
+  <b>Locked:</b> mindset, structure, light, color model, typography. <b>Open parameter:</b> the primary accent hue —
+  swappable in one line once <code>tokens.json</code> exists.</p>
+
+<h2>The mindset — seven laws <span class="locked">· locked</span></h2>
+<ol>
+  <li><b>A precision instrument, not a companion.</b> APEX feels engineered, expensive, quiet. It never cheers, decorates,
+      or fills silence. Its confidence is stillness.</li>
+  <li><b>One light source.</b> Depth comes from a single overhead light told twice at half strength each: a faint radial
+      halo behind the header lights the room; a shallow vertical card gradient with a brighter top edge lights the
+      objects. Depth sums — it never stacks.</li>
+  <li><b>Neutral field, meaningful color.</b> ~90% of any screen is the neutral ramp. Exactly two hues exist:
+      the <b>primary accent</b> means <i>now</i> — the current set, the selected control, the one next action; and
+      <b>moss</b> means <i>earned</i> — logged sets, completed work, positive deltas. Nothing is ever colored for
+      decoration. If a third hue appears, the design is wrong.</li>
+  <li><b>Nothing glows.</b> Every color is desaturated for dark surfaces. If a value would vibrate against the field,
+      lower its chroma until it sits down.</li>
+  <li><b>The biggest number wins.</b> Hierarchy is carried by size and weight of numerals — tabular, tight — never by
+      color. The most important number on a screen should be findable with peripheral vision.</li>
+  <li><b>Structure carries hierarchy.</b> Hairline borders, uppercase tracked eyebrows, tight negative-tracked titles,
+      generous dark space. If hierarchy needs a colored badge to work, restructure instead.</li>
+  <li><b>One tap for the common case.</b> Logging a set as prescribed is one tap, forever. Every redesigned flow must
+      hold or reduce today's touch count. Sweaty hands, limited attention — the instrument must be operable blind.</li>
+</ol>
+
+<h2>The structure — locked values <span class="locked">· locked</span></h2>
+<table>
+  <tr><th>Role</th><th>Value</th><th>Notes</th></tr>
+  <tr><td><i class="dot" style="background:#090A0C"></i>Field base</td><td><code>#090A0C</code></td><td>screen background, bottom of the falloff</td></tr>
+  <tr><td><i class="dot" style="background:#0C0E11"></i>Field mid</td><td><code>#0C0E11</code></td><td>radial midpoint (55%)</td></tr>
+  <tr><td>Halo</td><td><i>derived</i></td><td>accent-cast at whisper intensity; geometry <code>ellipse 90% 45% at 50% −5%</code>. Follows the accent parameter (blue accent → <code>#141A22</code>, violet → <code>#161821</code>)</td></tr>
+  <tr><td><i class="dot" style="background:#14161B"></i>Card top</td><td><code>#14161B</code></td><td>vertical card gradient, lit face</td></tr>
+  <tr><td><i class="dot" style="background:#0E1013"></i>Card base</td><td><code>#0E1013</code></td><td>gradient foot</td></tr>
+  <tr><td><i class="dot" style="background:#20232A"></i>Border</td><td><code>#20232A</code></td><td>hairline, 1px</td></tr>
+  <tr><td><i class="dot" style="background:#2C3039"></i>Border light</td><td><code>#2C3039</code></td><td>top edge only — the machined highlight</td></tr>
+  <tr><td><i class="dot" style="background:#EDEEF0"></i>Text</td><td><code>#EDEEF0</code></td><td>primary</td></tr>
+  <tr><td><i class="dot" style="background:#8F9098"></i>Text secondary</td><td><code>#8F9098</code></td><td>prescriptions, captions</td></tr>
+  <tr><td><i class="dot" style="background:#55575F"></i>Text muted</td><td><code>#55575F</code></td><td>indices, disabled</td></tr>
+  <tr><td>Radii</td><td><code>10px</code> cards · <code>6px</code> nested</td><td>tight, machined; pills stay full-round</td></tr>
+</table>
+
+<h2>The color model — two hues <span class="locked">· locked model</span> <span class="open">· open hue</span></h2>
+<table>
+  <tr><th>Token</th><th>Value</th><th>Meaning</th></tr>
+  <tr><td>accent.primary</td><td><b>PARAMETER</b> — candidates <i class="dot" style="background:#659BC8"></i><code>#659BC8</code> dusty blue · <i class="dot" style="background:#8A91C9"></i><code>#8A91C9</code> dusty violet</td><td><i>now</i>: current set, selection, primary CTA. Halo cast derives from it. Swapped by changing one token.</td></tr>
+  <tr><td>state.logged</td><td><i class="dot" style="background:#6CA383"></i><code>#6CA383</code> moss</td><td><i>earned</i>: logged sets, completions, positive deltas. The secondary hue exists so done-vs-now never shares a color — kept deliberately.</td></tr>
+  <tr><td>tints</td><td>10% alpha derivatives</td><td>chip fills, suggestion backgrounds — always derived, never hand-picked</td></tr>
+</table>
+<div class="callout"><p><b>Why two hues and not one:</b> the single-hue cut (v6-B) was rejected — the moss "earned" color
+  is load-bearing feedback, worth its slot in the hue budget. <b>Why the hue is a parameter:</b> violet vs blue is a
+  taste call with zero structural consequence; <code>tokens.json</code> makes it a one-line swap, so it stays open
+  without blocking anything.</p></div>
+
+<h2>Typography <span class="locked">· locked</span></h2>
+<ul>
+  <li>System stack (SF Pro); <b>Orbitron 800 reserved for the ΛPEX wordmark only</b> — unchanged from today</li>
+  <li>Screen titles 20px / 800 / −0.3px tracking · card names 14px / 700</li>
+  <li>Numerals always <code>tabular-nums</code>; hero numerals 34px / 800; values 13px / 600</li>
+  <li>Eyebrow labels 9–10px / 700 / uppercase / +1.1px tracking — the signature label form, kept</li>
+  <li>Dynamic Type respected in SwiftUI — these are the reference sizes at default scale</li>
+</ul>
+
+<h2>Open questions — resolved in Phase 1, not before building <span class="open">· open</span></h2>
+<ul>
+  <li><b>Primary hue</b> — blue vs violet (vs a tuned third candidate); played with once tokens.json exists</li>
+  <li><b>Motion character</b> — the instrument's movement personality (restrained and instant vs weighted and springy);
+      defined against real screens, may include the halo breathing during a live session</li>
+  <li><b>Liquid Glass</b> — content cards stay painted-light (locked); system chrome (tab bar, sheets) glass vs flat is
+      decided when the tab bar is designed</li>
+  <li><b>Block identity</b> — training blocks lose their four hues; whether they become text designations, luminance
+      steps, or accent-tinted markers is a Phase 1 layout decision</li>
+</ul>
+
+<h2>What this replaces</h2>
+<p>The indigo <code>#6366f1</code> system documented in <code>context/current-state-inventory.html</code>, and the
+  Round 1 specimens (retired). The exploration trail lives in the repo at <code>docs/design-system/references/</code>
+  v1→v6; the winning frame is v6-A ("Precision Blue, two-hue") with the accent left parametric.</p>

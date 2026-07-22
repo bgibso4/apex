@@ -187,7 +187,7 @@ it('emitted module exposes the derived halo', async () => {
 - [ ] **Step 1: Transcribe + write the staleness test first** — author `contracts/sync.json` from `tables.ts` (mechanical, column-for-column) + the `weight_adjustments` block above; write `__tests__/contract.test.ts` staleness test (emit vs committed) and a content test: `expect(ALLOWED_TABLES.weight_adjustments.required).toContain('reason')`.
 - [ ] **Step 2: Verify fail** — `npx jest contract` → FAIL.
 - [ ] **Step 3: Implement** — `generate-contract.mjs` (loader validates every table has non-empty `columns` ⊇ `required`; emitter produces the data literal + verbatim function bodies); run `npm run contract`; rewire `src/api/index.ts`; delete `tables.ts` only after Step 4 proves parity.
-- [ ] **Step 4: Verify pass** — full `npm test`: ALL existing tables tests green against the generated module (zero test edits — if any test needs editing, STOP: that's a parity break, report DONE_WITH_CONCERNS), `npm run typecheck` clean.
+- [ ] **Step 4: Verify pass** — full `npm test`: ALL existing tables tests green against the generated module with exactly ONE permitted edit: the table-count assertion (`toHaveLength(11)` → `toHaveLength(12)`, with a comment `// 12 = 11 original + weight_adjustments (contracts/sync.json)`), because the count delta IS the intended behavior change. Any OTHER test edit is a parity break — STOP and report DONE_WITH_CONCERNS. `npm run typecheck` clean.
 - [ ] **Step 5: Commit** — `git add -A && git commit -m "feat: canonical sync contract + generated tables module (API-identical, adds weight_adjustments)"`
 
 ---

@@ -130,6 +130,68 @@ describe('sync routes', () => {
     expect(row).toBeNull();
   });
 
+  it('POST /v1/programs persists completion tracking columns without dropping them', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const res = await app.request('/v1/programs', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        app_id: 'apex',
+        records: [
+          {
+            id: 'prog-completion-1',
+            name: 'Pillars',
+            updated_at: '2026-07-22T00:00:00Z',
+            completed_date: '2026-07-20',
+            completion_seen: 1,
+            card_dismissed: 0,
+          },
+        ],
+      }),
+    }, { ...mockEnv, DB: env.DB });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ synced: 1, errors: 0 });
+    expect(warnSpy).not.toHaveBeenCalledWith('[contract] dropped', expect.objectContaining({ table: 'programs' }));
+
+    const row = await env.DB.prepare('SELECT * FROM programs WHERE id = ?').bind('prog-completion-1').first();
+    expect(row).toMatchObject({
+      id: 'prog-completion-1',
+      completed_date: '2026-07-20',
+      completion_seen: 1,
+      card_dismissed: 0,
+    });
+
+    warnSpy.mockRestore();
+  });
+
+  it('POST /v1/exercises persists weight_increment', async () => {
+    const res = await app.request('/v1/exercises', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        app_id: 'apex',
+        records: [
+          {
+            id: 'ex-increment-1',
+            name: 'Bench Press',
+            updated_at: '2026-07-22T00:00:00Z',
+            weight_increment: 2.5,
+          },
+        ],
+      }),
+    }, { ...mockEnv, DB: env.DB });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ synced: 1, errors: 0 });
+
+    const row = await env.DB.prepare('SELECT * FROM exercises WHERE id = ?').bind('ex-increment-1').first();
+    expect(row).toMatchObject({ id: 'ex-increment-1', weight_increment: 2.5 });
+  });
+
   it('POST /v1/weight_adjustments persists a valid record', async () => {
     const res = await app.request('/v1/weight_adjustments', {
       method: 'POST',

@@ -151,7 +151,7 @@
     ]
   },
   "dependencies": {
-    "@cadre/shared": "github:bgibso4/cadre#v0.2.0",
+    "@cadre/shared": "github:bgibso4/cadre#v0.1.0",
     "@expo/vector-icons": "^15.0.3",
     "expo": "^54.0.0",
     "expo-asset": "~12.0.12",

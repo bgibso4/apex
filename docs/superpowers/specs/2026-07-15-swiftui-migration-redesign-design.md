@@ -132,7 +132,7 @@ Three layers, dependency arrows pointing inward only:
 
 One source, every consumer generated. Generated outputs are committed in each consumer with a generated-file header; a regenerate-and-diff check (make target, run pre-merge) fails when any committed output is stale relative to the pinned `tokens.json` — that check, not the layout, is what makes drift impossible.
 
-Status: implemented 2026-07-22 — tokens/apex.json + generators live in cadre (feat/tokens-contract-codegen), emitting TS/Swift/CSS with jest staleness gates.
+Status: implemented 2026-07-22 — tokens/apex.json + generators live in cadre (feat/tokens-contract-codegen), emitting TS/Swift/CSS with jest staleness gates. The frozen RN app stays pinned to `@cadre/shared#v0.1.0` by design (its dependency graph is deliberately untouched; v0.2.0 compatibility is proven — 747/749 green — but unused); the Worker and apex-ios pin v0.2.0 independently.
 
 ### Canonical sync contract
 

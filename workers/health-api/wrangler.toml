@@ -5,6 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token"
+CONTRACT_MODE = "log"
 
 [[d1_databases]]
 binding = "DB"

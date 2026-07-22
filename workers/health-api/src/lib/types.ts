@@ -5,6 +5,7 @@ export interface Env {
   APP_API_KEY: string;
   SENTRY_DSN: string;
   DB: D1Database;
+  CONTRACT_MODE?: string;
 }
 
 export interface SyncPushRequest {

@@ -157,6 +157,19 @@ CREATE TABLE body_comp_scans (
   updated_at TEXT NOT NULL
 );
 
+-- Weight adjustments (RPE auto-progression, from APEX)
+
+CREATE TABLE weight_adjustments (
+  id TEXT PRIMARY KEY,
+  exercise_id TEXT NOT NULL,
+  program_id TEXT NOT NULL,
+  session_id TEXT NOT NULL,
+  old_weight REAL NOT NULL,
+  new_weight REAL NOT NULL,
+  reason TEXT NOT NULL CHECK (reason IN ('easy','misses')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Sync tracking
 
 CREATE TABLE sync_log (
@@ -190,3 +203,4 @@ CREATE INDEX idx_exercise_notes_session ON exercise_notes(session_id);
 CREATE INDEX idx_exercise_notes_updated ON exercise_notes(updated_at);
 CREATE INDEX idx_session_protocols_session ON session_protocols(session_id);
 CREATE INDEX idx_session_protocols_updated ON session_protocols(updated_at);
+CREATE INDEX idx_weight_adjustments_exercise ON weight_adjustments(exercise_id, created_at DESC);

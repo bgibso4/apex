@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Env } from '../lib/types';
-import { isAllowedTable, validateRecords, sanitizeRecord } from '../lib/tables';
+import { ALLOWED_TABLES, isAllowedTable, validateRecords, sanitizeRecord } from '../lib/tables';
 import { buildUpsertSQL, buildSelectSQL } from '../db/queries';
 
 export const syncRoutes = new Hono<{ Bindings: Env }>();
@@ -26,6 +26,31 @@ syncRoutes.post('/:table', async (c) => {
   const validation = validateRecords(table, body.records);
   if (!validation.valid) {
     return c.json({ error: validation.error }, 400);
+  }
+
+  // Contract check: flag any column not in the generated allowlist for this
+  // table. `log` mode (default) warns and drops; `enforce` rejects the batch.
+  const mode = c.env.CONTRACT_MODE ?? 'log';
+  const allowedColumns = new Set<string>(ALLOWED_TABLES[table].columns);
+  const droppedColumns = new Set<string>();
+  for (const record of body.records) {
+    for (const column of Object.keys(record)) {
+      if (!allowedColumns.has(column)) {
+        droppedColumns.add(column);
+      }
+    }
+  }
+
+  if (droppedColumns.size > 0) {
+    if (mode === 'enforce') {
+      return c.json({
+        error: 'Contract violation',
+        violations: [{ table, columns: [...droppedColumns] }],
+      }, 422);
+    }
+    for (const column of droppedColumns) {
+      console.warn('[contract] dropped', { table, column });
+    }
   }
 
   const sanitized = body.records.map((r) => sanitizeRecord(table, r));

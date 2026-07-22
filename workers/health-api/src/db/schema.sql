@@ -65,7 +65,8 @@ CREATE TABLE exercises (
   muscle_groups TEXT,
   alternatives TEXT,
   input_fields TEXT,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  weight_increment REAL
 );
 
 CREATE TABLE programs (
@@ -77,7 +78,10 @@ CREATE TABLE programs (
   one_rm_values TEXT,
   started_at TEXT,
   completed_at TEXT,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  completed_date TEXT,
+  completion_seen INTEGER NOT NULL DEFAULT 0,
+  card_dismissed INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE run_logs (

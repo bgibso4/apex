@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Charter (canonical values, verbatim): `docs/superpowers/specs/…` — no; the authoritative value source is `/Users/ben/projects/apex/docs/design-system/context/design-language.html` (direction lock, 2026-07-21). Key values: field base `#090A0C`, field mid `#0C0E11`, card top `#14161B`, card bottom `#0E1013`, border `#20232A`, border light `#2C3039`, text `#EDEEF0`/`#8F9098`/`#55575F`, accent default `#659BC8` (alternate violet `#8A91C9`), onAccent `#0B0C0E`, logged moss `#6CA383`, tint alpha 10%, radius 10/6/999, halo geometry `ellipse 90% 45% at 50% -5%` with mid stop at 55%, halo stop `#141A22` for the blue accent.
-- **Halo is a derived token:** `halo = mix(field.mid, accent.primary, 0.09)` per-channel linear mix, rounded — the generator computes it; a test asserts `#141A22` for the blue default. Swapping the accent regenerates the halo automatically.
+- **Halo is pinned-or-derived:** `color.halo.override` (optional) pins the hand-approved value — `#141A22` for the blue accent, byte-faithful to the approved v6/v8 pixels. When absent, the generator derives `halo = mix(field.mid, accent.primary, mixWeight)` (per-channel linear mix, rounded; `0.09` gives `#141B21` for blue — exact reproduction of the hand-picked value is mathematically impossible, proven during TC-1). Accent-swap procedure: change the accent AND either pin the new approved halo or delete `override` to auto-derive.
 - **The frozen RN app must be unaffected:** `src/theme/colors.ts`, `src/theme/spacing.ts`, and the existing `@cadre/shared/theme` export surface keep byte-identical behavior. New modules only.
 - **The Worker's public behavior must be unaffected by the contract migration:** `ALLOWED_TABLES`, `isAllowedTable`, `validateRecords`, `sanitizeRecord` keep identical signatures and semantics; existing cadre jest tests for `src/api/tables.ts` must pass unmodified against the generated module (they are the port-verification harness).
 - **Strict Worker validation ships log-only until cutover** (spec: "Canonical sync contract" section) — enforcement flag defaults to log mode.
@@ -38,7 +38,7 @@
   "language": "precision-blue",
   "color": {
     "field":  { "base": "#090A0C", "mid": "#0C0E11" },
-    "halo":   { "geometry": "ellipse 90% 45% at 50% -5%", "midStopPct": 55, "mixWeight": 0.09 },
+    "halo":   { "geometry": "ellipse 90% 45% at 50% -5%", "midStopPct": 55, "mixWeight": 0.09, "override": "#141A22" },
     "card":   { "top": "#14161B", "bottom": "#0E1013" },
     "border": { "default": "#20232A", "light": "#2C3039" },
     "text":   { "primary": "#EDEEF0", "secondary": "#8F9098", "muted": "#55575F" },
@@ -69,9 +69,13 @@ import { loadTokens, mix } from '../scripts/generate-tokens.mjs';
 
 describe('tokens', () => {
   const t = loadTokens('tokens/apex.json');
-  it('derives the halo from field.mid + accent at mixWeight', () => {
+  it('uses the pinned halo override when present', () => {
     expect(t.derived.halo).toBe('#141A22');
-    expect(mix('#0C0E11', '#659BC8', 0.09)).toBe('#141A22');
+  });
+  it('derives the halo via mix when override is absent', () => {
+    const u = loadTokens('__tests__/fixtures/tokens-no-halo-override.json');
+    expect(u.derived.halo).toBe('#141B21');
+    expect(mix('#0C0E11', '#659BC8', 0.09)).toBe('#141B21');
   });
   it('derives 10% tints as 8-digit hex', () => {
     expect(t.derived.tints.accent).toBe('#659BC81A');

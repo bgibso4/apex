@@ -132,11 +132,15 @@ Three layers, dependency arrows pointing inward only:
 
 One source, every consumer generated. Generated outputs are committed in each consumer with a generated-file header; a regenerate-and-diff check (make target, run pre-merge) fails when any committed output is stale relative to the pinned `tokens.json` — that check, not the layout, is what makes drift impossible.
 
+Status: implemented 2026-07-22 — tokens/apex.json + generators live in cadre (feat/tokens-contract-codegen), emitting TS/Swift/CSS with jest staleness gates.
+
 ### Canonical sync contract
 
 Same problem, same solution: `sync-contract.json` in `cadre` (table allowlists, column maps, required fields) generated into TS (Worker validation) and Swift (client) — an evolution of the existing `@cadre/shared/api` TS module, which it supersedes. Prevents the silent column-drift failure mode — the Worker sanitizes unknown columns, so drift today would drop data without erroring.
 
 Two constraints when authoring it: (1) `weight_adjustments` (added at v17) is currently in neither `SYNC_TABLES` nor `ALLOWED_TABLES` — make an explicit sync-or-exclude decision rather than inheriting the gap. (2) Worker-side strict validation ships flag-gated in log-only mode until cutover: the frozen RN app is the sole live writer until then and already sends columns the allowlist silently drops, so strict rejection is enabled only when the Swift client becomes the writer, after reconciling the generated contract against a captured live push.
+
+Status: implemented 2026-07-22 — contracts/sync.json generates the tables module (adds weight_adjustments, required incl. program_id/session_id); Worker strict-mode flag ships log-only (apex branch feat/sync-contract-worker).
 
 ### Secrets
 

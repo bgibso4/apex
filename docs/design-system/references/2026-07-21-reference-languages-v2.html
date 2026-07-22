@@ -1,0 +1,188 @@
+<!-- @dsCard group="References" -->
+<meta charset="utf-8">
+<title>Reference Languages v2 — APEX</title>
+<style>
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:#0B0B0C; color:#EDEDEF; padding:36px 28px; }
+  .intro { max-width:820px; margin:0 auto 36px; }
+  .intro h1 { font-size:24px; font-weight:800; letter-spacing:-0.4px; }
+  .intro p { color:#9A9AA2; font-size:14px; line-height:1.6; margin-top:10px; }
+  .intro b { color:#D6D6DA; font-weight:600; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:28px; max-width:1500px; margin:0 auto; }
+  .direction { display:flex; flex-direction:column; gap:14px; }
+  .d-title { font-size:15px; font-weight:700; }
+  .d-title span { color:#77777f; font-weight:500; font-size:12px; margin-left:8px; }
+  .caption { color:#8B8B93; font-size:12px; line-height:1.55; }
+  .caption b { color:#C9C9CF; font-weight:600; }
+  .dots { display:flex; gap:6px; align-items:center; margin-top:2px; }
+  .dots i { width:14px; height:14px; border-radius:99px; display:inline-block; border:1px solid #2A2A2E; }
+  .dots small { color:#66666e; font-size:10px; margin-left:4px; }
+
+  .phone { border-radius:28px; padding:22px 18px 18px; border:1px solid #242428;
+           background:var(--bg); min-height:540px; }
+  .p-week { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .p-title { font-size:22px; font-weight:800; letter-spacing:-0.4px; color:var(--text); margin:3px 0 16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:15px; }
+  .ex-name { font-size:15px; font-weight:700; color:var(--text); }
+  .ex-rx { font-size:11px; color:var(--dim); margin-top:2px; }
+  .set { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .set:last-of-type { border-bottom:none; }
+  .set .n { width:16px; font-size:11px; font-weight:700; color:var(--mute); }
+  .set .v { flex:1; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--text); }
+  .set.done .v { color:var(--good); }
+  .set.pend .v { color:var(--dim); }
+  .tap { min-width:44px; height:32px; border-radius:calc(var(--r) - 4px); border:1.5px solid var(--border);
+         display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--mute); }
+  .set.done .tap { background:var(--good-t); border-color:transparent; color:var(--good); }
+  .set.curr .tap { border-color:var(--tint); color:var(--tint); }
+  .stat { margin-top:14px; }
+  .stat .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .stat .num { font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); line-height:1.1; }
+  .stat .num small { font-size:13px; color:var(--dim); font-weight:600; }
+  .stat .delta { font-size:11px; font-weight:600; color:var(--good); margin-top:2px; }
+  .btn { margin-top:16px; text-align:center; padding:13px; border-radius:calc(var(--r) - 2px);
+         background:var(--tint); color:var(--btn-txt); font-size:14px; font-weight:700; }
+
+  /* 2 — Precision Tool (Linear / Raycast / Vercel) — leading */
+  .d2 { --bg:#090A0C; --card:#0F1114; --border:#1C1F24; --text:#EDEEF0; --dim:#8F9098; --mute:#55575F;
+        --tint:#8A91C9; --good:#6CA383; --good-t:#6CA3831a; --btn-txt:#0B0C0E; --r:10px; }
+  .d2 .p-title { font-size:20px; letter-spacing:-0.3px; }
+  .d2 .ex-name { font-size:14px; }
+  /* 4 — Quiet Neutral (Things / Craft, translated to dark) — leading */
+  .d4 { --bg:#141417; --card:#1C1C20; --border:#28282D; --text:#F2F2F4; --dim:#9C9CA4; --mute:#5E5E66;
+        --tint:#659BC8; --good:#659BC8; --good-t:#659BC81a; --btn-txt:#101013; --r:12px; }
+  /* 5 — Quiet Professional (special-forces ideals, zero costume) — rebuilt from v1's Field Cadre */
+  .d5 { --bg:#0B0B0C; --card:#121214; --border:#222226; --text:#F1F1EF; --dim:#8F8F8C; --mute:#565654;
+        --tint:#E2E0D8; --good:#E2E0D8; --good-t:#E2E0D81a; --btn-txt:#0F0F10; --r:8px; }
+  .d5 .p-week { letter-spacing:1.8px; }
+  .d5 .stat .eyebrow { letter-spacing:1.6px; }
+  .d5 .btn { text-transform:uppercase; letter-spacing:1.2px; font-size:13px; }
+  /* 6 — Summit (the apex itself) */
+  .d6 { --bg:#0B0D10; --card:#12151A; --border:#20242B; --text:#F5F7FA; --dim:#8E97A3; --mute:#525A66;
+        --tint:#9FBED2; --good:#9FBED2; --good-t:#9FBED21c; --btn-txt:#0C0F13; --r:12px; }
+  .d6 .stat .num { font-size:38px; letter-spacing:-0.5px; }
+  .d6 .p-title::before { content:"Λ "; color:var(--tint); font-weight:800; }
+</style>
+
+<div class="intro">
+  <h1>Reference languages — round 2</h1>
+  <p>Round history: the neon Round 1 specimens are dead. Of the six v1 frames, <b>Night Instrument</b> and
+     <b>Native Tint</b> are dropped, <b>Precision Tool</b> and <b>Quiet Neutral</b> lead, and the tactical direction
+     is rebuilt without the olive costume — special-forces <b>ideals</b> (discipline, precision, quiet
+     professionalism) carried by structure and typography, not by a green color scheme. All frames obey the locked
+     principles: one tint max, 60-30-10 neutral dominance, desaturated-on-dark, color only as meaning.</p>
+</div>
+
+<div class="grid">
+
+  <div class="direction d2">
+    <div class="d-title">2 · Precision Tool <span>after Linear / Raycast / Vercel · ★ leading</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> software as a precision instrument. The darkest neutrals, hairline borders, the tightest
+      typography, one heavily-desaturated dusty-violet accent used almost nowhere; a separate muted green exists but only ever
+      means "logged." <b>Blocks:</b> neutral grays, accent marks only the current one. <b>Feels:</b> engineered, expensive, quiet.</div>
+    <div class="dots"><i style="background:#090A0C"></i><i style="background:#0F1114"></i><i style="background:#8F9098"></i><i style="background:#8A91C9"></i><i style="background:#6CA383"></i><small>5 values, 2 hues</small></div>
+  </div>
+
+  <div class="direction d4">
+    <div class="d-title">4 · Quiet Neutral <span>after Things / Craft, in the dark · ★ leading</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> overwhelming neutrality with one soft accent. Warm-gray darks (gentler than pure black),
+      a quiet dusty blue that serves as accent <i>and</i> done-state — like Things' single blue. Nothing else is ever colored.
+      <b>Blocks:</b> plain text labels, no color at all. <b>Feels:</b> serene, domestic, unhurried.</div>
+    <div class="dots"><i style="background:#141417"></i><i style="background:#1C1C20"></i><i style="background:#9C9CA4"></i><i style="background:#659BC8"></i><small>4 values, 1 hue</small></div>
+  </div>
+
+  <div class="direction d5">
+    <div class="d-title">5 · Quiet Professional <span>special-forces ideals, zero costume — rebuilt</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> "the quiet professionals" — discipline expressed through structure, not costume. Pure
+      monochrome: neutral blacks, gray ramp, and a single bone-white accent that is also the done-state. The tactical DNA
+      lives in the details — wide-tracked stencil-spirit labels, milled 8px radii, uppercase commands, phase designations
+      in text (PHASE I / II). No green, no tan, no theme. <b>Blocks:</b> text designations. <b>Feels:</b> earned, exact, understated.</div>
+    <div class="dots"><i style="background:#0B0B0C"></i><i style="background:#121214"></i><i style="background:#8F8F8C"></i><i style="background:#E2E0D8"></i><small>4 values, 0 hues — all neutral</small></div>
+  </div>
+
+  <div class="direction d6">
+    <div class="d-title">6 · Summit <span>the apex itself — ΛPEX as a place</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> the name is the brief — the summit at night. Cold thin-air slate neutrals, one glacier
+      accent so pale it's almost light, white numerals like snowcaps against the dark, the Λ chevron as a quiet recurring motif,
+      the biggest number always the most important thing on screen. Every workout is altitude gained.
+      <b>Blocks:</b> elevation bands — luminance steps climbing toward white. <b>Feels:</b> rarefied, aspirational, apex-predator calm.</div>
+    <div class="dots"><i style="background:#0B0D10"></i><i style="background:#12151A"></i><i style="background:#8E97A3"></i><i style="background:#9FBED2"></i><small>4 values, 1 hue</small></div>
+  </div>
+
+</div>

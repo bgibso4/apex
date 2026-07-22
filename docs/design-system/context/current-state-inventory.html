@@ -1,0 +1,174 @@
+<!-- @dsCard group="Context" -->
+<meta charset="utf-8">
+<title>Current-State Inventory — APEX Design System</title>
+<style>
+  :root {
+    --bg:#0a0a0f; --card:#141420; --card-inset:#181824; --surface:#1e1e30;
+    --border:#2a2a3e; --border-lt:#3a3a4e;
+    --text:#ffffff; --text-2:#a0a0b8; --text-dim:#6a6a80; --text-muted:#4a4a5e;
+    --accent:#6366f1; --accent-lt:#818cf8; --accent-dk:#4f46e5; --accent-tint:#6366f11f;
+    --good:#22c55e; --warn:#f59e0b; --bad:#ef4444; --cyan:#06b6d4;
+    --good-tint:#22c55e1f; --warn-tint:#f59e0b1f; --bad-tint:#ef44441f; --cyan-tint:#06b6d41f;
+    --blk-hyp:#6366f1; --blk-str:#f59e0b; --blk-del:#22c55e; --blk-rea:#ec4899;
+    --radius-card:16px; --radius-inner:12px; --radius-btn:10px; --radius-pill:999px;
+  }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--bg); color:var(--text); padding:32px; max-width:820px; margin:0 auto; }
+  section { margin-bottom:40px; }
+  h1 { font-size:28px; font-weight:800; letter-spacing:-0.5px; }
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); margin-bottom:14px; }
+  h2 .n { color:var(--accent-lt); margin-right:6px; }
+  .thesis { color:var(--text-2); font-size:15px; line-height:1.55; margin-top:10px; }
+  .eyebrow { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-dim); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-card); padding:20px; }
+  .card + .card { margin-top:14px; }
+  .card p { color:var(--text-2); font-size:14px; line-height:1.6; }
+  .card p + p { margin-top:10px; }
+  .cap { font-size:12px; color:var(--text-muted); margin-top:10px; line-height:1.5; }
+  .pill { display:inline-block; padding:5px 12px; border-radius:var(--radius-pill); font-size:10px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.6px; background:var(--accent-tint); color:var(--accent-lt);
+          border:1px solid var(--accent-dk); }
+  .pill-bad { background:var(--bad-tint); color:var(--bad); border-color:var(--bad); }
+  .pill-warn { background:var(--warn-tint); color:var(--warn); border-color:var(--warn); }
+  .pill-cyan { background:var(--cyan-tint); color:var(--cyan); border-color:var(--cyan); }
+  ul { padding-left:18px; color:var(--text-2); font-size:14px; line-height:1.6; }
+  li { margin-bottom:8px; }
+  li:last-child { margin-bottom:0; }
+  li b { color:var(--text); font-weight:600; }
+  .issue-list { list-style:none; padding-left:0; }
+  .issue-list li { display:flex; gap:12px; align-items:baseline; padding:11px 0; border-bottom:1px solid var(--border); }
+  .issue-list li:last-child { border-bottom:none; }
+  .issue-tag { flex:0 0 auto; min-width:118px; text-align:left; padding:3px 8px; border-radius:var(--radius-pill);
+               font-size:11px; font-weight:700; background:var(--surface); color:var(--text-2);
+               border:1px solid var(--border-lt); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .issue-list span.desc { color:var(--text-2); font-size:14px; line-height:1.5; }
+  code { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:1px 6px;
+         font-size:13px; color:var(--text-2); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .blocks-inline { display:inline-flex; height:8px; width:80px; border-radius:var(--radius-pill); overflow:hidden; gap:2px; vertical-align:middle; }
+  .blocks-inline div { height:100%; }
+
+  /* Palette swatches */
+  .swatches { display:grid; grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); gap:10px; }
+  .sw { border:1px solid var(--border); border-radius:var(--radius-inner); overflow:hidden; background:var(--card); }
+  .sw .chip { height:48px; position:relative; }
+  .sw .chip .tag { position:absolute; top:5px; right:5px; font-size:8px; font-weight:800; letter-spacing:0.4px;
+                   text-transform:uppercase; padding:2px 5px; border-radius:var(--radius-pill); }
+  .sw .lbl { padding:8px 10px; }
+  .sw .lbl b { display:block; color:var(--text); font-weight:600; font-size:12px; }
+  .sw .lbl span { display:block; color:var(--text-dim); font-size:11px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; margin-top:2px; }
+
+  /* Component census table */
+  .table-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-card); }
+  table { width:100%; border-collapse:collapse; font-size:13px; min-width:640px; }
+  thead th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px;
+             color:var(--text-dim); padding:10px 14px; background:var(--card-inset); border-bottom:1px solid var(--border-lt); }
+  tbody td { padding:11px 14px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:top; background:var(--card); }
+  tbody tr:last-child td { border-bottom:none; }
+  td.name { color:var(--text); font-weight:600; white-space:nowrap; }
+  td.name .sub { display:block; font-weight:400; color:var(--text-muted); font-size:11px; margin-top:2px; white-space:normal; }
+  .badge { display:inline-block; white-space:nowrap; font-size:10px; font-weight:700; padding:3px 9px; border-radius:var(--radius-pill);
+           text-transform:uppercase; letter-spacing:0.4px; }
+  .badge-generic { background:var(--good-tint); color:var(--good); border:1px solid var(--good); }
+  .badge-specific { background:var(--surface); color:var(--text-2); border:1px solid var(--border-lt); }
+  .badge-legacy { background:var(--warn-tint); color:var(--warn); border:1px solid var(--warn); }
+</style>
+
+<section id="intro">
+  <div class="eyebrow">Context · Phase 0 Kickoff</div>
+  <h1>Current-State Inventory</h1>
+  <p class="thesis">A snapshot of APEX exactly as it ships today — palette, components, and known debt — so that every candidate redesign direction is judged against an accurate picture of what exists, not a flattering memory of it. Like the redesign brief, this page's <code>:root</code> is today's production palette, not a candidate direction.</p>
+</section>
+
+<section id="palette">
+  <h2><span class="n">1</span>Today's palette</h2>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:var(--bg)"></div><div class="lbl"><b>bg</b><span>#0a0a0f</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--card)"></div><div class="lbl"><b>card</b><span>#141420</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--card-inset)"></div><div class="lbl"><b>cardInset</b><span>#181824</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--surface)"></div><div class="lbl"><b>surface</b><span>#1e1e30</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--border)"></div><div class="lbl"><b>border</b><span>#2a2a3e</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--border-lt)"></div><div class="lbl"><b>borderLight</b><span>#3a3a4e</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--text);border-bottom:1px solid var(--border)"></div><div class="lbl"><b>text</b><span>#ffffff</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--text-2)"></div><div class="lbl"><b>textSecondary</b><span>#a0a0b8</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--text-dim)"></div><div class="lbl"><b>textDim</b><span>#6a6a80</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--text-muted)"></div><div class="lbl"><b>textMuted</b><span>#4a4a5e</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--accent)"><span class="tag" style="background:var(--bad);color:var(--text)">Retiring</span></div><div class="lbl"><b>indigo</b><span>#6366f1</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--accent-lt)"><span class="tag" style="background:var(--bad);color:var(--text)">Retiring</span></div><div class="lbl"><b>indigo light</b><span>#818cf8</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--accent-dk)"><span class="tag" style="background:var(--bad);color:var(--text)">Retiring</span></div><div class="lbl"><b>indigo dark</b><span>#4f46e5</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--good)"></div><div class="lbl"><b>green</b><span>#22c55e</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--warn)"></div><div class="lbl"><b>amber</b><span>#f59e0b</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--bad)"></div><div class="lbl"><b>red</b><span>#ef4444</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--cyan)"><span class="tag" style="background:var(--bg);color:var(--cyan)">Running</span></div><div class="lbl"><b>cyan</b><span>#06b6d4</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--blk-hyp)"></div><div class="lbl"><b>block · HYP</b><span>#6366f1</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--blk-str)"></div><div class="lbl"><b>block · STR</b><span>#f59e0b</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--blk-del)"></div><div class="lbl"><b>block · DEL</b><span>#22c55e</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--blk-rea)"></div><div class="lbl"><b>block · REA</b><span>#ec4899</span></div></div>
+  </div>
+  <p class="cap">21 tokens. The indigo family (3 swatches) is the only one flagged for retirement outright — every other token continues as a <em>concept</em> (bg/text ramps, good/warn/bad semantics, block coding, Running's distinct accent) even where the exact hex is still open. Note the block colors double up on existing hues today — HYP reuses indigo, STR reuses amber, DEL reuses green; only REA (pink) is a color with no other role.</p>
+</section>
+
+<section id="components">
+  <h2><span class="n">2</span>Component census</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Component</th><th>Purpose</th><th>Type</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="name">ProgressBar</td><td>Labeled horizontal fill bar (value / max / color) with an optional percentage label; used for strength-gain deltas.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">TrendLineChart<span class="sub">+ SparkLine</span></td><td>SVG line chart with grid, filled area, data dots, and axis labels; <code>SparkLine</code> is its compact axis-less variant for inline use.</td><td><span class="badge badge-generic">Generic</span></td></tr>
+        <tr><td class="name">FocusChips</td><td>Small pill tags rendering a program's declared focus areas under its name.</td><td><span class="badge badge-generic">Generic</span></td></tr>
+        <tr><td class="name">SupersetGroup</td><td>Visual bracket + label ("Superset" / "Tri-set" / "Giant set") wrapping grouped exercise cards.</td><td><span class="badge badge-generic">Generic</span></td></tr>
+        <tr><td class="name">ExerciseCard<span class="sub">601 lines</span></td><td>Per-set input rows, completion state, and inline adjust affordance — the core one-tap logging unit of the whole app.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">AdjustModal</td><td>Bottom-sheet numeric stepper for editing a set's target fields, with an "apply to all remaining sets" shortcut.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">MonthCalendar</td><td>Full Sun–Sat month grid with per-day completion indicators; a richer replacement for WeekRow's single-week strip.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">ProgramTimeline</td><td>Horizontal block-color bar showing training-block boundaries against the current week.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">WeekRow<span class="sub">superseded</span></td><td>Single-week day-completion strip. Replaced by MonthCalendar; zero remaining imports anywhere in the app.</td><td><span class="badge badge-legacy">Superseded</span></td></tr>
+        <tr><td class="name">TodayCard</td><td>Home hero card for today's prescribed session, or a rotating quote on a scheduled rest day.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">HealthCard</td><td>Compact recovery / sleep / strain text bar sourced from connected health data.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">DaySelector</td><td>Modal day-picker for jumping to a different training day within the active week.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">WarmupChecklist</td><td>Expandable checklist of warmup protocol steps with a running rest timer.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">SessionSummary<span class="sub">561 lines</span></td><td>Post-workout recap: PRs hit, per-exercise breakdown, editable notes and timestamp, and the save action.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">AddExerciseModal</td><td>Slide-up form for creating a new user-defined exercise.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">PainFollowUp</td><td>Home-screen prompt asking for a delayed pain rating roughly 24h after a logged run.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">CompletedProgramCard</td><td>Gold-accented Home card shown once the active program has been completed.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">ProgramSummaryView</td><td>Post-celebration stat recap: strength-gain deltas with mini progress bars and a personal-records list.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">ProgramCompletionCelebration</td><td>Full-screen dark takeover shown the instant the final workout of a program finishes.</td><td><span class="badge badge-specific">Screen-specific</span></td></tr>
+        <tr><td class="name">SplashScreen</td><td>Branded launch screen shown while SQLite, fonts, and assets initialize.</td><td><span class="badge badge-generic">Generic</span></td></tr>
+        <tr><td class="name">ReadinessForm<span class="sub">unused</span></td><td>Sleep / soreness / energy sliders feeding a readiness score. Zero imports anywhere in the app today.</td><td><span class="badge badge-legacy">Unused</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cap">21 components in <code>src/components/</code>. 4 generic (reused across 2+ screens), 15 screen-specific (single current call site), 2 legacy (superseded or unused, zero call sites).</p>
+</section>
+
+<section id="debt">
+  <h2><span class="n">3</span>Known debt the redesign fixes</h2>
+  <div class="card">
+    <ul>
+      <li><b>No shared component-style layer</b> — 33 separate <code>StyleSheet.create</code> blocks across screens and components, each hand-rolled from scratch. No shared style primitives exist between them, so the same visual pattern (a card, a row, a section label) is re-implemented with small drifts every time it's needed.</li>
+      <li><b>~10 hardcoded color escapes</b> outside the token system — the pain-severity gradient palette is duplicated verbatim in two places (<code>PainFollowUp.tsx</code> and <code>running.tsx</code>); resource-link brand colors are hardcoded in <code>exercise/[id].tsx</code> (YouTube red, Instagram pink, TikTok white); <code>SupersetGroup</code> and <code>WeekRow</code> use raw alpha-suffixed hex literals (e.g. <code>#6366f150</code>); Settings renders its integration badges with raw <code>rgba()</code> literals; <code>ProgramTimeline</code> uses raw <code>rgba(255,255,255,…)</code> for its white-alpha states.</li>
+      <li><b>Section-label drift</b> — the uppercase "eyebrow" label pattern isn't backed by one token: font size varies 11px vs 10px and letter-spacing varies 0.5 vs 1.0 depending on which screen or component wrote it, so labels that are supposed to read as the same typographic voice don't quite match side by side.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="screens">
+  <h2><span class="n">4</span>Screen census</h2>
+  <ul class="issue-list">
+    <li><span class="issue-tag">(tabs)/index</span><span class="desc"><b style="color:var(--text)">Home</b> — active program dashboard: week/block context, today's session card, health summary, PR/pain prompts.</span></li>
+    <li><span class="issue-tag">(tabs)/workout</span><span class="desc"><b style="color:var(--text)">Workout</b> — thin render layer over <code>useWorkoutSession</code>; the live set-logging flow, warmup, adjust, and post-session summary all compose here.</span></li>
+    <li><span class="issue-tag">(tabs)/progress</span><span class="desc"><b style="color:var(--text)">Progress</b> — estimated 1RM trend charts, volume, and a time-range selector.</span></li>
+    <li><span class="issue-tag">(tabs)/running</span><span class="desc"><b style="color:var(--text)">Running</b> — the swappable 4th tab: pain tracking, run logging, and trends across Log / Trends sub-tabs.</span></li>
+    <li><span class="issue-tag">library</span><span class="desc"><b style="color:var(--text)">Library</b> <span class="pill" style="margin-left:2px">Modal</span> — program catalog; tap a card to select, floating button activates it (activation is inline here, not a separate screen).</span></li>
+    <li><span class="issue-tag">exercises</span><span class="desc"><b style="color:var(--text)">Exercises</b> — every exercise (library + user-created), grouped by muscle group, collapsible groups expanded by default.</span></li>
+    <li><span class="issue-tag">history</span><span class="desc"><b style="color:var(--text)">History</b> — all completed sessions grouped by program, newest first.</span></li>
+    <li><span class="issue-tag">settings</span><span class="desc"><b style="color:var(--text)">Settings</b> — training preferences, integrations, and data management.</span></li>
+    <li><span class="issue-tag">program-complete</span><span class="desc"><b style="color:var(--text)">Program-complete</b> — hosts the completion celebration takeover, then the program summary view.</span></li>
+    <li><span class="issue-tag">exercise/[id]</span><span class="desc"><b style="color:var(--text)">Exercise detail</b> — metric trend chart with block bands, time-range chips, hero stat, compact session history rows; type-adaptive (weight+reps, duration, distance+time, etc.).</span></li>
+    <li><span class="issue-tag">exercise/progression</span><span class="desc"><b style="color:var(--text)">Exercise progression</b> — full progression history for one exercise, reached via "View all" from the detail screen.</span></li>
+    <li><span class="issue-tag">exercise/sessions</span><span class="desc"><b style="color:var(--text)">Exercise sessions</b> — full session history for one exercise, reached via "View all N sessions" from the detail screen.</span></li>
+    <li><span class="issue-tag">session/[id]</span><span class="desc"><b style="color:var(--text)">Session detail</b> — read-only view of a completed past workout.</span></li>
+  </ul>
+  <p class="cap">13 routes today. CLAUDE.md's project-structure doc additionally lists a 14th, <code>activate.tsx</code>, as a separate program-activation modal — that file no longer exists in <code>app/</code>; activation now lives inline in <code>library.tsx</code> (see above). <code>app/_layout.tsx</code> still declares a <code>Stack.Screen name="activate"</code> pointing at nothing, a stale wiring entry left over from the merge.</p>
+</section>

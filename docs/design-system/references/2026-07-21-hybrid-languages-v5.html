@@ -1,0 +1,279 @@
+<!-- @dsCard group="References" -->
+<meta charset="utf-8">
+<title>Hybrid Languages v5 — APEX</title>
+<style>
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:#0B0B0C; color:#EDEDEF; padding:36px 28px; }
+  .intro { max-width:820px; margin:0 auto 36px; }
+  .intro h1 { font-size:24px; font-weight:800; letter-spacing:-0.4px; }
+  .intro p { color:#9A9AA2; font-size:14px; line-height:1.6; margin-top:10px; }
+  .intro b { color:#D6D6DA; font-weight:600; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:32px; max-width:1500px; margin:0 auto; }
+  .direction { display:flex; flex-direction:column; gap:14px; }
+  .d-title { font-size:15px; font-weight:700; }
+  .d-title span { color:#77777f; font-weight:500; font-size:12px; margin-left:8px; }
+  .caption { color:#8B8B93; font-size:12px; line-height:1.55; }
+  .caption b { color:#C9C9CF; font-weight:600; }
+
+  .phone { border-radius:28px; padding:22px 18px 18px; border:1px solid #242428; min-height:540px; }
+  .p-week { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .p-title { font-size:22px; font-weight:800; letter-spacing:-0.4px; color:var(--text); margin:3px 0 16px; }
+  .card { border:1px solid var(--border); border-top:1px solid var(--border-lt); border-radius:var(--r); padding:15px; }
+  .ex-name { font-size:15px; font-weight:700; color:var(--text); }
+  .ex-rx { font-size:11px; color:var(--dim); margin-top:2px; }
+  .set { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .set:last-of-type { border-bottom:none; }
+  .set .n { width:16px; font-size:11px; font-weight:700; color:var(--mute); }
+  .set .v { flex:1; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--text); }
+  .set.done .v { color:var(--good); }
+  .set.pend .v { color:var(--dim); }
+  .tap { min-width:44px; height:32px; border-radius:calc(var(--r) - 4px); border:1.5px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--mute); }
+  .set.done .tap { background:var(--good-t); border-color:transparent; color:var(--good); }
+  .set.curr .tap { border-color:var(--tint); color:var(--tint); }
+  .stat { margin-top:14px; }
+  .stat .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:var(--dim); }
+  .stat .num { font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); line-height:1.1; }
+  .stat .num small { font-size:13px; color:var(--dim); font-weight:600; }
+  .stat .delta { font-size:11px; font-weight:600; color:var(--good); margin-top:2px; }
+  .btn { margin-top:16px; text-align:center; padding:13px; border-radius:calc(var(--r) - 2px);
+         background:var(--tint); color:var(--btn-txt); font-size:14px; font-weight:700; }
+
+  .spec { border:1px solid #222226; border-radius:12px; padding:12px 14px; background:#101012; }
+  .spec h3 { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:#66666e; margin-bottom:8px; }
+  .spec .rows { display:grid; grid-template-columns:1fr 1fr; gap:3px 18px; }
+  .spec .row { display:flex; align-items:center; gap:7px; font-size:10.5px; color:#9A9AA2; }
+  .spec .row i { width:10px; height:10px; border-radius:3px; border:1px solid #2A2A2E; flex:none; }
+  .spec .row code { color:#6E6E76; margin-left:auto; font-size:10px; }
+  .spec .meta { margin-top:8px; font-size:10.5px; color:#77777f; }
+
+  /* L1 — Precision Tool, hybrid */
+  .L1 { --border:#20232A; --border-lt:#2C3039; --text:#EDEEF0; --dim:#8F9098; --mute:#55575F;
+        --tint:#8A91C9; --good:#6CA383; --good-t:#6CA3831a; --btn-txt:#0B0C0E; --r:10px; }
+  .L1 .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #161821 0%, #0C0D11 55%, #090A0C 100%); }
+  .L1 .card { background:linear-gradient(180deg, #14161B 0%, #0E1013 100%); }
+  .L1 .p-title { font-size:20px; letter-spacing:-0.3px; }
+  .L1 .ex-name { font-size:14px; }
+
+  /* L2 — Quiet Neutral, hybrid */
+  .L2 { --border:#2D2B28; --border-lt:#3B3835; --text:#F4F3F1; --dim:#A19D98; --mute:#64605B;
+        --tint:#659BC8; --good:#659BC8; --good-t:#659BC81a; --btn-txt:#131211; --r:12px; }
+  .L2 .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #22201D 0%, #161513 55%, #131211 100%); }
+  .L2 .card { background:linear-gradient(180deg, #232120 0%, #1C1A19 100%); }
+
+  /* L3 — Quiet Professional, hybrid */
+  .L3 { --border:#222226; --border-lt:#303034; --text:#F1F1EF; --dim:#8F8F8C; --mute:#565654;
+        --tint:#E2E0D8; --good:#E2E0D8; --good-t:#E2E0D81a; --btn-txt:#0F0F10; --r:8px; }
+  .L3 .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #141416 0%, #0C0C0D 55%, #090909 100%); }
+  .L3 .card { background:linear-gradient(180deg, #161618 0%, #101012 100%); }
+  .L3 .p-week { letter-spacing:1.8px; }
+  .L3 .stat .eyebrow { letter-spacing:1.6px; }
+  .L3 .btn { text-transform:uppercase; letter-spacing:1.2px; font-size:13px; }
+
+  /* L4 — Summit, hybrid */
+  .L4 { --border:#20242B; --border-lt:#2E3540; --text:#F5F7FA; --dim:#8E97A3; --mute:#525A66;
+        --tint:#9FBED2; --good:#9FBED2; --good-t:#9FBED21c; --btn-txt:#0C0F13; --r:12px; }
+  .L4 .phone { background:radial-gradient(ellipse 90% 45% at 50% -5%, #182029 0%, #0D1015 55%, #0A0C0F 100%); }
+  .L4 .card { background:linear-gradient(180deg, #151920 0%, #101318 100%); }
+  .L4 .stat .num { font-size:38px; letter-spacing:-0.5px; }
+  .L4 .p-title::before { content:"Λ "; color:var(--tint); font-weight:800; }
+</style>
+
+<div class="intro">
+  <h1>Four languages, one light</h1>
+  <p>The hybrid gradient grammar is locked: a <b>radial halo</b> settling down from behind the header lights the room,
+     a <b>vertical card gradient</b> with a brighter top edge lights the objects — both at half strength so depth sums,
+     not stacks. Below, each surviving language wears it in its own palette, with the complete spec sheet under every
+     frame. The halo takes the language's own cast: violet on Precision Tool, pure warm neutral on Quiet Neutral, dead
+     neutral on Quiet Professional, glacier on Summit.</p>
+</div>
+
+<div class="grid">
+
+  <div class="direction L1">
+    <div class="d-title">1 · Precision Tool <span>hybrid · was v4's ★</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> software as a precision instrument — the darkest neutrals, hairline borders, the
+      tightest typography (20px titles, 14px card names). One dusty-violet accent used almost nowhere; a separate muted
+      moss green that only ever means "logged." <b>The light:</b> the halo carries a whisper of the violet cast — the one
+      language whose atmosphere admits a hint of hue. <b>Blocks:</b> neutral grays; accent marks only the current one.
+      <b>Feels:</b> engineered, expensive, quiet. <b>Watch for:</b> the violet halo drifting toward decoration if intensity creeps.</div>
+    <div class="spec">
+      <h3>Spec — 2 hues</h3>
+      <div class="rows">
+        <div class="row"><i style="background:#161821"></i>Halo<code>#161821</code></div>
+        <div class="row"><i style="background:#14161B"></i>Card top<code>#14161B</code></div>
+        <div class="row"><i style="background:#0C0D11"></i>Field mid<code>#0C0D11</code></div>
+        <div class="row"><i style="background:#0E1013"></i>Card base<code>#0E1013</code></div>
+        <div class="row"><i style="background:#090A0C"></i>Field base<code>#090A0C</code></div>
+        <div class="row"><i style="background:#20232A"></i>Border<code>#20232A</code></div>
+        <div class="row"><i style="background:#EDEEF0"></i>Text<code>#EDEEF0</code></div>
+        <div class="row"><i style="background:#2C3039"></i>Border light<code>#2C3039</code></div>
+        <div class="row"><i style="background:#8F9098"></i>Secondary<code>#8F9098</code></div>
+        <div class="row"><i style="background:#8A91C9"></i>Accent<code>#8A91C9</code></div>
+        <div class="row"><i style="background:#55575F"></i>Muted<code>#55575F</code></div>
+        <div class="row"><i style="background:#6CA383"></i>Logged<code>#6CA383</code></div>
+      </div>
+      <div class="meta">Radius 10px · button text #0B0C0E · logged tint #6CA383 at 10% alpha</div>
+    </div>
+  </div>
+
+  <div class="direction L2">
+    <div class="d-title">2 · Quiet Neutral <span>hybrid</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> overwhelming neutrality with one soft accent. Warm-gray darks gentler than pure
+      black; a quiet dusty blue serving as accent <i>and</i> done-state — nothing else is ever colored. <b>The light:</b> the
+      halo stays pure warm neutral — no accent cast; neutrality is the personality, so even the atmosphere refuses hue.
+      <b>Blocks:</b> plain text labels, no color. <b>Feels:</b> serene, domestic, unhurried. <b>Watch for:</b> warmth reading
+      as murk on low-brightness OLED — the halo helps counter this.</div>
+    <div class="spec">
+      <h3>Spec — 1 hue</h3>
+      <div class="rows">
+        <div class="row"><i style="background:#22201D"></i>Halo<code>#22201D</code></div>
+        <div class="row"><i style="background:#232120"></i>Card top<code>#232120</code></div>
+        <div class="row"><i style="background:#161513"></i>Field mid<code>#161513</code></div>
+        <div class="row"><i style="background:#1C1A19"></i>Card base<code>#1C1A19</code></div>
+        <div class="row"><i style="background:#131211"></i>Field base<code>#131211</code></div>
+        <div class="row"><i style="background:#2D2B28"></i>Border<code>#2D2B28</code></div>
+        <div class="row"><i style="background:#F4F3F1"></i>Text<code>#F4F3F1</code></div>
+        <div class="row"><i style="background:#3B3835"></i>Border light<code>#3B3835</code></div>
+        <div class="row"><i style="background:#A19D98"></i>Secondary<code>#A19D98</code></div>
+        <div class="row"><i style="background:#659BC8"></i>Accent<code>#659BC8</code></div>
+        <div class="row"><i style="background:#64605B"></i>Muted<code>#64605B</code></div>
+        <div class="row"><i style="background:#659BC8"></i>Logged<code>#659BC8</code></div>
+      </div>
+      <div class="meta">Radius 12px · button text #131211 · accent doubles as logged, 10% alpha tint</div>
+    </div>
+  </div>
+
+  <div class="direction L3">
+    <div class="d-title">3 · Quiet Professional <span>hybrid</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> "the quiet professionals" — discipline through structure, zero costume. Pure
+      monochrome: neutral blacks, a gray ramp, one bone-white accent doubling as the done-state. Tactical DNA lives in
+      wide-tracked stencil-spirit labels, uppercase commands, milled 8px radii, phases as text (PHASE I / II).
+      <b>The light:</b> dead neutral halo — an overhead lamp on gunmetal; the card light does most of the talking.
+      <b>Blocks:</b> text designations. <b>Feels:</b> earned, exact, understated. <b>Watch for:</b> reading flat/austere in
+      celebratory moments (PRs, program completion) — those may need borrowed light, not borrowed color.</div>
+    <div class="spec">
+      <h3>Spec — 0 hues, all neutral</h3>
+      <div class="rows">
+        <div class="row"><i style="background:#141416"></i>Halo<code>#141416</code></div>
+        <div class="row"><i style="background:#161618"></i>Card top<code>#161618</code></div>
+        <div class="row"><i style="background:#0C0C0D"></i>Field mid<code>#0C0C0D</code></div>
+        <div class="row"><i style="background:#101012"></i>Card base<code>#101012</code></div>
+        <div class="row"><i style="background:#090909"></i>Field base<code>#090909</code></div>
+        <div class="row"><i style="background:#222226"></i>Border<code>#222226</code></div>
+        <div class="row"><i style="background:#F1F1EF"></i>Text<code>#F1F1EF</code></div>
+        <div class="row"><i style="background:#303034"></i>Border light<code>#303034</code></div>
+        <div class="row"><i style="background:#8F8F8C"></i>Secondary<code>#8F8F8C</code></div>
+        <div class="row"><i style="background:#E2E0D8"></i>Accent (bone)<code>#E2E0D8</code></div>
+        <div class="row"><i style="background:#565654"></i>Muted<code>#565654</code></div>
+        <div class="row"><i style="background:#E2E0D8"></i>Logged<code>#E2E0D8</code></div>
+      </div>
+      <div class="meta">Radius 8px · button text #0F0F10 · bone doubles as logged, 10% alpha tint</div>
+    </div>
+  </div>
+
+  <div class="direction L4">
+    <div class="d-title">4 · Summit <span>hybrid — ΛPEX as a place</span></div>
+    <div class="phone">
+      <div class="p-week">Week 6 · Strength</div>
+      <div class="p-title">Wednesday — Lower</div>
+      <div class="card">
+        <div class="ex-name">Bulgarian Split Squat</div>
+        <div class="ex-rx">3 × 8 @ 95 lb · RPE ≤ 7</div>
+        <div style="margin-top:10px">
+          <div class="set done"><span class="n">1</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set curr"><span class="n">2</span><span class="v">95 lb × 8</span><span class="tap">✓</span></div>
+          <div class="set pend"><span class="n">3</span><span class="v">95 lb × 8</span><span class="tap"> </span></div>
+        </div>
+      </div>
+      <div class="card stat">
+        <div class="eyebrow">Squat · Est 1RM</div>
+        <div class="num">315 <small>lb</small></div>
+        <div class="delta">↑ 5 this block</div>
+      </div>
+      <div class="btn">Finish Workout</div>
+    </div>
+    <div class="caption"><b>Believes:</b> the name is the brief — the summit at night. Cold thin-air slate, one glacier accent
+      so pale it's almost light, white numerals like snowcaps, the Λ chevron as a quiet recurring motif, the biggest
+      number always the most important thing on screen. <b>The light:</b> the halo is the dawn — a glacier-cast glow above,
+      darkness below; the most story-driven atmosphere of the four. <b>Blocks:</b> elevation bands, luminance climbing
+      toward white. <b>Feels:</b> rarefied, aspirational, apex-predator calm. <b>Watch for:</b> the cold cast making warm
+      content (PR celebrations, streaks) feel distant.</div>
+    <div class="spec">
+      <h3>Spec — 1 hue</h3>
+      <div class="rows">
+        <div class="row"><i style="background:#182029"></i>Halo<code>#182029</code></div>
+        <div class="row"><i style="background:#151920"></i>Card top<code>#151920</code></div>
+        <div class="row"><i style="background:#0D1015"></i>Field mid<code>#0D1015</code></div>
+        <div class="row"><i style="background:#101318"></i>Card base<code>#101318</code></div>
+        <div class="row"><i style="background:#0A0C0F"></i>Field base<code>#0A0C0F</code></div>
+        <div class="row"><i style="background:#20242B"></i>Border<code>#20242B</code></div>
+        <div class="row"><i style="background:#F5F7FA"></i>Text<code>#F5F7FA</code></div>
+        <div class="row"><i style="background:#2E3540"></i>Border light<code>#2E3540</code></div>
+        <div class="row"><i style="background:#8E97A3"></i>Secondary<code>#8E97A3</code></div>
+        <div class="row"><i style="background:#9FBED2"></i>Accent (glacier)<code>#9FBED2</code></div>
+        <div class="row"><i style="background:#525A66"></i>Muted<code>#525A66</code></div>
+        <div class="row"><i style="background:#9FBED2"></i>Logged<code>#9FBED2</code></div>
+      </div>
+      <div class="meta">Radius 12px · button text #0C0F13 · glacier doubles as logged, 11% alpha tint</div>
+    </div>
+  </div>
+
+</div>

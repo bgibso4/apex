@@ -1,0 +1,309 @@
+<!-- @dsCard group="Workout Flow — R1" -->
+<meta charset="utf-8">
+<title>Workout Warmup — APEX Wave 1</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+    /* === mockup chrome only (not app tokens) === */
+    --page:#050506;
+  }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); padding:36px 24px; }
+  .pagehead { max-width:900px; margin:0 auto 24px; }
+  .pagehead h1 { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .pagehead p { color:var(--text-2); font-size:13px; line-height:1.55; margin-top:6px; max-width:640px; }
+  .stage { display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+  .frame { width:390px; border:1px solid var(--border); border-radius:44px; overflow:hidden; flex-shrink:0; }
+  .frame-label { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:1.1px; text-align:center; margin:10px 0 8px; }
+  .screen { min-height:844px; display:flex; flex-direction:column;
+            background:radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%); }
+  .statusbar { height:54px; display:flex; align-items:flex-end; justify-content:space-between;
+               padding:0 28px 6px; color:var(--text); font-size:13px; font-weight:600; }
+  .content { flex:1; padding:8px 20px 24px; }
+  .screen-title { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:14px 16px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .num-hero { color:var(--text); font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .set-row { display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid var(--border); }
+  .set-row:last-child { border-bottom:none; }
+  .set-n { width:20px; color:var(--text-muted); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .set-val { flex:1; }
+  .tap { min-width:44px; min-height:44px; border-radius:var(--r-nested); border:1px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:15px; }
+  .tap.done { background:var(--logged-tint); border-color:var(--logged); color:var(--logged); }
+  .tap.current { border-color:var(--accent); color:var(--accent); }
+  .pill { display:inline-block; padding:4px 10px; border-radius:var(--r-pill); font-size:10px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.8px; color:var(--text-2); border:1px solid var(--border-lt); }
+  .pill.now { background:var(--accent-tint); color:var(--accent); border-color:var(--accent); }
+  .btn-primary { display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:var(--r-card);
+                 background:var(--accent); color:var(--on-accent); font-size:15px; font-weight:700; }
+  .btn-quiet { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:var(--r-nested);
+               border:1px solid var(--border-lt); color:var(--text-2); font-size:13px; font-weight:600; }
+  .suggest { display:flex; align-items:center; gap:10px; padding:10px 12px; margin-top:12px;
+             background:var(--logged-tint); border:1px solid var(--logged); border-radius:var(--r-nested);
+             color:var(--text); font-size:13px; }
+  .tabbar { display:flex; align-items:stretch; border-top:1px solid var(--border);
+            background:var(--field-base); padding-bottom:8px; }
+  .tabbar.glass { background:rgba(12,14,17,0.72); backdrop-filter:blur(18px) saturate(1.1); }
+  .tab { flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         gap:3px; color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .tab.active { color:var(--accent); }
+  .tab .ic { font-size:18px; }
+  .home-ind { width:130px; height:5px; border-radius:var(--r-pill); background:var(--border-lt); margin:6px auto 8px; }
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:640px; margin:20px auto 0; text-align:center; }
+
+  /* ================================================================= */
+  /* Screen-specific — Workout Warmup R1. var-based only; the template  */
+  /* :root and every rule above are copied verbatim and left untouched. */
+  /* ================================================================= */
+
+  /* header — same idiom as Task 5/6's .whead: eyebrow + fixed title + progress + progress-label */
+  .whead { margin-bottom:2px; }
+  .whead .screen-title { margin-top:4px; }
+  .progress { height:3px; background:var(--border); border-radius:var(--r-pill); overflow:hidden; margin-top:12px; }
+  .progress > i { display:block; height:100%; background:var(--text-muted); border-radius:var(--r-pill); }
+  .progress-label { color:var(--text-muted); font-size:11px; font-weight:600; margin-top:6px;
+                    font-variant-numeric:tabular-nums; }
+
+  .flow { display:flex; flex-direction:column; gap:10px; }
+
+  /* protocol row — whole row (excluding the two trailing controls) is the ≥44pt tap that expands/collapses,
+     matching Task 5's "whole row is one tap" .ex-collapsed idiom. Never collapses the complete-check's own tap. */
+  .protocol-row { display:flex; align-items:center; gap:12px; min-height:44px; }
+  .protocol-main { flex:1; }
+  .protocol-meta { color:var(--text-2); font-size:11px; font-weight:400; margin-top:2px; }
+
+  /* per-row quiet disclosure control — identical recipe to Task 5's .overflow (44pt, muted, neutral) */
+  .overflow { min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;
+              color:var(--text-muted); font-size:17px; letter-spacing:1px; }
+
+  /* disclosed steps — read-only reference detail, no state of their own (can't half-finish a protocol) */
+  .protocol-steps { margin-top:10px; padding-top:10px; border-top:1px solid var(--border);
+                     display:flex; flex-direction:column; }
+  .step-row { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); }
+  .step-row:last-child { border-bottom:none; padding-bottom:0; }
+  .step-body { flex:1; }
+  .step-name { color:var(--text-2); font-size:14px; font-weight:600; }
+  .prescription { color:var(--text-2); font-size:13px; font-weight:600; margin-top:3px;
+                  font-variant-numeric:tabular-nums; }
+
+  /* skip — deliberately the quietest control on the screen: plain text, no border, no fill */
+  .skip { display:flex; align-items:center; justify-content:center; min-height:44px;
+          color:var(--text-muted); font-size:13px; font-weight:600; margin-top:2px; }
+</style>
+
+<div class="pagehead">
+  <h1>Workout Warmup — R1</h1>
+  <p>The pre-session warmup screen, re-clothed in Precision Blue. Frame 1 is the default collapsed
+    state — protocol name rows with one-tap complete checks — carrying today's real Upper Body A
+    warmup (Jump Rope, Abbreviated Ankle Protocol, Dynamic Warmup, straight from the program's
+    <code>warmup_protocols</code> data). Frame 2 designs in #46: tapping a protocol's row discloses its
+    real steps — sets, reps, hold times, and form cues — inline, without a modal. Judge: does expansion
+    read as a quiet, optional detour rather than a gate, and is completing a protocol still one tap
+    whether its card is open or closed.</p>
+</div>
+
+<div class="stage">
+
+  <!-- ============ FRAME 1 — collapsed, common case ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Warm Up</div>
+          <div class="progress"><i style="width:33%"></i></div>
+          <div class="progress-label">Upper Body A · 1 of 3 protocols · 04:12</div>
+        </div>
+
+        <!-- done (moss) — collapsed -->
+        <div class="card">
+          <div class="protocol-row">
+            <div class="protocol-main">
+              <div class="card-name">Jump Rope</div>
+              <div class="protocol-meta">3 min continuous</div>
+            </div>
+            <span class="tap done">✓</span>
+            <span class="overflow">›</span>
+          </div>
+        </div>
+
+        <!-- pending — collapsed -->
+        <div class="card">
+          <div class="protocol-row">
+            <div class="protocol-main">
+              <div class="card-name">Abbreviated Ankle Protocol</div>
+              <div class="protocol-meta">5 exercises · 5 min</div>
+            </div>
+            <span class="tap">·</span>
+            <span class="overflow">›</span>
+          </div>
+        </div>
+
+        <!-- pending — collapsed -->
+        <div class="card">
+          <div class="protocol-row">
+            <div class="protocol-main">
+              <div class="card-name">Dynamic Warmup</div>
+              <div class="protocol-meta">Pick 3–5 · 5 min</div>
+            </div>
+            <span class="tap">·</span>
+            <span class="overflow">›</span>
+          </div>
+        </div>
+
+        <div style="flex:1"></div>
+        <div class="btn-quiet">Continue to Exercises →</div>
+        <div class="skip">Skip warm-up</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">Collapsed · common case</div>
+  </div>
+
+  <!-- ============ FRAME 2 — one protocol expanded (#46) ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:48</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Warm Up</div>
+          <div class="progress"><i style="width:100%"></i></div>
+          <div class="progress-label">Upper Body A · 3 of 3 protocols · 07:15</div>
+        </div>
+
+        <!-- done (moss) — collapsed -->
+        <div class="card">
+          <div class="protocol-row">
+            <div class="protocol-main">
+              <div class="card-name">Jump Rope</div>
+              <div class="protocol-meta">3 min continuous</div>
+            </div>
+            <span class="tap done">✓</span>
+            <span class="overflow">›</span>
+          </div>
+        </div>
+
+        <!-- done (moss) AND expanded — proves expanding never blocks completing, either direction -->
+        <div class="card">
+          <div class="protocol-row">
+            <div class="protocol-main">
+              <div class="card-name">Abbreviated Ankle Protocol</div>
+              <div class="protocol-meta">5 exercises · 5 min</div>
+            </div>
+            <span class="tap done">✓</span>
+            <span class="overflow">⌃</span>
+          </div>
+          <div class="protocol-steps">
+            <div class="step-row">
+              <span class="set-n">1</span>
+              <div class="step-body">
+                <div class="step-name">Plantar Fascia Roll</div>
+                <div class="prescription">30 sec/foot · Quick pass</div>
+              </div>
+            </div>
+            <div class="step-row">
+              <span class="set-n">2</span>
+              <div class="step-body">
+                <div class="step-name">Short Foot Exercise (Standing)</div>
+                <div class="prescription">2×8 sec holds · Standing bilateral</div>
+              </div>
+            </div>
+            <div class="step-row">
+              <span class="set-n">3</span>
+              <div class="step-body">
+                <div class="step-name">Toe Yoga</div>
+                <div class="prescription">1×8 reps · Quick set</div>
+              </div>
+            </div>
+            <div class="step-row">
+              <span class="set-n">4</span>
+              <div class="step-body">
+                <div class="step-name">Wall Ankle Mobilization (3-way)</div>
+                <div class="prescription">8 reps each direction/side · Straight, inside, outside</div>
+              </div>
+            </div>
+            <div class="step-row">
+              <span class="set-n">5</span>
+              <div class="step-body">
+                <div class="step-name">Single-Leg Balance (Eyes Closed)</div>
+                <div class="prescription">2×15 sec/side · Challenge proprioception</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- done (moss) — collapsed -->
+        <div class="card">
+          <div class="protocol-row">
+            <div class="protocol-main">
+              <div class="card-name">Dynamic Warmup</div>
+              <div class="protocol-meta">Pick 3–5 · 5 min</div>
+            </div>
+            <span class="tap done">✓</span>
+            <span class="overflow">›</span>
+          </div>
+        </div>
+
+        <div style="flex:1"></div>
+        <!-- all protocols touched → Continue is armed (accent); skip has nothing left to bypass, so it's gone -->
+        <div class="btn-primary">Continue to Exercises →</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">One protocol expanded (#46)</div>
+  </div>
+
+</div>
+
+<p class="cap">Collapsed stays the default — a protocol name, an exercise count, and a duration are all most
+  sessions need, and the moss <b>✓</b> is a single tap whether the card is open or closed. Tapping anywhere else
+  on the row (never the check) discloses read-only reference detail per step — sets, reps, hold times, and a
+  short form cue — pulled directly from the program's real <code>warmup_protocols</code> data; nothing shown
+  here is invented copy. Steps carry no state of their own, so opening one can't half-finish a protocol: Frame 2
+  shows the Ankle protocol both <i>done</i> and <i>expanded</i> at once, proving the two are independent.
+  <b>Skip</b> is deliberately the quietest control on the screen — plain text, no border, no fill, and it
+  disappears once every protocol is touched, since there is nothing left to bypass. <b>Continue</b> stays quiet
+  until all three protocols are touched, then arms (accent) — the same quiet-to-armed pattern as Finish on the
+  logging screen.</p>

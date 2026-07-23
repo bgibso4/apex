@@ -1,0 +1,339 @@
+<!-- @dsCard group="Workout Flow — R1" -->
+<meta charset="utf-8">
+<title>Workout Sheets — APEX Wave 1</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+    /* === mockup chrome only (not app tokens) === */
+    --page:#050506;
+  }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); padding:36px 24px; }
+  .pagehead { max-width:900px; margin:0 auto 24px; }
+  .pagehead h1 { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .pagehead p { color:var(--text-2); font-size:13px; line-height:1.55; margin-top:6px; max-width:640px; }
+  .stage { display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+  .frame { width:390px; border:1px solid var(--border); border-radius:44px; overflow:hidden; flex-shrink:0; }
+  .frame-label { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:1.1px; text-align:center; margin:10px 0 8px; }
+  .screen { min-height:844px; display:flex; flex-direction:column;
+            background:radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%); }
+  .statusbar { height:54px; display:flex; align-items:flex-end; justify-content:space-between;
+               padding:0 28px 6px; color:var(--text); font-size:13px; font-weight:600; }
+  .content { flex:1; padding:8px 20px 24px; }
+  .screen-title { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:14px 16px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .num-hero { color:var(--text); font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .set-row { display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid var(--border); }
+  .set-row:last-child { border-bottom:none; }
+  .set-n { width:20px; color:var(--text-muted); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .set-val { flex:1; }
+  .tap { min-width:44px; min-height:44px; border-radius:var(--r-nested); border:1px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:15px; }
+  .tap.done { background:var(--logged-tint); border-color:var(--logged); color:var(--logged); }
+  .tap.current { border-color:var(--accent); color:var(--accent); }
+  .pill { display:inline-block; padding:4px 10px; border-radius:var(--r-pill); font-size:10px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.8px; color:var(--text-2); border:1px solid var(--border-lt); }
+  .pill.now { background:var(--accent-tint); color:var(--accent); border-color:var(--accent); }
+  .btn-primary { display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:var(--r-card);
+                 background:var(--accent); color:var(--on-accent); font-size:15px; font-weight:700; }
+  .btn-quiet { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:var(--r-nested);
+               border:1px solid var(--border-lt); color:var(--text-2); font-size:13px; font-weight:600; }
+  .suggest { display:flex; align-items:center; gap:10px; padding:10px 12px; margin-top:12px;
+             background:var(--logged-tint); border:1px solid var(--logged); border-radius:var(--r-nested);
+             color:var(--text); font-size:13px; }
+  .tabbar { display:flex; align-items:stretch; border-top:1px solid var(--border);
+            background:var(--field-base); padding-bottom:8px; }
+  .tabbar.glass { background:rgba(12,14,17,0.72); backdrop-filter:blur(18px) saturate(1.1); }
+  .tab { flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         gap:3px; color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .tab.active { color:var(--accent); }
+  .tab .ic { font-size:18px; }
+  .home-ind { width:130px; height:5px; border-radius:var(--r-pill); background:var(--border-lt); margin:6px auto 8px; }
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:640px; margin:20px auto 0; text-align:center; }
+
+  /* ================================================================= */
+  /* Screen-specific — Workout Flow R1 sheets. var-based only; the      */
+  /* template :root and every rule above are copied verbatim and left   */
+  /* untouched.                                                          */
+  /* ================================================================= */
+
+  .flow { display:flex; flex-direction:column; gap:10px; }
+  .whead { margin-bottom:2px; }
+  .whead .screen-title { margin-top:4px; }
+  .progress { height:3px; background:var(--border); border-radius:var(--r-pill); overflow:hidden; margin-top:12px; }
+  .progress > i { display:block; height:100%; background:var(--text-muted); border-radius:var(--r-pill); }
+  .progress-label { color:var(--text-muted); font-size:11px; font-weight:600; margin-top:6px;
+                    font-variant-numeric:tabular-nums; }
+  .ex-collapsed { display:flex; align-items:center; justify-content:space-between; min-height:44px; }
+  .ex-collapsed .name { color:var(--text-2); font-size:14px; font-weight:600; }
+  .ex-status { color:var(--text-muted); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .ex-status.done { color:var(--logged); }
+  .prescription { color:var(--text-2); font-size:13px; font-weight:600; margin-top:3px;
+                  font-variant-numeric:tabular-nums; }
+  .hero { display:flex; align-items:baseline; gap:7px; margin-top:2px; }
+  .hero .unit { color:var(--text-2); font-size:15px; font-weight:700; }
+  .reps { color:var(--text-2); }
+
+  /* — sheet shell, established here for every later modal — */
+
+  /* the phone frame becomes the positioning context for scrim + sheet */
+  .sheet-frame .screen { position:relative; }
+
+  /* neutral scrim over the dimmed logging screen — no new hue, derived from --field-base */
+  .scrim { position:absolute; inset:0; z-index:1;
+           background:color-mix(in srgb, var(--field-base) 82%, transparent); }
+
+  /* the sheet itself: card language on --card-top (flat, lit face only), grabber, 10px top radii */
+  .sheet { position:absolute; left:0; right:0; bottom:0; z-index:2; display:flex; flex-direction:column;
+           background:var(--card-top); border:1px solid var(--border); border-top-color:var(--border-lt);
+           border-bottom:none; border-top-left-radius:var(--r-card); border-top-right-radius:var(--r-card);
+           padding:0 18px 22px; }
+  .sheet.tall { top:72px; }
+  .grabber { width:36px; height:4px; border-radius:var(--r-pill); background:var(--border-lt);
+             flex:none; margin:10px auto 16px; }
+
+  .sheet-head { margin-bottom:16px; }
+  .sheet-head .eyebrow { margin-bottom:3px; }
+  .sheet-title { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+
+  /* — Frame 1: weight / reps steppers — */
+  .stepper-block + .stepper-block { margin-top:20px; }
+  .stepper-block .eyebrow { text-align:center; margin-bottom:10px; }
+  .stepper-row { display:flex; align-items:center; justify-content:center; gap:24px; }
+  .stepper-value { min-width:80px; display:flex; align-items:baseline; justify-content:center; gap:6px; }
+  .stepper-value .unit { color:var(--text-2); font-size:15px; font-weight:700; }
+  .reps-num { color:var(--text); font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .step-btn { min-width:44px; min-height:44px; border-radius:var(--r-nested); border:1px solid var(--border-lt);
+              display:flex; align-items:center; justify-content:center; color:var(--text-2); font-size:14px;
+              font-weight:700; font-variant-numeric:tabular-nums; background:transparent; }
+  .step-btn.press { border-color:var(--accent); color:var(--accent); background:var(--accent-tint); }
+
+  /* apply-to-remaining-sets toggle — structural on/off, no third accent use */
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; min-height:44px;
+                margin-top:22px; padding-top:16px; border-top:1px solid var(--border); }
+  .toggle-label { color:var(--text); font-size:13px; font-weight:600; }
+  .toggle { width:46px; height:27px; border-radius:var(--r-pill); border:1px solid var(--border-lt);
+            background:var(--field-mid); position:relative; flex:none; }
+  .toggle .knob { position:absolute; top:2px; left:2px; width:21px; height:21px; border-radius:50%;
+                  background:var(--text-muted); }
+  .toggle.on { background:var(--accent-tint); border-color:var(--accent); }
+  .toggle.on .knob { left:auto; right:2px; background:var(--accent); }
+
+  .sheet-cta { margin-top:20px; flex:none; }
+
+  /* — Frame 2: search + results + blocked-out keyboard (#67) — */
+  .search-field { display:flex; align-items:center; gap:10px; min-height:46px; padding:0 14px; flex:none;
+                  border-radius:var(--r-nested); border:1px solid var(--border-lt); background:var(--card-base); }
+  .search-field.focused { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-tint); }
+  .search-field .ic { color:var(--text-muted); font-size:15px; }
+  .search-field .txt { color:var(--text); font-size:15px; font-weight:600; }
+  .search-field .caret { display:inline-block; width:1px; height:16px; background:var(--accent); margin-left:1px;
+                          vertical-align:middle; }
+
+  .result-list { flex:1; overflow:hidden; margin-top:14px; }
+  .result-group-label { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+                         letter-spacing:1.1px; margin:14px 0 4px; }
+  .result-row { display:flex; align-items:center; min-height:44px; color:var(--text); font-size:14px;
+                font-weight:600; border-bottom:1px solid var(--border); gap:10px; }
+  .result-row:last-child { border-bottom:none; }
+  .result-row.add-custom { color:var(--accent); font-weight:700; }
+  .result-row.add-custom .ic { font-size:16px; font-weight:800; }
+
+  .keyboard-region { flex:none; height:300px; margin:0 -18px -22px; padding:12px 10px 18px;
+                     background:var(--field-mid); border-top:1px solid var(--border); }
+  .kb-tag { text-align:center; color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+            letter-spacing:1px; margin-bottom:12px; }
+  .kb-row { display:flex; gap:6px; margin-bottom:7px; }
+  .kb-key { flex:1; height:38px; border-radius:6px; background:var(--border); border:1px solid var(--border-lt); }
+  .kb-row.narrow { padding:0 14px; }
+  .kb-row.bottom .kb-key.wide { flex:1.6; }
+  .kb-row.bottom .kb-key.space { flex:5; }
+</style>
+
+<div class="pagehead">
+  <h1>Workout Sheets — R1</h1>
+  <p>The reference sheet: bottom sheet in the card language, grabber, 10px top radii, the logging screen dimmed
+    beneath a neutral scrim. Frame 1 is the Adjust sheet — weight is opened pre-filled at the auto-progression's
+    accepted 100&nbsp;lb (from the RPE-suggestion moment upstream in this wave), fine-tuned via ≥44pt steppers
+    that honor the exercise's <code>weight_increment</code>. Frame 2 is Add Exercise with the keyboard up (#67):
+    the search field and its result rows sit entirely above the keyboard's blocked-out region — never behind it.
+    Judge: does this sheet read as the one modal pattern the whole app should inherit, and is the keyboard law
+    unmistakable at a glance.</p>
+</div>
+
+<div class="stage">
+
+  <!-- ============ FRAME 1 — Adjust sheet ============ -->
+  <div>
+    <div class="frame sheet-frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 4</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:17%"></i></div>
+          <div class="progress-label">1 of 6 exercises · 2:15</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Incline Bench Press</div>
+          <div class="prescription">3 × 8 @ 100 lb · RPE ≤ 7</div>
+          <div class="eyebrow" style="margin-top:12px">Working weight</div>
+          <div class="hero"><span class="num-hero">100</span><span class="unit">lb</span></div>
+          <div style="margin-top:6px">
+            <div class="set-row">
+              <span class="set-n">1</span>
+              <span class="set-val val">× <span class="reps">8</span> &nbsp;<span class="pill now">Now</span></span>
+              <span class="tap current">●</span>
+            </div>
+            <div class="set-row">
+              <span class="set-n">2</span>
+              <span class="set-val val" style="color:var(--text-muted)">× <span style="color:var(--text-muted)">8</span></span>
+              <span class="tap">·</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1"></div>
+        <div class="btn-quiet">Finish workout</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+
+      <div class="scrim"></div>
+
+      <div class="sheet">
+        <div class="grabber"></div>
+        <div class="sheet-head">
+          <div class="eyebrow">Incline Bench Press · Set 1</div>
+          <div class="sheet-title">Adjust Set</div>
+        </div>
+
+        <div class="stepper-block">
+          <div class="eyebrow">Weight</div>
+          <div class="stepper-row">
+            <div class="step-btn press">−5</div>
+            <div class="stepper-value"><span class="num-hero">100</span><span class="unit">lb</span></div>
+            <div class="step-btn">+5</div>
+          </div>
+        </div>
+
+        <div class="stepper-block">
+          <div class="eyebrow">Reps</div>
+          <div class="stepper-row">
+            <div class="step-btn">−1</div>
+            <div class="stepper-value"><span class="reps-num">8</span></div>
+            <div class="step-btn">+1</div>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-label">Apply to remaining sets</div>
+          <div class="toggle on"><i class="knob"></i></div>
+        </div>
+
+        <div class="btn-primary sheet-cta">Apply</div>
+      </div>
+    </div></div>
+    <div class="frame-label">Adjust sheet · steppers honor weight_increment</div>
+  </div>
+
+  <!-- ============ FRAME 2 — Add-exercise sheet, keyboard up (#67) ============ -->
+  <div>
+    <div class="frame sheet-frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 4</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:17%"></i></div>
+          <div class="progress-label">1 of 6 exercises · 2:15</div>
+        </div>
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Incline Bench Press</span>
+            <span class="ex-status">1/3</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+
+      <div class="scrim"></div>
+
+      <div class="sheet tall">
+        <div class="grabber"></div>
+        <div class="sheet-head">
+          <div class="eyebrow">Upper Body A</div>
+          <div class="sheet-title">Add Exercise</div>
+        </div>
+
+        <div class="search-field focused">
+          <span class="ic">⌕</span>
+          <span class="txt">Inclin</span><span class="caret"></span>
+        </div>
+
+        <div class="result-list">
+          <div class="result-row add-custom"><span class="ic">+</span><span>Custom Exercise: "Inclin"</span></div>
+          <div class="result-group-label">Chest</div>
+          <div class="result-row">Incline Bench Press</div>
+          <div class="result-row">Incline Dumbbell Press</div>
+          <div class="result-row">Incline Cable Fly</div>
+        </div>
+
+        <div class="keyboard-region">
+          <div class="kb-tag">System keyboard — blocked out</div>
+          <div class="kb-row"><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i></div>
+          <div class="kb-row narrow"><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i></div>
+          <div class="kb-row bottom"><i class="kb-key wide"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key"></i><i class="kb-key wide"></i></div>
+          <div class="kb-row bottom"><i class="kb-key wide"></i><i class="kb-key space"></i><i class="kb-key wide"></i></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="frame-label">Add exercise · keyboard up (#67)</div>
+  </div>
+
+</div>
+
+<p class="cap">This is the one sheet pattern — grabber, 10px top radii, card-top fill, neutral scrim — every later
+  modal in APEX inherits rather than reinventing its own chrome. Frame 1's steppers move in the exercise's own
+  <code>weight_increment</code> (shown here at its 5&nbsp;lb default); the toggle and Apply stay structural and
+  accent respectively, nothing is colored without a reason. Frame 2 states the #67 law literally: the search
+  field and every result row it can show stay fully above the keyboard's blocked-out region — this anchoring
+  binds every screen in the app that raises a keyboard, not just this one.</p>

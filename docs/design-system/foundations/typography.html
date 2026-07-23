@@ -1,0 +1,170 @@
+<!-- @dsCard group="Foundations" -->
+<meta charset="utf-8">
+<title>APEX Foundations — Typography</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+
+    /* === page chrome only (not an app token) === */
+    --page:#050506;
+  }
+
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); color:var(--text); padding:48px 28px 90px; max-width:860px; margin:0 auto; }
+
+  h1 { font-size:26px; font-weight:800; letter-spacing:-0.4px; }
+  .sub { color:var(--text-2); font-size:14px; line-height:1.6; margin-top:10px; max-width:660px; }
+
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.3px; color:var(--text-muted);
+       margin:42px 0 14px; }
+  .tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-left:6px; }
+  .tag.locked { color:var(--logged); }
+
+  p, li { color:var(--text-2); font-size:14px; line-height:1.62; }
+  b { color:var(--text); font-weight:600; }
+  ul { padding-left:18px; display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+
+  code { color:var(--text-2); font-size:12.5px; background:var(--card-top); padding:1px 5px; border-radius:4px; }
+
+  table { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px; }
+  th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+       color:var(--text-muted); padding:7px 10px; border-bottom:1px solid var(--border); }
+  td { padding:10px 10px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:middle; }
+  td:first-child { min-width:160px; }
+
+  .callout { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+             border:1px solid var(--border); border-top-color:var(--border-lt);
+             border-radius:var(--r-card); padding:16px 18px; margin-top:14px; }
+  .callout p { margin:0; }
+  .callout p + p { margin-top:8px; }
+
+  /* --- the seven type roles — reused verbatim from templates/screen-template.html --- */
+  .num-hero { color:var(--text); font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .screen-title { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  /* --- two roles not named in the template (body copy, muted index) — same treatment, new labels --- */
+  .body-txt { color:var(--text-2); font-size:11px; font-weight:400; }
+  .idx-txt { color:var(--text-muted); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* --- wordmark: system-stack approximation only, see §3 --- */
+  .wordmark-demo { color:var(--text); font-size:36px; font-weight:800; letter-spacing:4px; margin-top:14px; }
+
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:660px; margin-top:10px; }
+</style>
+
+<h1>Foundations — Typography</h1>
+<p class="sub">The codified Precision Blue type scale, locked 2026-07-21 alongside the color model
+  (full trail: <code>context/design-language.html</code>). Hierarchy is carried by the size and weight
+  of numerals — never by color — so this page stays deliberately monochrome apart from the section
+  tags it borrows from <code>foundations/colors.html</code>. This page is generated to match the
+  charter's Typography section exactly; if a screen disagrees with this page, the screen is wrong.</p>
+
+<h2>1. The scale — live, largest first <span class="tag locked">· locked</span></h2>
+<p>Exactly seven roles exist. Each row below is rendered at its real size, weight, and tracking —
+  not described, shown.</p>
+<table>
+  <tr><th>Specimen</th><th>Spec</th><th>Role</th></tr>
+  <tr>
+    <td><span class="num-hero">315 lb</span></td>
+    <td><code>34px · 800 · tabular-nums · −0.5px</code></td>
+    <td>Hero numeral — the biggest number on a screen. Today's working weight, an estimated 1RM
+      headline. Wins hierarchy by size and weight alone.</td>
+  </tr>
+  <tr>
+    <td><span class="screen-title">Workout</span></td>
+    <td><code>20px · 800 · −0.3px</code></td>
+    <td>Screen title — the page-level heading. Tight negative tracking.</td>
+  </tr>
+  <tr>
+    <td><span class="card-name">Bench Press</span></td>
+    <td><code>14px · 700</code></td>
+    <td>Card name — the exercise or entity named at the top of a card.</td>
+  </tr>
+  <tr>
+    <td><span class="val">185 lb × 5</span></td>
+    <td><code>13px · 600 · tabular-nums</code></td>
+    <td>Value — a logged or prescribed set's weight × reps.</td>
+  </tr>
+  <tr>
+    <td><span class="body-txt">4 × 6 @ 82.5 kg · RPE 8</span></td>
+    <td><code>11px · 400 · var(--text-2)</code></td>
+    <td>Body — prescriptions, captions, secondary sentences.</td>
+  </tr>
+  <tr>
+    <td><span class="eyebrow">Estimated 1RM</span></td>
+    <td><code>10px · 700 · uppercase · +1.1px</code></td>
+    <td>Eyebrow — the signature label form. Small and tracked wide.</td>
+  </tr>
+  <tr>
+    <td><span class="idx-txt">2</span></td>
+    <td><code>11px · 700 · tabular-nums · var(--text-muted)</code></td>
+    <td>Index / muted — set numbers, disabled state.</td>
+  </tr>
+</table>
+
+<h2>2. Laws in type <span class="tag locked">· locked</span></h2>
+<p>Three rules govern every numeral and label in the system — restated from the charter's mindset
+  laws with nothing added.</p>
+<ul>
+  <li><b>The biggest number wins.</b> Hierarchy is carried by the size and weight of numerals —
+    tabular, tight — never by color. The most important number on a screen should be findable with
+    peripheral vision; a hero numeral is never recolored to compete, it simply outsizes and
+    outweighs everything around it.</li>
+  <li><b>Numerals are always tabular.</b> Every numeral role above — hero, value, index — sets
+    <code>font-variant-numeric: tabular-nums</code>. Digits never reflow a row as they change
+    mid-set.</li>
+  <li><b>Titles track tight, eyebrows track wide — the signature tension.</b> Screen titles and
+    hero numerals pull their tracking in (<code>−0.3px</code> / <code>−0.5px</code>); eyebrows push
+    theirs out (<code>+1.1px</code>). The two directions never meet in the middle — that opposition
+    is the typographic signature of the whole system.</li>
+</ul>
+<div class="callout">
+  <p><b>If a screen needs a colored badge to show what matters most</b>, the type hierarchy has
+    failed — restructure with size and weight instead, per the charter's structure law. A third hue
+    is never the fix for a typography problem.</p>
+</div>
+
+<h2>3. Wordmark <span class="tag locked">· locked</span></h2>
+<p>The one exception to the system stack. <b>Orbitron 800</b> is reserved exclusively for the
+  <b>ΛPEX</b> wordmark — app icon, splash screen, settings header — and appears nowhere else in the
+  type system; none of the seven roles in §1 ever borrow it. It is not loaded on this page (this
+  document is self-contained, zero external requests); the specimen below approximates Orbitron's
+  geometric, wide-set character using the system stack plus letter-spacing only.</p>
+<div class="wordmark-demo">ΛPEX</div>
+<p class="cap">System-stack approximation only — 800 weight, wide positive tracking, no italic or
+  condensed substitute. The production face is Orbitron 800, reserved exclusively for this
+  wordmark; it is never substituted into a screen title, a card name, or any other role on this
+  page.</p>
+
+<h2>4. Dynamic Type <span class="tag locked">· locked</span></h2>
+<p>Every size in <b>§1</b> is a <b>reference value at the default Dynamic Type scale</b> (the
+  system's standard text size, mid-way through the accessibility range) — not a fixed pixel
+  constant. In SwiftUI, each role maps to a text style at build time (for example, the hero numeral
+  is a custom <code>34pt / .heavy</code> style registered against a scaling curve, not a hand-set
+  literal) so it grows and shrinks with the user's chosen text size. Numerals stay tabular at every
+  scale step; tracking scales proportionally with size, it does not stay fixed in points.</p>
+<div class="callout">
+  <p><b>This page cannot demonstrate scaling</b> — a static document has no Dynamic Type setting to
+    honor. Treat every number in §1 as "at default," and verify scaled behavior in the SwiftUI
+    Foundation layer, not here.</p>
+</div>

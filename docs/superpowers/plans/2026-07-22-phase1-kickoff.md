@@ -40,14 +40,14 @@
 - Produces: the shared CSS contract every wave-1 screen copies: the verbatim token `:root` (+ mockup-chrome-only `--page`), classes `.frame .screen .statusbar .content .card .card-name .eyebrow .screen-title .num-hero .val .set-row .set-n .set-val .tap .pill .btn-primary .btn-quiet .suggest .tabbar .tabbar.glass .tab .cap .home-ind`
 - Produces: the two-frame page layout (`.stage` flex row) so one file can show multiple states side by side.
 
-- [ ] **Step 1: Check out the campaign branch (already created with this plan committed) and create the directory**
+- [x] **Step 1: Check out the campaign branch (already created with this plan committed) and create the directory**
 
 ```bash
 cd /Users/ben/projects/apex && git checkout design/phase1-campaign
 mkdir -p docs/design-system/screens
 ```
 
-- [ ] **Step 2: Write the template**
+- [x] **Step 2: Write the template**
 
 Write `docs/design-system/templates/screen-template.html` with exactly this content (the `:root` token block below was copied verbatim from `generated/css/apex-tokens.css` — re-verify against the file before writing):
 
@@ -155,13 +155,13 @@ Write `docs/design-system/templates/screen-template.html` with exactly this cont
 <p class="cap">[Caption: interaction notes — what is one tap, what is disclosed on demand.]</p>
 ```
 
-- [ ] **Step 3: Verify the template renders**
+- [x] **Step 3: Verify the template renders**
 
 Run: `open /Users/ben/projects/apex/docs/design-system/templates/screen-template.html`
 Expected: one phone frame on near-black page; halo visible at top of screen; card/tab styles resolve; zero network requests.
 Run: `grep -nE '#[0-9a-fA-F]{3,8}' docs/design-system/templates/screen-template.html | grep -vE '^\s*[0-9]+:\s*(/\*.*|--)'` → no output (hex only on token-definition lines).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/design-system/templates/screen-template.html
@@ -179,7 +179,7 @@ git commit -m "design: phase 1 phone-frame screen template (#61)"
 - Consumes: template `:root` contract (Task 1), charter color model
 - Produces: remote `foundations/colors.html` — the standing color reference every future design session reads
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 First line `<!-- @dsCard group="Foundations" -->`. Use the template's CSS conventions (verbatim `:root`, page styles adapted for a document rather than a phone frame). Content sections, this exact substance:
 
@@ -189,14 +189,14 @@ First line `<!-- @dsCard group="Foundations" -->`. Use the template's CSS conven
 4. **The accent parameter** — accent is a token, not a decision: default dusty blue `#659BC8` (confirmed v8), alternate dusty violet `#8A91C9` (halo follows: blue → `#141A22`, violet → `#161821`). Render the same mini logging card twice, once per accent, labeled "one-line token swap". The violet card's `:root`-scoped override lives in a locally-scoped `<style>` var override, not new hex in components.
 5. **Provenance** — tokens are generated from `tokens/apex.json` in the cadre repo (`npm run tokens`); this page and every screen copy the generated `:root` verbatim; the retired indigo system survives only in `context/current-state-inventory.html`.
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `head -1 docs/design-system/foundations/colors.html` → `<!-- @dsCard group="Foundations" -->`
 Run: `grep -c '6366f1' docs/design-system/foundations/colors.html` → `0`
 Run: `open docs/design-system/foundations/colors.html` → renders; the two accent-variant cards visibly differ only in accent/halo.
 Hex-discipline check from Task 1 Step 3 (violet alternate values `#8A91C9`/`#161821` are allowed ONLY as var overrides/swatch-data, still on `--`-prefixed or swatch-inline-var lines — if the implementer needs them as data attributes, define `--accent-alt:#8A91C9; --halo-alt:#161821;` in `:root` and reference vars).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/foundations/colors.html
@@ -212,7 +212,7 @@ git commit -m "design: foundations colors codified to Precision Blue (#61)"
 
 **Interfaces:** consumes template contract; produces remote `foundations/typography.html`.
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 First line `<!-- @dsCard group="Foundations" -->`. Content:
 
@@ -221,9 +221,9 @@ First line `<!-- @dsCard group="Foundations" -->`. Content:
 3. **Wordmark** — ΛPEX, Orbitron 800, reserved exclusively for the wordmark; approximated here with system stack + letter-spacing (caption says so).
 4. **Dynamic Type** — these are reference sizes at default scale; SwiftUI text styles map at build time and must scale.
 
-- [ ] **Step 2: Verify** — marker check, indigo check, hex-discipline check, `open` renders.
+- [x] **Step 2: Verify** — marker check, indigo check, hex-discipline check, `open` renders.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/foundations/typography.html
@@ -239,7 +239,7 @@ git commit -m "design: foundations typography codified (#61)"
 
 **Interfaces:** consumes template contract; produces remote `foundations/spacing.html`.
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 First line `<!-- @dsCard group="Foundations" -->`. Content:
 
@@ -248,9 +248,9 @@ First line `<!-- @dsCard group="Foundations" -->`. Content:
 3. **Spacing scale (PROPOSED — confirmed through wave-1 screens, flagged as such on the page)** — 4-pt base: 4/8/12/16/20/24; screen horizontal padding 20; card padding 14×16; inter-card gap 12; section gap 24; set-row min-height 48; tap targets ≥44.
 4. **Hairlines** — 1px `--border` everywhere; `--border-lt` only ever on a top edge.
 
-- [ ] **Step 2: Verify** — marker, indigo, hex-discipline checks; `open` renders.
+- [x] **Step 2: Verify** — marker, indigo, hex-discipline checks; `open` renders.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/foundations/spacing.html
@@ -268,7 +268,7 @@ git commit -m "design: foundations surfaces + spacing codified (#61)"
 - Consumes: template (Task 1) copied whole; content parity sources (Global Constraints) — READ `workout-rpe-suggestion-2026-07-14.html` and `superset-workout-logging-2026-03-17.html` first
 - Produces: the wave's reference implementation of the card language — later tasks match its idioms
 
-- [ ] **Step 1: Author the screen**
+- [x] **Step 1: Author the screen**
 
 First line `<!-- @dsCard group="Workout Flow — R1" -->`. Three frames side by side (`.stage`), real Pillars-shaped data from the parity sources:
 
@@ -278,9 +278,9 @@ First line `<!-- @dsCard group="Workout Flow — R1" -->`. Three frames side by 
 
 Caption: the one-tap law ("logging as prescribed is one tap — everything else is disclosure"), the no-collapse rule, where notes live (collapsed, keyboard-safe per #67 — input anchors above keyboard when opened).
 
-- [ ] **Step 2: Verify** — marker, indigo, hex-discipline checks. `open` → three frames render; visually confirm: no third hue anywhere, all interactive elements ≥44px, halo + card top-light present, biggest number on screen is the working weight.
+- [x] **Step 2: Verify** — marker, indigo, hex-discipline checks. `open` → three frames render; visually confirm: no third hue anywhere, all interactive elements ≥44px, halo + card top-light present, biggest number on screen is the working weight.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/screens/2026-07-22-workout-logging-r1.html
@@ -296,16 +296,16 @@ git commit -m "design: wave 1 — workout logging screen R1 (#61 #66)"
 
 **Interfaces:** consumes template + `workout-select-titles-v3-2026-03-12.html` + `app/(tabs)/workout.tsx` (select state); produces the block-identity decision input (charter open question #4).
 
-- [ ] **Step 1: Author the screen**
+- [x] **Step 1: Author the screen**
 
 First line `<!-- @dsCard group="Workout Flow — R1" -->`. Two frames:
 
 - **Frame 1 — day select:** week context (eyebrow: block + week), day cards for the week with day name, focus summary, done/today/upcoming states (moss check / accent ring / neutral), start CTA on today's card. Day-selector affordance consistent with current app behavior.
 - **Frame 2 — the same screen rendered with the three block-identity treatments stacked as labeled variants** (this is the decision aid): **A** text designation only (eyebrow `STRENGTH · WEEK 5`); **B** luminance step (block name carries a brighter text step, no hue); **C** accent-tinted marker (small accent-tint chip). All three obey the two-hue budget. Caption asks Ben to pick or blend.
 
-- [ ] **Step 2: Verify** — standard checks (marker, indigo, hex-discipline, render, 44pt).
+- [x] **Step 2: Verify** — standard checks (marker, indigo, hex-discipline, render, 44pt).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/screens/2026-07-22-workout-select-r1.html
@@ -321,16 +321,16 @@ git commit -m "design: wave 1 — workout select + block identity options R1 (#6
 
 **Interfaces:** consumes template + `warmup-timer-2026-03-10.html` (protocol content, timer placement); produces the #46 design.
 
-- [ ] **Step 1: Author the screen**
+- [x] **Step 1: Author the screen**
 
 First line `<!-- @dsCard group="Workout Flow — R1" -->`. Two frames:
 
 - **Frame 1 — collapsed (common case):** warmup card with protocol name rows + one-tap complete checks (moss when done), timer affordance where the current mockup places it, skip affordance (quiet).
 - **Frame 2 — one protocol expanded (#46):** the protocol's steps disclosed inline (step rows with set/rep/duration values from the parity mockup), expansion is progressive disclosure — collapsed stays the default. Caption: expanding never blocks logging; a protocol is completable from collapsed state.
 
-- [ ] **Step 2: Verify** — standard checks.
+- [x] **Step 2: Verify** — standard checks.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/screens/2026-07-22-workout-warmup-r1.html
@@ -346,16 +346,16 @@ git commit -m "design: wave 1 — warmup expandable protocols R1 (#61 #46)"
 
 **Interfaces:** consumes template + `workout-complete-edit-2026-03-11.html`; produces the #69 single-step finish design.
 
-- [ ] **Step 1: Author the screen**
+- [x] **Step 1: Author the screen**
 
 First line `<!-- @dsCard group="Workout Flow — R1" -->`. Two frames:
 
 - **Frame 1 — summary:** session headline numbers (duration, volume, sets — hero numerals, biggest number wins), per-exercise result rows (moss where logged as/above prescription, neutral otherwise, deltas in moss when positive), PR callout row if earned (moss, quiet — the instrument never cheers, per law 1), single primary `Done` action. **#69: finishing is ONE action** — no redundant save prompt; the caption states "Finish Workout on the logging screen commits the session; this screen is confirmation + review, its Done just dismisses."
 - **Frame 2 — timestamp edit affordance (#65 entry):** the same summary with the started/completed times row in edit state (tappable values, keyboard-safe), showing where #65 lives.
 
-- [ ] **Step 2: Verify** — standard checks.
+- [x] **Step 2: Verify** — standard checks.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/screens/2026-07-22-workout-complete-r1.html
@@ -371,16 +371,16 @@ git commit -m "design: wave 1 — workout complete R1 (#61 #69 #65)"
 
 **Interfaces:** consumes template + `app/(tabs)/workout.tsx` (AdjustModal/AddExerciseModal states); produces the sheet treatment every later modal follows.
 
-- [ ] **Step 1: Author the screen**
+- [x] **Step 1: Author the screen**
 
 First line `<!-- @dsCard group="Workout Flow — R1" -->`. Two frames, each a phone frame with the logging screen dimmed beneath a bottom sheet (sheet = card language on `--card-top`, grabber, 10px top radii):
 
 - **Frame 1 — Adjust sheet:** weight/reps steppers with ≥44pt +/− targets, current value as the hero numeral, apply-to-remaining-sets toggle, primary apply button. Stepper increments honor `weight_increment`.
 - **Frame 2 — Add-exercise sheet with keyboard up (#67):** search field + result rows; render the iOS keyboard as a blocked-out region and show the input anchored ABOVE it — the visual statement of the keyboard law: an input is never occluded. Caption states the rule binds every screen in the app.
 
-- [ ] **Step 2: Verify** — standard checks.
+- [x] **Step 2: Verify** — standard checks.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/screens/2026-07-22-workout-sheets-r1.html
@@ -396,7 +396,7 @@ git commit -m "design: wave 1 — adjust + add-exercise sheets R1 (#61 #67)"
 
 **Interfaces:** consumes template; produces the decision input for the charter's open Liquid Glass question (content cards stay painted-light — locked; this decides system chrome only).
 
-- [ ] **Step 1: Author the page**
+- [x] **Step 1: Author the page**
 
 First line `<!-- @dsCard group="Workout Flow — R1" -->`. Two frames of the SAME logging screen (reuse Task 5 frame-1 content, abbreviated), differing only in chrome:
 
@@ -405,9 +405,9 @@ First line `<!-- @dsCard group="Workout Flow — R1" -->`. Two frames of the SAM
 
 Caption: the charter locks painted-light content cards either way; this choice covers tab bar + sheets; native SwiftUI gets the real material — this HTML approximates. Ask Ben to pick.
 
-- [ ] **Step 2: Verify** — standard checks; confirm the two frames' content is pixel-identical except chrome.
+- [x] **Step 2: Verify** — standard checks; confirm the two frames' content is pixel-identical except chrome.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/design-system/screens/2026-07-22-tabbar-stance-r1.html
@@ -424,13 +424,13 @@ git commit -m "design: wave 1 — tab bar stance comparison R1 (#61)"
 - Consumes: Tasks 2–10 outputs
 - Produces: remote `foundations/{colors,typography,spacing}.html` (overwritten), `screens/2026-07-22-*.html` (6 new); remote deletes `components/buttons-pills.html`, `components/exercise-card.html` (stale indigo — re-extracted from locked wave-1 designs later)
 
-- [ ] **Step 1: Verify target** — DesignSync `get_project` projectId `d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0` → "APEX Design System", `canEdit: true`. STOP if not.
+- [x] **Step 1: Verify target** — DesignSync `get_project` projectId `d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0` → "APEX Design System", `canEdit: true`. STOP if not.
 
-- [ ] **Step 2: Read remote structure** — DesignSync `list_files`; confirm the three foundations paths + two components paths exist (they will be overwritten/deleted), and no `screens/` paths exist yet.
+- [x] **Step 2: Read remote structure** — DesignSync `list_files`; confirm the three foundations paths + two components paths exist (they will be overwritten/deleted), and no `screens/` paths exist yet.
 
-- [ ] **Step 3: Finalize + write + delete** — `finalize_plan` with `localDir: "/Users/ben/projects/apex/docs/design-system"`, `writes: ["foundations/*.html", "screens/2026-07-22-*.html"]`, `deletes: ["components/buttons-pills.html", "components/exercise-card.html"]`. Then `write_files` (9 files as `{path, localPath}`, localPath = path) and `delete_files` (the 2 stale pages).
+- [x] **Step 3: Finalize + write + delete** — `finalize_plan` with `localDir: "/Users/ben/projects/apex/docs/design-system"`, `writes: ["foundations/*.html", "screens/2026-07-22-*.html"]`, `deletes: ["components/buttons-pills.html", "components/exercise-card.html"]`. Then `write_files` (9 files as `{path, localPath}`, localPath = path) and `delete_files` (the 2 stale pages).
 
-- [ ] **Step 4: Verify remote** — `list_files` → all 9 present, 2 gone.
+- [x] **Step 4: Verify remote** — `list_files` → all 9 present, 2 gone.
 
 ---
 
@@ -440,7 +440,7 @@ git commit -m "design: wave 1 — tab bar stance comparison R1 (#61)"
 - Modify: `docs/superpowers/plans/2026-07-22-phase1-kickoff.md` (tick checkboxes)
 - Modify: `.superpowers/sdd/progress.md` (ledger)
 
-- [ ] **Step 1: Push + PR**
+- [x] **Step 1: Push + PR**
 
 ```bash
 git push -u origin design/phase1-campaign
@@ -449,7 +449,7 @@ gh pr create --title "design: Phase 1 wave 1 — foundations + workout flow R1 (
 
 Do NOT merge.
 
-- [ ] **Step 2: Hand off**
+- [x] **Step 2: Hand off**
 
 Final message tells Ben: claude.ai/design → APEX Design System → **Foundations** group (the codified system replacing indigo) + **Workout Flow — R1** group (6 pages). Decisions requested this round: (1) block identity A/B/C, (2) tab bar flat vs glass, (3) per-screen reactions keep/kill/blend. Round loop: reactions → R2 files (`screens/<date>-<name>-r2.html`, new dated files — versioning rule) → repeat → Ben declares Workout flow locked → locked screens convert to `docs/mockups/` dated HTML (the implementation contract) + core component pages re-extracted → Wave 2 (Home) plan. Note: Foundation plan (apex-ios scaffold) can run in parallel any time — no design dependency.
 

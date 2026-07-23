@@ -1,0 +1,439 @@
+<!-- @dsCard group="Workout Flow — R1" -->
+<meta charset="utf-8">
+<title>Workout Logging — APEX Wave 1</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+    /* === mockup chrome only (not app tokens) === */
+    --page:#050506;
+  }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); padding:36px 24px; }
+  .pagehead { max-width:900px; margin:0 auto 24px; }
+  .pagehead h1 { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .pagehead p { color:var(--text-2); font-size:13px; line-height:1.55; margin-top:6px; max-width:640px; }
+  .stage { display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+  .frame { width:390px; border:1px solid var(--border); border-radius:44px; overflow:hidden; flex-shrink:0; }
+  .frame-label { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:1.1px; text-align:center; margin:10px 0 8px; }
+  .screen { min-height:844px; display:flex; flex-direction:column;
+            background:radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%); }
+  .statusbar { height:54px; display:flex; align-items:flex-end; justify-content:space-between;
+               padding:0 28px 6px; color:var(--text); font-size:13px; font-weight:600; }
+  .content { flex:1; padding:8px 20px 24px; }
+  .screen-title { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:14px 16px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .num-hero { color:var(--text); font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .set-row { display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid var(--border); }
+  .set-row:last-child { border-bottom:none; }
+  .set-n { width:20px; color:var(--text-muted); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .set-val { flex:1; }
+  .tap { min-width:44px; min-height:44px; border-radius:var(--r-nested); border:1px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:15px; }
+  .tap.done { background:var(--logged-tint); border-color:var(--logged); color:var(--logged); }
+  .tap.current { border-color:var(--accent); color:var(--accent); }
+  .pill { display:inline-block; padding:4px 10px; border-radius:var(--r-pill); font-size:10px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.8px; color:var(--text-2); border:1px solid var(--border-lt); }
+  .pill.now { background:var(--accent-tint); color:var(--accent); border-color:var(--accent); }
+  .btn-primary { display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:var(--r-card);
+                 background:var(--accent); color:var(--on-accent); font-size:15px; font-weight:700; }
+  .btn-quiet { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:var(--r-nested);
+               border:1px solid var(--border-lt); color:var(--text-2); font-size:13px; font-weight:600; }
+  .suggest { display:flex; align-items:center; gap:10px; padding:10px 12px; margin-top:12px;
+             background:var(--logged-tint); border:1px solid var(--logged); border-radius:var(--r-nested);
+             color:var(--text); font-size:13px; }
+  .tabbar { display:flex; align-items:stretch; border-top:1px solid var(--border);
+            background:var(--field-base); padding-bottom:8px; }
+  .tabbar.glass { background:rgba(12,14,17,0.72); backdrop-filter:blur(18px) saturate(1.1); }
+  .tab { flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         gap:3px; color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .tab.active { color:var(--accent); }
+  .tab .ic { font-size:18px; }
+  .home-ind { width:130px; height:5px; border-radius:var(--r-pill); background:var(--border-lt); margin:6px auto 8px; }
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:640px; margin:20px auto 0; text-align:center; }
+
+  /* ================================================================= */
+  /* Screen-specific — Workout Flow R1. var-based only; the template    */
+  /* :root and every rule above are copied verbatim and left untouched. */
+  /* ================================================================= */
+
+  .flow { display:flex; flex-direction:column; gap:10px; }
+
+  /* header — session eyebrow + screen title + progress */
+  .whead { margin-bottom:2px; }
+  .whead .screen-title { margin-top:4px; }
+  .progress { height:3px; background:var(--border); border-radius:var(--r-pill); overflow:hidden; margin-top:12px; }
+  .progress > i { display:block; height:100%; background:var(--text-muted); border-radius:var(--r-pill); }
+  .progress-label { color:var(--text-muted); font-size:11px; font-weight:600; margin-top:6px;
+                    font-variant-numeric:tabular-nums; }
+
+  /* collapsed exercise card (whole row is one ≥44pt tap → expands) */
+  .ex-collapsed { display:flex; align-items:center; justify-content:space-between; min-height:44px; }
+  .ex-collapsed .name { color:var(--text-2); font-size:14px; font-weight:600; }
+  .ex-status { color:var(--text-muted); font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .ex-status.done { color:var(--logged); }
+
+  /* active card — working weight is the hero numeral (law 5) */
+  .prescription { color:var(--text-2); font-size:13px; font-weight:600; margin-top:3px;
+                  font-variant-numeric:tabular-nums; }
+  .hero { display:flex; align-items:baseline; gap:7px; margin-top:2px; }
+  .hero .unit { color:var(--text-2); font-size:15px; font-weight:700; }
+
+  /* set list — reps carried in .val; per-row ⋯ overflow (≥44pt) never collapses the card */
+  .reps { color:var(--text-2); }
+  .overflow { min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;
+              color:var(--text-muted); font-size:17px; letter-spacing:1px; }
+
+  /* explicit add-set / add-note rows (both ≥44pt) */
+  .disclose { display:flex; align-items:center; min-height:44px; color:var(--text-muted);
+              font-size:13px; font-weight:600; border-top:1px solid var(--border); }
+
+  /* RPE row — optional, appears after the last set is logged */
+  .rpe { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+  .rpe-chips { display:flex; gap:8px; margin-top:10px; }
+  .rpe-chip { flex:1; min-height:44px; display:flex; align-items:center; justify-content:center;
+              border:1px solid var(--border-lt); border-radius:var(--r-nested); color:var(--text-2);
+              font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .rpe-chip.sel { border-color:var(--accent); background:var(--accent-tint); color:var(--accent); }
+
+  /* suggestion chip affordances (≥44pt) — .suggest base (moss) is from the template */
+  .suggest .sug-mark { flex:none; width:22px; height:22px; border-radius:var(--r-pill);
+                       background:var(--logged-tint); color:var(--logged); font-size:12px; font-weight:800;
+                       display:flex; align-items:center; justify-content:center; }
+  .suggest .sug-text { flex:1; color:var(--text-2); line-height:1.35; }
+  .suggest .sug-text b { color:var(--text); font-weight:700; }
+  .sug-btn { min-width:44px; min-height:44px; border-radius:var(--r-nested); display:flex;
+             align-items:center; justify-content:center; font-size:16px; font-weight:700;
+             border:1px solid var(--border-lt); color:var(--text-2); }
+  .sug-btn.yes { background:var(--logged-tint); border-color:var(--logged); color:var(--logged); }
+
+  /* weight-DOWN variant — no third hue: cautionary states render neutral (per Colors §1) */
+  .suggest.neutral { background:transparent; border-color:var(--border); }
+  .suggest.neutral .sug-mark { background:transparent; border:1px solid var(--border-lt); color:var(--text-2); }
+  .suggest.neutral .sug-btn.yes { background:transparent; border-color:var(--border-lt); color:var(--text-2); }
+  .variant-tag { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:1.1px; margin:16px 0 2px; }
+
+  /* superset — boundary carried by structure (inset panel + connector), never color */
+  .superset { border:1px solid var(--border); border-radius:var(--r-card); padding:8px;
+              background:var(--field-mid); display:flex; flex-direction:column; gap:6px; }
+  .superset-head { display:flex; align-items:center; gap:8px; padding:2px 4px 0; }
+  .superset-hint { color:var(--text-muted); font-size:11px; font-weight:500; }
+  .connector { width:2px; height:9px; background:var(--border-lt); margin:0 auto; border-radius:var(--r-pill); }
+  .next-up { display:flex; align-items:center; gap:7px; min-height:36px; margin-top:8px;
+             color:var(--text-2); font-size:12px; font-weight:600; }
+  .next-up .arr { color:var(--text-muted); }
+</style>
+
+<div class="pagehead">
+  <h1>Workout Logging — R1</h1>
+  <p>The hero screen and the reference implementation of the card language. Three moments in one session:
+    logging as prescribed, the RPE suggestion, and a superset. Designed-in fixes for #66 (≥44pt taps, explicit
+    <b>+ Add set</b>, a per-row <b>⋯</b> overflow, and the no-collapse rule) and #67 (notes anchor above the
+    keyboard). Judge: is the working weight instantly the biggest thing, does accent appear only on <i>now</i>
+    and moss only on <i>earned</i>, and does one tap still log a set.</p>
+</div>
+
+<div class="stage">
+
+  <!-- ============ FRAME 1 — mid-session, common case ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:33%"></i></div>
+          <div class="progress-label">2 of 6 exercises · 18:24</div>
+        </div>
+
+        <!-- completed exercise, collapsed (earned → moss status) -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Bench Press</span>
+            <span class="ex-status done">3/3 ✓</span>
+          </div>
+        </div>
+
+        <!-- active exercise, expanded -->
+        <div class="card">
+          <div class="card-name">Incline Bench Press</div>
+          <div class="prescription">3 × 8 @ 95 lb · RPE ≤ 7</div>
+
+          <div class="eyebrow" style="margin-top:12px">Working weight</div>
+          <div class="hero"><span class="num-hero">95</span><span class="unit">lb</span></div>
+
+          <div style="margin-top:6px">
+            <!-- set 1 — done (moss) -->
+            <div class="set-row">
+              <span class="set-n">1</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <!-- set 2 — current (accent outline, the one next tap) -->
+            <div class="set-row">
+              <span class="set-n">2</span>
+              <span class="set-val val">× <span class="reps">8</span> &nbsp;<span class="pill now">Now</span></span>
+              <span class="tap current">●</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <!-- set 3 — pending (neutral) -->
+            <div class="set-row">
+              <span class="set-n">3</span>
+              <span class="set-val val" style="color:var(--text-muted)">× <span style="color:var(--text-muted)">8</span></span>
+              <span class="tap">·</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="disclose">+ &nbsp;Add set</div>
+          </div>
+
+          <!-- RPE row — optional, appears once the last set is logged (shown un-rated here) -->
+          <div class="rpe">
+            <div class="eyebrow">How hard? · after set 3</div>
+            <div class="rpe-chips">
+              <span class="rpe-chip">6</span>
+              <span class="rpe-chip">7</span>
+              <span class="rpe-chip">8</span>
+              <span class="rpe-chip">9</span>
+              <span class="rpe-chip">10</span>
+            </div>
+          </div>
+
+          <div class="disclose" style="margin-top:4px">+ &nbsp;Add note</div>
+        </div>
+
+        <div style="flex:1"></div>
+        <div class="btn-quiet">Finish workout</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">Mid-session · log as prescribed</div>
+  </div>
+
+  <!-- ============ FRAME 2 — RPE suggestion moment ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:43</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:50%"></i></div>
+          <div class="progress-label">3 of 6 exercises · 21:05</div>
+        </div>
+
+        <!-- active exercise — all sets logged, RPE tapped -->
+        <div class="card">
+          <div class="card-name">Incline Bench Press</div>
+          <div class="prescription">3 × 8 @ 95 lb · RPE ≤ 7</div>
+
+          <div class="eyebrow" style="margin-top:12px">Working weight</div>
+          <div class="hero"><span class="num-hero">95</span><span class="unit">lb</span></div>
+
+          <div style="margin-top:6px">
+            <div class="set-row">
+              <span class="set-n">1</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="set-row">
+              <span class="set-n">2</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="set-row">
+              <span class="set-n">3</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="disclose">+ &nbsp;Add set</div>
+          </div>
+
+          <!-- RPE row — rated 6, "felt easy" -->
+          <div class="rpe">
+            <div class="eyebrow">How hard was this?</div>
+            <div class="rpe-chips">
+              <span class="rpe-chip sel">6</span>
+              <span class="rpe-chip">7</span>
+              <span class="rpe-chip">8</span>
+              <span class="rpe-chip">9</span>
+              <span class="rpe-chip">10</span>
+            </div>
+
+            <!-- suggestion chip — increase (earned → moss) -->
+            <div class="suggest">
+              <span class="sug-mark">↑</span>
+              <span class="sug-text">Felt easy — <b>100 lb</b> next session?</span>
+              <span class="sug-btn yes">✓</span>
+              <span class="sug-btn">✕</span>
+            </div>
+
+            <!-- weight-DOWN variant — neutral, no third hue -->
+            <div class="variant-tag">Variant · weight down (neutral)</div>
+            <div class="suggest neutral">
+              <span class="sug-mark">↓</span>
+              <span class="sug-text">Rough patch — drop to <b>90 lb</b> next session?</span>
+              <span class="sug-btn yes">✓</span>
+              <span class="sug-btn">✕</span>
+            </div>
+          </div>
+
+          <div class="disclose" style="margin-top:4px">+ &nbsp;Add note</div>
+        </div>
+
+        <div style="flex:1"></div>
+        <!-- all sets touched → Finish is armed (accent) -->
+        <div class="btn-primary">Finish workout</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">RPE rated · suggestion appears</div>
+  </div>
+
+  <!-- ============ FRAME 3 — superset grouping ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Upper Body B</div>
+          <div class="progress"><i style="width:29%"></i></div>
+          <div class="progress-label">2 of 7 exercises · 24:32</div>
+        </div>
+
+        <!-- completed standalone -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Row</span>
+            <span class="ex-status done">4/4 ✓</span>
+          </div>
+        </div>
+
+        <!-- superset group — boundary is structure (inset panel + connector), not color -->
+        <div class="superset">
+          <div class="superset-head">
+            <span class="eyebrow">Superset</span>
+            <span class="superset-hint">Alternate · minimal rest</span>
+          </div>
+
+          <!-- exercise A — active -->
+          <div class="card">
+            <div class="card-name">Lat Pulldown</div>
+            <div class="prescription">3 × 10 @ 130 lb</div>
+
+            <div class="eyebrow" style="margin-top:12px">Working weight</div>
+            <div class="hero"><span class="num-hero">130</span><span class="unit">lb</span></div>
+
+            <div style="margin-top:6px">
+              <div class="set-row">
+                <span class="set-n">1</span>
+                <span class="set-val val">× <span class="reps">10</span></span>
+                <span class="tap done">✓</span>
+                <span class="overflow">⋯</span>
+              </div>
+              <div class="set-row">
+                <span class="set-n">2</span>
+                <span class="set-val val">× <span class="reps">10</span> &nbsp;<span class="pill now">Now</span></span>
+                <span class="tap current">●</span>
+                <span class="overflow">⋯</span>
+              </div>
+              <div class="set-row">
+                <span class="set-n">3</span>
+                <span class="set-val val" style="color:var(--text-muted)">× <span style="color:var(--text-muted)">10</span></span>
+                <span class="tap">·</span>
+                <span class="overflow">⋯</span>
+              </div>
+            </div>
+
+            <div class="next-up"><span class="arr">→</span> Next: Face Pull · set 2</div>
+          </div>
+
+          <div class="connector"></div>
+
+          <!-- exercise B — collapsed, interleaved progress -->
+          <div class="card">
+            <div class="ex-collapsed">
+              <span class="name">Face Pull</span>
+              <span class="ex-status">1/3</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- upcoming standalone -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Dumbbell Curl</span>
+            <span class="ex-status">0/3</span>
+          </div>
+        </div>
+
+        <div style="flex:1"></div>
+        <div class="btn-quiet">Finish workout</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">Superset · grouped by structure</div>
+  </div>
+
+</div>
+
+<p class="cap">Logging as prescribed is one tap — everything else is disclosure. Tapping a set row's ✓ logs it and
+  advances the <i>now</i>; the per-row <b>⋯</b> (≥44pt) is the only path to edit or remove a set, and a set-row
+  tap <b>never</b> collapses the card. Sets you add live behind an explicit <b>+ Add set</b> row; notes live
+  collapsed behind <b>+ Add note</b> and their input anchors above the keyboard when opened (#67). RPE is
+  optional and appears only after the last set is logged. Accent marks only <i>now</i> — the current set, the
+  armed Finish, the active tab; moss marks only what is <i>earned</i>. The working weight is always the biggest
+  number on the screen.</p>

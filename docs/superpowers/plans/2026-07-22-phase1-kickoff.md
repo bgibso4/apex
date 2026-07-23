@@ -16,7 +16,7 @@
 - Charter is BINDING: `docs/design-system/context/design-language.html` — the seven laws, the locked structure table, and the locked typography scale. Read it before authoring anything.
 - Canonical tokens: copy the entire `:root` block VERBATIM from `/Users/ben/projects/cadre/generated/css/apex-tokens.css` — never retype a hex. The halo background recipe is that file's comment line: `radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%)`.
 - Two hues only: `--accent` (now) and `--logged` (earned), plus their generated 10%-alpha tints. **A third hue is a defect.** Negative/cautionary states (weight-down suggestions, destructive actions, misses) are carried by neutral text, weight, and copy — not by a red/amber hue. If a screen genuinely cannot work under this rule, STOP and surface it to Ben as a charter question; never silently add a hue.
-- Typography (charter, exact): screen titles 20px/800/−0.3px; card names 14px/700; hero numerals 34px/800 `tabular-nums`; values 13px/600 `tabular-nums`; eyebrows 9.5px/700/uppercase/+1.1px tracking; system font stack; Orbitron 800 reserved for the ΛPEX wordmark (approximate with system stack + letter-spacing, caption it).
+- Typography (charter, exact): screen titles 20px/800/−0.3px; card names 14px/700; hero numerals 34px/800 `tabular-nums`; values 13px/600 `tabular-nums`; eyebrows 10px/700/uppercase/+1.1px tracking; system font stack; Orbitron 800 reserved for the ΛPEX wordmark (approximate with system stack + letter-spacing, caption it).
 - Radii: 10px cards, 6px nested, 999px pills. Hairline borders `--border`, top edge `--border-lt` only (the machined highlight).
 - Branch: `design/phase1-campaign` off current `main`. Commit per task. Push + open PR at handoff; NEVER merge without Ben.
 - Every synced page's first line is a dsCard marker. Foundations pages: `<!-- @dsCard group="Foundations" -->`. Wave-1 screen pages: `<!-- @dsCard group="Workout Flow — R1" -->`.
@@ -26,6 +26,7 @@
 - Tap targets: every interactive element ≥ 44×44 CSS px. The one-tap-log common case must be visibly demonstrated in the logging screen.
 - All colors flow through the `:root` custom properties — the only hex literals in any file are on `--token:` definition lines.
 - Content parity sources (implementers read before authoring — data shapes and states must be real, not invented): `docs/mockups/workout-rpe-suggestion-2026-07-14.html` (logging card, RPE row, suggestion states), `docs/mockups/superset-workout-logging-2026-03-17.html` (superset grouping), `docs/mockups/warmup-timer-2026-03-10.html` (warmup protocol content), `docs/mockups/workout-complete-edit-2026-03-11.html` (summary content + timestamp editing), `docs/mockups/workout-select-titles-v3-2026-03-12.html` (select state), `app/(tabs)/workout.tsx` (real screen states).
+- **Amendment 2026-07-23 (canonical alignment):** the canonical `tokens/apex.json` `type` block pins eyebrow 10px and body 11px; the plan originally carried 9.5px/13px. Canonical governs. Template + foundations pages aligned in the fix commit; Tasks 5–10 must use eyebrow-form 10px and body-role 11px. `type.value.size` stays 13.
 
 ---
 

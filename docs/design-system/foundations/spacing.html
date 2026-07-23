@@ -1,0 +1,243 @@
+<!-- @dsCard group="Foundations" -->
+<meta charset="utf-8">
+<title>APEX Foundations — Surfaces &amp; Spacing</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+
+    /* === page chrome only (not an app token) === */
+    --page:#050506;
+  }
+
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); color:var(--text); padding:48px 28px 90px; max-width:860px; margin:0 auto; }
+
+  h1 { font-size:26px; font-weight:800; letter-spacing:-0.4px; }
+  .sub { color:var(--text-2); font-size:14px; line-height:1.6; margin-top:10px; max-width:660px; }
+
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.3px; color:var(--text-muted);
+       margin:42px 0 14px; }
+  .tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-left:6px; }
+  .tag.locked { color:var(--logged); }
+  /* neutral outline tag — no third hue. Deliberately distinct from the charter's amber ".open":
+     text-2 on a border-lt outline, both drawn from the neutral ramp already in :root. */
+  .tag.proposed { color:var(--text-2); border:1px solid var(--border-lt); border-radius:3px; padding:1px 7px; }
+
+  p, li { color:var(--text-2); font-size:14px; line-height:1.62; }
+  b { color:var(--text); font-weight:600; }
+  ul { padding-left:18px; display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+
+  code { color:var(--text-2); font-size:12.5px; background:var(--card-top); padding:1px 5px; border-radius:4px; }
+
+  table { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px; }
+  th { text-align:left; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+       color:var(--text-muted); padding:7px 10px; border-bottom:1px solid var(--border); }
+  td { padding:9px 10px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:middle; }
+  td:first-child { color:var(--text); font-variant-numeric:tabular-nums; }
+
+  .callout { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+             border:1px solid var(--border); border-top-color:var(--border-lt);
+             border-radius:var(--r-card); padding:16px 18px; margin-top:14px; }
+  .callout p { margin:0; }
+  .callout p + p { margin-top:8px; }
+
+  /* --- reused byte-identical from foundations/colors.html: card + type-role idioms --- */
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:14px 16px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .eyebrow { color:var(--text-muted); font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+
+  /* --- reused byte-identical from foundations/colors.html: halo recipe, adapted to a document panel --- */
+  .halo-demo { border:1px solid var(--border); border-radius:var(--r-card); overflow:hidden;
+               background:radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%);
+               padding:44px 24px; display:flex; justify-content:center; }
+  .halo-demo .card { width:280px; }
+
+  pre.recipe { background:var(--card-top); border:1px solid var(--border); border-radius:var(--r-nested);
+               padding:12px 14px; margin-top:10px; overflow-x:auto; color:var(--text-2); font-size:12px; line-height:1.6; }
+  pre.recipe code { background:none; padding:0; color:inherit; }
+
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:660px; margin-top:10px; }
+
+  /* --- page-specific: §1 radii on live shapes --- */
+  .radii-stage { display:flex; gap:24px; margin-top:18px; flex-wrap:wrap; align-items:flex-end; }
+  .radii-item { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .radii-shape { background:var(--card-top); border:1px solid var(--border); }
+  .radii-shape.card-r { width:150px; height:96px; border-radius:var(--r-card); }
+  .radii-shape.nested-r { width:56px; height:56px; border-radius:var(--r-nested); }
+  .radii-shape.pill-r { width:120px; height:32px; border-radius:var(--r-pill); }
+  .shape-label { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; text-align:center; }
+  .shape-label b { display:block; color:var(--text); font-size:12px; font-weight:700; text-transform:none; letter-spacing:0; margin-top:2px; font-variant-numeric:tabular-nums; }
+
+  /* --- page-specific: §3 spacing scale, rendered live --- */
+  .scale-rail { display:flex; align-items:flex-end; gap:22px; height:44px; margin-top:20px;
+                border-bottom:1px solid var(--border); padding-bottom:0; }
+  .scale-col { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .scale-bar { width:24px; background:var(--border-lt); border-radius:3px 3px 0 0; }
+  .scale-num { color:var(--text); font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; }
+
+  .dim-stage { display:flex; gap:28px; margin-top:18px; align-items:flex-end; flex-wrap:wrap; }
+  .dim-item { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .dim-box { background:var(--card-top); border:1px solid var(--border); border-radius:var(--r-nested);
+             display:flex; align-items:center; justify-content:center; color:var(--text-2); font-size:11px; font-weight:600; }
+
+  /* --- page-specific: §4 hairline anatomy diagram --- */
+  .hairline-demo { position:relative; width:260px; height:130px; background:var(--card-top);
+                   border:1px solid var(--border); border-top:1px solid var(--border-lt);
+                   border-radius:var(--r-card); margin-top:18px; }
+  .edge-label { position:absolute; color:var(--text-muted); font-size:10px; font-weight:600; white-space:nowrap; }
+  .edge-label code { font-size:10px; padding:0 3px; }
+  .edge-top { top:-22px; left:50%; transform:translateX(-50%); }
+  .edge-right { top:50%; right:-8px; transform:translate(100%, -50%); }
+  .edge-bottom { bottom:-22px; left:50%; transform:translateX(-50%); }
+  .edge-left { top:50%; left:-8px; transform:translate(-100%, -50%); }
+
+  .divider-demo { margin-top:16px; max-width:400px; }
+  .divider-demo .row { display:flex; align-items:center; justify-content:space-between;
+                       padding:10px 2px; border-bottom:1px solid var(--border); color:var(--text-2); font-size:13px; }
+  .divider-demo .row:last-child { border-bottom:none; }
+</style>
+
+<h1>Foundations — Surfaces &amp; Spacing</h1>
+<p class="sub">The third and final foundations page, completing the Precision Blue system alongside
+  <code>colors.html</code> and <code>typography.html</code> (full trail: <code>context/design-language.html</code>).
+  Radii and the one-light depth model below are locked charter values, rendered live rather than described.
+  The numeric spacing scale in §3 is <b>proposed</b> — it does not yet exist as a token in
+  <code>tokens/apex.json</code> — and is called out as such.</p>
+
+<h2>1. Radii — tight, machined <span class="tag locked">· locked</span></h2>
+<p>Three radii exist, and only three. Cards and sheets get <code>10px</code>. Anything nested inside a card —
+  a tap target, a quiet button, a chip — gets <code>6px</code>. Anything that should read as a pill — a status
+  tag, a "Now" marker — stays full-round at <code>999px</code> regardless of its content width. Nothing is
+  soft or rounded-for-friendliness; every corner reads as machined.</p>
+<div class="radii-stage">
+  <div class="radii-item">
+    <div class="radii-shape card-r"></div>
+    <div class="shape-label">--r-card<b>10px</b></div>
+  </div>
+  <div class="radii-item">
+    <div class="radii-shape nested-r"></div>
+    <div class="shape-label">--r-nested<b>6px</b></div>
+  </div>
+  <div class="radii-item">
+    <div class="radii-shape pill-r"></div>
+    <div class="shape-label">--r-pill<b>999px</b></div>
+  </div>
+</div>
+<table>
+  <tr><th>Token</th><th>Value</th><th>Rendered on</th></tr>
+  <tr><td>--r-card</td><td>10px</td><td>Cards, sheets, primary buttons — any full surface.</td></tr>
+  <tr><td>--r-nested</td><td>6px</td><td>Controls nested inside a card — tap targets, quiet buttons, chips.</td></tr>
+  <tr><td>--r-pill</td><td>999px</td><td>Pills — status tags, "Now" markers. Full-round at any width.</td></tr>
+</table>
+
+<h2>2. Depth — one light, told twice <span class="tag locked">· locked</span></h2>
+<p>Depth comes from a single overhead light, told twice at half strength each: a faint radial halo behind the
+  header lights the <i>room</i>; a shallow vertical card gradient with a brighter top edge lights the
+  <i>objects</i> sitting in it. The scene below renders both halves of that one light at once — this is the
+  complete elevation model, nothing is added beyond it.</p>
+<div class="halo-demo">
+  <div class="card">
+    <div class="eyebrow">Object light</div>
+    <div class="card-name" style="margin-top:6px;">Gradient foot + border-lt top edge</div>
+    <p style="font-size:12px; margin-top:8px; line-height:1.55;">This card's half of the light: a vertical
+      gradient from <code>card-top</code> to <code>card-base</code>, plus a <code>border-lt</code> top edge
+      that catches the light. The halo behind this panel is the room's half — together they sum to depth.</p>
+  </div>
+</div>
+<pre class="recipe"><code>/* halo — room light, sits behind the header on the screen field */
+background: radial-gradient(ellipse 90% 45% at 50% -5%,
+  var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%);
+
+/* card — object light, lit face to gradient foot, brighter top edge */
+background: linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+border: 1px solid var(--border);
+border-top-color: var(--border-lt);</code></pre>
+<div class="callout">
+  <p><b>Depth sums, it never stacks.</b> These two recipes are the entire elevation model. There is no
+    <code>box-shadow</code>, no <code>filter: drop-shadow</code>, and no glow anywhere in the system — every
+    unit of depth comes from the halo and the card gradient added together once. A shadow or a glow would be a
+    third depth mechanism layered on top of the first two, which the charter's light law forbids.</p>
+</div>
+
+<h2>3. Spacing scale <span class="tag proposed">· proposed</span></h2>
+<p><b>This section is proposed, not a locked charter value.</b> It does not yet exist as a token in
+  <code>tokens/apex.json</code> — unlike color and radius, which do. It is being confirmed through wave-1
+  screens: as real screens ship against it without needing a value outside this set, the scale graduates to
+  locked. Until then, treat every number below as a working default, not a contract.</p>
+<p style="margin-top:10px;">A 4-pt base scale — six steps, rendered at true size below.</p>
+<div class="scale-rail">
+  <div class="scale-col"><div class="scale-bar" style="height:4px;"></div><span class="scale-num">4</span></div>
+  <div class="scale-col"><div class="scale-bar" style="height:8px;"></div><span class="scale-num">8</span></div>
+  <div class="scale-col"><div class="scale-bar" style="height:12px;"></div><span class="scale-num">12</span></div>
+  <div class="scale-col"><div class="scale-bar" style="height:16px;"></div><span class="scale-num">16</span></div>
+  <div class="scale-col"><div class="scale-bar" style="height:20px;"></div><span class="scale-num">20</span></div>
+  <div class="scale-col"><div class="scale-bar" style="height:24px;"></div><span class="scale-num">24</span></div>
+</div>
+<table>
+  <tr><th>Value</th><th>Applies to</th></tr>
+  <tr><td>20px</td><td>Screen horizontal padding — left/right inset for all screen content.</td></tr>
+  <tr><td>14px × 16px</td><td>Card padding — vertical 14, horizontal 16. The one exception to the 4-pt grid
+    (14 isn't a multiple of 4); already shipped this way in <code>templates/screen-template.html</code> and
+    both prior foundations pages, not introduced here.</td></tr>
+  <tr><td>12px</td><td>Inter-card gap — vertical space between stacked cards on a screen.</td></tr>
+  <tr><td>24px</td><td>Section gap — vertical space between named groups of cards.</td></tr>
+  <tr><td>48px</td><td>Set-row min-height — minimum row height for a logged or prescribed set line.</td></tr>
+  <tr><td>≥44px</td><td>Tap target — minimum touch target for any interactive control (Apple HIG floor).</td></tr>
+</table>
+<p style="margin-top:10px;">The two touch-critical minimums, rendered at true size:</p>
+<div class="dim-stage">
+  <div class="dim-item">
+    <div class="dim-box" style="width:120px; height:48px;">set-row · 48</div>
+  </div>
+  <div class="dim-item">
+    <div class="dim-box" style="width:44px; height:44px;">44</div>
+  </div>
+</div>
+
+<h2>4. Hairlines <span class="tag locked">· locked</span></h2>
+<p>For surfaces — cards, dividers, sheets — the rule is exact: every border is <code>1px solid var(--border)</code>;
+  <code>var(--border-lt)</code> is only ever a top-edge override, never a full outline. This is the entire
+  mechanism behind the card in §2 reading as machined rather than flat — three edges recede into <code>border</code>,
+  the top edge alone catches the light.</p>
+<div class="hairline-demo">
+  <span class="edge-label edge-top"><code>--border-lt</code></span>
+  <span class="edge-label edge-right"><code>--border</code></span>
+  <span class="edge-label edge-bottom"><code>--border</code></span>
+  <span class="edge-label edge-left"><code>--border</code></span>
+</div>
+<p style="margin-top:20px;">The same hairline, used flat, separates rows inside a surface — no top-edge
+  treatment, just a 1px divider:</p>
+<div class="divider-demo">
+  <div class="row"><span>Set 1</span><span class="val">82.5kg × 6</span></div>
+  <div class="row"><span>Set 2</span><span class="val">82.5kg × 6</span></div>
+  <div class="row"><span>Set 3</span><span class="val">82.5kg × 6</span></div>
+</div>
+<div class="callout">
+  <p><b>Open, not resolved here:</b> <code>templates/screen-template.html</code> currently sets
+    <code>--border-lt</code> as the <i>full</i> outline — all four edges — on small interactive controls
+    (<code>.tap</code>, <code>.pill</code>, <code>.btn-quiet</code>), which is in tension with the top-edge-only
+    rule stated above for surfaces. This page states the surface rule as it stands today; whether interactive
+    controls should follow the same top-edge-only law or keep their current full-outline treatment is a pending
+    wave-1 decision for Ben, not resolved either way by this page.</p>
+</div>

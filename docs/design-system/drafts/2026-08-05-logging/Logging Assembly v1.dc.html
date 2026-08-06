@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin:0; background:#050506; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; display:flex; flex-direction:column; align-items:center; padding:36px 24px; }
+    a { color:#659BC8; text-decoration:none; }
+    a:hover { color:#8FB6D9; }
+  </style>
+</helmet>
+
+<div style="max-width:640px; margin-bottom:20px; text-align:center">
+  <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px">Logging · full assembly</div>
+  <div style="color:#8F9098; font-size:13px; line-height:1.55; margin-top:6px">Everything locked so far, wired together at true 844px device height (the list scrolls, so what fits is honest). Log sets, drag the slider, ✓ the prompt, add a note via the rail, open the ⋯ menu, tap the superset and curl rows to complete them and watch Finish arm. Locked: paired nav row (‹ back and ⋯ opposite), glass popover menu with warm-up as a second route, rest in card. Edit-control variants are on the board. <a href="Logging Row Explorations.dc.html">Board</a> · <a href="Workout Logging v2.dc.html">v2 statics</a></div>
+</div>
+
+<div data-frame="1" style="width:390px; border:1px solid #20232A; border-radius:44px; overflow:hidden; position:relative; flex-shrink:0">
+  <div style="height:844px; display:flex; flex-direction:column; background:radial-gradient(ellipse 90% 45% at 50% -5%, #141A22 0%, #0C0E11 55%, #090A0C 100%)">
+    <div style="height:54px; flex-shrink:0; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 6px; color:#EDEEF0; font-size:13px; font-weight:600"><span>9:41</span><span>100%</span></div>
+    <div style="flex:1; min-height:0; overflow-y:auto; padding:8px 20px 24px; display:flex; flex-direction:column; gap:10px">
+      <div style="flex-shrink:0">
+        <div style="display:flex; align-items:center; min-height:38px; margin-bottom:10px">
+          <span style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:19px; font-weight:600; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer; padding-right:2px">‹</span>
+          <span style="flex:1"></span>
+          <span ref="{{ menuAnchor }}" style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; letter-spacing:1px; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer" onClick="{{ openMenu }}">⋯</span>
+        </div>
+        <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+        <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px">Upper Body A</div>
+        <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:8px"><i style="display:block; height:100%; width:33%; background:#55575F; border-radius:999px"></i></div>
+        <div style="display:flex; align-items:center; margin-top:6px">
+          <span style="color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums">2 of 6 exercises · 18:24</span>
+          <span style="flex:1"></span>
+          <sc-if value="{{restInHeader}}" hint-placeholder-val="{{ false }}">
+            <span style="color:#55575F; font-size:11px; font-weight:600; cursor:pointer" onClick="{{ skipRest }}">Rest</span>
+            <span style="color:#659BC8; font-size:13px; font-weight:800; font-variant-numeric:tabular-nums; margin-left:6px; cursor:pointer" onClick="{{ skipRest }}">{{ restDisplay }}</span>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="flex-shrink:0; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px">
+        <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+          <span style="color:#8F9098; font-size:14px; font-weight:600">Barbell Bench Press</span>
+          <span style="color:#6CA383; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">3/3 ✓</span>
+        </div>
+      </div>
+
+      <div style="flex-shrink:0; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+        <div style="display:flex; align-items:flex-start; gap:12px">
+          <div style="flex:1">
+            <div style="color:#EDEEF0; font-size:14px; font-weight:700">Incline Bench Press</div>
+          </div>
+          <sc-if value="{{restInCard}}" hint-placeholder-val="{{ false }}">
+            <span style="color:#659BC8; font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.3px; cursor:pointer" onClick="{{ skipRest }}">{{ restDisplay }}</span>
+          </sc-if>
+        </div>
+        <div style="margin-top:5px; font-variant-numeric:tabular-nums">
+          <span style="color:#8F9098; font-size:12px; font-weight:700">RPE ≤ 7</span>
+          <span style="color:#55575F; font-size:11px; font-weight:600">&nbsp; · &nbsp;Last 95 lb × 8 · 8 · 7 · RPE 7</span>
+        </div>
+        <sc-if value="{{isLogging}}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:center; gap:12px; margin-top:10px; padding-bottom:6px; border-bottom:1px solid #20232A">
+            <span style="width:30px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Set</span>
+            <span style="width:76px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+            <span style="flex:1; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+            <span style="width:44px"></span>
+          </div>
+          <sc-for list="{{rows}}" as="row" hint-placeholder-count="3">
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+              <span style="width:30px; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; color: {{ row.dimColor }}">{{ row.n }}</span>
+              <span style="width:76px; min-height:44px; display:flex; align-items:center; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; cursor:pointer; color: {{ row.valColor }}" onClick="{{ row.onEdit }}">{{ row.w }}</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; cursor:pointer; color: {{ row.valColor }}" onClick="{{ row.onEdit }}">{{ row.r }}</span>
+              <span style="min-width:44px; min-height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; border:1px solid {{ row.tapBorder }}; background: {{ row.tapBg }}; color: {{ row.tapColor }}" onClick="{{ row.onTap }}">{{ row.tapGlyph }}</span>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{isRating}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:12px; min-height:44px; margin-top:6px; border-bottom:1px solid #20232A">
+            <span style="width:30px; color:#55575F; font-size:11px; font-weight:700">1–3</span>
+            <span style="flex:1; min-height:44px; display:flex; align-items:center; color:#8F9098; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; cursor:pointer" onClick="{{ reopenSets }}">{{ summaryLine }}</span>
+            <span style="color:#6CA383; font-size:13px; font-weight:700">✓ done</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; min-height:52px">
+            <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; width:52px">Effort</span>
+            <span style="flex:1; position:relative; height:44px; display:flex; align-items:center; touch-action:none; cursor:pointer" onPointerDown="{{ trackDown }}" onPointerMove="{{ trackMove }}" onPointerUp="{{ trackUp }}">
+              <span style="position:absolute; left:0; right:0; height:2px; border-radius:999px; background: {{ trackBg }}"></span>
+              <span style="position:absolute; left:0%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:25%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:50%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:75%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:100%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; width:16px; height:16px; border-radius:999px; background:#659BC8; transform:translateX(-50%); pointer-events:none; transition: {{ thumbTransition }}; display: {{ thumbDisplay }}; left: {{ thumbLeft }}"></span>
+            </span>
+            <span style="font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; width:28px; text-align:right; color: {{ echoColor }}">{{ echo }}</span>
+          </div>
+          <div style="display:flex; margin-left:66px; margin-right:42px">
+            <span style="flex:1; text-align:left; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; transform:translateX(-2px)">6</span>
+            <span style="flex:1; text-align:center; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums">8</span>
+            <span style="flex:1; text-align:right; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; transform:translateX(2px)">10</span>
+          </div>
+          <sc-if value="{{showPrompt}}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-top:8px">
+              <span style="flex:1; color:#8F9098; font-size:13px; font-weight:500; line-height:1.4">{{ promptText }} <b style="font-weight:700; color: {{ promptWeightColor }}">{{ promptWeight }}</b>?</span>
+              <span style="min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px; cursor:pointer" onClick="{{ onApply }}">✓</span>
+              <span style="min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#55575F; font-size:15px; cursor:pointer" onClick="{{ onKeep }}">✕</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{showOnTarget}}" hint-placeholder-val="{{ false }}">
+            <div style="color:#8F9098; font-size:13px; font-weight:500; margin-top:6px; min-height:44px; display:flex; align-items:center">On target. 95 lb stays.</div>
+          </sc-if>
+          <sc-if value="{{showResult}}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:8px; min-height:44px; margin-top:6px">
+              <span style="font-size:13px; font-weight:700; color: {{ resultColor }}">{{ resultLine }}</span>
+              <span style="flex:1"></span>
+              <span style="min-height:44px; display:flex; align-items:center; color:#55575F; font-size:12px; font-weight:600; cursor:pointer" onClick="{{ onUndo }}">Undo</span>
+            </div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{hasNote}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:8px; min-height:40px; color:#55575F; font-size:12px; font-weight:500; border-top:1px solid #20232A; cursor:pointer" onClick="{{ openNote }}">
+            <span>✎</span><span style="color:#8F9098">{{ noteSaved }}</span>
+          </div>
+        </sc-if>
+        <div style="display:flex; gap:8px; margin-top:10px; padding-top:12px; border-top:1px solid #20232A">
+          <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">Detail</span>
+          <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">⇄ Swap</span>
+          <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700; cursor:pointer" onClick="{{ openNote }}">✎ Note</span>
+        </div>
+      </div>
+
+      <div style="flex-shrink:0; border:1px solid #20232A; border-radius:10px; background:#0C0E11; padding:10px 8px 8px; cursor:pointer" onClick="{{ toggleSuperset }}">
+        <div style="display:flex; align-items:center; gap:8px; padding:0 8px 8px">
+          <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Superset · 3</span>
+          <span style="color:#55575F; font-size:11px; font-weight:500">Alternate · minimal rest</span>
+          <span style="flex:1"></span>
+          <span style="font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color: {{ ssColor }}">{{ ssLabel }}</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px">
+          <sc-for list="{{ssRows}}" as="m" hint-placeholder-count="3">
+            <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:8px 14px">
+              <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+                <span style="font-size:14px; font-weight:600; color: {{ m.color }}">{{ m.name }}</span>
+                <span style="font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color: {{ m.countColor }}">{{ m.count }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex-shrink:0; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; cursor:pointer" onClick="{{ toggleCurl }}">
+        <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+          <span style="color:#8F9098; font-size:14px; font-weight:600">Dumbbell Curl</span>
+          <span style="font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color: {{ curlColor }}">{{ curlLabel }}</span>
+        </div>
+      </div>
+
+      <div style="flex-shrink:0; padding-top:4px">
+        <sc-if value="{{finishQuiet}}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; border-radius:6px; border:1px solid #2C3039; color:#8F9098; font-size:13px; font-weight:600">Finish workout <span style="color:#55575F; font-variant-numeric:tabular-nums">{{ leftLabel }}</span></div>
+        </sc-if>
+        <sc-if value="{{finishArmed}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:10px; background:#659BC8; color:#0B0C0E; font-size:15px; font-weight:700; cursor:pointer" onClick="{{ onFinish }}">Finish workout</div>
+        </sc-if>
+        <sc-if value="{{finishDone}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; border-radius:6px; border:1px solid #6CA383; background:#6CA3831A; color:#6CA383; font-size:13px; font-weight:700">✓ Upper Body A complete</div>
+        </sc-if>
+      </div>
+    </div>
+    <div style="flex-shrink:0; display:flex; border-top:1px solid #20232A; background:#090A0C; padding-bottom:8px">
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">⌂</span>Home</div>
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#659BC8; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">◉</span>Workout</div>
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">↗</span>Progress</div>
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">➜</span>Run</div>
+    </div>
+    <div style="width:130px; height:5px; border-radius:999px; background:#2C3039; margin:6px auto 8px"></div>
+  </div>
+
+  <div style="position:absolute; inset:0; background:rgba(5,5,6,0.5); transition:opacity 0.25s; opacity: {{ dimOpacity }}; pointer-events: {{ dimEvents }}" onClick="{{ closeAll }}"></div>
+
+  <sc-if value="{{menuPopover}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; right:16px; width:216px; border-radius:14px; background:rgba(26,29,35,0.72); border:1px solid rgba(237,238,240,0.1); backdrop-filter:blur(24px) saturate(1.4); -webkit-backdrop-filter:blur(24px) saturate(1.4); overflow:hidden; transition:opacity 0.18s, transform 0.18s; transform-origin:top right; top: {{ popTop }}; opacity: {{ menuOpacity }}; transform: {{ menuScale }}; pointer-events: {{ menuEvents }}">
+      <div style="display:flex; align-items:center; gap:12px; min-height:48px; padding:0 16px; color:#EDEEF0; font-size:14px; font-weight:600; border-bottom:1px solid rgba(237,238,240,0.07); cursor:pointer" onClick="{{ closeAll }}"><span style="color:#8F9098; width:18px">+</span>Add exercise</div>
+      <div style="display:flex; align-items:center; gap:12px; min-height:48px; padding:0 16px; color:#EDEEF0; font-size:14px; font-weight:600; cursor:pointer" onClick="{{ closeAll }}"><span style="color:#8F9098; width:18px">≡</span>Reorder</div>
+      <div style="display:flex; align-items:center; gap:12px; min-height:48px; padding:0 16px; color:#EDEEF0; font-size:14px; font-weight:600; border-top:1px solid rgba(237,238,240,0.07); cursor:pointer" onClick="{{ closeAll }}"><span style="color:#8F9098; width:18px">∿</span>Warm-up protocol</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{menuSheet}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; left:0; right:0; bottom:0; background:#14161B; border-top:1px solid #2C3039; padding:8px 20px 28px; transition:transform 0.28s cubic-bezier(0.32,0.72,0,1); transform: {{ menuSheetTransform }}">
+      <div style="width:36px; height:4px; border-radius:999px; background:#2C3039; margin:4px auto 10px"></div>
+      <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; margin-bottom:4px">Upper Body A</div>
+      <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A; color:#EDEEF0; font-size:14px; font-weight:600; cursor:pointer" onClick="{{ closeAll }}"><span style="color:#8F9098; width:20px">+</span>Add exercise<span style="flex:1"></span><span style="color:#55575F">›</span></div>
+      <div style="display:flex; align-items:center; gap:12px; min-height:48px; color:#EDEEF0; font-size:14px; font-weight:600; cursor:pointer" onClick="{{ closeAll }}"><span style="color:#8F9098; width:20px">≡</span>Reorder exercises<span style="flex:1"></span><span style="color:#55575F">›</span></div>
+      <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-top:1px solid #20232A; color:#EDEEF0; font-size:14px; font-weight:600; cursor:pointer" onClick="{{ closeAll }}"><span style="color:#8F9098; width:20px">∿</span>Warm-up protocol<span style="flex:1"></span><span style="color:#55575F">›</span></div>
+    </div>
+  </sc-if>
+
+  <div style="position:absolute; left:0; right:0; bottom:0; background:#14161B; border-top:1px solid #2C3039; padding:12px 20px 28px; transition:transform 0.28s cubic-bezier(0.32,0.72,0,1); transform: {{ sheetTransform }}">
+    <div style="display:flex; align-items:center">
+      <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">{{ editTitle }}</span>
+      <span style="flex:1"></span>
+      <span style="min-height:44px; display:flex; align-items:center; color:#659BC8; font-size:14px; font-weight:700; cursor:pointer" onClick="{{ closeAll }}">Done</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
+      <span style="width:52px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ wDown }}">−5</span>
+      <span style="flex:1; text-align:center; color:#EDEEF0; font-size:26px; font-weight:800; font-variant-numeric:tabular-nums">{{ editW }}</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ wUp }}">+5</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+      <span style="width:52px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ rDown }}">−1</span>
+      <span style="flex:1; text-align:center; color:#EDEEF0; font-size:26px; font-weight:800; font-variant-numeric:tabular-nums">{{ editR }}</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ rUp }}">+1</span>
+    </div>
+  </div>
+
+  <div style="position:absolute; left:0; right:0; bottom:0; transition:transform 0.28s cubic-bezier(0.32,0.72,0,1); transform: {{ noteTransform }}">
+    <div style="background:#14161B; border-top:1px solid #2C3039; padding:12px 20px 14px">
+      <div style="display:flex; align-items:center">
+        <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Note · Incline Bench Press</span>
+        <span style="flex:1"></span>
+        <span style="min-height:44px; display:flex; align-items:center; color:#659BC8; font-size:14px; font-weight:700; cursor:pointer" onClick="{{ saveNote }}">Done</span>
+      </div>
+      <div style="color:#EDEEF0; font-size:15px; font-weight:500; margin-top:4px; min-height:22px">{{ noteDraft }}<span style="display:inline-block; width:2px; height:16px; background:#659BC8; vertical-align:-2px"></span></div>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+          <span style="padding:7px 13px; border:1px solid #2C3039; border-radius:999px; color:#8F9098; font-size:12px; font-weight:600; cursor:pointer" onClick="{{ c.onTap }}">{{ c.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background:#1A1D23; padding:8px 4px 4px">
+      <div style="display:flex; gap:5px; justify-content:center; margin-bottom:7px">
+        <sc-for list="{{kbRow1}}" as="k" hint-placeholder-count="10"><span style="width:33px; height:42px; background:#3A3D45; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px">{{ k }}</span></sc-for>
+      </div>
+      <div style="display:flex; gap:5px; justify-content:center; margin-bottom:7px">
+        <sc-for list="{{kbRow2}}" as="k" hint-placeholder-count="9"><span style="width:33px; height:42px; background:#3A3D45; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px">{{ k }}</span></sc-for>
+      </div>
+      <div style="display:flex; gap:5px; justify-content:center; margin-bottom:7px">
+        <span style="width:44px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px">⇧</span>
+        <sc-for list="{{kbRow3}}" as="k" hint-placeholder-count="7"><span style="width:33px; height:42px; background:#3A3D45; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px">{{ k }}</span></sc-for>
+        <span style="width:44px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px; cursor:pointer" onClick="{{ backspace }}">⌫</span>
+      </div>
+      <div style="display:flex; gap:5px; justify-content:center">
+        <span style="width:88px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px">123</span>
+        <span style="width:186px; height:42px; background:#3A3D45; border-radius:5px"></span>
+        <span style="width:88px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px">return</span>
+      </div>
+      <div style="width:130px; height:5px; border-radius:999px; background:#55575F; margin:14px auto 6px"></div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex; align-items:center; justify-content:center; min-height:44px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:13px; font-weight:600; cursor:pointer; padding:0 24px; margin-top:20px" onClick="{{ reset }}">↺ Replay demo</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 460, &quot;height&quot;: 1000}, &quot;menuStyle&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;popover&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;popover&quot;, &quot;bottom sheet&quot;], &quot;section&quot;: &quot;Variations&quot;}, &quot;restSeconds&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 120, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 10, &quot;max&quot;: 300, &quot;section&quot;: &quot;Demo&quot;}}">
+class Component extends DCLogic {
+  state = { sets: [{w:95,r:8,done:false},{w:95,r:8,done:false},{w:95,r:8,done:false}], current: 0, rest: 0, rating: null, dragging: false, decision: null, edit: null, menuOpen: false, noteOpen: false, noteDraft: '', noteSaved: '', ssDone: false, curlDone: false, forceSets: false, finished: false };
+  componentWillUnmount() { clearInterval(this._t); }
+  measureAnchor() {
+    const el = this._anchor, host = el && el.closest('[data-frame]');
+    if (!el || !host) return;
+    const top = Math.round(el.getBoundingClientRect().bottom - host.getBoundingClientRect().top + 8);
+    if (top !== this.state.popTop) this.setState({ popTop: top });
+  }
+  componentDidMount() { this.measureAnchor(); }
+  componentDidUpdate() { this.measureAnchor(); }
+  startRest() {
+    clearInterval(this._t);
+    this.setState({ rest: this.props.restSeconds ?? 120 });
+    this._t = setInterval(() => {
+      this.setState(s => {
+        if (s.rest <= 1) { clearInterval(this._t); return { rest: 0 }; }
+        return { rest: s.rest - 1 };
+      });
+    }, 1000);
+  }
+  log(i) {
+    if (i !== this.state.current) return;
+    this.setState(s => ({ sets: s.sets.map((x, j) => j === i ? { ...x, done: true } : x), current: s.current + 1, forceSets: false }));
+    if (i < 2) this.startRest(); else { clearInterval(this._t); this.setState({ rest: 0 }); }
+  }
+  renderVals() {
+    const s = this.state, p = this.props;
+    const allDone = s.sets.every(x => x.done);
+    const isRating = allDone && !s.forceSets;
+    const rows = s.sets.map((x, i) => {
+      const done = x.done, cur = i === s.current;
+      return {
+        n: i + 1, w: x.w, r: x.r,
+        dimColor: done ? '#55575F' : cur ? '#8F9098' : '#55575F',
+        valColor: done ? '#8F9098' : cur ? '#EDEEF0' : '#55575F',
+        tapBorder: done ? '#6CA383' : cur ? '#659BC8' : '#2C3039',
+        tapBg: done ? '#6CA3831A' : 'transparent',
+        tapColor: done ? '#6CA383' : cur ? '#659BC8' : '#55575F',
+        tapGlyph: done ? '✓' : cur ? '●' : '○',
+        onTap: () => this.log(i),
+        onEdit: () => this.setState({ edit: i, menuOpen: false, noteOpen: false }),
+      };
+    });
+    const rateFromX = (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      this.setState({ rating: 6 + Math.round(pos * 4), decision: null });
+    };
+    const up = s.rating != null && s.rating <= 6;
+    const down = s.rating != null && s.rating >= 8;
+    const pct = s.rating != null ? ((s.rating - 6) / 4) * 100 : 0;
+    const promptWeight = up ? '100 lb' : '90 lb';
+    const ei = s.edit ?? 0;
+    const adj = (field, d, min) => this.setState(st => ({ sets: st.sets.map((x, j) => j === (st.edit ?? 0) ? { ...x, [field]: Math.max(min, x[field] + d) } : x) }));
+    const mm = Math.floor(s.rest / 60), ss = String(s.rest % 60).padStart(2, '0');
+    const restActive = s.rest > 0;
+    const remaining = (allDone ? 0 : 1) + (s.ssDone ? 0 : 1) + (s.curlDone ? 0 : 1);
+    const anyOverlay = s.edit != null || s.noteOpen || s.menuOpen;
+
+    const isPopover = (p.menuStyle ?? 'popover') === 'popover';
+    const ssMembers = [['Lat Pulldown', s.ssDone], ['Face Pull', s.ssDone], ['Rear Delt Fly', s.ssDone]];
+    return {
+      menuAnchor: (el) => { this._anchor = el; },
+      openMenu: () => this.setState({ menuOpen: true, edit: null, noteOpen: false }),
+      menuPopover: isPopover, menuSheet: !isPopover,
+      popTop: (s.popTop ?? 150) + 'px',
+      menuOpacity: s.menuOpen ? 1 : 0,
+      menuScale: s.menuOpen ? 'scale(1)' : 'scale(0.85)',
+      menuEvents: s.menuOpen ? 'auto' : 'none',
+      menuSheetTransform: s.menuOpen ? 'translateY(0)' : 'translateY(105%)',
+      restInCard: restActive && (p.restPlacement ?? 'card top-right') === 'card top-right',
+      restInHeader: restActive && (p.restPlacement ?? 'card top-right') === 'header row',
+      restDisplay: mm + ':' + ss,
+      skipRest: () => { clearInterval(this._t); this.setState({ rest: 0 }); },
+      isLogging: !isRating, isRating, rows,
+      reopenSets: () => this.setState({ forceSets: true }),
+      summaryLine: (new Set(s.sets.map(x => x.w)).size === 1 ? s.sets[0].w + ' lb' : s.sets.map(x => x.w).join(' · ') + ' lb') + ' × ' + s.sets.map(x => x.r).join(' · '),
+      trackDown: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.setState({ dragging: true }); rateFromX(e); },
+      trackMove: (e) => { if (this.state.dragging) rateFromX(e); },
+      trackUp: () => this.setState({ dragging: false }),
+      thumbTransition: s.dragging ? 'none' : 'left 0.18s',
+      trackBg: s.rating != null ? 'linear-gradient(90deg,#659BC8 0%,#659BC8 ' + pct + '%,#2C3039 ' + pct + '%,#2C3039 100%)' : '#2C3039',
+      thumbDisplay: s.rating != null ? 'block' : 'none',
+      thumbLeft: pct + '%',
+      echo: s.rating != null ? s.rating : '',
+      echoColor: s.rating != null ? '#659BC8' : '#55575F',
+      showPrompt: (up || down) && !s.decision,
+      showOnTarget: s.rating === 7 && !s.decision,
+      promptText: up ? 'Felt easy. Go to' : 'Rough one. Drop to',
+      promptWeight,
+      promptWeightColor: up ? '#6CA383' : '#EDEEF0',
+      onApply: () => this.setState({ decision: 'apply' }),
+      onKeep: () => this.setState({ decision: 'keep' }),
+      onUndo: () => this.setState({ decision: null }),
+      showResult: !!s.decision,
+      resultColor: s.decision === 'apply' && up ? '#6CA383' : '#8F9098',
+      resultLine: s.decision === 'apply' ? (up ? '↑ Next session · ' : '↓ Next session · ') + promptWeight : 'Next session · 95 lb',
+      hasNote: !!s.noteSaved, noteSaved: s.noteSaved,
+      openNote: () => this.setState({ noteOpen: true, noteDraft: this.state.noteSaved, edit: null, menuOpen: false }),
+      saveNote: () => this.setState({ noteOpen: false, noteSaved: this.state.noteDraft.trim() }),
+      noteDraft: s.noteDraft,
+      noteTransform: s.noteOpen ? 'translateY(0)' : 'translateY(105%)',
+      chips: ['felt heavy', 'machine busy', 'form cue'].map(label => ({ label, onTap: () => this.setState(st => ({ noteDraft: (st.noteDraft ? st.noteDraft + ', ' : '') + label })) })),
+      backspace: () => this.setState(st => ({ noteDraft: st.noteDraft.slice(0, -1) })),
+      kbRow1: 'QWERTYUIOP'.split(''), kbRow2: 'ASDFGHJKL'.split(''), kbRow3: 'ZXCVBNM'.split(''),
+      ssRows: ssMembers.map(([name, done], i) => ({ name, color: i === 0 && !done ? '#EDEEF0' : '#8F9098', count: done ? '3/3 ✓' : i === 0 ? '0/3' : '0/3', countColor: done ? '#6CA383' : '#55575F' })),
+      ssColor: s.ssDone ? '#6CA383' : '#55575F',
+      ssLabel: s.ssDone ? '9/9 ✓' : '0/9',
+      toggleSuperset: () => this.setState(st => ({ ssDone: !st.ssDone, finished: false })),
+      curlColor: s.curlDone ? '#6CA383' : '#55575F',
+      curlLabel: s.curlDone ? '3/3 ✓' : '0/3',
+      toggleCurl: () => this.setState(st => ({ curlDone: !st.curlDone, finished: false })),
+      finishQuiet: remaining > 0 && !s.finished,
+      finishArmed: remaining === 0 && !s.finished,
+      finishDone: s.finished,
+      leftLabel: '· ' + remaining + ' left',
+      onFinish: () => this.setState({ finished: true }),
+      dimOpacity: anyOverlay ? 1 : 0,
+      dimEvents: anyOverlay ? 'auto' : 'none',
+      closeAll: () => this.setState({ edit: null, menuOpen: false, noteOpen: false }),
+      sheetTransform: s.edit != null ? 'translateY(0)' : 'translateY(105%)',
+      editTitle: 'Set ' + (ei + 1) + ' · Incline Bench Press',
+      editW: s.sets[ei].w, editR: s.sets[ei].r,
+      wDown: () => adj('w', -5, 5), wUp: () => adj('w', 5, 5),
+      rDown: () => adj('r', -1, 1), rUp: () => adj('r', 1, 1),
+      reset: () => { clearInterval(this._t); this.setState({ sets: [{w:95,r:8,done:false},{w:95,r:8,done:false},{w:95,r:8,done:false}], current: 0, rest: 0, rating: null, dragging: false, decision: null, edit: null, menuOpen: false, noteOpen: false, noteDraft: '', noteSaved: '', ssDone: false, curlDone: false, forceSets: false, finished: false }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin:0; background:#050506; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+    a { color:#659BC8; text-decoration:none; }
+    a:hover { color:#8FB6D9; }
+  </style>
+</helmet>
+
+<div style="padding:32px 28px 64px">
+  <div style="max-width:820px">
+    <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px">Superset logging · 19a, locked</div>
+    <div style="color:#8F9098; font-size:13px; line-height:1.55; margin-top:6px">The frame keeps its inset member cards, so 9d stands and the expanded member stays the card anatomy used everywhere else in the app. Tap the blue ✓ or Log set. Finishing a round opens the next one immediately with the countdown alongside the round, so you can log straight through rest.</div>
+  </div>
+
+  <div style="display:flex; gap:8px; margin-top:18px; flex-wrap:wrap">
+    <span onClick="{{ logSet }}" style="min-height:40px; display:flex; align-items:center; padding:0 16px; border:1px solid #659BC8; border-radius:7px; color:#659BC8; font-size:12px; font-weight:700; cursor:pointer" style-hover="background:#12202C">Log set</span>
+    <span onClick="{{ reset }}" style="min-height:40px; display:flex; align-items:center; padding:0 16px; border:1px solid #2C3039; border-radius:7px; color:#8F9098; font-size:12px; font-weight:600; cursor:pointer" style-hover="border-color:#3A3F4A; color:#EDEEF0">Reset</span>
+    <span style="min-height:40px; display:flex; align-items:center; color:#55575F; font-size:11px; font-weight:600; margin-left:8px; font-variant-numeric:tabular-nums">{{ statusLine }}</span>
+  </div>
+
+  <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; margin-top:24px">
+
+    <div style="width:390px; flex-shrink:0">
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px">
+          <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+            <span style="color:#8F9098; font-size:14px; font-weight:600">Barbell Bench Press</span>
+            <span style="color:#6CA383; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">3/3 ✓</span>
+          </div>
+        </div>
+
+        <div style="border:1px solid #20232A; border-radius:10px; background:#0C0E11; padding:10px 8px 8px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 8px 8px">
+            <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Superset</span>
+            <span style="display:flex; align-items:baseline; gap:8px">
+              <span style="color:{{ headColor }}; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums">{{ headText }}</span>
+              <sc-if value="{{ resting }}">
+                <span onClick="{{ skipRest }}" style="color:#659BC8; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; cursor:pointer">{{ restText }}</span>
+              </sc-if>
+            </span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px">
+            <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+              <sc-if value="{{ row.isIdle }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ row.jump }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:8px 14px; cursor:pointer">
+                  <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+                    <span style="color:{{ row.nameColor }}; font-size:14px; font-weight:600">{{ row.name }}</span>
+                    <span style="color:{{ row.valueColor }}; font-size:12px; font-weight:600; font-variant-numeric:tabular-nums">{{ row.valueText }}</span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ row.isActive }}">
+                <div style="background:linear-gradient(180deg,#171A20 0%,#0E1013 100%); border:1px solid #2C3039; border-top-color:#3A3F4A; border-radius:10px; padding:12px 14px 10px">
+                  <div style="color:#EDEEF0; font-size:14px; font-weight:700">{{ row.name }}</div>
+                  <div style="margin-top:5px; font-variant-numeric:tabular-nums">
+                    <span style="color:#8F9098; font-size:12px; font-weight:700">{{ activeRpe }}</span>
+                    <span style="color:#55575F; font-size:11px; font-weight:600">&nbsp; · &nbsp;{{ activeLast }}</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:12px; margin-top:10px; padding-bottom:6px; border-bottom:1px solid #20232A">
+                    <span style="width:30px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Set</span>
+                    <span style="width:76px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+                    <span style="width:76px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+                    <span style="flex:1"></span>
+                    <span style="width:44px"></span>
+                  </div>
+                  <sc-for list="{{ setRows }}" as="sr" hint-placeholder-count="3">
+                    <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+                      <span style="width:30px; color:{{ sr.numColor }}; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums">{{ sr.n }}</span>
+                      <span style="width:76px; min-height:44px; display:flex; align-items:center; color:{{ sr.valColor }}; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">{{ sr.w }}</span>
+                      <span style="width:76px; min-height:44px; display:flex; align-items:center; color:{{ sr.valColor }}; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">{{ sr.reps }}</span>
+                      <span style="flex:1"></span>
+                      <span onClick="{{ sr.tap }}" style="min-width:44px; min-height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:15px; border:{{ sr.markBorder }}; color:{{ sr.markColor }}; cursor:{{ sr.cursor }}">✓</span>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ showEffort }}">
+                    <div style="padding-top:10px">
+                      <div style="display:flex; align-items:baseline; gap:8px">
+                        <span style="color:#8F9098; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Effort</span>
+                        <span style="color:#EDEEF0; font-size:11px; font-weight:700; margin-left:auto; font-variant-numeric:tabular-nums">{{ effortLabel }}</span>
+                      </div>
+                      <div style="display:flex; align-items:center; margin-top:2px">
+                        <sc-for list="{{ effortZones }}" as="z" hint-placeholder-count="9">
+                          <span onClick="{{ z.tap }}" style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative">
+                            <span style="position:absolute; left:0; right:0; height:4px; border-radius:2px; background:#2C3039"></span>
+                            <span style="width:{{ z.dotSize }}; height:{{ z.dotSize }}; border-radius:50%; background:{{ z.dotColor }}; position:relative"></span>
+                          </span>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <div style="display:flex; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #20232A">
+                    <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:600">Detail</span>
+                    <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:600">⇄ Swap</span>
+                    <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:600">✎ Note</span>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px">
+          <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+            <span style="color:#8F9098; font-size:14px; font-weight:600">Dumbbell Curl</span>
+            <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">0/3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:360px; flex-shrink:0">
+      <div style="color:#EDEEF0; font-size:13px; font-weight:700; margin-bottom:10px">Locked anatomy</div>
+      <div style="display:flex; flex-direction:column; gap:14px">
+        <div style="border:1px solid #20232A; border-radius:10px; background:#0C0E11; padding:12px 14px">
+          <div style="color:#8F9098; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px">Structure</div>
+          <div style="color:#8F9098; font-size:12px; line-height:1.55">Outer frame flush with the regular card edges, member cards inset 8px. One member expanded at a time, and it is the same card anatomy as any other exercise. Logging its set for the round collapses it and expands the next. The inactive member cards are jump targets, not log targets.</div>
+        </div>
+        <div style="border:1px solid #20232A; border-radius:10px; background:#0C0E11; padding:12px 14px">
+          <div style="color:#8F9098; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px">One subheader line (21d)</div>
+          <div style="color:#8F9098; font-size:12px; line-height:1.55">Target then history on a single line, in reading order, with weight doing the separating: 12px/700 mid grey for what is being asked, 11px/600 dim for what happened. Both RPE numbers stay, because today's cap and last session's achieved rating are different facts. The name row stays clear for the swapped pill and the rest countdown, and on a long percentage prescription the line wraps into exactly the two line arrangement it replaced.</div>
+        </div>
+        <div style="border:1px solid #20232A; border-radius:10px; background:#0C0E11; padding:12px 14px">
+          <div style="color:#8F9098; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px">Round and rest share the slot</div>
+          <div style="color:#8F9098; font-size:12px; line-height:1.55">The round is named once, in the group header, and the countdown appears beside it rather than replacing it, so the round never goes missing mid session. There is no rest state: the next round is already open behind the timer. Tap the countdown to clear it.</div>
+        </div>
+        <div style="border:1px solid #20232A; border-radius:10px; background:#0C0E11; padding:12px 14px">
+          <div style="color:#8F9098; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px">Effort per exercise</div>
+          <div style="color:#8F9098; font-size:12px; line-height:1.55">Each member is rated on its own last set, in its own card, so the three ratings arrive one per member turn through the final round instead of stacking at the end. No group rating on top: three numbers you can compare next session beat one that averages them. Unrated stays a real state, so tapping the next exercise moves on and records nothing.</div>
+        </div>
+        <div style="border:1px solid #2C3039; border-radius:10px; background:#12161C; padding:12px 14px">
+          <div style="color:#EDEEF0; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px">Why 19a over 19d</div>
+          <div style="color:#8F9098; font-size:12px; line-height:1.55">19d was quieter collapsed, but once a member opened it read as a thinner version of the card it was replacing: same content, weaker separation, and a band that had to keep inventing contrast the card already had. 9d stands unchanged, and the app keeps one card anatomy instead of two. The audit cuts and the rest and effort behaviour were never dependent on that choice, so they carry over intact.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:840,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { setsDone: [0, 0, 0], memberIdx: 0, restLeft: 0, ratings: [null, null, null] };
+  members = [
+    { name: 'Lat Pulldown', w: 120, reps: 10, rpe: 'RPE ≤ 8', last: 'Last 120 lb × 12 · 10 · 10 · RPE 8' },
+    { name: 'Face Pull', w: 40, reps: 15, rpe: 'RPE ≤ 8', last: 'Last 40 lb × 15 · 14 · 12 · RPE 8' },
+    { name: 'Rear Delt Fly', w: 25, reps: 15, rpe: 'RPE ≤ 9', last: 'Last 25 lb × 15 · 15 · 13 · RPE 9' }
+  ];
+  scale = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+  REST = 90;
+
+  componentDidMount() {
+    this.timer = setInterval(() => {
+      if (this.state.restLeft > 0) this.setState(s => ({ restLeft: s.restLeft - 1 }));
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  round() { return Math.min(3, Math.min.apply(null, this.state.setsDone) + 1); }
+  finished() { return this.state.setsDone.every(n => n >= 3); }
+
+  logSet = () => {
+    const { setsDone, memberIdx } = this.state;
+    const round = this.round();
+    if (setsDone[memberIdx] >= round) return;
+    const next = setsDone.slice();
+    next[memberIdx] = round;
+    const lastMember = memberIdx === this.members.length - 1;
+    if (round === 3) { this.setState({ setsDone: next }); return; }
+    if (!lastMember) { this.setState({ setsDone: next, memberIdx: memberIdx + 1 }); return; }
+    this.setState({ setsDone: next, memberIdx: 0, restLeft: this.REST });
+  };
+
+  rate = (v) => {
+    const { memberIdx, ratings } = this.state;
+    const next = ratings.slice();
+    next[memberIdx] = v;
+    const advance = memberIdx < this.members.length - 1 ? memberIdx + 1 : memberIdx;
+    this.setState({ ratings: next, memberIdx: advance });
+  };
+
+  skipRest = () => { if (this.state.restLeft > 0) this.setState({ restLeft: 0 }); };
+  reset = () => this.setState({ setsDone: [0, 0, 0], memberIdx: 0, restLeft: 0, ratings: [null, null, null] });
+
+  fmt(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+
+  renderVals() {
+    const { setsDone, memberIdx, restLeft, ratings } = this.state;
+    const round = this.round();
+    const finished = this.finished();
+    const allRated = ratings.every(r => r !== null);
+    const active = this.members[memberIdx];
+    const activeDone = setsDone[memberIdx];
+    const resting = restLeft > 0;
+    const showEffort = activeDone >= 3;
+
+    const rows = this.members.map((m, i) => {
+      const isActive = i === memberIdx && !(finished && allRated);
+      const loggedThisRound = setsDone[i] >= round;
+      let valueText = m.w + ' × ' + m.reps + (loggedThisRound ? ' ✓' : '');
+      if (setsDone[i] >= 3 && ratings[i] !== null) valueText = m.w + ' × ' + m.reps + ' · RPE ' + ratings[i] + ' ✓';
+      return {
+        name: m.name,
+        isActive,
+        isIdle: !isActive,
+        nameColor: loggedThisRound ? '#8F9098' : '#55575F',
+        valueColor: loggedThisRound ? '#6CA383' : '#55575F',
+        valueText,
+        jump: () => this.setState({ memberIdx: i })
+      };
+    });
+
+    const setRows = [1, 2, 3].map(n => {
+      const done = n <= activeDone;
+      const isNow = n === activeDone + 1 && n === round;
+      return {
+        n,
+        w: active.w,
+        reps: active.reps,
+        numColor: isNow ? '#EDEEF0' : '#55575F',
+        valColor: done ? '#8F9098' : (isNow ? '#EDEEF0' : '#55575F'),
+        markBorder: isNow ? '1px solid #659BC8' : (done ? 'none' : '1px solid #2C3039'),
+        markColor: done ? '#6CA383' : (isNow ? '#659BC8' : '#55575F'),
+        cursor: isNow ? 'pointer' : 'default',
+        tap: isNow ? this.logSet : undefined
+      };
+    });
+
+    const rated = ratings[memberIdx];
+    const effortZones = this.scale.map(v => ({
+      v,
+      dotSize: rated === v ? '14px' : '0px',
+      dotColor: rated === v ? '#EDEEF0' : 'transparent',
+      tap: () => this.rate(v)
+    }));
+
+    return {
+      rows, setRows, effortZones, resting,
+      showEffort,
+      effortLabel: rated === null ? 'Not rated' : 'RPE ' + rated,
+      activeRpe: active.rpe,
+      activeLast: active.last,
+      restText: this.fmt(restLeft),
+      headText: finished && allRated ? '3/3 rounds ✓' : 'Round ' + round + ' of 3',
+      headColor: finished && allRated ? '#6CA383' : '#8F9098',
+      statusLine: finished && allRated ? 'Group finished' : (resting ? 'Round ' + round + ' open, resting ' + this.fmt(restLeft) : 'Round ' + round + ' · ' + active.name),
+      logSet: this.logSet,
+      skipRest: this.skipRest,
+      reset: this.reset
+    };
+  }
+}
+
+</script>
+</body>
+</html>

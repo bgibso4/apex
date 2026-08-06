@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    body { margin:0; background:#050506; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; padding:36px 24px; }
+    a { color:#659BC8; text-decoration:none; }
+    a:hover { color:#8FB6D9; }
+  </style>
+</helmet>
+
+<div style="max-width:900px; margin:0 auto 24px">
+  <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px">Workout Logging — v2</div>
+  <div style="color:#8F9098; font-size:13px; line-height:1.55; margin-top:6px; max-width:640px">Every locked decision folded in: equal-size numerals, labeled columns, ghost line in the header, no add-set / Now pill / per-row menu, rest as a bare countdown, rail Detail · Swap · Note, note row only when a note exists, slider effort with no default, ✓/✕ prompt with moss on commit, and the swapped state. Frame 1 runs rest at A4 (card top-right); frame 3 shows the same moment at A1 (header row) for the final call. <a href="Logging Row Explorations.dc.html">Board</a> · <a href="Logging Interactive Demo.dc.html">Interactive demo</a></div>
+</div>
+
+<div style="display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:flex-start">
+
+  <!-- Frame 1: mid-set, rest A4 -->
+  <div data-screen-label="Mid-set · rest A4">
+    <div style="width:390px; border:1px solid #20232A; border-radius:44px; overflow:hidden">
+      <div style="min-height:844px; display:flex; flex-direction:column; background:radial-gradient(ellipse 90% 45% at 50% -5%, #141A22 0%, #0C0E11 55%, #090A0C 100%)">
+        <div style="height:54px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 6px; color:#EDEEF0; font-size:13px; font-weight:600"><span>9:41</span><span>100%</span></div>
+        <div style="flex:1; padding:8px 20px 24px; display:flex; flex-direction:column; gap:10px">
+          <div>
+            <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+            <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px">Upper Body A</div>
+            <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:12px"><i style="display:block; height:100%; width:33%; background:#55575F; border-radius:999px"></i></div>
+            <div style="color:#55575F; font-size:11px; font-weight:600; margin-top:6px; font-variant-numeric:tabular-nums">2 of 6 exercises · 18:24</div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="display:flex; align-items:center; justify-content:space-between; min-height:44px">
+              <span style="color:#8F9098; font-size:14px; font-weight:600">Barbell Bench Press</span>
+              <span style="color:#6CA383; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">3/3 ✓</span>
+            </div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="display:flex; align-items:flex-start; gap:12px">
+              <div style="flex:1">
+                <div style="color:#EDEEF0; font-size:14px; font-weight:700">Incline Bench Press</div>
+                <div style="color:#8F9098; font-size:13px; font-weight:600; margin-top:3px; font-variant-numeric:tabular-nums">3 sets × 8 reps · RPE ≤ 7</div>
+              </div>
+              <span style="color:#659BC8; font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.3px">1:14</span>
+            </div>
+            <div style="color:#55575F; font-size:11px; font-weight:600; margin-top:5px; font-variant-numeric:tabular-nums">Last · Jul 15 · 95 lb × 8 · 8 · 7 · RPE 7</div>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:12px; padding-bottom:6px; border-bottom:1px solid #20232A">
+              <span style="width:30px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Set</span>
+              <span style="width:76px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+              <span style="flex:1; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+              <span style="width:44px"></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+              <span style="width:30px; color:#55575F; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums">1</span>
+              <span style="width:76px; color:#8F9098; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">95</span>
+              <span style="flex:1; color:#8F9098; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">8</span>
+              <span style="min-width:44px; min-height:44px; border-radius:6px; border:1px solid #6CA383; background:#6CA3831A; display:flex; align-items:center; justify-content:center; color:#6CA383; font-size:15px">✓</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+              <span style="width:30px; color:#8F9098; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums">2</span>
+              <span style="width:76px; color:#EDEEF0; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">95</span>
+              <span style="flex:1; color:#EDEEF0; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">8</span>
+              <span style="min-width:44px; min-height:44px; border-radius:6px; border:1px solid #659BC8; display:flex; align-items:center; justify-content:center; color:#659BC8; font-size:15px">●</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px">
+              <span style="width:30px; color:#55575F; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums">3</span>
+              <span style="width:76px; color:#55575F; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">95</span>
+              <span style="flex:1; color:#55575F; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">8</span>
+              <span style="min-width:44px; min-height:44px; border-radius:6px; border:1px solid #2C3039; display:flex; align-items:center; justify-content:center; color:#55575F; font-size:15px">○</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px; padding-top:12px; border-top:1px solid #20232A">
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">Detail</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">⇄ Swap</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">✎ Note</span>
+            </div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="display:flex; align-items:center; justify-content:space-between; min-height:44px">
+              <span style="color:#8F9098; font-size:14px; font-weight:600">Lat Pulldown</span>
+              <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">0/3</span>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:6px; border:1px solid #2C3039; color:#8F9098; font-size:13px; font-weight:600">Finish workout</div>
+        </div>
+        <div style="display:flex; border-top:1px solid #20232A; background:#090A0C; padding-bottom:8px">
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">⌂</span>Home</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#659BC8; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">◉</span>Workout</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">↗</span>Progress</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">➜</span>Run</div>
+        </div>
+        <div style="width:130px; height:5px; border-radius:999px; background:#2C3039; margin:6px auto 8px"></div>
+      </div>
+    </div>
+    <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; text-align:center; margin:10px 0 8px">Mid-set · rest A4, card top-right</div>
+  </div>
+
+  <!-- Frame 2: effort + prompt -->
+  <div data-screen-label="Effort rated · prompt">
+    <div style="width:390px; border:1px solid #20232A; border-radius:44px; overflow:hidden">
+      <div style="min-height:844px; display:flex; flex-direction:column; background:radial-gradient(ellipse 90% 45% at 50% -5%, #141A22 0%, #0C0E11 55%, #090A0C 100%)">
+        <div style="height:54px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 6px; color:#EDEEF0; font-size:13px; font-weight:600"><span>9:43</span><span>100%</span></div>
+        <div style="flex:1; padding:8px 20px 24px; display:flex; flex-direction:column; gap:10px">
+          <div>
+            <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+            <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px">Upper Body A</div>
+            <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:12px"><i style="display:block; height:100%; width:50%; background:#55575F; border-radius:999px"></i></div>
+            <div style="color:#55575F; font-size:11px; font-weight:600; margin-top:6px; font-variant-numeric:tabular-nums">3 of 6 exercises · 21:05</div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="color:#EDEEF0; font-size:14px; font-weight:700">Incline Bench Press</div>
+            <div style="color:#8F9098; font-size:13px; font-weight:600; margin-top:3px; font-variant-numeric:tabular-nums">3 sets × 8 reps · RPE ≤ 7</div>
+            <div style="display:flex; align-items:center; gap:12px; min-height:44px; margin-top:8px; border-bottom:1px solid #20232A">
+              <span style="width:30px; color:#55575F; font-size:11px; font-weight:700">1–3</span>
+              <span style="flex:1; color:#8F9098; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">95 lb × 8 · 8 · 8</span>
+              <span style="color:#6CA383; font-size:13px; font-weight:700">✓ done</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; min-height:52px">
+              <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; width:52px">Effort</span>
+              <span style="flex:1; position:relative; height:44px; display:flex; align-items:center">
+                <span style="position:absolute; left:0; right:0; height:2px; border-radius:999px; background:#2C3039"></span>
+                <span style="position:absolute; left:0%; width:16px; height:16px; border-radius:999px; background:#659BC8; transform:translateX(-50%)"></span>
+                <span style="position:absolute; left:25%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                <span style="position:absolute; left:50%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                <span style="position:absolute; left:75%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                <span style="position:absolute; left:100%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              </span>
+              <span style="color:#659BC8; font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; width:28px; text-align:right">6</span>
+            </div>
+            <div style="display:flex; margin-left:66px; margin-right:42px">
+              <span style="flex:1; text-align:left; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; transform:translateX(-2px)">6</span>
+              <span style="flex:1; text-align:center; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums">8</span>
+              <span style="flex:1; text-align:right; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; transform:translateX(2px)">10</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:8px">
+              <span style="flex:1; color:#8F9098; font-size:13px; font-weight:500; line-height:1.4">Felt easy. Go to <b style="color:#6CA383; font-weight:700">100 lb</b>?</span>
+              <span style="min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px">✓</span>
+              <span style="min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#55575F; font-size:15px">✕</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px; padding-top:12px; border-top:1px solid #20232A">
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">Detail</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">⇄ Swap</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">✎ Note</span>
+            </div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="display:flex; align-items:center; justify-content:space-between; min-height:44px">
+              <span style="color:#8F9098; font-size:14px; font-weight:600">Lat Pulldown</span>
+              <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">0/3</span>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:6px; border:1px solid #2C3039; color:#8F9098; font-size:13px; font-weight:600">Finish workout</div>
+        </div>
+        <div style="display:flex; border-top:1px solid #20232A; background:#090A0C; padding-bottom:8px">
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">⌂</span>Home</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#659BC8; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">◉</span>Workout</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">↗</span>Progress</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">➜</span>Run</div>
+        </div>
+        <div style="width:130px; height:5px; border-radius:999px; background:#2C3039; margin:6px auto 8px"></div>
+      </div>
+    </div>
+    <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; text-align:center; margin:10px 0 8px">Rated 6 · compact prompt</div>
+    <div style="width:390px; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px; margin-top:6px">
+      <div style="display:flex; align-items:center; gap:8px; min-height:44px">
+        <span style="color:#6CA383; font-size:13px; font-weight:700">↑ Next session · 100 lb</span>
+        <span style="flex:1"></span>
+        <span style="color:#55575F; font-size:12px; font-weight:600">Undo</span>
+      </div>
+    </div>
+    <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; text-align:center; margin:8px 0">After ✓ · replaces the prompt row</div>
+  </div>
+
+  <!-- Frame 3: swapped exercise + note row, rest A1 -->
+  <div data-screen-label="Swapped · note · rest A1">
+    <div style="width:390px; border:1px solid #20232A; border-radius:44px; overflow:hidden">
+      <div style="min-height:844px; display:flex; flex-direction:column; background:radial-gradient(ellipse 90% 45% at 50% -5%, #141A22 0%, #0C0E11 55%, #090A0C 100%)">
+        <div style="height:54px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 6px; color:#EDEEF0; font-size:13px; font-weight:600"><span>9:52</span><span>100%</span></div>
+        <div style="flex:1; padding:8px 20px 24px; display:flex; flex-direction:column; gap:10px">
+          <div>
+            <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+            <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px">Upper Body A</div>
+            <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:12px"><i style="display:block; height:100%; width:67%; background:#55575F; border-radius:999px"></i></div>
+            <div style="display:flex; align-items:center; margin-top:6px">
+              <span style="color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums">4 of 6 exercises · 29:47</span>
+              <span style="flex:1"></span>
+              <span style="color:#55575F; font-size:11px; font-weight:600">Rest</span>
+              <span style="color:#659BC8; font-size:13px; font-weight:800; font-variant-numeric:tabular-nums; margin-left:6px">0:48</span>
+            </div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="display:flex; align-items:center; justify-content:space-between; min-height:44px">
+              <span style="color:#8F9098; font-size:14px; font-weight:600">Lat Pulldown</span>
+              <span style="color:#6CA383; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">3/3 ✓</span>
+            </div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="display:flex; align-items:center; gap:8px">
+              <span style="color:#EDEEF0; font-size:14px; font-weight:700">DB Incline Press</span>
+              <span style="padding:3px 9px; border-radius:999px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; border:1px solid #2C3039; color:#8F9098">⇄ Swapped</span>
+            </div>
+            <div style="color:#55575F; font-size:11px; font-weight:600; margin-top:3px">for Incline Bench Press · machine busy</div>
+            <div style="color:#8F9098; font-size:13px; font-weight:600; margin-top:8px; font-variant-numeric:tabular-nums">3 sets × 8 reps · RPE ≤ 7</div>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:12px; padding-bottom:6px; border-bottom:1px solid #20232A">
+              <span style="width:30px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Set</span>
+              <span style="width:76px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+              <span style="flex:1; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+              <span style="width:44px"></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+              <span style="width:30px; color:#55575F; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums">1</span>
+              <span style="width:76px; color:#8F9098; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">40</span>
+              <span style="flex:1; color:#8F9098; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">8</span>
+              <span style="min-width:44px; min-height:44px; border-radius:6px; border:1px solid #6CA383; background:#6CA3831A; display:flex; align-items:center; justify-content:center; color:#6CA383; font-size:15px">✓</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+              <span style="width:30px; color:#8F9098; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums">2</span>
+              <span style="width:76px; color:#EDEEF0; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">40</span>
+              <span style="flex:1; color:#EDEEF0; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">8</span>
+              <span style="min-width:44px; min-height:44px; border-radius:6px; border:1px solid #659BC8; display:flex; align-items:center; justify-content:center; color:#659BC8; font-size:15px">●</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px">
+              <span style="width:30px; color:#55575F; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums">3</span>
+              <span style="width:76px; color:#55575F; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">40</span>
+              <span style="flex:1; color:#55575F; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums">8</span>
+              <span style="min-width:44px; min-height:44px; border-radius:6px; border:1px solid #2C3039; display:flex; align-items:center; justify-content:center; color:#55575F; font-size:15px">○</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; min-height:40px; color:#55575F; font-size:12px; font-weight:500; border-top:1px solid #20232A">
+              <span>✎</span><span style="color:#8F9098">Machine busy, swapped to DBs</span>
+            </div>
+            <div style="display:flex; gap:8px; padding-top:12px; border-top:1px solid #20232A">
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">Detail</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">⇄ Swap</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">✎ Note</span>
+            </div>
+            <div style="color:#55575F; font-size:11px; line-height:1.5; margin-top:12px; padding-top:10px; border-top:1px solid #20232A">Logs under <span style="color:#8F9098; font-weight:700">Incline Bench Press</span> as a substitution. Next session prescribes the original.</div>
+          </div>
+          <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+            <div style="display:flex; align-items:center; justify-content:space-between; min-height:44px">
+              <span style="color:#8F9098; font-size:14px; font-weight:600">Dumbbell Curl</span>
+              <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">0/3</span>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:6px; border:1px solid #2C3039; color:#8F9098; font-size:13px; font-weight:600">Finish workout</div>
+        </div>
+        <div style="display:flex; border-top:1px solid #20232A; background:#090A0C; padding-bottom:8px">
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">⌂</span>Home</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#659BC8; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">◉</span>Workout</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">↗</span>Progress</div>
+          <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">➜</span>Run</div>
+        </div>
+        <div style="width:130px; height:5px; border-radius:999px; background:#2C3039; margin:6px auto 8px"></div>
+      </div>
+    </div>
+    <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; text-align:center; margin:10px 0 8px">Swapped + note row · rest A1, header</div>
+  </div>
+
+</div>
+
+<div style="color:#55575F; font-size:11px; line-height:1.5; max-width:640px; margin:20px auto 0; text-align:center">One tap still logs the prescribed set. Tap a weight or reps numeral to edit in the docked sheet; ✎ Note opens the keyboard composer; the note row exists only once a note does. Frame 1 vs frame 3 is the last open call: rest at the card (A4) or in the header (A1) — pick one, or A4 with A1 appearing only when the active card is scrolled off.</div>
+</x-dc>
+</body>
+</html>

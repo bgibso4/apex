@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin:0; background:#050506; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; display:flex; flex-direction:column; align-items:center; padding:36px 24px; }
+    a { color:#659BC8; text-decoration:none; }
+    a:hover { color:#8FB6D9; }
+  </style>
+</helmet>
+
+<div style="max-width:640px; margin-bottom:20px; text-align:center">
+  <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px">Logging · full assembly</div>
+  <div style="color:#8F9098; font-size:13px; line-height:1.55; margin-top:6px">Everything locked through turn 35, wired together. Log and un-log sets (tap a moss ✓ to take it back), work the superset carousel, rate each member, tap the quiet Finish to see the skip sheet and its reason popover, and finish everything to watch the button hand off to the floating pill. Add exercise and Reorder in the ⋯ menu link to their own demos. <a href="Logging Row Explorations.dc.html">Board</a> · <a href="logging-decisions.md">Decisions</a></div>
+</div>
+
+<div data-frame="1" style="width:390px; border:1px solid #20232A; border-radius:44px; overflow:hidden; position:relative; flex-shrink:0">
+  <div style="height:844px; display:flex; flex-direction:column; background:radial-gradient(ellipse 90% 45% at 50% -5%, #141A22 0%, #0C0E11 55%, #090A0C 100%)">
+    <div style="height:54px; flex-shrink:0; display:flex; align-items:flex-end; justify-content:space-between; padding:0 28px 6px; color:#EDEEF0; font-size:13px; font-weight:600"><span>9:41</span><span>100%</span></div>
+    <sc-if value="{{headerPinnedLeft}}" hint-placeholder-val="{{ true }}">
+      <div style="flex-shrink:0; padding:4px 20px 10px">
+        <div style="display:flex; align-items:center; min-height:38px">
+          <span style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:19px; font-weight:600; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer; padding-right:2px">‹</span>
+          <span style="flex:1"></span>
+          <span ref="{{ menuAnchor }}" style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; letter-spacing:1px; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer" onClick="{{ openMenu }}">⋯</span>
+        </div>
+        <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; margin-top:10px">Pillars · Week 3</div>
+        <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px">Upper Body A</div>
+        <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:8px"><i style="display:block; height:100%; background:#55575F; border-radius:999px; width: {{ progressPct }}"></i></div>
+        <div style="color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:6px">{{ headerCount }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{headerPinnedCenter}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0; padding:4px 20px 10px">
+        <div style="display:flex; align-items:center; gap:10px; min-height:44px">
+          <span style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:19px; font-weight:600; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer; padding-right:2px">‹</span>
+          <span style="flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; min-width:0">
+            <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</span>
+            <span style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; line-height:1.15; text-align:center; max-width:100%; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Athletic Power and Conditioning</span>
+          </span>
+          <span ref="{{ menuAnchor }}" style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; letter-spacing:1px; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer" onClick="{{ openMenu }}">⋯</span>
+        </div>
+        <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:8px"><i style="display:block; height:100%; background:#55575F; border-radius:999px; width: {{ progressPct }}"></i></div>
+        <div style="color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:6px">{{ headerCount }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{headerNavOnly}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0; padding:4px 20px 8px; display:flex; align-items:center; min-height:38px">
+        <span style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:19px; font-weight:600; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer; padding-right:2px">‹</span>
+        <span style="flex:1"></span>
+        <span ref="{{ menuAnchor }}" style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; letter-spacing:1px; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer" onClick="{{ openMenu }}">⋯</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{headerLarge}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0; padding:4px 20px 8px">
+        <div style="display:flex; align-items:center; gap:10px; min-height:38px">
+          <span style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:19px; font-weight:600; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer; padding-right:2px">‹</span>
+          <span style="flex:1; min-width:0; display:flex; justify-content:center; opacity: {{ miniOpacity }}; transform: {{ miniTransform }}; transition:opacity 0.22s, transform 0.22s; pointer-events:none">
+            <sc-if value="{{miniFitMode}}" hint-placeholder-val="{{ false }}">
+              <span ref="{{ miniRef }}" style="color:#EDEEF0; font-weight:700; white-space:nowrap; font-size: {{ miniFontSize }}">Athletic Power and Conditioning</span>
+            </sc-if>
+            <sc-if value="{{miniEllipsisMode}}" hint-placeholder-val="{{ true }}">
+              <span style="color:#EDEEF0; font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Athletic Power and Conditioning</span>
+            </sc-if>
+          </span>
+          <span ref="{{ menuAnchor }}" style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; letter-spacing:1px; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer" onClick="{{ openMenu }}">⋯</span>
+        </div>
+        <sc-if value="{{largeProgressPinned}}" hint-placeholder-val="{{ false }}">
+          <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:8px; opacity: {{ miniOpacity }}; transition:opacity 0.22s"><i style="display:block; height:100%; background:#55575F; border-radius:999px; width: {{ progressPct }}"></i></div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <div style="flex:1; min-height:0; overflow-y:auto; scrollbar-width:none; padding:8px 20px 24px; display:flex; flex-direction:column; gap:10px" onScroll="{{ onScroll }}">
+      <sc-if value="{{headerLarge}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0">
+        <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+        <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px; line-height:1.2">Athletic Power and Conditioning</div>
+        <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:8px"><i style="display:block; height:100%; background:#55575F; border-radius:999px; width: {{ progressPct }}"></i></div>
+        <div style="color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:6px">{{ headerCount }}</div>
+      </div>
+      </sc-if>
+      <sc-if value="{{headerScrollTitle}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0">
+        <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+        <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px">Upper Body A</div>
+        <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:8px"><i style="display:block; height:100%; background:#55575F; border-radius:999px; width: {{ progressPct }}"></i></div>
+        <div style="color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:6px">{{ headerCount }}</div>
+      </div>
+      </sc-if>
+      <sc-if value="{{headerScrolls}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0">
+        <div style="display:flex; align-items:center; min-height:38px; margin-bottom:10px">
+          <span style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:19px; font-weight:600; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer; padding-right:2px">‹</span>
+          <span style="flex:1"></span>
+          <span ref="{{ menuAnchor }}" style="width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; letter-spacing:1px; background:rgba(237,238,240,0.06); border:1px solid rgba(237,238,240,0.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); cursor:pointer" onClick="{{ openMenu }}">⋯</span>
+        </div>
+        <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+        <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:4px">Upper Body A</div>
+        <div style="height:3px; background:#20232A; border-radius:999px; overflow:hidden; margin-top:8px"><i style="display:block; height:100%; background:#55575F; border-radius:999px; width: {{ progressPct }}"></i></div>
+        <div style="color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:6px">{{ headerCount }}</div>
+      </div>
+      </sc-if>
+
+      <div style="flex-shrink:0; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px">
+        <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+          <span style="color:#8F9098; font-size:14px; font-weight:600">Barbell Bench Press</span>
+          <span style="color:#6CA383; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">3/3 ✓</span>
+        </div>
+      </div>
+
+      <sc-if value="{{inclineOpen}}" hint-placeholder-val="{{ true }}">
+      <div style="flex-shrink:0; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:14px 16px">
+        <div style="cursor:pointer" onClick="{{ collapseIncline }}">
+          <div style="display:flex; align-items:flex-start; gap:12px">
+            <div style="flex:1; color:#EDEEF0; font-size:14px; font-weight:700">Incline Bench Press</div>
+            <sc-if value="{{restActive}}" hint-placeholder-val="{{ false }}">
+              <span style="color:#659BC8; font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.3px; cursor:pointer" onClick="{{ skipRest }}">{{ restDisplay }}</span>
+            </sc-if>
+          </div>
+          <div style="margin-top:5px; font-variant-numeric:tabular-nums">
+            <span style="color:#8F9098; font-size:12px; font-weight:700">RPE ≤ 7</span>
+            <span style="color:#55575F; font-size:11px; font-weight:600">&nbsp; · &nbsp;Last 95 lb × 8 · 8 · 7 · RPE 7</span>
+          </div>
+        </div>
+        <sc-if value="{{isLogging}}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:center; gap:12px; margin-top:10px; padding-bottom:6px; border-bottom:1px solid #20232A">
+            <span style="width:30px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Set</span>
+            <span style="width:76px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+            <span style="flex:1; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+            <span style="width:44px"></span>
+          </div>
+          <sc-for list="{{rows}}" as="row" hint-placeholder-count="3">
+            <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+              <span style="width:30px; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; color: {{ row.dimColor }}">{{ row.n }}</span>
+              <span style="width:76px; min-height:44px; display:flex; align-items:center; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; cursor:pointer; color: {{ row.valColor }}" onClick="{{ row.onEdit }}">{{ row.w }}</span>
+              <span style="flex:1; min-height:44px; display:flex; align-items:center; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; cursor:pointer; color: {{ row.valColor }}" onClick="{{ row.onEdit }}">{{ row.r }}</span>
+              <span style="box-sizing:border-box; min-width:44px; min-height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; border:1px solid {{ row.tapBorder }}; color: {{ row.tapColor }}" onClick="{{ row.onTap }}">✓</span>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{isRating}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:14px; min-height:52px">
+            <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; width:52px">Effort</span>
+            <span style="flex:1; position:relative; height:44px; display:flex; align-items:center; touch-action:none; cursor:pointer" onPointerDown="{{ trackDown }}" onPointerMove="{{ trackMove }}" onPointerUp="{{ trackUp }}">
+              <span style="position:absolute; left:0; right:0; height:2px; border-radius:999px; background: {{ trackBg }}"></span>
+              <span style="position:absolute; left:0%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:25%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:50%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:75%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; left:100%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+              <span style="position:absolute; width:16px; height:16px; border-radius:999px; background:#659BC8; transform:translateX(-50%); pointer-events:none; transition: {{ thumbTransition }}; display: {{ thumbDisplay }}; left: {{ thumbLeft }}"></span>
+            </span>
+            <span style="font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; width:28px; text-align:right; color: {{ echoColor }}">{{ echo }}</span>
+          </div>
+          <div style="display:flex; margin-left:66px; margin-right:42px">
+            <span style="flex:1; text-align:left; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; transform:translateX(-2px)">6</span>
+            <span style="flex:1; text-align:center; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums">8</span>
+            <span style="flex:1; text-align:right; color:#55575F; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; transform:translateX(2px)">10</span>
+          </div>
+          <sc-if value="{{showPrompt}}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:8px; margin-top:8px">
+              <span style="flex:1; color:#8F9098; font-size:13px; font-weight:500; line-height:1.4">{{ promptText }} <b style="font-weight:700; color: {{ promptWeightColor }}">{{ promptWeight }}</b>?</span>
+              <span style="min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px; cursor:pointer" onClick="{{ onApply }}">✓</span>
+              <span style="min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#55575F; font-size:15px; cursor:pointer" onClick="{{ onKeep }}">✕</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{showResult}}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:8px; min-height:44px; margin-top:6px">
+              <span style="font-size:13px; font-weight:700; color: {{ resultColor }}">{{ resultLine }}</span>
+              <span style="flex:1"></span>
+              <span style="min-height:44px; display:flex; align-items:center; color:#55575F; font-size:12px; font-weight:600; cursor:pointer" onClick="{{ onUndo }}">Undo</span>
+            </div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{hasNote}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:8px; min-height:40px; color:#55575F; font-size:12px; font-weight:500; border-top:1px solid #20232A; cursor:pointer" onClick="{{ openNote }}">
+            <span>✎</span><span style="color:#8F9098">{{ noteSaved }}</span>
+          </div>
+        </sc-if>
+        <div style="display:flex; gap:8px; margin-top:10px; padding-top:12px; border-top:1px solid #20232A">
+          <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">Detail</span>
+          <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700">⇄ Swap</span>
+          <span style="flex:1; min-height:44px; display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:12px; font-weight:700; cursor:pointer" onClick="{{ openNote }}">✎ Note</span>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{inclineIsCollapsed}}" hint-placeholder-val="{{ false }}">
+      <div style="flex-shrink:0; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; cursor:pointer" onClick="{{ reopenIncline }}">
+        <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+          <span style="color:#8F9098; font-size:14px; font-weight:600">Incline Bench Press</span>
+          <span style="font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color: {{ inclineSideColor }}">{{ inclineSide }}</span>
+        </div>
+      </div>
+      </sc-if>
+
+      <div style="flex-shrink:0; border:1px solid #20232A; border-radius:10px; background:#0C0E11; padding:10px 8px 8px">
+        <div style="display:flex; align-items:center; gap:8px; padding:0 8px 8px">
+          <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Superset</span>
+          <span style="flex:1"></span>
+          <sc-if value="{{ssRestActive}}" hint-placeholder-val="{{ false }}">
+            <span style="color:#659BC8; font-size:13px; font-weight:800; font-variant-numeric:tabular-nums; cursor:pointer; margin-right:8px" onClick="{{ skipSsRest }}">{{ ssRestDisplay }}</span>
+          </sc-if>
+          <span style="font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; color: {{ ssRoundColor }}">{{ ssRoundLabel }}</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px">
+          <sc-for list="{{ssMembers}}" as="m" hint-placeholder-count="3">
+            <sc-if value="{{ m.open }}" hint-placeholder-val="{{ false }}">
+              <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 14px 8px">
+                <div style="color:#EDEEF0; font-size:14px; font-weight:700">{{ m.name }}</div>
+                <div style="margin-top:4px; font-variant-numeric:tabular-nums">
+                  <span style="color:#8F9098; font-size:12px; font-weight:700">{{ m.target }}</span>
+                  <span style="color:#55575F; font-size:11px; font-weight:600">&nbsp; · &nbsp;{{ m.ghost }}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px; margin-top:8px; padding-bottom:6px; border-bottom:1px solid #20232A">
+                  <span style="width:30px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Set</span>
+                  <span style="width:76px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+                  <span style="flex:1; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+                  <span style="width:44px"></span>
+                </div>
+                <sc-for list="{{ m.rows }}" as="row" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid #20232A">
+                    <span style="width:30px; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; color: {{ row.dimColor }}">{{ row.n }}</span>
+                    <span style="width:76px; min-height:44px; display:flex; align-items:center; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; color: {{ row.valColor }}">{{ row.w }}</span>
+                    <span style="flex:1; min-height:44px; display:flex; align-items:center; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; color: {{ row.valColor }}">{{ row.r }}</span>
+                    <span style="box-sizing:border-box; min-width:44px; min-height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; border:1px solid {{ row.tapBorder }}; color: {{ row.tapColor }}" onClick="{{ row.onTap }}">✓</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ m.showEffort }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:center; gap:14px; min-height:52px">
+                    <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; width:52px">Effort</span>
+                    <span style="flex:1; position:relative; height:44px; display:flex; align-items:center; touch-action:none; cursor:pointer" onPointerDown="{{ ssTrackDown }}" onPointerMove="{{ ssTrackMove }}" onPointerUp="{{ ssTrackUp }}">
+                      <span style="position:absolute; left:0; right:0; height:2px; border-radius:999px; background: {{ ssTrackBg }}"></span>
+                      <span style="position:absolute; left:0%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                      <span style="position:absolute; left:25%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                      <span style="position:absolute; left:50%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                      <span style="position:absolute; left:75%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                      <span style="position:absolute; left:100%; width:4px; height:4px; border-radius:999px; background:#55575F; transform:translateX(-50%)"></span>
+                      <span style="position:absolute; width:16px; height:16px; border-radius:999px; background:#659BC8; transform:translateX(-50%); pointer-events:none; transition: {{ ssThumbTransition }}; display: {{ ssThumbDisplay }}; left: {{ ssThumbLeft }}"></span>
+                    </span>
+                    <span style="font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; width:28px; text-align:right; color: {{ ssEchoColor }}">{{ ssEcho }}</span>
+                  </div>
+                  <sc-if value="{{ m.showPrompt }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:2px; padding-bottom:8px">
+                      <span style="flex:1; color:#8F9098; font-size:13px; font-weight:500; line-height:1.4">Felt easy. Go to <b style="font-weight:700; color:#6CA383">{{ m.promptWeight }}</b>?</span>
+                      <span style="box-sizing:border-box; min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px; cursor:pointer" onClick="{{ m.onPromptApply }}">✓</span>
+                      <span style="box-sizing:border-box; min-width:44px; min-height:44px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#55575F; font-size:15px; cursor:pointer" onClick="{{ m.onPromptKeep }}">✕</span>
+                    </div>
+                  </sc-if>
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ m.closed }}" hint-placeholder-val="{{ true }}">
+              <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:8px 14px; cursor:pointer" onClick="{{ m.onOpen }}">
+                <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+                  <span style="font-size:14px; font-weight:600; color: {{ m.nameColor }}">{{ m.name }}</span>
+                  <span style="font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; color: {{ m.sideColor }}">{{ m.side }}</span>
+                </div>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex-shrink:0; background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; cursor:pointer" onClick="{{ toggleCurl }}">
+        <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+          <span style="color:#8F9098; font-size:14px; font-weight:600">Dumbbell Curl</span>
+          <span style="font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; color: {{ curlColor }}">{{ curlLabel }}</span>
+        </div>
+      </div>
+
+      <div style="flex-shrink:0; padding-top:4px">
+        <sc-if value="{{finishQuiet}}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; border-radius:6px; border:1px solid #2C3039; color:#8F9098; font-size:13px; font-weight:600; cursor:pointer" onClick="{{ openSkip }}">Finish workout <span style="color:#55575F; font-variant-numeric:tabular-nums">{{ leftLabel }}</span></div>
+        </sc-if>
+        <sc-if value="{{finishArmed}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:10px; background:#659BC8; color:#0B0C0E; font-size:15px; font-weight:700; cursor:pointer" onClick="{{ onFinish }}">Finish workout</div>
+        </sc-if>
+        <sc-if value="{{finishDone}}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; border-radius:6px; border:1px solid #6CA383; background:#6CA3831A; color:#6CA383; font-size:13px; font-weight:700">✓ Upper Body A complete</div>
+        </sc-if>
+      </div>
+    </div>
+    <div style="flex-shrink:0; display:flex; border-top:1px solid #20232A; background:#090A0C; padding-bottom:8px">
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">⌂</span>Home</div>
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#659BC8; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">◉</span>Workout</div>
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">↗</span>Progress</div>
+      <div style="flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px"><span style="font-size:18px">➜</span>Run</div>
+    </div>
+    <div style="width:130px; height:5px; border-radius:999px; background:#2C3039; margin:6px auto 8px"></div>
+  </div>
+
+  <div style="position:absolute; inset:0; background:rgba(5,5,6,0.5); transition:opacity 0.25s; opacity: {{ dimOpacity }}; pointer-events: {{ dimEvents }}" onClick="{{ closeAll }}"></div>
+
+  <sc-if value="{{allComplete}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; left:92px; right:92px; bottom:96px; display:flex">
+      <span style="flex:1; display:flex; align-items:center; justify-content:center; min-height:52px; border-radius:999px; background:rgba(101,155,200,0.82); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); border:1px solid rgba(160,200,232,0.5); box-shadow:0 10px 28px rgba(0,0,0,0.5); color:#08131D; font-size:14px; font-weight:700; cursor:pointer" onClick="{{ onFinish }}">Finish workout</span>
+    </div>
+  </sc-if>
+
+  <div style="position:absolute; right:16px; width:216px; border-radius:14px; background:rgba(26,29,35,0.72); border:1px solid rgba(237,238,240,0.1); backdrop-filter:blur(24px) saturate(1.4); -webkit-backdrop-filter:blur(24px) saturate(1.4); overflow:hidden; transition:opacity 0.18s, transform 0.18s; transform-origin:top right; top: {{ popTop }}; opacity: {{ menuOpacity }}; transform: {{ menuScale }}; pointer-events: {{ menuEvents }}">
+    <a href="Add Exercise Demo.dc.html" style="display:flex; align-items:center; gap:12px; min-height:48px; padding:0 16px; color:#EDEEF0; font-size:14px; font-weight:600; border-bottom:1px solid rgba(237,238,240,0.07); cursor:pointer"><span style="color:#8F9098; width:18px">+</span>Add exercise</a>
+    <a href="Logging Row Explorations.dc.html#34a" style="display:flex; align-items:center; gap:12px; min-height:48px; padding:0 16px; color:#EDEEF0; font-size:14px; font-weight:600; cursor:pointer"><span style="color:#8F9098; width:18px">≡</span>Reorder</a>
+  </div>
+
+  <div style="position:absolute; left:0; right:0; bottom:0; background:#14161B; border-top:1px solid #2C3039; padding:12px 20px 28px; transition:transform 0.28s cubic-bezier(0.32,0.72,0,1); transform: {{ sheetTransform }}">
+    <div style="display:flex; align-items:center">
+      <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">{{ editTitle }}</span>
+      <span style="flex:1"></span>
+      <span style="box-sizing:border-box; min-height:32px; margin:6px 0; padding:0 15px; display:flex; align-items:center; border-radius:999px; background:rgba(38,42,50,0.55); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%); border:1px solid rgba(101,155,200,0.45); color:#659BC8; font-size:13px; font-weight:700; cursor:pointer" onClick="{{ closeAll }}">Done</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
+      <span style="width:52px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Weight</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ wDown }}">−5</span>
+      <span style="flex:1; text-align:center; color:#EDEEF0; font-size:26px; font-weight:800; font-variant-numeric:tabular-nums">{{ editW }}</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ wUp }}">+5</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+      <span style="width:52px; color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Reps</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ rDown }}">−1</span>
+      <span style="flex:1; text-align:center; color:#EDEEF0; font-size:26px; font-weight:800; font-variant-numeric:tabular-nums">{{ editR }}</span>
+      <span style="min-width:52px; min-height:48px; border:1px solid #2C3039; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#8F9098; font-size:16px; font-weight:700; cursor:pointer" onClick="{{ rUp }}">+1</span>
+    </div>
+  </div>
+
+  <div style="position:absolute; left:0; right:0; bottom:0; transition:transform 0.28s cubic-bezier(0.32,0.72,0,1); transform: {{ noteTransform }}">
+    <div style="background:#14161B; border-top:1px solid #2C3039; padding:12px 20px 14px">
+      <div style="display:flex; align-items:center">
+        <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Note · Incline Bench Press</span>
+        <span style="flex:1"></span>
+        <span style="box-sizing:border-box; min-height:32px; margin:6px 0; padding:0 15px; display:flex; align-items:center; border-radius:999px; background:rgba(38,42,50,0.55); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%); border:1px solid rgba(101,155,200,0.45); color:#659BC8; font-size:13px; font-weight:700; cursor:pointer" onClick="{{ saveNote }}">Done</span>
+      </div>
+      <div style="color:#EDEEF0; font-size:15px; font-weight:500; margin-top:4px; min-height:22px">{{ noteDraft }}<span style="display:inline-block; width:2px; height:16px; background:#659BC8; vertical-align:-2px"></span></div>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+          <span style="padding:7px 13px; border:1px solid #2C3039; border-radius:999px; color:#8F9098; font-size:12px; font-weight:600; cursor:pointer" onClick="{{ c.onTap }}">{{ c.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background:#1A1D23; padding:8px 4px 4px">
+      <div style="display:flex; gap:5px; justify-content:center; margin-bottom:7px">
+        <sc-for list="{{kbRow1}}" as="k" hint-placeholder-count="10"><span style="width:33px; height:42px; background:#3A3D45; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px">{{ k }}</span></sc-for>
+      </div>
+      <div style="display:flex; gap:5px; justify-content:center; margin-bottom:7px">
+        <sc-for list="{{kbRow2}}" as="k" hint-placeholder-count="9"><span style="width:33px; height:42px; background:#3A3D45; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px">{{ k }}</span></sc-for>
+      </div>
+      <div style="display:flex; gap:5px; justify-content:center; margin-bottom:7px">
+        <span style="width:44px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px">⇧</span>
+        <sc-for list="{{kbRow3}}" as="k" hint-placeholder-count="7"><span style="width:33px; height:42px; background:#3A3D45; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:15px">{{ k }}</span></sc-for>
+        <span style="width:44px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px; cursor:pointer" onClick="{{ backspace }}">⌫</span>
+      </div>
+      <div style="display:flex; gap:5px; justify-content:center">
+        <span style="width:88px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px">123</span>
+        <span style="width:186px; height:42px; background:#3A3D45; border-radius:5px"></span>
+        <span style="width:88px; height:42px; background:#2C3039; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#EDEEF0; font-size:13px">return</span>
+      </div>
+      <div style="width:130px; height:5px; border-radius:999px; background:#55575F; margin:14px auto 6px"></div>
+    </div>
+  </div>
+
+  <div style="position:absolute; left:0; right:0; bottom:0; background:rgba(26,29,35,0.97); border-top:1px solid #2C3039; border-radius:16px 16px 0 0; padding:10px 16px 24px; transition:transform 0.28s cubic-bezier(0.32,0.72,0,1); transform: {{ skipTransform }}">
+    <div style="width:36px; height:4px; border-radius:2px; background:#3A3F4A; margin:0 auto 12px"></div>
+    <div style="color:#EDEEF0; font-size:16px; font-weight:700; letter-spacing:-0.2px">{{ skipTitle }}</div>
+    <div style="color:#8F9098; font-size:12px; font-weight:500; margin-top:4px; line-height:1.45">Finishing records them as skipped. A reason is optional and helps the program adapt.</div>
+    <div style="margin-top:12px; border-top:1px solid #262A32">
+      <sc-for list="{{skipRows}}" as="k" hint-placeholder-count="2">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; border-bottom:1px solid #262A32">
+          <span style="color:#EDEEF0; font-size:14px; font-weight:600">{{ k.name }}</span>
+          <span ref="{{ k.pillRef }}" style="display:flex; align-items:center; min-height:32px; padding:0 11px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid {{ k.pillBorder }}; color: {{ k.pillColor }}" onClick="{{ k.onPill }}">{{ k.pillLabel }}</span>
+        </div>
+      </sc-for>
+      <sc-if value="{{skipOffer}}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; align-items:center; min-height:44px; color:#659BC8; font-size:12px; font-weight:600; cursor:pointer" onClick="{{ applyOffer }}">{{ skipOfferLabel }}</div>
+      </sc-if>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:12px">
+      <span style="flex:1; min-height:48px; display:flex; align-items:center; justify-content:center; border:1px solid #2C3039; border-radius:9px; color:#8F9098; font-size:14px; font-weight:600; cursor:pointer" onClick="{{ closeAll }}">Keep going</span>
+      <span style="flex:1; min-height:48px; display:flex; align-items:center; justify-content:center; border-radius:9px; background:#659BC8; color:#0A0C0F; font-size:14px; font-weight:700; cursor:pointer" onClick="{{ onFinish }}">Finish</span>
+    </div>
+  </div>
+
+  <sc-if value="{{reasonOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; right:16px; width:212px; border-radius:14px; background:rgba(26,29,35,0.82); border:1px solid rgba(237,238,240,0.12); backdrop-filter:blur(24px) saturate(160%); -webkit-backdrop-filter:blur(24px) saturate(160%); box-shadow:0 10px 24px rgba(0,0,0,0.4); overflow:hidden; bottom: {{ reasonBottom }}">
+      <sc-for list="{{reasonItems}}" as="ri" hint-placeholder-count="4">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:46px; padding:0 14px; color:#EDEEF0; font-size:14px; font-weight:600; border-bottom:1px solid rgba(237,238,240,0.07); cursor:pointer" onClick="{{ ri.onTap }}">{{ ri.label }}<span style="color:#659BC8; font-size:13px">{{ ri.check }}</span></div>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+
+<div style="display:flex; align-items:center; justify-content:center; min-height:44px; border:1px solid #2C3039; border-radius:6px; color:#8F9098; font-size:13px; font-weight:600; cursor:pointer; padding:0 24px; margin-top:20px" onClick="{{ reset }}">↺ Replay demo</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 460, &quot;height&quot;: 1000}, &quot;headerStyle&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;large title · fit mini title&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;large title · fit mini title&quot;, &quot;large title · progress pinned&quot;, &quot;large title · progress scrolls&quot;, &quot;pinned&quot;, &quot;pinned · centered title&quot;, &quot;nav pinned · title scrolls&quot;, &quot;scrolls with content&quot;], &quot;section&quot;: &quot;Variations&quot;}, &quot;restSeconds&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 120, &quot;tsType&quot;: &quot;number&quot;, &quot;min&quot;: 10, &quot;max&quot;: 300, &quot;section&quot;: &quot;Demo&quot;}}">
+class Component extends DCLogic {
+  state = Component.initial();
+  static initial() {
+    return {
+      sets: [{w:95,r:8,done:false},{w:95,r:8,done:false},{w:95,r:8,done:false}],
+      rating:null, dragging:false, decision:null,
+      edit:null, menuOpen:false, noteOpen:false, noteDraft:'', noteSaved:'',
+      ssLogs:[[false,false,false],[false,false,false],[false,false,false]],
+      ssOpen:0, ssRatings:[null,null,null], ssDragging:false, ssRest:0,
+      curlDone:false, finished:false, inclineCollapsed:false, ssPromptFor:null, ssDecisions:{},
+      skipOpen:false, skipReasons:{}, lastReason:null, reasonFor:null, reasonBottom:0,
+      clock:1104, popTop:150, scrolled:false, miniScale:1
+    };
+  }
+  componentWillUnmount() { clearInterval(this._t); clearInterval(this._ts); clearInterval(this._tc); }
+  componentDidMount() {
+    this._pills = {};
+    this.measure();
+    this._tc = setInterval(() => { if (!this.state.finished) this.setState(s => ({ clock: s.clock + 1 })); }, 1000);
+  }
+  componentDidUpdate() { this.measure(); }
+  measure() {
+    const host = this._anchor && this._anchor.closest('[data-frame]');
+    if (this._anchor && host) {
+      const top = Math.round(this._anchor.getBoundingClientRect().bottom - host.getBoundingClientRect().top + 8);
+      if (top !== this.state.popTop) this.setState({ popTop: top });
+    }
+    if (this._mini) {
+      const natural = this._mini.scrollWidth / (this.state.miniScale || 1);
+      if (natural > 0) {
+        const sc = Math.min(1, this._mini.parentElement.clientWidth / natural);
+        if (Math.abs(sc - this.state.miniScale) > 0.02) this.setState({ miniScale: sc });
+      }
+    }
+    const rf = this.state.reasonFor, pill = rf && this._pills && this._pills[rf];
+    if (pill) {
+      const h = pill.closest('[data-frame]');
+      const bottom = Math.round(h.getBoundingClientRect().bottom - pill.getBoundingClientRect().top + 8);
+      if (bottom !== this.state.reasonBottom) this.setState({ reasonBottom: bottom });
+    }
+  }
+  startRest() {
+    clearInterval(this._t);
+    this.setState({ rest: this.props.restSeconds ?? 120 });
+    this._t = setInterval(() => this.setState(s => s.rest <= 1 ? (clearInterval(this._t), { rest: 0 }) : { rest: s.rest - 1 }), 1000);
+  }
+  startSsRest() {
+    clearInterval(this._ts);
+    this.setState({ ssRest: 60 });
+    this._ts = setInterval(() => this.setState(s => s.ssRest <= 1 ? (clearInterval(this._ts), { ssRest: 0 }) : { ssRest: s.ssRest - 1 }), 1000);
+  }
+  ssAdvance(m) {
+    this.setState(st => {
+      let next = -1;
+      for (let k = 1; k <= 3; k++) { const c = (m + k) % 3; if (!st.ssLogs[c].every(Boolean)) { next = c; break; } }
+      return { ssOpen: next, ssPromptFor: null };
+    });
+  }
+  fmt(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+  renderVals() {
+    const s = this.state, p = this.props;
+    const SS = [
+      { name:'Lat Pulldown', w:120, r:10, target:'RPE ≤ 8', ghost:'Last 120 lb × 10 · 10 · 9 · RPE 8' },
+      { name:'Face Pull', w:40, r:15, target:'RPE ≤ 8', ghost:'Last 40 lb × 15 · 15 · 14 · RPE 7' },
+      { name:'Rear Delt Fly', w:15, r:12, target:'RPE ≤ 8', ghost:'Last 15 lb × 12 · 12 · 12 · RPE 8' }
+    ];
+    const inclineTouched = s.sets.some(x => x.done);
+    const inclineAll = s.sets.every(x => x.done);
+    const memberDone = m => s.ssLogs[m].every(Boolean);
+    const memberTouched = m => s.ssLogs[m].some(Boolean);
+    const ssAll = [0,1,2].every(memberDone);
+    const doneExercises = 1 + (inclineAll?1:0) + [0,1,2].filter(memberDone).length + (s.curlDone?1:0);
+    const untouched = [];
+    if (!inclineTouched) untouched.push('Incline Bench Press');
+    [0,1,2].forEach(m => { if (!memberTouched(m)) untouched.push(SS[m].name); });
+    if (!s.curlDone) untouched.push('Dumbbell Curl');
+    const allComplete = inclineAll && ssAll && s.curlDone;
+    const earliest = s.sets.findIndex(x => !x.done);
+    const btn = (state) => state === 'armed' ? { tapBorder:'#659BC8', tapColor:'#659BC8' }
+      : state === 'avail' ? { tapBorder:'#2C3039', tapColor:'#55575F' }
+      : { tapBorder:'transparent', tapColor:'#6CA383' };
+    const rows = s.sets.map((x, i) => ({
+      n: i + 1, w: x.w, r: x.r,
+      dimColor: x.done ? '#55575F' : i === earliest ? '#8F9098' : '#55575F',
+      valColor: x.done ? '#8F9098' : i === earliest ? '#EDEEF0' : '#55575F',
+      ...btn(x.done ? 'logged' : i === earliest ? 'armed' : 'avail'),
+      onTap: () => {
+        if (x.done) { clearInterval(this._t); this.setState(st => ({ sets: st.sets.map((y,j) => j===i ? {...y, done:false} : y), rest:0, rating:null, decision:null })); }
+        else { this.setState(st => ({ sets: st.sets.map((y,j) => j===i ? {...y, done:true} : y), forceSets:false })); if (s.sets.filter((y,j)=>!y.done && j!==i).length > 0) this.startRest(); else { clearInterval(this._t); this.setState({ rest:0 }); } }
+      },
+      onEdit: () => this.setState({ edit: i, menuOpen:false, noteOpen:false, skipOpen:false, reasonFor:null }),
+    }));
+    // superset
+    const ssMembers = SS.map((def, m) => {
+      const logs = s.ssLogs[m], open = s.ssOpen === m, done = memberDone(m);
+      const mEarliest = logs.findIndex(v => !v);
+      const mrows = logs.map((lg, r) => ({
+        n: r + 1, w: def.w, r: def.r,
+        dimColor: lg ? '#55575F' : r === mEarliest ? '#8F9098' : '#55575F',
+        valColor: lg ? '#8F9098' : r === mEarliest ? '#EDEEF0' : '#55575F',
+        ...btn(lg ? 'logged' : r === mEarliest ? 'armed' : 'avail'),
+        onTap: () => {
+          if (lg) { clearInterval(this._ts); this.setState(st => { const L = st.ssLogs.map(a=>a.slice()); L[m][r]=false; return { ssLogs:L, ssOpen:m, ssRest:0 }; }); return; }
+          this.setState(st => {
+            const L = st.ssLogs.map(a=>a.slice()); L[m][r]=true;
+            const nowDone = L[m].every(Boolean);
+            let next = m;
+            if (!nowDone || L.some(a=>!a.every(Boolean))) {
+              for (let k=1;k<=3;k++) { const c=(m+k)%3; if (!L[c].every(Boolean)) { next=c; break; } }
+            }
+            if (nowDone && st.ssRatings[m] == null) next = m; // stay to rate on final round
+            return { ssLogs:L, ssOpen: next };
+          }, () => {
+            const L = this.state.ssLogs;
+            if (L.every(a=>a[r]) && !L.every(a=>a.every(Boolean))) this.startSsRest();
+          });
+        },
+      }));
+      const rated = s.ssRatings[m];
+      return {
+        name: def.name, target: def.target, ghost: def.ghost,
+        open, closed: !open, rows: mrows,
+        showEffort: open && done,
+        showPrompt: open && done && s.ssPromptFor === m,
+        promptWeight: (def.w + 5) + ' lb',
+        onPromptApply: () => { this.setState(st => ({ ssDecisions: { ...st.ssDecisions, [m]: 'apply' } })); this.ssAdvance(m); },
+        onPromptKeep: () => { this.setState(st => ({ ssDecisions: { ...st.ssDecisions, [m]: 'keep' } })); this.ssAdvance(m); },
+        nameColor: done ? '#8F9098' : '#8F9098',
+        side: done ? (rated != null ? '✓ · RPE ' + rated : '✓') : '',
+        sideColor: done ? '#6CA383' : '#55575F',
+        onOpen: () => this.setState({ ssOpen: m }),
+      };
+    });
+    const round = Math.min(...s.ssLogs.map(a=>a.filter(Boolean).length)) + 1;
+    // sliders
+    const slide = (key, onRelease) => ({
+      down: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.setState({ [key+'Dragging']: true }); this._rate(key, e); },
+      move: (e) => { if (this.state[key+'Dragging']) this._rate(key, e); },
+      up: () => { this.setState({ [key+'Dragging']: false }); if (onRelease) onRelease(); },
+    });
+    const inclineSlide = slide('', () => {
+      const st = this.state;
+      if (st.rating != null && (st.rating >= 7 || st.decision)) this.setState({ inclineCollapsed: true });
+    });
+    const ssSlide = slide('ss', () => {
+      const st = this.state, m = st.ssOpen;
+      if (m < 0 || st.ssRatings[m] == null) return;
+      if (st.ssRatings[m] <= 6 && !st.ssDecisions[m]) this.setState({ ssPromptFor: m });
+      else this.ssAdvance(m);
+    });
+    const up = s.rating != null && s.rating <= 6;
+    const pct = s.rating != null ? ((s.rating - 6) / 4) * 100 : 0;
+    const ssRating = s.ssRatings[s.ssOpen];
+    const ssPct = ssRating != null ? ((ssRating - 6) / 4) * 100 : 0;
+    const promptWeight = '100 lb';
+    const ei = s.edit ?? 0;
+    const adj = (field, d, min) => this.setState(st => ({ sets: st.sets.map((x, j) => j === (st.edit ?? 0) ? { ...x, [field]: Math.max(min, x[field] + d) } : x) }));
+    const anyOverlay = s.edit != null || s.noteOpen || s.menuOpen || s.skipOpen;
+    const reasons = ['Ran out of time', 'No equipment', 'Machine busy', 'It hurt'];
+    const chosen = s.reasonFor ? (s.skipReasons[s.reasonFor] ?? null) : null;
+    const skipNames = untouched;
+    const hp = p.headerStyle ?? 'pinned';
+    const unset = skipNames.filter(n => !s.skipReasons[n]);
+    return {
+      menuAnchor: (el) => { this._anchor = el; },
+      headerPinnedLeft: hp === 'pinned', headerPinnedCenter: hp === 'pinned · centered title',
+      headerNavOnly: hp === 'nav pinned · title scrolls', headerScrollTitle: hp === 'nav pinned · title scrolls',
+      headerScrolls: hp === 'scrolls with content',
+      headerLarge: hp.indexOf('large title') === 0,
+      largeProgressPinned: hp === 'large title · progress pinned' || hp === 'large title · fit mini title',
+      miniFitMode: hp === 'large title · fit mini title',
+      miniEllipsisMode: hp.indexOf('large title') === 0 && hp !== 'large title · fit mini title',
+      miniRef: (el) => { this._mini = el; },
+      miniFontSize: (15 * s.miniScale).toFixed(1) + 'px',
+      miniOpacity: s.scrolled ? 1 : 0,
+      miniTransform: s.scrolled ? 'translateY(0)' : 'translateY(7px)',
+      onScroll: (e) => { const c = e.currentTarget.scrollTop > 56; if (c !== this.state.scrolled) this.setState({ scrolled: c }); },
+      inclineOpen: !s.inclineCollapsed,
+      inclineIsCollapsed: s.inclineCollapsed,
+      inclineSide: inclineAll ? '3/3 ✓' + (s.rating != null ? ' · RPE ' + s.rating : '') : s.sets.filter(x=>x.done).length + '/3',
+      inclineSideColor: inclineAll ? '#6CA383' : '#55575F',
+      collapseIncline: () => this.setState({ inclineCollapsed: true }),
+      reopenIncline: () => this.setState({ inclineCollapsed: false }),
+      openMenu: () => this.setState({ menuOpen:true, edit:null, noteOpen:false, skipOpen:false, reasonFor:null }),
+      popTop: s.popTop + 'px',
+      menuOpacity: s.menuOpen ? 1 : 0,
+      menuScale: s.menuOpen ? 'scale(1)' : 'scale(0.85)',
+      menuEvents: s.menuOpen ? 'auto' : 'none',
+      progressPct: Math.round(doneExercises / 6 * 100) + '%',
+      headerCount: doneExercises + ' of 6 exercises · ' + this.fmt(s.clock),
+      restActive: s.rest > 0, restDisplay: this.fmt(s.rest),
+      skipRest: (e) => { e.stopPropagation(); clearInterval(this._t); this.setState({ rest:0 }); },
+      isLogging: true, isRating: inclineAll, rows,
+      trackDown: inclineSlide.down, trackMove: inclineSlide.move, trackUp: inclineSlide.up,
+      thumbTransition: s.dragging ? 'none' : 'left 0.18s',
+      trackBg: s.rating != null ? 'linear-gradient(90deg,#659BC8 0%,#659BC8 ' + pct + '%,#2C3039 ' + pct + '%,#2C3039 100%)' : '#2C3039',
+      thumbDisplay: s.rating != null ? 'block' : 'none', thumbLeft: pct + '%',
+      echo: s.rating != null ? s.rating : '', echoColor: s.rating != null ? '#659BC8' : '#55575F',
+      showPrompt: up && !s.decision,
+
+      promptText: 'Felt easy. Go to',
+      promptWeight, promptWeightColor: '#6CA383',
+      onApply: () => this.setState({ decision:'apply', inclineCollapsed:true }),
+      onKeep: () => this.setState({ decision:'keep', inclineCollapsed:true }),
+      onUndo: () => this.setState({ decision:null }),
+      showResult: !!s.decision,
+      resultColor: s.decision === 'apply' ? '#6CA383' : '#8F9098',
+      resultLine: s.decision === 'apply' ? '↑ Next session · ' + promptWeight : 'Next session · 95 lb',
+      hasNote: !!s.noteSaved, noteSaved: s.noteSaved,
+      openNote: () => this.setState({ noteOpen:true, noteDraft: this.state.noteSaved, edit:null, menuOpen:false, skipOpen:false, reasonFor:null }),
+      saveNote: () => this.setState({ noteOpen:false, noteSaved: this.state.noteDraft.trim() }),
+      noteDraft: s.noteDraft,
+      noteTransform: s.noteOpen ? 'translateY(0)' : 'translateY(105%)',
+      chips: ['felt heavy','machine busy','form cue'].map(label => ({ label, onTap: () => this.setState(st => ({ noteDraft:(st.noteDraft ? st.noteDraft + ', ' : '') + label })) })),
+      backspace: () => this.setState(st => ({ noteDraft: st.noteDraft.slice(0, -1) })),
+      kbRow1:'QWERTYUIOP'.split(''), kbRow2:'ASDFGHJKL'.split(''), kbRow3:'ZXCVBNM'.split(''),
+      ssMembers,
+      ssRestActive: s.ssRest > 0, ssRestDisplay: this.fmt(s.ssRest),
+      skipSsRest: () => { clearInterval(this._ts); this.setState({ ssRest:0 }); },
+      ssRoundLabel: ssAll ? '✓ 3 rounds' : 'Round ' + Math.min(round, 3) + ' of 3',
+      ssRoundColor: ssAll ? '#6CA383' : '#55575F',
+      ssTrackDown: ssSlide.down, ssTrackMove: ssSlide.move, ssTrackUp: ssSlide.up,
+      ssThumbTransition: s.ssDragging ? 'none' : 'left 0.18s',
+      ssTrackBg: ssRating != null ? 'linear-gradient(90deg,#659BC8 0%,#659BC8 ' + ssPct + '%,#2C3039 ' + ssPct + '%,#2C3039 100%)' : '#2C3039',
+      ssThumbDisplay: ssRating != null ? 'block' : 'none', ssThumbLeft: ssPct + '%',
+      ssEcho: ssRating != null ? ssRating : '', ssEchoColor: ssRating != null ? '#659BC8' : '#55575F',
+      curlColor: s.curlDone ? '#6CA383' : '#55575F',
+      curlLabel: s.curlDone ? '3/3 ✓' : '0/3',
+      toggleCurl: () => this.setState(st => ({ curlDone: !st.curlDone, finished:false })),
+      finishQuiet: untouched.length > 0 && !s.finished,
+      finishArmed: untouched.length === 0 && !allComplete && !s.finished,
+      allComplete: allComplete && !s.finished,
+      finishDone: s.finished,
+      leftLabel: '· ' + untouched.length + ' left',
+      openSkip: () => this.setState({ skipOpen:true, edit:null, menuOpen:false, noteOpen:false }),
+      onFinish: () => { clearInterval(this._t); clearInterval(this._ts); this.setState({ finished:true, skipOpen:false, reasonFor:null, rest:0, ssRest:0 }); },
+      skipTransform: s.skipOpen ? 'translateY(0)' : 'translateY(105%)',
+      skipTitle: skipNames.length + (skipNames.length === 1 ? ' exercise' : ' exercises') + ' not logged',
+      skipRows: skipNames.map(name => {
+        const rsn = s.skipReasons[name];
+        return {
+          name,
+          pillLabel: rsn ?? 'Add reason',
+          pillBorder: rsn ? '#3A3F4A' : '#2C3039',
+          pillColor: rsn ? '#EDEEF0' : '#8F9098',
+          pillRef: (el) => { if (this._pills) this._pills[name] = el; },
+          onPill: () => this.setState({ reasonFor: this.state.reasonFor === name ? null : name }),
+        };
+      }),
+      skipOffer: !!s.lastReason && unset.length > 0 && skipNames.some(n => s.skipReasons[n]),
+      skipOfferLabel: 'Use ' + (s.lastReason || '') + (unset.length === 1 && skipNames.length - unset.length === 1 ? ' for both' : ' for the rest'),
+      applyOffer: () => this.setState(st => { const R = { ...st.skipReasons }; skipNames.forEach(n => { if (!R[n]) R[n] = st.lastReason; }); return { skipReasons: R }; }),
+      reasonOpen: !!s.reasonFor && s.skipOpen,
+      reasonBottom: s.reasonBottom + 'px',
+      reasonItems: reasons.map(label => ({
+        label, check: chosen === label ? '✓' : '',
+        onTap: () => this.setState(st => {
+          const R = { ...st.skipReasons };
+          const clearing = R[st.reasonFor] === label;
+          if (clearing) delete R[st.reasonFor]; else R[st.reasonFor] = label;
+          return { skipReasons: R, lastReason: clearing ? st.lastReason : label, reasonFor: null };
+        }),
+      })),
+      dimOpacity: anyOverlay ? 1 : 0, dimEvents: anyOverlay ? 'auto' : 'none',
+      closeAll: () => this.state.reasonFor ? this.setState({ reasonFor:null }) : this.setState({ edit:null, menuOpen:false, noteOpen:false, skipOpen:false }),
+      sheetTransform: s.edit != null ? 'translateY(0)' : 'translateY(105%)',
+      editTitle: 'Set ' + (ei + 1) + ' · Incline Bench Press',
+      editW: s.sets[ei].w, editR: s.sets[ei].r,
+      wDown: () => adj('w', -5, 5), wUp: () => adj('w', 5, 5),
+      rDown: () => adj('r', -1, 1), rUp: () => adj('r', 1, 1),
+      reset: () => { clearInterval(this._t); clearInterval(this._ts); this.setState(Component.initial()); },
+    };
+  }
+  _rate(key, e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const val = 6 + Math.round(pos * 4);
+    if (key === 'ss') this.setState(st => { const R = st.ssRatings.slice(); R[st.ssOpen] = val; return { ssRatings: R }; });
+    else this.setState({ rating: val, decision: null });
+  }
+}
+</script>
+</body>
+</html>

@@ -96,16 +96,15 @@
   This document leads with the world — how the field designs Home, the philosophies available, the jobs the screen
   actually serves — and only then turns to APEX's own decisions. It reports options; it decides nothing.</p>
 
-<div class="callout warn">
-  <p><b>Provenance and a gap.</b> Five researchers were commissioned. Three delivered:
+<div class="callout">
+  <p><b>Provenance.</b> Five researchers were commissioned and all five delivered:
     <code>leaders.md</code> (industry teardown), <code>jtbd.md</code> (jobs-to-be-done),
-    <code>evolution.md</code> (adaptive-home architecture). <span class="tag gap">source missing</span>
-    Two did not: <code>rising.md</code> (home-screen philosophies) and <code>baseline.md</code> (the Baseline
-    weight app + integration audit). Sections 2 and 4 are therefore <b>reconstructed by the synthesis lead</b>
-    from the adjacent delivered research and the health-ecosystem specs, and are marked
-    <span class="tag new">inferred</span> throughout; the Baseline sync reality in §4 is a fresh audit of the repo
-    and D1 schema by the synthesis lead, marked <span class="tag in-code">verified</span>. Everything else traces
-    to a named delivered file, shown as <span class="src">source.md</span> at the point of claim.</p>
+    <code>evolution.md</code> (adaptive-home architecture), <code>rising.md</code> (rising apps +
+    home-screen philosophies), and <code>baseline.md</code> (the Baseline app + integration audit).
+    Every claim traces to a named delivered file, shown as <span class="src">source.md</span> at the point
+    of claim. The Baseline sync state in §4 is a fresh cross-repo audit — git-diffed across the Baseline,
+    <code>health-api</code>, and <code>cadre-shared</code> trees — and is marked
+    <span class="tag in-code">verified</span>.</p>
 </div>
 
 <h2><span class="n">1</span>How the Field Designs Home</h2>
@@ -196,67 +195,90 @@
 </table>
 </div>
 
-<h2><span class="n">2</span>Philosophies of a Home Screen <span class="tag new">inferred</span></h2>
-<p><span class="tag gap">source missing</span> The dedicated philosophies file (<code>rising.md</code>) was not
-  delivered. The taxonomy below is reconstructed by the synthesis lead from the postures observed across
-  <code>leaders.md</code> and the precedents in <code>evolution.md</code>. Treat it as a menu of stances, not a
-  ranking. Each philosophy is a different answer to "what is the home <i>for</i>?"</p>
+<h2><span class="n">2</span>Philosophies of a Home Screen</h2>
+<p>Six recurring stances on what a Home screen is <i>for</i>, synthesised from a study of rising, opinionated
+  fitness apps (Ladder, Boostcamp, Alpha Progression, Gentler Streak, Bevel, Train Fitness, Caliber) and
+  best-in-class Today-screens outside fitness (Duolingo, Things 3, Copilot Money, Headspace, iOS Smart Stack /
+  Google Discover) <span class="src">rising.md</span>. Treat it as a menu of stances, not a ranking — each is a
+  different answer to "what is the home <i>for</i>?"</p>
 
 <div class="card">
-  <h3>The Queue / Launcher</h3>
-  <p class="thesis">Home is a list of things you could start.</p>
-  <p>Strong's templates, Hevy's routines, Peloton's Stack. <b>Trade:</b> fastest path to starting a
-    <i>known</i> thing, and it separates deciding from doing when you pre-load it — but it holds no opinion about
-    what today <i>should</i> be, and decays into a flat menu of equal choices.</p>
-  <p><b>For APEX this would mean</b> a templates/routines list as the landing surface — which <code>jtbd.md</code>
-    names an explicit anti-job ("not a launcher grid of equal choices"). The Stack's deciding-vs-doing idea is
-    worth stealing without adopting the launcher as the whole home.</p>
+  <h3>The Queue</h3>
+  <p class="thesis">Home is the single next prescribed action in an authored sequence.</p>
+  <p><b>Embodied by</b> Duolingo's path, Boostcamp, Ladder's coach-assigned week, Alpha Progression's plan.
+    <b>Trade:</b> excellent adherence and zero decision-friction, low choice and high compliance — but brittle
+    around real-life exceptions (missed days, deload weeks, illness) unless paired with a forgiving fallback
+    state; Duolingo's streak-loss anxiety is the cautionary case.</p>
+  <p><b>For APEX this would mean</b> presenting the next prescribed session as one confident action, not a menu of
+    choices — with the forgiving rest / deload / missed fallback a periodized program demands so an exception
+    never reads as failure.</p>
 </div>
 <div class="card">
   <h3>The Dashboard</h3>
-  <p class="thesis">Home is a wall of status you read at a glance.</p>
-  <p>JuggernautAI's dashboard, Whoop pre-2025, Apple's Summary. <b>Trade:</b> everything visible at once, strong
-    for identity metrics — but density without tiering reads as confusing, and it is the likeliest route to
-    vanity metrics.</p>
-  <p><b>For APEX this would mean</b> a stats surface — directly against the "not a vanity dashboard" anti-job and
-    the recorded taste that health is a compact bar, never hero. Borrow the identity-metric instinct (a lift or
-    two on open), reject the wall.</p>
+  <p class="thesis">Home is a hero metric plus a stack of supporting cards, ordered attention-needed-first.</p>
+  <p><b>Embodied by</b> Copilot Money (a derived pace-vs-target graph as hero, then "what needs my attention"),
+    Bevel, Alpha Progression's charts. <b>Trade:</b> rewards regular check-ins and gives real situational
+    awareness — but risks overload (Caliber) and has a hard cold-start blank slate when there is no data yet
+    (Bevel's literal empty dashboard).</p>
+  <p><b>For APEX this would mean</b> borrowing the hero-metric-then-attention-stack instinct — one derived,
+    comparative line (compliance vs plan, or e1RM trend direction) with cards ordered by what needs a decision
+    before how you are trending — while owning explicit answers to overload and cold-start.</p>
 </div>
 <div class="card">
-  <h3>The Coach / Synthesis</h3>
-  <p class="thesis">Home speaks one synthesized directive about today.</p>
-  <p>Whoop's Daily Outlook, Gentler Streak's "Go Gentler," Fitbod's recovery-justified session. <b>Trade:</b>
-    highest trust when it shows its reasoning and fuses readiness with the plan into one statement — but it
-    demands the app have an opinion and be right; being wrong is loud.</p>
-  <p><b>For APEX this would mean</b> recovery × program-state resolved into a single directive line above the
-    start action ("Recovery 33% — today is heavy squats, consider pulling intensity") rather than three raw
-    percentages. This is the posture <code>jtbd.md</code> M3 argues for.</p>
+  <h3>The Coach</h3>
+  <p class="thesis">Home is one curated recommendation from a trusted authority, not a menu.</p>
+  <p><b>Embodied by</b> Headspace, Caliber's coach layer, Ladder's coach-assigned week, Bevel's AI tier.
+    <b>Trade:</b> removes decision fatigue almost entirely and feels premium and personal — but is only as
+    trustworthy as the coach or algorithm behind it; a weak or generic recommendation breaks trust faster than an
+    obviously-mechanical rule would.</p>
+  <p><b>For APEX this would mean</b> resolving recovery × program-state into a single synthesized directive line
+    above the start action rather than three raw percentages — earning trust by showing its reasoning, since a
+    wrong directive is loud.</p>
 </div>
 <div class="card">
   <h3>The Ritual</h3>
-  <p class="thesis">Home is a repeatable daily ceremony with a state machine.</p>
-  <p>Duolingo's precomputed next step; JuggernautAI's pre-workout readiness check-in as a first-class act.
-    <b>Trade:</b> builds habit and makes "where am I in the loop" legible (pre / mid / post / rest / missed) — but
-    slides into guilt mechanics and streak punishment if unchecked.</p>
-  <p><b>For APEX this would mean</b> surfacing the RPE readiness → prescription loop as a pre-workout ritual whose
-    adjusted numbers you immediately see — take the state machine, leave the guilt.</p>
+  <p class="thesis">Home is an emotionally-aware check-in that reframes stats relative to the individual, not a
+    scoreboard.</p>
+  <p><b>Embodied by</b> Gentler Streak — the only pure example, an Apple Design Award winner for exactly this
+    stance. <b>Trade:</b> meaningfully differentiated and strong for adherence and wellbeing (a "gentler"
+    acknowledgment reduces the anxiety-driven skipping that erodes adherence) — but trades away the clinical,
+    high-signal density an instrument-panel aesthetic wants.</p>
+  <p><b>For APEX this would mean</b> a framing layer: the same number ("60% of prescribed volume") read as honest
+    information, not a broken-streak banner — and a deliberate decision about whether APEX wants any of that
+    warmth or stays clinical by contrast.</p>
 </div>
 <div class="card">
-  <h3>The Feed</h3>
-  <p class="thesis">Home is a stream of content or social activity.</p>
-  <p>Hevy, Strava, Google Discover, Spotify. <b>Trade:</b> endless engagement and accountability for its
-    audience — but it optimizes time-on-screen, not shortest-path-to-action, and buries the primary act.</p>
-  <p><b>For APEX this would mean</b> the explicit anti-job ("not a feed or notification pile"). APEX's objective
-    function is "shortest path to the right action," the opposite of a feed's. Named here only to be ruled out.</p>
+  <h3>The Committed List</h3>
+  <p class="thesis">Home is only what the user has deliberately promoted into "today," decoupled from what is
+    merely due.</p>
+  <p><b>Embodied by</b> Things 3, where "Today" is a verb the user performs, not a property the system infers.
+    <b>Trade:</b> maximally respects user intent and avoids the tyranny of auto-generated to-dos — but requires
+    active curation, a poor fit for a periodized program where the system is supposed to already know what is
+    next.</p>
+  <p><b>For APEX this would mean</b> a pressure-test rather than a primary model: does Home leave <i>any</i> room
+    to promote or demote what counts as today — defer a session, pull a lift forward — as a lightweight
+    commit/defer override on top of the system's prescription?</p>
 </div>
 <div class="card">
   <h3>The Adaptive Stack</h3>
-  <p class="thesis">Home is a ranked stack of state-driven modules over a stable skeleton.</p>
-  <p>Whoop's post-2025 "stable skeleton, varying content"; Apple's Smart Stacks; the thesis of
-    <code>evolution.md</code>. <b>Trade:</b> evolves without redesign and stays honest <i>if</i> governed hard —
-    but junk-drawers into a feed without a cap and an exit clause, and needs rules (not ML) at n=1.</p>
-  <p><b>For APEX this would mean</b> the module-stack architecture explored in §5 — arguably the synthesis of the
-    Coach (a synthesized hero) and the Ritual (state machine) with a governed body beneath it.</p>
+  <p class="thesis">Home is no fixed template — module presence and order recomputed from context each time it is
+    opened.</p>
+  <p><b>Embodied by</b> iOS Smart Stack and Google Discover, and the thesis of <code>evolution.md</code>.
+    <b>Trade:</b> can feel magically relevant and wastes no space on irrelevant modules — but sacrifices the
+    muscle-memory comfort of "I always know where X is," and full personalisation needs more signal than a
+    single-user app should build.</p>
+  <p><b>For APEX this would mean</b> the governed module-stack architecture of §5 — a realistic rule-based,
+    two-or-three-state version, not full ML reflow; deterministic rules beat a ranker at n=1.</p>
+</div>
+
+<div class="callout warn">
+  <p><b>Cross-cutting failure modes.</b> <span class="src">rising.md</span> Across both the rising fitness apps
+    and the outside-fitness Today-screens, two failure modes recur: <b>dashboard overload</b> — every metric
+    crammed on with no hierarchy (Caliber's stated weakness; even a well-reviewed app gets dinged specifically for
+    a too-dense home) — and the <b>cold-start blank slate</b> (Bevel literally "starts with a completely blank
+    slate on the dashboard"). Any Dashboard- or Adaptive-Stack-flavoured APEX Home needs an explicit, designed
+    answer to both — a hierarchy that survives density, and a designed empty state for week one / new program / no
+    history — before it can be considered done.</p>
 </div>
 
 <h2><span class="n">3</span>The Jobs Home Must Do</h2>
@@ -320,77 +342,106 @@
   </ul>
 </div>
 
-<h2><span class="n">4</span>Baseline &amp; the Integration Options <span class="tag new">inferred</span></h2>
-<p><span class="tag gap">source missing</span> The dedicated Baseline file (<code>baseline.md</code>) was not
-  delivered. What follows is the synthesis lead's own audit of the health-ecosystem specs and the live D1 schema,
-  plus the integration spectrum framed as options. The sync finding is <span class="tag in-code">verified</span>
-  against the repo; the integration spectrum is a framing for the brainstorm, not a recommendation.</p>
+<h2><span class="n">4</span>Baseline &amp; the Integration Options</h2>
+<p>Baseline is real, built, and on a shipping track. This section is a read-only audit of its repo, cross-referenced
+  against the shared Cloudflare Worker + D1 and the shared contract package <span class="src">baseline.md</span>.
+  The sync finding is a fresh cross-repo audit, git-diffed between both codebases and marked
+  <span class="tag in-code">verified</span>; the integration spectrum is framed as options for the brainstorm, not a
+  recommendation.</p>
 
 <div class="card">
   <h3>What Baseline is</h3>
-  <p>Baseline is the <b>weight / body-composition app</b> in Ben's modular health ecosystem — a separate,
-    focused iOS app (own repo, own brainstorm) for daily weight and InBody scans with simple trends. It is a
-    deliberate sibling to APEX, kept separate so body-comp tracking doesn't bloat the workout logger. The ecosystem
-    is local-first: each app works offline and pushes to a shared Cloudflare D1 via the health-api Worker.
-    <span class="src">project spec: 2026-03-22-health-ecosystem-design.md</span></p>
+  <p>Baseline is the <b>weight / body-composition app</b> scoped in APEX's own health-ecosystem spec — but it is
+    not a plan, it is a <b>shipping product</b>: a separate, standalone SwiftUI + MVVM iOS app (own repo) held to a
+    Principal-Engineer bar with a public App Store track. SwiftData + CloudKit sync (sensitive fields end-to-end
+    encrypted), HealthKit <i>write</i> mirroring, on-device camera OCR of InBody printouts, and WidgetKit widgets.
+    It ships under a shared umbrella brand, <b>Cadre</b> (bundle prefix <code>com.cadre.baseline</code>), whose
+    About screen already names APEX as a sibling. Three tabs — Trends · Now · Body — and it owns daily
+    <code>WeightEntry</code>, tape <code>Measurement</code>s, structured InBody <code>Scan</code>s, and
+    <code>Goal</code>s. <span class="src">baseline.md</span></p>
+</div>
+
+<div class="card">
+  <h3>Its landing tab is an APEX cousin</h3>
+  <p>Baseline's landing tab, <b>Now</b>, shares APEX's design instincts almost exactly. Over a gradient background:
+    a <b>270° arc</b> (290×248pt) wrapping an <b>84pt bold hero weight</b> with an animated numeric transition; a
+    <b>30D / 90D / All range toggle</b> that drives the arc; a <b>stats card</b> (Lowest / Average / Highest,
+    swapping to Current / Target / To-Go when a goal is active); and one full-width <b>Weigh In</b> CTA. Dark UI,
+    locked neutrals, a single swappable dusty-blue accent, no gamification — the same single-accent, high-contrast,
+    quiet-confidence direction as APEX's Precision-Blue era, arrived at independently. <span class="src">baseline.md</span></p>
 </div>
 
 <div class="callout warn">
-  <p><b>The sync / data reality (verified audit).</b> <span class="tag in-code">verified</span> Baseline
-    <b>does not sync to the shared D1 today — because Baseline does not yet exist.</b> The D1 schema already
-    <i>reserves</i> its tables — <code>body_weights</code> and <code>body_comp_scans</code>, with
-    <code>date</code>/<code>updated_at</code> indexes and a UNIQUE <code>date</code> upsert — but the spec notes
-    they are "created now but empty… ready for the weight app when built." No app writes to them.
-    <span class="src">2026-03-22-health-api-d1-design.md</span></p>
-  <p>Meanwhile APEX's <i>own</i> body-weight capture lives in <code>weekly_checkins</code>, which is
-    <b>explicitly excluded from cloud sync</b> (alongside <code>schema_info</code>). So today there is no path by
-    which a weight trend reaches a shared surface at all: Baseline isn't built, its D1 tables are empty, and
-    APEX's check-in weight never leaves the phone. Any "Baseline weight trend on Home" idea is therefore
-    <b>greenfield</b>, not a wiring-up of something already flowing. <span class="src">2026-03-23-apex-sync-client-design.md</span></p>
+  <p><b>The sync / data reality (verified audit).</b> <span class="tag in-code">verified</span> Baseline's
+    D1-mirror code <b>exists but is dead</b>. Three independent, git-diffed facts:</p>
+  <p><b>1 · The mirror is hardcoded off.</b> <code>BaselineApp.swift</code> injects a
+    <code>NoOpOutboundMirror()</code> in the <i>only</i> build configuration that exists; the planned
+    <code>Baseline-Cadre</code> scheme + <code>CADRE_BUILD</code> flag that would swap in the real
+    <code>CloudflareOutboundMirror</code> was never added to <code>project.yml</code>. The Cadre-sync Settings
+    screen is a self-documented stub whose API-URL / key fields persist to UserDefaults but are never read.</p>
+  <p><b>2 · The contract mismatches the live worker.</b> Even fully wired, Baseline posts <i>flat</i> records to
+    <code>/v1/weight_entries</code> · <code>/scans</code> · <code>/measurements</code>, but the worker allows only
+    <code>body_weights</code> and <code>body_comp_scans</code> and expects a <code>{ app_id, records: [] }</code>
+    batch envelope — so every push would <b>400 today</b> on table name alone, and there is no server-side
+    <code>measurements</code> table at all.</p>
+  <p><b>3 · Reads are not the blocker.</b> The worker's generic <code>GET /v1/:table</code> already works for the
+    allowed tables, so once data lands APEX could read it back with no worker change. But nothing has ever written,
+    so <b>D1's body tables remain empty</b>. Both sides wrote code against a shared plan and never reconciled it.
+    <span class="src">baseline.md</span></p>
 </div>
 
 <h3 style="margin-top:22px;">Integration options spectrum — for Ben, no decision</h3>
-<p>Three levels at which APEX Home could relate to Baseline's weight trend, from loosest to tightest. Presented as
-  a spectrum to choose along, not a recommendation.</p>
+<p>Three levels at which APEX Home could relate to Baseline's weight / body-comp data, from loosest to tightest,
+  with the audit's honest costs. Presented as a spectrum to choose along; the audit's own headline is noted after
+  the table.</p>
 <div class="scroll">
 <table>
   <tr><th>Option</th><th>What it is</th><th>Gains</th><th>Costs</th></tr>
   <tr>
-    <td>Data-level</td>
-    <td>Baseline writes weight/body-comp to the shared D1; APEX <i>reads</i> the trend (pull from D1, or a local
-      cache) and can render it as a module or a line. Apps stay fully separate; only data is shared.</td>
-    <td>Keeps the two apps decoupled (the ecosystem's stated architecture). Home gains a real weight trend with
-      near-zero UI coupling. Reversible — it's one more read source. Exportable to the dashboard too.</td>
-    <td>Requires Baseline to exist and sync first. Adds a cross-app read dependency and a staleness question
-      (what if Baseline hasn't synced today?). Trend is display-only in APEX unless you also let APEX write.</td>
+    <td>(a) Data-level</td>
+    <td>Baseline fixes its dormant sync and writes weight / body-comp to the shared D1; APEX <i>reads</i> it back
+      (the worker's generic GET already works) and renders a compact value / sparkline card in the existing
+      <code>HealthCard</code> family. Apps stay fully separate; only data is shared.</td>
+    <td>Same-glance body-weight trend beside training state, near-zero UI coupling, reversible (one more read
+      source), consistent with APEX's swappable-modules tenet, and it feeds the already-planned cross-app
+      Dashboard. Respects the ownership asymmetry — Baseline ships publicly regardless.</td>
+    <td>Baseline goes first: add the build variant, wire <code>CloudflareOutboundMirror</code>, and fix the
+      contract (rename targets, wrap in the envelope, reconcile columns, decide <code>measurements</code>' fate) —
+      low single-digit days, but under Baseline's production CI / lint / test bar, so ~a week. APEX side: a small
+      D1 read client + Home card + fetch/cache hook (a new pattern for APEX), 1-2 days. Depends on Baseline
+      actually being logged into.</td>
   </tr>
   <tr>
-    <td>Feature-level</td>
-    <td>APEX embeds a lightweight weigh-in <i>capture</i> itself (the Weigh-In Prompt module already sketched in
-      §5) and writes to the shared <code>body_weights</code> table, while richer body-comp lives in Baseline.
-      Home both reads the trend and logs to it.</td>
-    <td>Home earns the M9 "weigh-in day" job directly — one-tap log without leaving APEX. Fills the trend from day
-      one without waiting on a second app. Uses the reserved D1 table as designed.</td>
-    <td>Blurs the "APEX is the workout logger" boundary Ben drew deliberately. Two apps can now write the same
-      table (dedup / upsert-by-date already handles collisions, but ownership gets fuzzy). Migrates APEX's
-      check-in weight out of the sync-excluded <code>weekly_checkins</code>.</td>
+    <td>(b) Feature-level</td>
+    <td>APEX embeds weigh-in <i>capture</i> or Baseline UI directly — a Log Weigh-In quick action, or an embedded
+      arc — requiring either a shared Swift package carved out of Baseline's monolithic app target, or APEX
+      re-implementing weight logging natively against the same D1 tables.</td>
+    <td>Log a weigh-in without leaving APEX — closer to "one app for training day."</td>
+    <td><b>Multiple weeks.</b> Extract <code>WeightEntry</code> / unit-conversion / HealthKit-write / sync from a
+      target Baseline was never architected to export; APEX has no weight persistence today and must fork
+      CloudKit-vs-D1. Identity damage to both — Baseline stops being a clean single-purpose app, APEX absorbs a
+      non-workout concern.</td>
   </tr>
   <tr>
-    <td>Full merge</td>
-    <td>Baseline is folded into APEX as a body-comp surface/tab; no separate app. Weight, scans, and workouts live
-      in one product and one local DB.</td>
-    <td>One app, one surface, no cross-app sync for weight at all. Simplest data story. Trend is always fresh and
-      local.</td>
-    <td>Directly contradicts the modular-ecosystem decision ("mobile apps are input devices… without bloating
-      APEX"). Grows APEX's scope and Home's job list. Hardest to reverse. The dashboard still needs the D1 copy
-      regardless, so it doesn't remove the sync work — it just relocates it.</td>
+    <td>(c) Full merge</td>
+    <td>APEX grows a 5th surface that is Baseline's Now / Trends / Body ported in; Baseline as an independent App
+      Store product is discontinued or forked.</td>
+    <td>One app, one data store, no sync problem to solve at all.</td>
+    <td><b>Weeks to a couple months</b> — a rewrite/port, not an integration: reconcile two SwiftData / SQLite
+      schemas, port the OCR + camera pipeline wholesale, and either kill Baseline's public track or maintain it as
+      a second product. <b>Severe identity damage:</b> Baseline ships to real App Store users on a review cycle,
+      APEX is personal — the asymmetry bites hardest here. Avoid unless the real decision is "stop shipping
+      Baseline publicly."</td>
   </tr>
 </table>
 </div>
-<p class="foot">Cross-cutting note: whichever option, the <b>dashboard</b> (read-only, web on CF Pages) still
-  wants weight in D1 — so "does the trend reach the cloud?" is a separate axis from "does the trend appear on APEX
-  Home?" A weight-trend <i>module</i> on Home (§5, candidate #12 territory) is compatible with all three options;
-  it only changes where the data comes from.</p>
+<p class="foot"><b>The audit's headline:</b> (a) is its recommended scope — the only option whose cost matches the
+  payoff, anticipated by both apps' own design docs, and touching neither app's identity; (b) and (c) trade
+  architecture and product identity for convenience a well-designed (a) mostly delivers anyway. Recorded as the
+  audit's recommendation, not a decision — the choice stays open for the brainstorm. Note the separate axis: the
+  planned cross-app <b>Dashboard</b> wants weight in D1 regardless, so "does the trend reach the cloud?" is
+  independent of "does the trend appear on APEX Home?"; a weight-trend module on Home (§5, Weigh-In / Trend Story
+  territory) is compatible with all three. <span class="src">baseline.md</span></p>
 
 <h2><span class="n">5</span>The Evolving Home: A Module Stack</h2>
 <p>Research question: how do you architect a Home that gets <i>better</i> over time instead of being a frozen
@@ -490,7 +541,7 @@
     <li><span class="issue-tag">P3</span><span>What if <b>Home is the module stack from §5 end to end</b>, and every existing section (timeline, calendar, health, pain follow-up) has to re-qualify as a module with a trigger, one action, and an exit — or it doesn't ship?</span></li>
     <li><span class="issue-tag">P4</span><span>What if the <b>resume surface (#70) doesn't just win the hero slot — it changes the whole screen's register</b>, the way Duolingo's home escalates as a window closes: a live, urgent, minimal Home while a session is open?</span></li>
     <li><span class="issue-tag">P5</span><span>What if <b>Baseline's weight trend is a module, not a tab</b> (§4 data-level + §5 candidate #12) — Home reads the D1 trend and shows one sparkline line, and Baseline stays a separate capture app?</span></li>
-    <li><span class="issue-tag">P6</span><span>Or the inverse: what if the <b>Weigh-In Prompt module makes APEX itself the weight-capture app</b> (§4 feature-level), and "Baseline the separate app" never needs to be built?</span></li>
+    <li><span class="issue-tag">P6</span><span>Or the inverse: what if the <b>Weigh-In Prompt module lets APEX capture its own weight</b> (§4 feature-level) and fill the trend from day one — independent of Baseline's dormant sync — accepting the app-boundary blur the audit warns against?</span></li>
     <li><span class="issue-tag">P7</span><span>What if the <b>rest-day state leads with recovery and a freeform-train door</b> (#71) instead of a quote — so a rest day is the moment Whoop data is most useful and off-program training finally has a home?</span></li>
     <li><span class="issue-tag">P8</span><span>What if <b>one prompt grammar</b> (appears-when-due, one tap, self-expiring, one-per-band-per-day) absorbs the pain follow-up, weekly check-in (#49), missed-day, and weigh-in — so Home never grows a bespoke notification species again?</span></li>
     <li><span class="issue-tag">P9</span><span>What if Home borrows Caliber's move and shows <b>exactly one derived, actionable metric</b> (a Strength-Balance-style directive) as its identity line — and every other number has to justify itself against it?</span></li>

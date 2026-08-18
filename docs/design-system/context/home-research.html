@@ -342,6 +342,23 @@
   </ul>
 </div>
 
+<h3 style="margin-top:22px;">Calendar: two owner-verified jobs (added 2026-08-17)</h3>
+<div class="callout warn">
+  <p><b>Ben reported directly how he actually uses today's Home calendar.</b> <span class="tag in-code">verified</span>
+    Two distinct jobs, not one:</p>
+  <p><b>1 · Adherence at a glance.</b> The filled green day-circles let him see instantly which days he trained
+    — "hit all six days this week," or scanning back two or three weeks to check adherence. A glance, not an
+    interaction.</p>
+  <p><b>2 · Date-indexed history access.</b> Tapping a day on the calendar and landing on that session's detail
+    is his standard way to review a past workout — "what did I do last Sunday." This is his primary
+    history-browsing path in the app today, which makes the calendar the de-facto live answer to <b>#63</b>
+    (history browsing).</p>
+  <p><b>Design implication.</b> Any Home design that drops or demotes the calendar without re-homing <i>both</i>
+    jobs is a regression, not a simplification — job 2 ties directly to #63. Note the moss mapping: the filled
+    done-days are literally "earned" — the same moss-means-earned semantic <code>home-brief.html</code> §4 locks
+    for the rest of the screen.</p>
+</div>
+
 <h2><span class="n">4</span>Baseline &amp; the Integration Options</h2>
 <p>Baseline is real, built, and on a shipping track. This section is a read-only audit of its repo, cross-referenced
   against the shared Cloudflare Worker + D1 and the shared contract package <span class="src">baseline.md</span>.
@@ -548,6 +565,7 @@
     <li><span class="issue-tag">P10</span><span>What if the whole "program context" block collapses to <b>one line of position stated once</b>, and the full block/week map, the calendar, and history all become <i>doors</i> (#64, #63, #73) — Home states, the other tabs detail?</span></li>
     <li><span class="issue-tag">P11</span><span>What if we adopt Peloton's <b>deciding-vs-doing split</b> — a calm "queue tomorrow's session" affordance somewhere off-Home — so the gym moment (M1) is pure execution with no decision left in it?</span></li>
     <li><span class="issue-tag">P12</span><span>What if we hold a hard rule that <b>the redesigned Home must be <i>quieter</i> than today while doing strictly more jobs</b> — fewer hues (two), fewer resident sections, more states — and treat any net-additive layout as a failed direction?</span></li>
+    <li><span class="issue-tag">P13</span><span>What if the <b>calendar splits into two things</b> — a compact week-strip story module on Home (the glance) and a disclosed calendar portal (tap or expand) that becomes the app's history browser, absorbing #63 — so the month grid stops being furniture and becomes a destination?</span></li>
   </ul>
 </div>
 <div class="callout">

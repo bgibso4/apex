@@ -1,0 +1,355 @@
+<!-- @dsCard group="Workout Flow — R1" -->
+<meta charset="utf-8">
+<title>Workout Complete — APEX Wave 1</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+    /* === mockup chrome only (not app tokens) === */
+    --page:#050506;
+  }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); padding:36px 24px; }
+  .pagehead { max-width:900px; margin:0 auto 24px; }
+  .pagehead h1 { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .pagehead p { color:var(--text-2); font-size:13px; line-height:1.55; margin-top:6px; max-width:640px; }
+  .stage { display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+  .frame { width:390px; border:1px solid var(--border); border-radius:44px; overflow:hidden; flex-shrink:0; }
+  .frame-label { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:1.1px; text-align:center; margin:10px 0 8px; }
+  .screen { min-height:844px; display:flex; flex-direction:column;
+            background:radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%); }
+  .statusbar { height:54px; display:flex; align-items:flex-end; justify-content:space-between;
+               padding:0 28px 6px; color:var(--text); font-size:13px; font-weight:600; }
+  .content { flex:1; padding:8px 20px 24px; }
+  .screen-title { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:14px 16px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .num-hero { color:var(--text); font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .set-row { display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid var(--border); }
+  .set-row:last-child { border-bottom:none; }
+  .set-n { width:20px; color:var(--text-muted); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .set-val { flex:1; }
+  .tap { min-width:44px; min-height:44px; border-radius:var(--r-nested); border:1px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:15px; }
+  .tap.done { background:var(--logged-tint); border-color:var(--logged); color:var(--logged); }
+  .tap.current { border-color:var(--accent); color:var(--accent); }
+  .pill { display:inline-block; padding:4px 10px; border-radius:var(--r-pill); font-size:10px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.8px; color:var(--text-2); border:1px solid var(--border-lt); }
+  .pill.now { background:var(--accent-tint); color:var(--accent); border-color:var(--accent); }
+  .btn-primary { display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:var(--r-card);
+                 background:var(--accent); color:var(--on-accent); font-size:15px; font-weight:700; }
+  .btn-quiet { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:var(--r-nested);
+               border:1px solid var(--border-lt); color:var(--text-2); font-size:13px; font-weight:600; }
+  .suggest { display:flex; align-items:center; gap:10px; padding:10px 12px; margin-top:12px;
+             background:var(--logged-tint); border:1px solid var(--logged); border-radius:var(--r-nested);
+             color:var(--text); font-size:13px; }
+  .tabbar { display:flex; align-items:stretch; border-top:1px solid var(--border);
+            background:var(--field-base); padding-bottom:8px; }
+  .tabbar.glass { background:rgba(12,14,17,0.72); backdrop-filter:blur(18px) saturate(1.1); }
+  .tab { flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         gap:3px; color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .tab.active { color:var(--accent); }
+  .tab .ic { font-size:18px; }
+  .home-ind { width:130px; height:5px; border-radius:var(--r-pill); background:var(--border-lt); margin:6px auto 8px; }
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:640px; margin:20px auto 0; text-align:center; }
+
+  /* ================================================================= */
+  /* Screen-specific — Workout Complete R1. var-based only; the template */
+  /* :root and every rule above are copied verbatim and left untouched.  */
+  /* ================================================================= */
+
+  .flow { display:flex; flex-direction:column; gap:10px; }
+
+  /* header — same idiom as Tasks 5/7's .whead: eyebrow + fixed title + progress + progress-label,
+     now at 100% — completion is told by the filled bar, never a badge or exclamation (law 1/6) */
+  .whead { margin-bottom:2px; }
+  .whead .screen-title { margin-top:4px; }
+  .progress { height:3px; background:var(--border); border-radius:var(--r-pill); overflow:hidden; margin-top:12px; }
+  .progress > i { display:block; height:100%; background:var(--text-muted); border-radius:var(--r-pill); }
+  .progress-label { color:var(--text-muted); font-size:11px; font-weight:600; margin-top:6px;
+                    font-variant-numeric:tabular-nums; }
+
+  /* headline stat card — Sets is the resolved hero (compliance is the one actionable figure per
+     the app's no-vanity-metrics rule); Duration + Volume ride as a single supporting .prescription
+     line, reusing the exact hero/unit/prescription recipe from the logging screen verbatim */
+  .prescription { color:var(--text-2); font-size:13px; font-weight:600; margin-top:3px;
+                  font-variant-numeric:tabular-nums; }
+  .hero { display:flex; align-items:baseline; gap:7px; margin-top:2px; }
+  .hero .unit { color:var(--text-2); font-size:15px; font-weight:700; }
+
+  /* per-exercise result row — reuses .ex-collapsed verbatim (name + compact status, moss when
+     logged at/above prescription, neutral otherwise); .result-note is the optional descriptive
+     line below, moss only when it states a positive delta (earned), muted otherwise */
+  .ex-collapsed { display:flex; align-items:center; justify-content:space-between; min-height:44px; }
+  .ex-collapsed .name { color:var(--text-2); font-size:14px; font-weight:600; }
+  /* 13/600 tabular — the canonical "values" role; the logging screen's sibling class sits at
+     12px (a pre-existing drift from that role, not corrected here since it isn't this file's job) */
+  .ex-status { color:var(--text-muted); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .ex-status.done { color:var(--logged); }
+  .result-note { color:var(--text-2); font-size:11px; font-weight:400; margin-top:4px; }
+  .result-note.earned { color:var(--logged); }
+
+  /* PR callout — reuses .suggest verbatim (the same quiet moss recipe as the RPE suggestion chip)
+     but drops the accept/dismiss controls: nothing to action here, it already happened (law 1) */
+  .suggest .sug-mark { flex:none; width:22px; height:22px; border-radius:var(--r-pill);
+                       background:var(--logged-tint); color:var(--logged); font-size:12px; font-weight:800;
+                       display:flex; align-items:center; justify-content:center; }
+  .suggest .sug-text { flex:1; color:var(--text-2); line-height:1.35; }
+  .suggest .sug-text b { color:var(--text); font-weight:700; }
+
+  /* Frame 2 only — started/completed times in their tappable edit-affordance state (#65 entry).
+     Accent is the sanctioned edit-state focus per the charter — the only other place on this
+     screen accent may appear, alongside Done and the active tab. */
+  .time-edit-row { display:flex; align-items:flex-end; gap:10px; margin-top:2px; }
+  .time-field { flex:1; }
+  .time-value { min-height:44px; display:flex; align-items:center; justify-content:center; margin-top:6px;
+                border-radius:var(--r-nested); border:1px solid var(--accent); background:var(--accent-tint);
+                color:var(--accent); font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .time-sep { color:var(--text-muted); font-size:13px; font-weight:600; padding-bottom:12px; }
+</style>
+
+<div class="pagehead">
+  <h1>Workout Complete — R1</h1>
+  <p>The confirmation-and-review screen reached after <b>Finish Workout</b> on the logging screen — closing the
+    loop on <b>Upper Body A</b>. Frame 1 is the summary: sets-logged as the headline number, six per-exercise
+    result rows (moss where logged at or above prescription, neutral otherwise), one quiet Personal Record, and
+    a single <b>Done</b> (#69). Frame 2 shows the same summary with the started/completed times row live in its
+    tappable edit-affordance state — the #65 entry point, whose full editor lives on the Session Detail screen.
+    Judge: does <b>Done</b> read as a dismissal rather than a save, does the PR stay quiet rather than
+    celebratory, and is the timestamp affordance legible without spending a third hue.</p>
+</div>
+
+<div class="stage">
+
+  <!-- ============ FRAME 1 — summary, single Done (#69) ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:100%"></i></div>
+          <div class="progress-label">6 of 6 exercises · 52 min</div>
+        </div>
+
+        <!-- headline numbers: sets is the hero (compliance, the actionable figure);
+             duration + volume ride together as one supporting line -->
+        <div class="card">
+          <div class="eyebrow">Sets</div>
+          <div class="hero"><span class="num-hero">18</span><span class="unit">/19</span></div>
+          <div class="prescription" style="margin-top:6px">52 min · 15,760 lb volume</div>
+        </div>
+
+        <div class="eyebrow" style="margin:16px 0 2px">Exercises</div>
+
+        <!-- met (moss), no note -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Bench Press</span>
+            <span class="ex-status done">3 × 8 @ 185 lb ✓</span>
+          </div>
+        </div>
+
+        <!-- met (moss) — descriptive note, muted (not a delta, so not moss) -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Incline Bench Press</span>
+            <span class="ex-status done">3 × 8 @ 95 lb ✓</span>
+          </div>
+          <div class="result-note">RPE 6 · felt easy</div>
+        </div>
+
+        <!-- met (moss) — positive delta, moss note -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Row</span>
+            <span class="ex-status done">4 × 8 @ 165 lb ✓</span>
+          </div>
+          <div class="result-note earned">+10 lb vs last session</div>
+        </div>
+
+        <!-- met (moss), no note -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Weighted Pull-Up</span>
+            <span class="ex-status done">3 × 8 @ 35 lb ✓</span>
+          </div>
+        </div>
+
+        <!-- met (moss), no note -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Face Pulls</span>
+            <span class="ex-status done">3 × 15 @ 40 lb ✓</span>
+          </div>
+        </div>
+
+        <!-- below prescription (neutral) — the instrument records what happened, it doesn't round up -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Dips</span>
+            <span class="ex-status">2 × 8 @ 70 lb</span>
+          </div>
+          <div class="result-note">1 set short — logged 2 of 3</div>
+        </div>
+
+        <div class="eyebrow" style="margin:16px 0 2px">Personal Record</div>
+        <div class="suggest">
+          <span class="sug-mark">↑</span>
+          <span class="sug-text"><b>Incline Bench Press</b> — 95 lb × 8, best at 8 reps</span>
+        </div>
+
+        <div style="flex:1"></div>
+        <div class="btn-primary">Done</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">Summary · single Done (#69)</div>
+  </div>
+
+  <!-- ============ FRAME 2 — timestamp edit affordance (#65 entry) ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:100%"></i></div>
+          <div class="progress-label">6 of 6 exercises · 52 min</div>
+        </div>
+
+        <!-- #65 entry — started/completed times, tappable ≥44pt, accent = the edit-state focus -->
+        <div class="card">
+          <div class="eyebrow">Session Times</div>
+          <div class="time-edit-row">
+            <div class="time-field">
+              <div class="eyebrow" style="margin-top:10px">Started</div>
+              <div class="time-value">6:04 PM</div>
+            </div>
+            <span class="time-sep">–</span>
+            <div class="time-field">
+              <div class="eyebrow" style="margin-top:10px">Completed</div>
+              <div class="time-value">6:56 PM</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">Sets</div>
+          <div class="hero"><span class="num-hero">18</span><span class="unit">/19</span></div>
+          <div class="prescription" style="margin-top:6px">52 min · 15,760 lb volume</div>
+        </div>
+
+        <div class="eyebrow" style="margin:16px 0 2px">Exercises</div>
+
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Bench Press</span>
+            <span class="ex-status done">3 × 8 @ 185 lb ✓</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Incline Bench Press</span>
+            <span class="ex-status done">3 × 8 @ 95 lb ✓</span>
+          </div>
+          <div class="result-note">RPE 6 · felt easy</div>
+        </div>
+
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Row</span>
+            <span class="ex-status done">4 × 8 @ 165 lb ✓</span>
+          </div>
+          <div class="result-note earned">+10 lb vs last session</div>
+        </div>
+
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Weighted Pull-Up</span>
+            <span class="ex-status done">3 × 8 @ 35 lb ✓</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Face Pulls</span>
+            <span class="ex-status done">3 × 15 @ 40 lb ✓</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Dips</span>
+            <span class="ex-status">2 × 8 @ 70 lb</span>
+          </div>
+          <div class="result-note">1 set short — logged 2 of 3</div>
+        </div>
+
+        <div class="eyebrow" style="margin:16px 0 2px">Personal Record</div>
+        <div class="suggest">
+          <span class="sug-mark">↑</span>
+          <span class="sug-text"><b>Incline Bench Press</b> — 95 lb × 8, best at 8 reps</span>
+        </div>
+
+        <div style="flex:1"></div>
+        <div class="btn-primary">Done</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">Timestamp edit affordance (#65 entry)</div>
+  </div>
+
+</div>
+
+<p class="cap"><b>Finish Workout</b> on the logging screen commits the session; this screen is confirmation and
+  review only — its <b>Done</b> just dismisses, never re-saves (#69). <b>Sets</b> is the headline number:
+  compliance against plan is the one figure worth a hero numeral here, per the app's own no-vanity-metrics rule —
+  duration and total volume ride alongside as supporting values, never competing for the biggest numeral. Each
+  exercise row turns moss the moment it meets or beats its prescription; <b>Dips</b> stayed neutral at 2 of 3
+  sets — the instrument records what happened, it doesn't round up. The Personal Record row uses the same quiet
+  moss as everywhere else earned work is told, with no accept/dismiss controls — there's nothing left to action.
+  Frame 2 adds the started/completed times in their tappable, accent-outlined edit state (≥44pt) — the only
+  other sanctioned use of accent on this screen, and the seam where #65's full timestamp editor opens from the
+  real Session Detail screen.</p>

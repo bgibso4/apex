@@ -215,5 +215,55 @@ describe('program completion DB', () => {
         .filter(([sql]) => sql.includes("status = 'completed'"));
       expect(updateCalls.length).toBe(0);
     });
+
+    describe('when the final training day was skipped', () => {
+      // Activated Sat 2026-07-25 → final training day is Fri 2026-10-09
+      const pastRow = { ...activeRow, activated_date: '2026-07-25' };
+
+      beforeEach(() => {
+        jest.useFakeTimers({ now: new Date(2026, 9, 16, 7, 0) }); // Fri 2026-10-16
+      });
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      function mockSessions(inProgress: object | null) {
+        mockDb.getFirstAsync.mockImplementation((sql: string) => {
+          if (sql.includes("status = 'active'")) return Promise.resolve(pastRow);
+          if (sql.includes('completed_at IS NULL')) return Promise.resolve(inProgress);
+          return Promise.resolve(null); // final day never logged
+        });
+      }
+
+      it('completes the program once the final day has passed', async () => {
+        mockSessions(null);
+
+        const result = await backfillActiveProgramCompletion();
+
+        expect(result).toBe(true);
+        const updateCalls = (mockDb.runAsync.mock.calls as [string, unknown[]][])
+          .filter(([sql]) => sql.includes("status = 'completed'"));
+        expect(updateCalls.length).toBe(1);
+      });
+
+      it('leaves the program active while a workout is in progress', async () => {
+        mockSessions({ id: 's9', program_id: 'p1', completed_at: null });
+
+        const result = await backfillActiveProgramCompletion();
+
+        expect(result).toBe(false);
+        expect(mockDb.runAsync).not.toHaveBeenCalled();
+      });
+
+      it('leaves the program active on the final day itself', async () => {
+        jest.setSystemTime(new Date(2026, 9, 9, 7, 0)); // Fri 2026-10-09
+        mockSessions(null);
+
+        const result = await backfillActiveProgramCompletion();
+
+        expect(result).toBe(false);
+        expect(mockDb.runAsync).not.toHaveBeenCalled();
+      });
+    });
   });
 });

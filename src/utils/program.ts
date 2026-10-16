@@ -6,6 +6,7 @@
 import type { Program, ProgramDefinition, Block, DayTemplate, ExerciseSlot, ExerciseTarget } from '../types';
 import { calculateTargetWeight } from '../db/metrics';
 import { getBlockColorMap } from './blockColors';
+import { getLocalDateString } from './date';
 
 /** Day order for the weekly template */
 export const DAY_ORDER = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
@@ -59,6 +60,27 @@ export function isFinalTrainingSession(
   const lastDay = getLastTrainingDay(definition);
   if (!lastDay) return false;
   return weekNumber >= definition.program.duration_weeks && scheduledDay === lastDay;
+}
+
+/**
+ * Whether the calendar has moved past the program's final scheduled training
+ * day — the last training weekday inside the final week window (weeks count in
+ * 7-day blocks from activation, as getCurrentWeek does). Lets a program end
+ * when that last workout is skipped rather than waiting on it forever.
+ * Dates are local YYYY-MM-DD strings.
+ */
+export function isProgramPastFinalDay(
+  activatedDate: string,
+  definition: ProgramDefinition,
+  today: string
+): boolean {
+  const lastDay = getLastTrainingDay(definition);
+  if (!lastDay) return false;
+  const [y, m, d] = activatedDate.split('-').map(Number);
+  const weekStart = new Date(y, m - 1, d + (definition.program.duration_weeks - 1) * 7);
+  const offset = (DAY_ORDER.indexOf(lastDay as typeof DAY_ORDER[number]) - weekStart.getDay() + 7) % 7;
+  const finalDay = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + offset);
+  return today > getLocalDateString(finalDay);
 }
 
 /** Get the exercise targets for a specific week */

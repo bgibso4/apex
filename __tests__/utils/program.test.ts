@@ -2,7 +2,7 @@ import {
   getBlockForWeek, getBlockColor, getTrainingDays,
   getTargetForWeek, getSuggestedWeight, getCurrentWeek, getTodayKey,
   DAY_ORDER, DAY_NAMES,
-  getLastTrainingDay, isFinalTrainingSession,
+  getLastTrainingDay, isFinalTrainingSession, isProgramPastFinalDay,
   buildProgramCatalog, isBundledProgramImported,
   resolveOneRm,
 } from '../../src/utils/program';
@@ -394,5 +394,34 @@ describe('resolveOneRm', () => {
 
   it('returns undefined when nothing resolves (accessory without 1RM)', () => {
     expect(resolveOneRm(null, 'face_pulls', undefined)).toBeUndefined();
+  });
+});
+
+// ── isProgramPastFinalDay ──
+
+describe('isProgramPastFinalDay', () => {
+  // Mon/Wed/Fri template, 11 weeks. Activated Sat 2026-07-25, so week 11 runs
+  // Sat 2026-10-03 .. Fri 2026-10-09 and the final training day is Fri 10-09.
+  const def = makeDef(11);
+
+  it('is false on or before the final training day (it can still be logged)', () => {
+    expect(isProgramPastFinalDay('2026-07-25', def, '2026-10-08')).toBe(false);
+    expect(isProgramPastFinalDay('2026-07-25', def, '2026-10-09')).toBe(false);
+  });
+
+  it('is true once the final training day has passed, even if it was skipped', () => {
+    expect(isProgramPastFinalDay('2026-07-25', def, '2026-10-10')).toBe(true);
+    expect(isProgramPastFinalDay('2026-07-25', def, '2026-10-16')).toBe(true);
+  });
+
+  it('finds the final weekday inside the last week window for a Monday start', () => {
+    // Activated Mon 2026-07-27 → week 11 is Mon 10-05 .. Sun 10-11, final Fri 10-09
+    expect(isProgramPastFinalDay('2026-07-27', def, '2026-10-09')).toBe(false);
+    expect(isProgramPastFinalDay('2026-07-27', def, '2026-10-10')).toBe(true);
+  });
+
+  it('is false for a template with no training days', () => {
+    const empty = { program: { ...def.program, weekly_template: {} } } as ProgramDefinition;
+    expect(isProgramPastFinalDay('2026-01-01', empty, '2027-01-01')).toBe(false);
   });
 });

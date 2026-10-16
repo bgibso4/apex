@@ -4,8 +4,8 @@
 
 import { getDatabase, generateId } from './database';
 import { getLocalDateString } from '../utils/date';
-import { getLastTrainingDay } from '../utils/program';
-import { getCompletedFinalDaySession } from './sessions';
+import { getLastTrainingDay, isProgramPastFinalDay } from '../utils/program';
+import { getCompletedFinalDaySession, getInProgressSession } from './sessions';
 import { getSeed1RM } from './metrics';
 import type { Program } from '../types';
 import type { ProgramDefinition } from '../types';
@@ -238,7 +238,8 @@ export async function getMostRecentCompletedProgram(): Promise<(Program & { defi
 
 /**
  * Launch backfill: if the active program's final training day is already logged,
- * mark the program complete (completion_seen=0 so it celebrates once). Returns
+ * or that day has passed without being logged (skipped), mark the program
+ * complete (completion_seen=0 so it celebrates once). Returns
  * true if it completed a program this call. Idempotent — safe to call on every
  * launch; the active-program query returns nothing once the program is marked
  * complete, so it becomes a no-op on subsequent calls.
@@ -252,6 +253,16 @@ export async function backfillActiveProgramCompletion(): Promise<boolean> {
     active.id, lastDay, active.definition.program.duration_weeks
   );
   if (finalDone) {
+    await markProgramComplete(active.id);
+    return true;
+  }
+  // Final day skipped: the program is over once that date has passed — unless
+  // a workout is still in progress, which finishSession will close out.
+  if (
+    active.activated_date &&
+    isProgramPastFinalDay(active.activated_date, active.definition, getLocalDateString()) &&
+    !(await getInProgressSession(active.id))
+  ) {
     await markProgramComplete(active.id);
     return true;
   }

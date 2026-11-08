@@ -7,6 +7,7 @@
 import type { ProgramDefinition } from '../types';
 import FunctionalAthlete from './functional-athlete.json';
 import FunctionalAthletePillars from './functional-athlete-pillars.json';
+import PillarsHypertrophy from './pillars-hypertrophy.json';
 
 // Order matters: when multiple bundled programs define the same exercise id,
 // the later entry wins the exercise-metadata upsert on each launch refresh
@@ -14,4 +15,5 @@ import FunctionalAthletePillars from './functional-athlete-pillars.json';
 export const BUNDLED_PROGRAMS: ProgramDefinition[] = [
   FunctionalAthlete as unknown as ProgramDefinition,
   FunctionalAthletePillars as unknown as ProgramDefinition,
+  PillarsHypertrophy as unknown as ProgramDefinition,
 ];

@@ -41,7 +41,7 @@ Every decision should be evaluated against these, in order:
 
 ## Tech Stack
 
-- **Platform:** iOS (React Native — Expo SDK 54, managed workflow with local native builds)
+- **Platform:** iOS (React Native — Expo SDK 58, managed workflow with local native builds)
 - **Routing:** expo-router (file-based, `app/` directory)
 - **Database:** SQLite (expo-sqlite) — the database must persist across app reinstalls/updates
 - **Animations:** react-native-reanimated + react-native-gesture-handler

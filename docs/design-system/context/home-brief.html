@@ -1,0 +1,299 @@
+<!-- @dsCard group="Context" -->
+<meta charset="utf-8">
+<title>Home Brief — APEX Design System</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+
+    /* === page chrome only (not an app token) === */
+    --page:#050506;
+  }
+
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); color:var(--text); padding:48px 28px 90px; max-width:880px; margin:0 auto; }
+
+  h1 { font-size:26px; font-weight:800; letter-spacing:-0.4px; }
+  .sub { color:var(--text-2); font-size:14px; line-height:1.62; margin-top:10px; max-width:700px; }
+
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.3px; color:var(--text-muted);
+       margin:42px 0 14px; display:flex; align-items:center; gap:8px; }
+  h2 .n { color:var(--accent); font-size:11px; }
+
+  p, li { color:var(--text-2); font-size:14px; line-height:1.62; }
+  b { color:var(--text); font-weight:600; }
+  ul { padding-left:18px; display:flex; flex-direction:column; gap:8px; }
+  ul.tight { gap:6px; }
+  ol { padding-left:20px; display:flex; flex-direction:column; gap:8px; }
+
+  code { color:var(--text-2); font-size:12.5px; background:var(--card-top); padding:1px 5px; border-radius:4px; }
+
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:18px 20px; }
+  .card + .card { margin-top:12px; }
+  .card p + p { margin-top:8px; }
+
+  table { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px; }
+  th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+       color:var(--text-muted); padding:8px 10px; border-bottom:1px solid var(--border-lt); }
+  td { padding:9px 10px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  td:first-child { color:var(--text); font-weight:600; white-space:nowrap; }
+  tr:last-child td { border-bottom:none; }
+
+  .tag { display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.7px;
+         padding:2px 7px; border-radius:var(--r-pill); white-space:nowrap; }
+  .tag.in-code { background:var(--logged-tint); color:var(--logged); border:1px solid var(--logged); }
+  .tag.new { background:var(--accent-tint); color:var(--accent); border:1px solid var(--accent); }
+  .tag.gap { background:transparent; color:var(--text-muted); border:1px solid var(--border-lt); }
+
+  .foot { color:var(--text-muted); font-size:12px; line-height:1.55; margin-top:10px; }
+
+  .callout { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+             border:1px solid var(--border); border-top-color:var(--border-lt);
+             border-radius:var(--r-card); padding:16px 18px; margin-top:12px; }
+
+  .issue-list { list-style:none; padding-left:0; }
+  .issue-list li { display:flex; gap:12px; align-items:baseline; padding:11px 0; border-bottom:1px solid var(--border); }
+  .issue-list li:last-child { border-bottom:none; }
+  .issue-tag { flex:0 0 auto; min-width:38px; text-align:center; padding:3px 8px; border-radius:var(--r-pill);
+               font-size:11px; font-weight:700; background:var(--card-top); color:var(--text-2);
+               border:1px solid var(--border-lt); font-variant-numeric:tabular-nums; }
+
+  .qmark { color:var(--text-muted); }
+</style>
+
+<h1>Home Brief</h1>
+<p class="sub">Standing context for the Home screen redesign, R2 campaign. Read before designing in the Round One
+  claude.ai/design project. This is a brief — facts, requirements, and open questions — not a layout proposal.
+  Section 2 and 3 are a direct read of <code>app/(tabs)/index.tsx</code> as it ships today; sections 4–5 are
+  binding constraints carried in from the charter and the logging round; sections 6–7 are for this round to
+  resolve, not this document.</p>
+
+<h2><span class="n">1</span>What Home Is</h2>
+<div class="card">
+  <p>Home is the landing tab — the first screen on launch and the one every session returns to. Its one-tap
+    common case is starting, or resuming, today's workout.</p>
+  <p><b>Its job, in one line: where you are, and back to it in one tap.</b> Everything else on the screen —
+    program context, calendar, health — is secondary to that single act.</p>
+</div>
+
+<h2><span class="n">2</span>States to Design</h2>
+<p>Five states, corrected against the real branches in <code>index.tsx</code>. <span class="tag in-code">in code</span>
+  means the branch exists and paints correctly today; <span class="tag new">new</span> means the state has no
+  Home-level implementation yet and must be designed from scratch.</p>
+<table>
+  <tr><th>State</th><th>Condition in <code>index.tsx</code></th><th>Status</th><th>Notes</th></tr>
+  <tr>
+    <td>(a) Active program, workout day</td>
+    <td><code>program && def && todayTemplate</code></td>
+    <td><span class="tag in-code">in code</span></td>
+    <td>The hero state. Renders program context, timeline, health, TodayCard (training-day variant: name,
+      exercise count, "Start Workout"), calendar.</td>
+  </tr>
+  <tr>
+    <td>(b) Active program, rest day</td>
+    <td><code>program && def && !todayTemplate</code></td>
+    <td><span class="tag in-code">in code</span></td>
+    <td>TodayCard swaps to "Rest Day" + a rotating quote (one of 12 hardcoded strings, indexed by day-of-year)
+      + an optional "up next" preview line naming the next training day.</td>
+  </tr>
+  <tr>
+    <td>(c) In-progress session exists</td>
+    <td>No condition — not queried on Home</td>
+    <td><span class="tag new">new — #70</span></td>
+    <td>Confirmed gap. <code>getInProgressSession</code> exists in <code>src/db/sessions.ts</code> and is called
+      by <code>useWorkoutSession</code> inside the Workout tab, but Home never calls it. If you start today's
+      workout, background the app, and return to Home, the TodayCard still reads "Start Workout" — there is no
+      resume affordance, no elapsed-time signal, nothing that surfaces the session unmissably. This state can
+      coincide with either (a) or (b)'s scheduled day.</td>
+  </tr>
+  <tr>
+    <td>(d) No program</td>
+    <td><code>!program || !def</code>, and no pending completed-program card</td>
+    <td><span class="tag in-code">in code</span></td>
+    <td>Empty state: glyph ring, "No Active Program" title, subtitle copy, "Browse Programs" button →
+      <code>/library</code>. Health card and calendar still render underneath.</td>
+  </tr>
+  <tr>
+    <td>(e) Program complete</td>
+    <td><code>!program || !def</code>, plus a completed program with <code>card_dismissed = 0</code></td>
+    <td><span class="tag in-code">in code</span> <span class="tag gap">corrected</span></td>
+    <td>The task brief for this round described "seen + dismissed" as sub-states of this card. That's not
+      quite what the code does — see the callout below.</td>
+  </tr>
+</table>
+<div class="callout">
+  <p><b>Correction on (e):</b> Home only ever paints <i>one</i> program-complete state — the persistent
+    <code>CompletedProgramCard</code> (name, date range, PR count, adherence %, "View full summary" /
+    "Start a New Program"). It shows once <code>completion_seen = 1</code> and while <code>card_dismissed = 0</code>.</p>
+  <p><code>completion_seen</code> gates a one-time full-screen celebration at <code>/program-complete?celebrate=1</code>
+    — the <i>first</i> time a program completes, Home's <code>loadData()</code> redirects there immediately and
+    renders nothing else that pass. That celebration screen is not a Home state at all; it's a bounce-through.
+    Once seen, it never fires again for that program.</p>
+  <p><code>card_dismissed</code> is not a user-facing "dismiss" on the card either — there is no dismiss control
+    in <code>CompletedProgramCard.tsx</code> today. It flips to 1 automatically as a side effect of activating,
+    restarting, or stopping a program elsewhere in the app. "Dismissed" isn't a look the card takes — it's the
+    card's absence, falling through to whichever of (a)/(b)/(d) applies next.</p>
+</div>
+<p class="foot">Not listed as a designable state: the bare loading flash (<code>if (loading) return &lt;View style={styles.container} /&gt;</code>)
+  — an unstyled blank container shown for the duration of <code>loadData()</code>. Transient and not worth a state slot, but worth knowing it exists.</p>
+
+<h2><span class="n">3</span>Today's Content Inventory</h2>
+<p>Every section Home renders, in the order it renders, read from <code>index.tsx</code> and the components it
+  imports (<code>TodayCard</code>, <code>HealthCard</code>, <code>CompletedProgramCard</code>,
+  <code>ProgramTimeline</code>, <code>MonthCalendar</code>, <code>FocusChips</code>, <code>PainFollowUp</code>).</p>
+<table>
+  <tr><th>Section</th><th>Data shown</th><th>Condition / order</th></tr>
+  <tr>
+    <td>Wordmark header</td>
+    <td>Chevron mark image (<code>assets/logo-mark-small.png</code>) + "PEX" set in Exo2 ExtraBold.</td>
+    <td>Always first. Scrolls with content today — not pinned, not glass.</td>
+  </tr>
+  <tr>
+    <td>Settings gear</td>
+    <td>Ionicons <code>settings-outline</code>, top-right of the header row.</td>
+    <td>Always present. Navigates to <code>/settings</code>.</td>
+  </tr>
+  <tr>
+    <td>Program context</td>
+    <td>Program name, <code>FocusChips</code> (focus tag pills from the program definition), "Week X of Y —
+      [Block Name]" with the block name in the block's color.</td>
+    <td>Active-program branch only (states a/b). First content under the header.</td>
+  </tr>
+  <tr>
+    <td>ProgramTimeline</td>
+    <td>Horizontal segmented bar, one segment per training block, block-colored fills; the current block is
+      brighter with a short label and an underline indicator.</td>
+    <td>Active-program branch only. Directly under program context.</td>
+  </tr>
+  <tr>
+    <td>HealthCard</td>
+    <td>Three-column bar: Sleep %, Recovery % (color-coded green/amber/red by score band), Strain — hairline
+      dividers between columns.</td>
+    <td>Renders in <b>all three</b> top-level branches whenever health data exists or is loading. Position
+      shifts: after the timeline in the active-program branch, after the hero/empty/completed card in the
+      other two.</td>
+  </tr>
+  <tr>
+    <td>PainFollowUp</td>
+    <td>"How's the pain today?" prompt naming the run's date/duration/distance, an 11-point 0–10 pain selector
+      with a hardcoded traffic-light color gradient, Save + a dismiss (×).</td>
+    <td>Active-program branch only — never rendered in the no-program branch, even though the run it follows up
+      on is logged independent of any program. Fires ~24h after a logged run.</td>
+  </tr>
+  <tr>
+    <td>TodayCard</td>
+    <td>Training-day: label, session name, exercise count, "Start Workout" button — or, if completed, a
+      checkmark badge + duration/set-count stats and the card becomes a link to the session detail. Rest-day:
+      "Rest Day" title + rotating quote + optional "up next" line.</td>
+    <td>Active-program branch only, always present (one of its two variants always applies). Does not
+      distinguish a fresh start from a resume — see state (c).</td>
+  </tr>
+  <tr>
+    <td>MonthCalendar</td>
+    <td>Full month grid with weekday header row, prev/next nav + swipe gesture, day circles color-coded
+      (completed = filled green, today = outlined ring in the block color or a fallback, training days marked).</td>
+    <td>Renders in <b>all three</b> top-level branches, always last. Loads month sessions even with no active
+      program.</td>
+  </tr>
+  <tr>
+    <td>CompletedProgramCard</td>
+    <td>Gold/amber top accent line, "✓ Completed" eyebrow, program name as hero text, date range + week count,
+      hairline divider, PR count (amber) + adherence % (white) stats, "View full summary" and "Start a New
+      Program" buttons.</td>
+    <td>No-program branch only, state (e). Replaces the empty state when a completed, non-dismissed program
+      exists.</td>
+  </tr>
+  <tr>
+    <td>Empty state</td>
+    <td>Glyph ring (a 🏋 emoji), "No Active Program" title, subtitle copy, "Browse Programs" button.</td>
+    <td>No-program branch, state (d) — no completed-program card pending.</td>
+  </tr>
+</table>
+<p class="foot">No dead code found in <code>index.tsx</code> itself. Worth carrying into the redesign
+  conversation: today's code alone uses at least five hues across these sections — the indigo accent (program
+  context, timeline default, buttons), green (health recovery, completed badges), amber (completed-program
+  card), cyan (PainFollowUp's border), plus the eleven-stop pain-severity gradient — well past the charter's
+  two-hue budget. That's expected of pre-redesign code, not a bug to fix here, but it's the gap this round closes.</p>
+
+<h2><span class="n">4</span>What Binds This Screen (Already Locked)</h2>
+<ul>
+  <li><b>Two hues, everything else neutral.</b> Accent means <i>now</i>; moss means <i>earned</i>. If a third
+    hue appears anywhere on Home, the design is wrong.</li>
+  <li><b>One light source</b>, told twice at half strength — a halo behind the header, a vertical card gradient
+    with a brighter top edge. Depth sums; it never stacks.</li>
+  <li><b>The biggest number wins.</b> Hierarchy comes from numeral size and weight, never from color.</li>
+  <li><b>No vanity metrics.</b> Every number on Home must be actionable or tell a story.</li>
+  <li><b>The bottom tab bar is always visible and glass</b> — the R2 tab bar decision. It never hides on scroll.</li>
+  <li><b>Chrome-above-the-scroll wears glass; in-flow content is painted.</b> One vocabulary, no exceptions:
+    pinned nav sits in glass, everything that scrolls with the page is flat and hairline-bordered.</li>
+  <li><b>Floating glass controls must pass all three tests</b> from the logging round: they sit over content
+    that keeps moving, they're reachable without scrolling, and they're transient — appearing in response to
+    something the user did, not living permanently on the screen. Floating glass should stay rare.</li>
+  <li><b>No em dashes anywhere in copy.</b></li>
+  <li><b>The wordmark is the chevron mark + "PEX" in Exo2 ExtraBold</b> — the shipping face, not Orbitron.</li>
+  <li><b>The header grammar from logging is the established pattern</b> wherever a header is needed: nav
+    circles pinned, a large title live in the scroll flow, and a mini title fades into the pinned nav row past
+    roughly 56px of scroll.</li>
+</ul>
+
+<h2><span class="n">5</span>Ben's Standing Taste (Recorded Feedback)</h2>
+<ul>
+  <li><b>Health data is secondary, never hero.</b> A compact text bar, not rings or gauges — Home's own
+    <code>HealthCard</code> already leans this way; keep it that way, don't let it grow into a dashboard.</li>
+  <li><b>A card's action buttons live inside the card</b> — grouped, matched in size to their siblings, text
+    centered. No full-width edge-to-edge bars.</li>
+  <li><b>Muted and desaturated only.</b> One or two hues maximum, roughly 60-30-10 in proportion. No neon, no
+    multi-color decoration.</li>
+</ul>
+
+<h2><span class="n">6</span>Open Questions for This Round</h2>
+<p>Questions for the design session to resolve — not answered here.</p>
+<ul class="tight">
+  <li><span class="qmark">?</span> What earns a place on Home beyond the today card — the timeline? the
+    calendar? recent PRs? nothing else at all?</li>
+  <li><span class="qmark">?</span> The calendar carries two owner-verified jobs today: adherence at a glance
+    (filled day-circles) and tap-a-day history access — his primary history-browsing path and the de-facto #63
+    entry point. This round must decide its form — inline week strip with expansion, icon-opened dedicated
+    view, a hybrid, or the current inline month grid — but whichever form, both jobs must survive.</li>
+  <li><span class="qmark">?</span> How much program context (block + week) does Home state directly, versus
+    delegating to the Workout tab?</li>
+  <li><span class="qmark">?</span> Where does settings live?</li>
+  <li><span class="qmark">?</span> Does the wordmark header stay on Home?</li>
+  <li><span class="qmark">?</span> What does the rest-day state lead with?</li>
+  <li><span class="qmark">?</span> How loud should the #70 resume surface be?</li>
+</ul>
+
+<h2><span class="n">7</span>Entry Points to Reserve</h2>
+<p>Navigation targets to leave room for — not designed as part of this round.</p>
+<div class="card">
+  <ul class="issue-list">
+    <li><span class="issue-tag">#64</span><span>Program overview</span></li>
+    <li><span class="issue-tag">#71</span><span>Off-program training</span></li>
+    <li><span class="issue-tag">#73</span><span>Run history</span></li>
+    <li><span class="issue-tag">#63</span><span>History browsing</span></li>
+    <li><span class="issue-tag">#49</span><span>Weekly check-ins</span></li>
+  </ul>
+</div>
+
+<h2><span class="n">8</span>Pipeline</h2>
+<p class="thesis">Design happens in the Round One claude.ai/design project; the result and its decisions-log
+  entries save there, and Claude pulls and normalizes them into this repo afterward.</p>

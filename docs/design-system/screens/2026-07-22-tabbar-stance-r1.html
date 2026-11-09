@@ -1,0 +1,285 @@
+<!-- @dsCard group="Workout Flow — R1" -->
+<meta charset="utf-8">
+<title>Tab Bar Stance — APEX Wave 1</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+    /* === mockup chrome only (not app tokens) === */
+    --page:#050506;
+  }
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); padding:36px 24px; }
+  .pagehead { max-width:900px; margin:0 auto 24px; }
+  .pagehead h1 { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .pagehead p { color:var(--text-2); font-size:13px; line-height:1.55; margin-top:6px; max-width:640px; }
+  .stage { display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+  .frame { width:390px; border:1px solid var(--border); border-radius:44px; overflow:hidden; flex-shrink:0; }
+  .frame-label { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:1.1px; text-align:center; margin:10px 0 8px; }
+  .screen { min-height:844px; display:flex; flex-direction:column;
+            background:radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%); }
+  .statusbar { height:54px; display:flex; align-items:flex-end; justify-content:space-between;
+               padding:0 28px 6px; color:var(--text); font-size:13px; font-weight:600; }
+  .content { flex:1; padding:8px 20px 24px; }
+  .screen-title { color:var(--text); font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:14px 16px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .num-hero { color:var(--text); font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .set-row { display:flex; align-items:center; gap:12px; min-height:48px; border-bottom:1px solid var(--border); }
+  .set-row:last-child { border-bottom:none; }
+  .set-n { width:20px; color:var(--text-muted); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .set-val { flex:1; }
+  .tap { min-width:44px; min-height:44px; border-radius:var(--r-nested); border:1px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:15px; }
+  .tap.done { background:var(--logged-tint); border-color:var(--logged); color:var(--logged); }
+  .tap.current { border-color:var(--accent); color:var(--accent); }
+  .pill { display:inline-block; padding:4px 10px; border-radius:var(--r-pill); font-size:10px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.8px; color:var(--text-2); border:1px solid var(--border-lt); }
+  .pill.now { background:var(--accent-tint); color:var(--accent); border-color:var(--accent); }
+  .btn-primary { display:flex; align-items:center; justify-content:center; min-height:50px; border-radius:var(--r-card);
+                 background:var(--accent); color:var(--on-accent); font-size:15px; font-weight:700; }
+  .btn-quiet { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:var(--r-nested);
+               border:1px solid var(--border-lt); color:var(--text-2); font-size:13px; font-weight:600; }
+  .suggest { display:flex; align-items:center; gap:10px; padding:10px 12px; margin-top:12px;
+             background:var(--logged-tint); border:1px solid var(--logged); border-radius:var(--r-nested);
+             color:var(--text); font-size:13px; }
+  .tabbar { display:flex; align-items:stretch; border-top:1px solid var(--border);
+            background:var(--field-base); padding-bottom:8px; }
+  .tabbar.glass { background:rgba(12,14,17,0.72); backdrop-filter:blur(18px) saturate(1.1); }
+  .tab { flex:1; min-height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         gap:3px; color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; }
+  .tab.active { color:var(--accent); }
+  .tab .ic { font-size:18px; }
+  .home-ind { width:130px; height:5px; border-radius:var(--r-pill); background:var(--border-lt); margin:6px auto 8px; }
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:640px; margin:20px auto 0; text-align:center; }
+
+  /* ================================================================= */
+  /* Screen-specific — Tab Bar Stance R1. var-based only; the template  */
+  /* :root and every rule above are copied verbatim and left untouched. */
+  /* ================================================================= */
+
+  .flow { display:flex; flex-direction:column; gap:10px; }
+
+  /* header — lifted verbatim from workout-logging-r1 Frame 1 */
+  .whead { margin-bottom:2px; }
+  .whead .screen-title { margin-top:4px; }
+  .progress { height:3px; background:var(--border); border-radius:var(--r-pill); overflow:hidden; margin-top:12px; }
+  .progress > i { display:block; height:100%; background:var(--text-muted); border-radius:var(--r-pill); }
+  .progress-label { color:var(--text-muted); font-size:11px; font-weight:600; margin-top:6px;
+                    font-variant-numeric:tabular-nums; }
+
+  /* collapsed exercise card — lifted verbatim from workout-logging-r1 */
+  .ex-collapsed { display:flex; align-items:center; justify-content:space-between; min-height:44px; }
+  .ex-collapsed .name { color:var(--text-2); font-size:14px; font-weight:600; }
+  .ex-status { color:var(--text-muted); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .ex-status.done { color:var(--logged); }
+
+  /* active card — working weight is the hero numeral (law 5), lifted verbatim */
+  .prescription { color:var(--text-2); font-size:13px; font-weight:600; margin-top:3px;
+                  font-variant-numeric:tabular-nums; }
+  .hero { display:flex; align-items:baseline; gap:7px; margin-top:2px; }
+  .hero .unit { color:var(--text-2); font-size:15px; font-weight:700; }
+  .reps { color:var(--text-2); }
+  .overflow { min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;
+              color:var(--text-muted); font-size:17px; letter-spacing:1px; }
+
+  /* per-frame explainer beneath the frame-label */
+  .frame-note { color:var(--text-muted); font-size:11px; line-height:1.45; text-align:center;
+                max-width:280px; margin:0 auto; }
+
+  /* ---- the ONE variable under test: how the chrome sits relative to content ----
+     Flat frame: .tabbar + .home-ind sit in normal flow, reserving their own row,
+     so content stops flush above them — a hard architectural stop.
+     Glass frame: the same two elements are undocked into an absolutely-positioned
+     dock layered ON TOP of content, so content's flex:1 area claims the full
+     remaining screen height instead of stopping short — proving the pinned-bottom
+     card actually continues underneath, and that the blur is doing real work
+     rather than sitting on an empty backdrop. No content markup changes to make
+     this happen — only how the (identical) tabbar markup is wrapped/positioned. */
+  .frame.glass-stance .screen { position:relative; }
+  .frame.glass-stance .chrome-dock { position:absolute; left:0; right:0; bottom:0; z-index:2; }
+</style>
+
+<div class="pagehead">
+  <h1>Tab Bar Stance — R1</h1>
+  <p>The charter's one open Liquid Glass question, isolated to a single variable. Same logging screen, same
+    content, byte-identical — the tab bar's material is the only thing that changes. Content cards stay
+    painted-light either way (locked); this page decides system chrome only: tab bar today, sheets by the
+    same logic. Judge: does the glass frame earn its blur, or does the flat frame's quiet certainty read
+    better on an instrument that's supposed to disappear into use.</p>
+</div>
+
+<div class="stage">
+
+  <!-- ============ FRAME A — flat chrome ============ -->
+  <div>
+    <div class="frame"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:33%"></i></div>
+          <div class="progress-label">2 of 6 exercises · 18:24</div>
+        </div>
+
+        <!-- completed exercise, collapsed (earned → moss status) -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Bench Press</span>
+            <span class="ex-status done">3/3 ✓</span>
+          </div>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <!-- active exercise — pinned to the bottom of the flex column so its lower
+             edge is the thing this comparison is actually about -->
+        <div class="card">
+          <div class="card-name">Incline Bench Press</div>
+          <div class="prescription">3 × 8 @ 95 lb · RPE ≤ 7</div>
+
+          <div class="eyebrow" style="margin-top:12px">Working weight</div>
+          <div class="hero"><span class="num-hero">95</span><span class="unit">lb</span></div>
+
+          <div style="margin-top:6px">
+            <div class="set-row">
+              <span class="set-n">1</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="set-row">
+              <span class="set-n">2</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="set-row">
+              <span class="set-n">3</span>
+              <span class="set-val val">× <span class="reps">8</span> &nbsp;<span class="pill now">Now</span></span>
+              <span class="tap current">●</span>
+              <span class="overflow">⋯</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><span class="ic">⌂</span>Home</div>
+        <div class="tab active"><span class="ic">◉</span>Workout</div>
+        <div class="tab"><span class="ic">↗</span>Progress</div>
+        <div class="tab"><span class="ic">➜</span>Run</div>
+      </div>
+      <div class="home-ind"></div>
+    </div></div>
+    <div class="frame-label">A · Flat chrome</div>
+    <p class="frame-note">Resist — the instrument is one continuous painted surface.</p>
+  </div>
+
+  <!-- ============ FRAME B — glass chrome ============ -->
+  <div>
+    <div class="frame glass-stance"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>100%</span></div>
+      <div class="content flow">
+
+        <div class="whead">
+          <div class="eyebrow">Pillars · Week 3</div>
+          <div class="screen-title">Upper Body A</div>
+          <div class="progress"><i style="width:33%"></i></div>
+          <div class="progress-label">2 of 6 exercises · 18:24</div>
+        </div>
+
+        <!-- completed exercise, collapsed (earned → moss status) -->
+        <div class="card">
+          <div class="ex-collapsed">
+            <span class="name">Barbell Bench Press</span>
+            <span class="ex-status done">3/3 ✓</span>
+          </div>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <!-- active exercise — pinned to the bottom of the flex column so its lower
+             edge is the thing this comparison is actually about -->
+        <div class="card">
+          <div class="card-name">Incline Bench Press</div>
+          <div class="prescription">3 × 8 @ 95 lb · RPE ≤ 7</div>
+
+          <div class="eyebrow" style="margin-top:12px">Working weight</div>
+          <div class="hero"><span class="num-hero">95</span><span class="unit">lb</span></div>
+
+          <div style="margin-top:6px">
+            <div class="set-row">
+              <span class="set-n">1</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="set-row">
+              <span class="set-n">2</span>
+              <span class="set-val val">× <span class="reps">8</span></span>
+              <span class="tap done">✓</span>
+              <span class="overflow">⋯</span>
+            </div>
+            <div class="set-row">
+              <span class="set-n">3</span>
+              <span class="set-val val">× <span class="reps">8</span> &nbsp;<span class="pill now">Now</span></span>
+              <span class="tap current">●</span>
+              <span class="overflow">⋯</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="chrome-dock">
+        <div class="tabbar glass">
+          <div class="tab"><span class="ic">⌂</span>Home</div>
+          <div class="tab active"><span class="ic">◉</span>Workout</div>
+          <div class="tab"><span class="ic">↗</span>Progress</div>
+          <div class="tab"><span class="ic">➜</span>Run</div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+    </div></div>
+    <div class="frame-label">B · Glass chrome</div>
+    <p class="frame-note">Blend — native glass for chrome only; cards stay painted.</p>
+  </div>
+
+</div>
+
+<p class="cap">Both frames render the identical content markup — same header, same two cards, same set
+  states — undercutting nothing but the tab bar. Frame A's bar reserves its own row: the active card stops
+  flush above a hairline border, a hard architectural edge. Frame B's bar is undocked from flow and layered
+  over content instead: the same card continues underneath it, its final set row — the <i>now</i> accent
+  ring included — legible-but-blurred through the material, proof the translucency is doing real work, not
+  sitting on an empty backdrop. (The done/current set order was deliberately adjusted from workout-logging-r1's
+  Frame 1 so the <i>now</i> ring, not muted pending text, is the thing sitting at the content/chrome boundary —
+  not a sign the two screens disagree.) Either way the charter's lock holds: content cards stay painted-light, never
+  glass. Native SwiftUI gets the real <code>.regularMaterial</code>/<code>.ultraThinMaterial</code>; this
+  HTML only approximates it with blur + alpha. Ben's call: flat or glass for tab bar and sheets.</p>

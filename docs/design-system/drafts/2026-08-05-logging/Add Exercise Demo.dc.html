@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body { margin:0; background:#08090B; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#659BC8; text-decoration:none; }
+  a:hover { color:#7FB0D8; }
+  *::-webkit-scrollbar { display:none; }
+</style>
+</helmet>
+
+<div style="padding:32px 28px 56px; color:#EDEEF0">
+  <div style="max-width:900px; margin-bottom:8px">
+    <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px">Add exercise · live demo</div>
+    <div style="color:#8F9098; font-size:13px; line-height:1.55; margin-top:6px">Both sheets are real. Tap the pills to filter, tap a row to select, then place it. The selected row is settled: 30b's full bleed tint, with the blue dot in place of the ✓ so it does not collide with the logged ✓. What is being compared now is the placement bar. On the left it is two glass pills floating over the list, and the space is reserved whether or not they are showing, so nothing moves when you select. On the right is the pinned bar as it was, which resizes the list. The two sheets are different heights because only the left one reserves the space, which is the point rather than a mismatch.</div>
+  </div>
+
+  <div style="display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; margin-top:22px">
+
+    <div style="width:390px; flex-shrink:0">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px">
+        <span id="32a" style="background:#14161B; border:1px solid #2C3039; border-radius:6px; padding:3px 9px; color:#8F9098; font-size:11px; font-weight:800">32a</span>
+        <span style="color:#EDEEF0; font-size:13px; font-weight:700">Liquid glass, floating</span>
+      </div>
+      <div style="position:relative; width:390px; height:760px; border-radius:26px; border:1px solid #20232A; background:#0A0C0F; overflow:hidden">
+
+        <div style="position:absolute; inset:0; padding:14px 12px; overflow:hidden">
+          <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+          <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:3px">Upper Body A</div>
+          <div style="color:#55575F; font-size:11px; font-weight:600; margin-top:4px; font-variant-numeric:tabular-nums">{{ countA }}</div>
+
+          <div style="margin-top:6px">
+            <sc-for list="{{ planA }}" as="card" hint-placeholder-count="3">
+              <sc-if value="{{ card.isAdded }}" hint-placeholder-val="{{ false }}">
+                <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; margin-top:8px">
+                  <div style="display:flex; align-items:center; gap:7px; min-height:36px">
+                    <span style="color:#EDEEF0; font-size:14px; font-weight:700">{{ card.name }}</span>
+                    <span style="display:flex; align-items:center; height:19px; padding:0 7px; border-radius:5px; border:1px solid #2C3039; color:#8F9098; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px">Added</span>
+                    <span style="flex:1"></span>
+                    <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">{{ card.tally }}</span>
+                  </div>
+                  <div style="color:#3A3F4A; font-size:11px; font-weight:600; margin-top:2px">{{ card.seed }}</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ card.isDone }}" hint-placeholder-val="{{ false }}">
+                <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; margin-top:8px">
+                  <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+                    <span style="color:#8F9098; font-size:14px; font-weight:600">{{ card.name }}</span>
+                    <span style="color:#6CA383; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">{{ card.tally }}</span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ card.isPending }}" hint-placeholder-val="{{ true }}">
+                <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; margin-top:8px">
+                  <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+                    <span style="color:#8F9098; font-size:14px; font-weight:600">{{ card.name }}</span>
+                    <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">{{ card.tally }}</span>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+
+          <div onClick="{{ openA }}" style="display:flex; align-items:center; justify-content:center; gap:8px; min-height:50px; margin-top:12px; border:1px dashed #2C3039; border-radius:9px; color:#8F9098; font-size:13px; font-weight:600; cursor:pointer" style-hover="border-color:#3A3F4A; color:#EDEEF0">+ Add exercise</div>
+        </div>
+
+        <sc-if value="{{ openedA }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ closeA }}" style="position:absolute; inset:0; background:rgba(6,7,9,0.66); cursor:pointer"></div>
+        </sc-if>
+
+        <div style="{{ sheetStyleA }}">
+          <div onClick="{{ closeA }}" style="padding:12px 0 10px; cursor:grab">
+            <div style="width:36px; height:4px; border-radius:2px; background:#3A3F4A; margin:0 auto"></div>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center; padding:0 16px">
+            <span style="color:#EDEEF0; font-size:15px; font-weight:700; letter-spacing:-0.2px">Add exercise</span>
+          </div>
+          <div style="padding:12px 16px 0">
+            <div style="display:flex; align-items:center; gap:9px; min-height:44px; padding:0 12px; border-radius:9px; background:rgba(237,238,240,0.06); border:1px solid #2C3039">
+              <span style="color:#55575F; font-size:13px">⌕</span>
+              <span style="color:#55575F; font-size:14px; font-weight:500">Search 340 exercises</span>
+            </div>
+          </div>
+          <div style="position:relative; margin-top:12px; flex-shrink:0">
+            <div style="display:flex; gap:6px; padding:0 16px; overflow-x:auto">
+              <sc-for list="{{ pillsA }}" as="pill" hint-placeholder-count="6">
+                <span onClick="{{ pill.tap }}" style="{{ pill.style }}">{{ pill.label }}</span>
+              </sc-for>
+            </div>
+            <span style="position:absolute; top:0; right:0; width:26px; height:36px; pointer-events:none; background:linear-gradient(90deg,rgba(26,29,35,0) 0%,rgba(26,29,35,0.97) 100%)"></span>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; margin-top:2px">
+            <sc-if value="{{ hasRecentA }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px 6px">
+                <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">{{ recentHeadA }}</span>
+                <span onClick="{{ cycleSortA }}" style="color:#8F9098; font-size:11px; font-weight:600; cursor:pointer">{{ sortLabelA }} ⌄</span>
+              </div>
+              <div style="border-top:1px solid #262A32">
+                <sc-for list="{{ recentA }}" as="row" hint-placeholder-count="2">
+                  <sc-if value="{{ row.selected }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; background:#1F232B; cursor:pointer">
+                      <span style="min-width:0">
+                        <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:700">{{ row.name }}</span>
+                        <span style="display:block; color:#8F9098; font-size:11px; font-weight:600; margin-top:2px">{{ row.seed }}</span>
+                      </span>
+                      <span style="flex-shrink:0; width:7px; height:7px; border-radius:999px; background:#659BC8"></span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ row.unselected }}" hint-placeholder-val="{{ true }}">
+                    <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; cursor:pointer">
+                      <span style="min-width:0">
+                        <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:600">{{ row.name }}</span>
+                        <span style="display:block; color:#3A3F4A; font-size:11px; font-weight:600; margin-top:2px">{{ row.meta }}</span>
+                      </span>
+                      <span style="color:#55575F; font-size:11px; font-weight:600; text-align:right; font-variant-numeric:tabular-nums">{{ row.history }}</span>
+                    </div>
+                  </sc-if>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px 6px">
+              <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">{{ allHeadA }}</span>
+              <span onClick="{{ cycleSortA }}" style="color:#8F9098; font-size:11px; font-weight:600; cursor:pointer">{{ sortLabelA }} ⌄</span>
+            </div>
+            <div style="border-top:1px solid #262A32">
+              <sc-for list="{{ allA }}" as="row" hint-placeholder-count="5">
+                <sc-if value="{{ row.selected }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; background:#1F232B; cursor:pointer">
+                    <span style="min-width:0">
+                      <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:700">{{ row.name }}</span>
+                      <span style="display:block; color:#8F9098; font-size:11px; font-weight:600; margin-top:2px">{{ row.seed }}</span>
+                    </span>
+                    <span style="flex-shrink:0; width:7px; height:7px; border-radius:999px; background:#659BC8"></span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ row.unselected }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; cursor:pointer">
+                    <span style="min-width:0">
+                      <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:600">{{ row.name }}</span>
+                      <span style="display:block; color:#3A3F4A; font-size:11px; font-weight:600; margin-top:2px">{{ row.meta }}</span>
+                    </span>
+                    <span style="color:#55575F; font-size:11px; font-weight:600; text-align:right; font-variant-numeric:tabular-nums">{{ row.history }}</span>
+                  </div>
+                </sc-if>
+              </sc-for>
+            </div>
+            <div style="height:92px"></div>
+          </div>
+
+          <sc-if value="{{ hasSelA }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; left:14px; right:14px; bottom:16px; display:flex; gap:10px">
+              <span onClick="{{ nextA }}" style="flex:1; min-height:52px; display:flex; align-items:center; justify-content:center; border-radius:999px; background:rgba(101,155,200,0.82); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); border:1px solid rgba(160,200,232,0.5); box-shadow:0 10px 28px rgba(0,0,0,0.5); color:#08131D; font-size:14px; font-weight:700; cursor:pointer" style-hover="background:rgba(101,155,200,0.92)">Do it next</span>
+              <span onClick="{{ endA }}" style="flex:1; min-height:52px; display:flex; align-items:center; justify-content:center; border-radius:999px; background:rgba(38,42,50,0.62); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); border:1px solid rgba(237,238,240,0.14); box-shadow:0 10px 28px rgba(0,0,0,0.45); color:#EDEEF0; font-size:14px; font-weight:600; cursor:pointer" style-hover="background:rgba(48,53,63,0.72)">Add to end</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:390px; flex-shrink:0">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px">
+        <span style="color:#EDEEF0; font-size:13px; font-weight:700">Filled accent, as it was</span>
+      </div>
+      <div style="position:relative; width:390px; height:760px; border-radius:26px; border:1px solid #20232A; background:#0A0C0F; overflow:hidden">
+
+        <div style="position:absolute; inset:0; padding:14px 12px; overflow:hidden">
+          <div style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">Pillars · Week 3</div>
+          <div style="color:#EDEEF0; font-size:20px; font-weight:800; letter-spacing:-0.3px; margin-top:3px">Upper Body A</div>
+          <div style="color:#55575F; font-size:11px; font-weight:600; margin-top:4px; font-variant-numeric:tabular-nums">{{ countB }}</div>
+
+          <div style="margin-top:6px">
+            <sc-for list="{{ planB }}" as="card" hint-placeholder-count="3">
+              <sc-if value="{{ card.isAdded }}" hint-placeholder-val="{{ false }}">
+                <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; margin-top:8px">
+                  <div style="display:flex; align-items:center; gap:7px; min-height:36px">
+                    <span style="color:#EDEEF0; font-size:14px; font-weight:700">{{ card.name }}</span>
+                    <span style="display:flex; align-items:center; height:19px; padding:0 7px; border-radius:5px; border:1px solid #2C3039; color:#8F9098; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px">Added</span>
+                    <span style="flex:1"></span>
+                    <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">{{ card.tally }}</span>
+                  </div>
+                  <div style="color:#3A3F4A; font-size:11px; font-weight:600; margin-top:2px">{{ card.seed }}</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ card.isDone }}" hint-placeholder-val="{{ false }}">
+                <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; margin-top:8px">
+                  <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+                    <span style="color:#8F9098; font-size:14px; font-weight:600">{{ card.name }}</span>
+                    <span style="color:#6CA383; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">{{ card.tally }}</span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ card.isPending }}" hint-placeholder-val="{{ true }}">
+                <div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%); border:1px solid #20232A; border-top-color:#2C3039; border-radius:10px; padding:12px 16px; margin-top:8px">
+                  <div style="display:flex; align-items:center; justify-content:space-between; min-height:36px">
+                    <span style="color:#8F9098; font-size:14px; font-weight:600">{{ card.name }}</span>
+                    <span style="color:#55575F; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums">{{ card.tally }}</span>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+
+          <div onClick="{{ openB }}" style="display:flex; align-items:center; justify-content:center; gap:8px; min-height:50px; margin-top:12px; border:1px dashed #2C3039; border-radius:9px; color:#8F9098; font-size:13px; font-weight:600; cursor:pointer" style-hover="border-color:#3A3F4A; color:#EDEEF0">+ Add exercise</div>
+        </div>
+
+        <sc-if value="{{ openedB }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ closeB }}" style="position:absolute; inset:0; background:rgba(6,7,9,0.66); cursor:pointer"></div>
+        </sc-if>
+
+        <div style="{{ sheetStyleB }}">
+          <div onClick="{{ closeB }}" style="padding:12px 0 10px; cursor:grab">
+            <div style="width:36px; height:4px; border-radius:2px; background:#3A3F4A; margin:0 auto"></div>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center; padding:0 16px">
+            <span style="color:#EDEEF0; font-size:15px; font-weight:700; letter-spacing:-0.2px">Add exercise</span>
+          </div>
+          <div style="padding:12px 16px 0">
+            <div style="display:flex; align-items:center; gap:9px; min-height:44px; padding:0 12px; border-radius:9px; background:rgba(237,238,240,0.06); border:1px solid #2C3039">
+              <span style="color:#55575F; font-size:13px">⌕</span>
+              <span style="color:#55575F; font-size:14px; font-weight:500">Search 340 exercises</span>
+            </div>
+          </div>
+          <div style="position:relative; margin-top:12px; flex-shrink:0">
+            <div style="display:flex; gap:6px; padding:0 16px; overflow-x:auto">
+              <sc-for list="{{ pillsB }}" as="pill" hint-placeholder-count="6">
+                <span onClick="{{ pill.tap }}" style="{{ pill.style }}">{{ pill.label }}</span>
+              </sc-for>
+            </div>
+            <span style="position:absolute; top:0; right:0; width:26px; height:36px; pointer-events:none; background:linear-gradient(90deg,rgba(26,29,35,0) 0%,rgba(26,29,35,0.97) 100%)"></span>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; margin-top:2px">
+            <sc-if value="{{ hasRecentB }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px 6px">
+                <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">{{ recentHeadB }}</span>
+                <span onClick="{{ cycleSortB }}" style="color:#8F9098; font-size:11px; font-weight:600; cursor:pointer">{{ sortLabelB }} ⌄</span>
+              </div>
+              <div style="border-top:1px solid #262A32">
+                <sc-for list="{{ recentB }}" as="row" hint-placeholder-count="2">
+                  <sc-if value="{{ row.selected }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; background:#1F232B; cursor:pointer">
+                      <span style="min-width:0">
+                        <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:700">{{ row.name }}</span>
+                        <span style="display:block; color:#8F9098; font-size:11px; font-weight:600; margin-top:2px">{{ row.seed }}</span>
+                      </span>
+                      <span style="flex-shrink:0; width:7px; height:7px; border-radius:999px; background:#659BC8"></span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ row.unselected }}" hint-placeholder-val="{{ true }}">
+                    <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; cursor:pointer">
+                      <span style="min-width:0">
+                        <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:600">{{ row.name }}</span>
+                        <span style="display:block; color:#3A3F4A; font-size:11px; font-weight:600; margin-top:2px">{{ row.meta }}</span>
+                      </span>
+                      <span style="color:#55575F; font-size:11px; font-weight:600; text-align:right; font-variant-numeric:tabular-nums">{{ row.history }}</span>
+                    </div>
+                  </sc-if>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px 6px">
+              <span style="color:#55575F; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px">{{ allHeadB }}</span>
+              <span onClick="{{ cycleSortB }}" style="color:#8F9098; font-size:11px; font-weight:600; cursor:pointer">{{ sortLabelB }} ⌄</span>
+            </div>
+            <div style="border-top:1px solid #262A32">
+              <sc-for list="{{ allB }}" as="row" hint-placeholder-count="5">
+                <sc-if value="{{ row.selected }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; background:#1F232B; cursor:pointer">
+                    <span style="min-width:0">
+                      <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:700">{{ row.name }}</span>
+                      <span style="display:block; color:#8F9098; font-size:11px; font-weight:600; margin-top:2px">{{ row.seed }}</span>
+                    </span>
+                    <span style="flex-shrink:0; width:7px; height:7px; border-radius:999px; background:#659BC8"></span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ row.unselected }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ row.tap }}" style="display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:58px; padding:0 16px; border-bottom:1px solid #262A32; cursor:pointer">
+                    <span style="min-width:0">
+                      <span style="display:block; color:#EDEEF0; font-size:14px; font-weight:600">{{ row.name }}</span>
+                      <span style="display:block; color:#3A3F4A; font-size:11px; font-weight:600; margin-top:2px">{{ row.meta }}</span>
+                    </span>
+                    <span style="color:#55575F; font-size:11px; font-weight:600; text-align:right; font-variant-numeric:tabular-nums">{{ row.history }}</span>
+                  </div>
+                </sc-if>
+              </sc-for>
+            </div>
+            <div style="height:14px"></div>
+          </div>
+
+          <sc-if value="{{ hasSelB }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:10px; padding:12px 16px 18px; background:rgba(20,22,27,0.97); border-top:1px solid #262A32">
+              <span onClick="{{ nextB }}" style="flex:1; min-height:50px; display:flex; align-items:center; justify-content:center; border-radius:9px; background:#659BC8; color:#0A0C0F; font-size:14px; font-weight:700; cursor:pointer">Do it next</span>
+              <span onClick="{{ endB }}" style="flex:1; min-height:50px; display:flex; align-items:center; justify-content:center; border:1px solid #2C3039; border-radius:9px; color:#EDEEF0; font-size:14px; font-weight:600; cursor:pointer">Add to end</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="max-width:900px; margin-top:26px; padding-top:16px; border-top:1px solid #1A1D23">
+    <div style="color:#8F9098; font-size:12px; line-height:1.65">Both sheets close by tapping the grabber or the dimmed workout behind, and both reset on reopen: filter, sort, selection and scroll all go back to their defaults. The pill row scrolls horizontally and never wraps. Recent respects the active filter and disappears entirely when it would be empty, which you can see on Legs and Core. Anything already in today's workout is absent from Recent and present in the full list, where it says so instead of showing history.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:880,&quot;height&quot;:900}}">
+const DB = [
+  { name:'Cable Fly', muscle:'Chest', gear:'Cable', days:4, sets:3, w:'30 lb', reps:12, done:9 },
+  { name:'Chest Dip', muscle:'Chest', gear:'Bodyweight', days:8, sets:3, w:'+25 lb', reps:8, done:14 },
+  { name:'Barbell Bench Press', muscle:'Chest', gear:'Barbell', days:21, sets:3, w:'135 lb', reps:5, done:31 },
+  { name:'Incline Bench Press', muscle:'Chest', gear:'Barbell', days:0, sets:3, w:'95 lb', reps:8, done:22, today:true },
+  { name:'Pec Deck', muscle:'Chest', gear:'Machine', days:null, sets:3, w:null, reps:12, done:0 },
+  { name:'Push Up', muscle:'Chest', gear:'Bodyweight', days:40, sets:3, w:null, reps:20, done:6 },
+  { name:'Barbell Row', muscle:'Back', gear:'Barbell', days:6, sets:3, w:'115 lb', reps:8, done:18 },
+  { name:'Lat Pulldown', muscle:'Back', gear:'Machine', days:13, sets:3, w:'120 lb', reps:10, done:24 },
+  { name:'Chin Up', muscle:'Back', gear:'Bodyweight', days:27, sets:3, w:null, reps:7, done:11 },
+  { name:'Seated Cable Row', muscle:'Back', gear:'Cable', days:null, sets:3, w:null, reps:12, done:0 },
+  { name:'Dumbbell Row', muscle:'Back', gear:'Dumbbell', days:16, sets:3, w:'60 lb', reps:10, done:15 },
+  { name:'Straight Arm Pulldown', muscle:'Back', gear:'Cable', days:29, sets:3, w:'50 lb', reps:14, done:7 },
+  { name:'Rack Pull', muscle:'Back', gear:'Barbell', days:null, sets:3, w:null, reps:5, done:0 },
+  { name:'Lateral Raise', muscle:'Shoulders', gear:'Dumbbell', days:4, sets:3, w:'15 lb', reps:15, done:20 },
+  { name:'Overhead Press', muscle:'Shoulders', gear:'Barbell', days:11, sets:3, w:'75 lb', reps:6, done:16 },
+  { name:'Face Pull', muscle:'Shoulders', gear:'Cable', days:33, sets:3, w:'40 lb', reps:15, done:8 },
+  { name:'Arnold Press', muscle:'Shoulders', gear:'Dumbbell', days:19, sets:3, w:'35 lb', reps:10, done:9 },
+  { name:'Cable Lateral Raise', muscle:'Shoulders', gear:'Cable', days:null, sets:3, w:null, reps:15, done:0 },
+  { name:'Rear Delt Row', muscle:'Shoulders', gear:'Dumbbell', days:24, sets:3, w:'20 lb', reps:12, done:6 },
+  { name:'Dumbbell Curl', muscle:'Arms', gear:'Dumbbell', days:0, sets:3, w:'30 lb', reps:10, done:26, today:true },
+  { name:'Triceps Pushdown', muscle:'Arms', gear:'Cable', days:0, sets:3, w:'50 lb', reps:12, done:29, today:true },
+  { name:'Hammer Curl', muscle:'Arms', gear:'Dumbbell', days:9, sets:3, w:'25 lb', reps:12, done:13 },
+  { name:'Skull Crusher', muscle:'Arms', gear:'Barbell', days:null, sets:3, w:null, reps:10, done:0 },
+  { name:'Back Squat', muscle:'Legs', gear:'Barbell', days:35, sets:3, w:'185 lb', reps:5, done:28 },
+  { name:'Romanian Deadlift', muscle:'Legs', gear:'Barbell', days:38, sets:3, w:'155 lb', reps:8, done:17 },
+  { name:'Leg Extension', muscle:'Legs', gear:'Machine', days:null, sets:3, w:null, reps:15, done:0 },
+  { name:'Bulgarian Split Squat', muscle:'Legs', gear:'Dumbbell', days:12, sets:3, w:'40 lb', reps:10, done:12 },
+  { name:'Leg Press', muscle:'Legs', gear:'Machine', days:26, sets:3, w:'230 lb', reps:12, done:19 },
+  { name:'Walking Lunge', muscle:'Legs', gear:'Dumbbell', days:null, sets:3, w:null, reps:20, done:0 },
+  { name:'Calf Raise', muscle:'Legs', gear:'Machine', days:5, sets:3, w:'90 lb', reps:15, done:21 },
+  { name:'Hanging Leg Raise', muscle:'Core', gear:'Bodyweight', days:45, sets:3, w:null, reps:12, done:5 },
+  { name:'Cable Crunch', muscle:'Core', gear:'Cable', days:null, sets:3, w:null, reps:15, done:0 },
+  { name:'Plank', muscle:'Core', gear:'Bodyweight', days:7, sets:3, w:null, reps:60, done:10 },
+  { name:'Ab Wheel', muscle:'Core', gear:'Other', days:22, sets:3, w:null, reps:10, done:4 },
+  { name:'Russian Twist', muscle:'Core', gear:'Dumbbell', days:null, sets:3, w:null, reps:20, done:0 },
+  { name:'Side Plank', muscle:'Core', gear:'Bodyweight', days:41, sets:3, w:null, reps:45, done:3 }
+];
+const MUSCLES = ['Chest','Back','Shoulders','Arms','Legs','Core'];
+const SORTS = ['Recent','A to Z','Most done'];
+
+class Component extends DCLogic {
+  state = {
+    A: { open:true, filter:'Chest', sort:0, sel:null, added:[], plan:['Incline Bench Press','Dumbbell Curl','Triceps Pushdown'] },
+    B: { open:true, filter:'Chest', sort:0, sel:null, added:[], plan:['Incline Bench Press','Dumbbell Curl','Triceps Pushdown'] }
+  };
+
+  set(k, patch) { this.setState(s => ({ [k]: Object.assign({}, s[k], patch) })); }
+
+  ago(d) {
+    if (d === null) return null;
+    if (d === 0) return 'today';
+    if (d === 1) return 'yesterday';
+    if (d < 7) return d + ' days ago';
+    if (d < 14) return 'last week';
+    if (d < 31) return Math.round(d / 7) + ' weeks ago';
+    return 'over a month ago';
+  }
+
+  seedOf(e) {
+    if (!e.w) return e.sets + ' sets of ' + e.reps + ', from last time';
+    return e.sets + ' sets of ' + e.reps + ' at ' + e.w + ', from last time';
+  }
+
+  rowsFor(k, list) {
+    const st = this.state[k];
+    return list.map(e => {
+      const selected = st.sel === e.name;
+      const inToday = !!e.today || st.added.indexOf(e.name) >= 0;
+      let history;
+      if (inToday) history = 'Already in today\u2019s workout';
+      else if (e.days === null) history = 'Never done';
+      else if (e.w) history = e.sets + ' \u00d7 ' + e.w + ' \u00d7 ' + e.reps;
+      else history = e.sets + ' \u00d7 ' + e.reps;
+      return {
+        name: e.name,
+        meta: e.gear + (this.ago(e.days) && !inToday ? ' \u00b7 ' + this.ago(e.days) : ''),
+        history: history,
+        seed: e.days === null ? 'Never done, you fill in the first set' : this.seedOf(e),
+        selected: selected,
+        unselected: !selected,
+        tap: () => this.set(k, { sel: selected ? null : e.name })
+      };
+    });
+  }
+
+  slice(k) {
+    const st = this.state[k];
+    const inSession = n => {
+      const e = DB.find(x => x.name === n);
+      return (e && e.today) || st.added.indexOf(n) >= 0;
+    };
+    const pool = DB.filter(e => e.muscle === st.filter);
+    const recent = pool
+      .filter(e => e.days !== null && e.days <= 30 && !inSession(e.name))
+      .sort((a, b) => a.days - b.days)
+      .slice(0, 5);
+    const names = recent.map(r => r.name);
+    let all = pool.filter(e => names.indexOf(e.name) < 0);
+    const sort = SORTS[st.sort];
+    if (sort === 'A to Z') all = all.slice().sort((a, b) => a.name.localeCompare(b.name));
+    else if (sort === 'Most done') all = all.slice().sort((a, b) => b.done - a.done);
+    else all = all.slice().sort((a, b) => (a.days === null ? 999 : a.days) - (b.days === null ? 999 : b.days));
+    return { recent: recent, all: all, sort: sort };
+  }
+
+  pack(k) {
+    const st = this.state[k];
+    const s = this.slice(k);
+    const out = {};
+    const U = k;
+    out['pills' + U] = MUSCLES.map(m => ({
+      label: m,
+      style: 'flex-shrink:0; display:flex; align-items:center; min-height:36px; padding:0 11px; border-radius:8px; white-space:nowrap; cursor:pointer; font-size:12px; font-weight:600; border:1px solid ' +
+        (st.filter === m ? '#659BC8; color:#EDEEF0' : '#2C3039; color:#8F9098'),
+      tap: () => this.set(k, { filter: m, sel: null })
+    }));
+    out['recent' + U] = this.rowsFor(k, s.recent);
+    out['all' + U] = this.rowsFor(k, s.all);
+    out['hasRecent' + U] = s.recent.length > 0;
+    out['recentHead' + U] = 'Recent \u00b7 ' + st.filter.toLowerCase();
+    out['allHead' + U] = 'All ' + st.filter.toLowerCase() + ' \u00b7 ' + s.sort.toLowerCase();
+    out['sortLabel' + U] = s.sort;
+    out['hasSel' + U] = !!st.sel;
+    out['plan' + U] = st.plan.map(n => {
+      const e = DB.find(x => x.name === n);
+      const isAdded = st.added.indexOf(n) >= 0;
+      const isDone = n === 'Incline Bench Press';
+      return {
+        name: n,
+        isAdded: isAdded,
+        isDone: !isAdded && isDone,
+        isPending: !isAdded && !isDone,
+        tally: (isDone ? e.sets + '/' + e.sets + ' \u2713' : '0/' + e.sets),
+        seed: e.w ? 'Last ' + e.w + ' \u00d7 ' + e.reps : 'Last ' + e.reps + ' reps'
+      };
+    });
+    out['count' + U] = '1 of ' + (3 + st.plan.length) + ' exercises \u00b7 18:04';
+    out['opened' + U] = st.open;
+    out['sheetStyle' + U] = 'position:absolute; left:0; right:0; bottom:0; height:86%; display:flex; flex-direction:column; background:rgba(26,29,35,0.97); border-top:1px solid #2C3039; border-radius:16px 16px 0 0; box-shadow:0 -16px 40px rgba(0,0,0,0.5); transition:transform 260ms cubic-bezier(0.32,0.72,0,1); transform:translateY(' + (st.open ? '0' : '105%') + ')';
+    out['cycleSort' + U] = () => this.set(k, { sort: (st.sort + 1) % SORTS.length });
+    out['open' + U] = () => this.set(k, { open:true, filter:'Chest', sort:0, sel:null });
+    out['close' + U] = () => this.set(k, { open:false });
+    out['next' + U] = () => this.place(k, true);
+    out['end' + U] = () => this.place(k, false);
+    return out;
+  }
+
+  place(k, atNext) {
+    const st = this.state[k];
+    if (!st.sel) return;
+    const plan = st.plan.slice();
+    if (atNext) plan.splice(st.plan.indexOf('Incline Bench Press') + 1, 0, st.sel);
+    else plan.push(st.sel);
+    this.set(k, { plan: plan, added: st.added.concat([st.sel]), open:false, sel:null, filter:'Chest', sort:0 });
+  }
+
+  renderVals() {
+    return Object.assign({}, this.pack('A'), this.pack('B'));
+  }
+}
+</script>
+</body>
+</html>

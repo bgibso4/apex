@@ -1,0 +1,317 @@
+<!-- @dsCard group="Foundations" -->
+<meta charset="utf-8">
+<title>APEX Foundations — Colors</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+
+    /* === page chrome only (not an app token) === */
+    --page:#050506;
+
+    /* === alternate accent — for §4 "one-line token swap" demo only. Not part of
+       the canonical apex-tokens.css. Per the charter, violet is the retained
+       alternate value for the accent parameter; the halo follows it. === */
+    --accent-alt:#8A91C9;
+    --halo-alt:#161821;
+  }
+
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); color:var(--text); padding:48px 28px 90px; max-width:860px; margin:0 auto; }
+
+  h1 { font-size:26px; font-weight:800; letter-spacing:-0.4px; }
+  .sub { color:var(--text-2); font-size:14px; line-height:1.6; margin-top:10px; max-width:660px; }
+
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.3px; color:var(--text-muted);
+       margin:42px 0 14px; }
+  .tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-left:6px; }
+  .tag.locked { color:var(--logged); }
+  .tag.param { color:var(--accent); }
+
+  p, li { color:var(--text-2); font-size:14px; line-height:1.62; }
+  b { color:var(--text); font-weight:600; }
+  ul { padding-left:18px; display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+
+  code { color:var(--text-2); font-size:12.5px; background:var(--card-top); padding:1px 5px; border-radius:4px; }
+
+  table { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px; }
+  th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+       color:var(--text-muted); padding:7px 10px; border-bottom:1px solid var(--border); }
+  td { padding:7px 10px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:middle; }
+  td:first-child { color:var(--text); }
+  td .hex { color:var(--text-2); }
+  .dot { width:11px; height:11px; border-radius:3px; border:1px solid var(--border-lt); display:inline-block;
+         vertical-align:-1px; margin-right:8px; }
+
+  .callout { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+             border:1px solid var(--border); border-top-color:var(--border-lt);
+             border-radius:var(--r-card); padding:16px 18px; margin-top:14px; }
+  .callout p { margin:0; }
+  .callout p + p { margin-top:8px; }
+
+  /* --- reused from templates/screen-template.html: card + set-row + tap + pill idioms --- */
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:14px 16px; }
+  .card-name { color:var(--text); font-size:14px; font-weight:700; }
+  .eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; }
+  .val { color:var(--text); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .set-row { display:flex; align-items:center; gap:12px; min-height:40px; border-bottom:1px solid var(--border); }
+  .set-row:last-child { border-bottom:none; }
+  .set-n { width:16px; color:var(--text-muted); font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .set-val { flex:1; }
+  .tap { min-width:32px; min-height:32px; border-radius:var(--r-nested); border:1px solid var(--border-lt);
+         display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13px; }
+  .tap.done { background:var(--logged-tint); border-color:var(--logged); color:var(--logged); }
+  .tap.current { border-color:var(--accent); color:var(--accent); }
+  .pill { display:inline-block; padding:3px 9px; border-radius:var(--r-pill); font-size:9px; font-weight:700;
+          text-transform:uppercase; letter-spacing:0.7px; color:var(--text-2); border:1px solid var(--border-lt); }
+  .pill.now { background:var(--accent-tint); color:var(--accent); border-color:var(--accent); }
+
+  /* --- reused from templates/screen-template.html: halo recipe, adapted to a document panel --- */
+  .halo-demo { border:1px solid var(--border); border-radius:var(--r-card); overflow:hidden;
+               background:radial-gradient(ellipse 90% 45% at 50% -5%, var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%);
+               padding:44px 24px; display:flex; justify-content:center; }
+  .halo-demo .card { width:280px; }
+
+  pre.recipe { background:var(--card-top); border:1px solid var(--border); border-radius:var(--r-nested);
+               padding:12px 14px; margin-top:10px; overflow-x:auto; color:var(--text-2); font-size:12px; line-height:1.6; }
+  pre.recipe code { background:none; padding:0; color:inherit; }
+
+  .mini-stage { display:flex; gap:24px; margin-top:16px; flex-wrap:wrap; }
+  .mini-stage > div { flex:1; min-width:260px; }
+  .mini-halo { padding:26px 18px 20px; }
+  .mini-halo .card { width:100%; max-width:260px; margin:0 auto; }
+  .variant-label { text-align:center; color:var(--text-muted); font-size:10px; font-weight:700;
+                    text-transform:uppercase; letter-spacing:0.8px; margin-top:10px; }
+
+  /* the one override rule this page ships: swap the accent parameter on a scoped ancestor.
+     custom properties inherit down the DOM, so both the ambient halo (set on this element)
+     and the descendant card's --accent/--accent-tint usages pick up the alternate value. */
+  .variant-violet {
+    --accent: var(--accent-alt);
+    --halo: var(--halo-alt);
+    --accent-tint: color-mix(in srgb, var(--accent-alt) 10%, transparent);
+  }
+
+  .cap { color:var(--text-muted); font-size:11px; line-height:1.5; max-width:660px; margin-top:10px; }
+</style>
+
+<h1>Foundations — Colors</h1>
+<p class="sub">The codified Precision Blue color system, locked 2026-07-21 after eight art-direction rounds
+  (full trail: <code>context/design-language.html</code>). Two hues exist on a neutral field: the
+  <b>accent</b> means <i>now</i>, <b>moss</b> means <i>earned</i>. Everything else — roughly 90% of any screen —
+  is the neutral ramp below. This page is generated to match <code>apex-tokens.css</code> verbatim; if a screen
+  disagrees with this page, the screen is wrong.</p>
+
+<h2>1. The model — two hues, everything else neutral <span class="tag locked">· locked</span></h2>
+<p>Exactly two hues exist in APEX. Everything that isn't one of these two is neutral — text, borders, surfaces,
+  fields. Tints are always 10%-alpha derivatives of their hue, generated, never hand-picked.</p>
+<table>
+  <tr><th>Token</th><th>Hex</th><th>Meaning</th></tr>
+  <tr>
+    <td><i class="dot" style="background:var(--accent)"></i>accent.primary</td>
+    <td class="hex"><code>#659BC8</code></td>
+    <td><i>Now</i> — the current set, the selected control, the one primary CTA. The halo cast derives from it.
+      Confirmed default (v8); see §4.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--accent-tint); border-color:var(--accent);"></i>accent.primary-tint</td>
+    <td class="hex"><code>#659BC81A</code></td>
+    <td>10%-alpha derivative — chip fills, suggestion backgrounds behind accent content.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--logged)"></i>state.logged</td>
+    <td class="hex"><code>#6CA383</code></td>
+    <td><i>Earned</i> — logged sets, completions, positive deltas. Kept deliberately distinct from accent so
+      done-vs-now never shares a color.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--logged-tint); border-color:var(--logged);"></i>state.logged-tint</td>
+    <td class="hex"><code>#6CA3831A</code></td>
+    <td>10%-alpha derivative — the logged suggestion bar, completion backgrounds.</td>
+  </tr>
+</table>
+<div class="callout">
+  <p><b>If a third hue appears anywhere</b> — a badge, an icon tint, a chart series, a block color — the design
+    is wrong. Route the distinction through structure, size, or copy instead.</p>
+  <p><b>Negative and cautionary states never get a hue.</b> A missed session, a validation error, an overdue
+    deload — all render in neutral text plus copy:
+    <span class="pill" style="margin:0 4px;">Missed</span>
+    is <code>var(--text-2)</code> on a neutral border, exactly like every other secondary label on the page —
+    not red, not amber.</p>
+</div>
+
+<h2>2. The neutral ramp <span class="tag locked">· locked</span></h2>
+<p>~90% of any screen. Depth on the field comes from the halo and the card gradient (§3), not from color variety.</p>
+<table>
+  <tr><th>Token</th><th>Hex</th><th>Role</th></tr>
+  <tr>
+    <td><i class="dot" style="background:var(--field-base)"></i>field-base</td>
+    <td class="hex"><code>#090A0C</code></td>
+    <td>Screen background — bottom of the radial falloff.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--field-mid)"></i>field-mid</td>
+    <td class="hex"><code>#0C0E11</code></td>
+    <td>Radial midpoint (55% stop).</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--halo)"></i>halo</td>
+    <td class="hex"><i>derived</i></td>
+    <td>Accent-cast at whisper intensity; geometry <code>ellipse 90% 45% at 50% −5%</code>. Follows the accent
+      parameter — blue → <code>#141A22</code>, violet → <code>#161821</code>. See §3–§4.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--card-top)"></i>card-top</td>
+    <td class="hex"><code>#14161B</code></td>
+    <td>Vertical card gradient — lit face.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--card-base)"></i>card-base</td>
+    <td class="hex"><code>#0E1013</code></td>
+    <td>Vertical card gradient — foot.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--border)"></i>border</td>
+    <td class="hex"><code>#20232A</code></td>
+    <td>Hairline, 1px, all four card edges.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--border-lt)"></i>border-lt</td>
+    <td class="hex"><code>#2C3039</code></td>
+    <td>Top edge only — the machined highlight.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--text)"></i>text</td>
+    <td class="hex"><code>#EDEEF0</code></td>
+    <td>Primary — numerals, card names, screen titles.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--text-2)"></i>text-2</td>
+    <td class="hex"><code>#8F9098</code></td>
+    <td>Secondary — prescriptions, captions.</td>
+  </tr>
+  <tr>
+    <td><i class="dot" style="background:var(--text-muted)"></i>text-muted</td>
+    <td class="hex"><code>#55575F</code></td>
+    <td>Muted — set indices, disabled state.</td>
+  </tr>
+</table>
+
+<h2>3. The light — one source, told twice <span class="tag locked">· locked</span></h2>
+<p>Depth comes from a single overhead light, told twice at half strength each: a faint radial halo behind the
+  header lights the room; a shallow vertical card gradient with a brighter top edge lights the objects on it.
+  Depth sums across the two — it never stacks into a third effect.</p>
+<div class="halo-demo">
+  <div class="card">
+    <div class="eyebrow">Card surface</div>
+    <div class="card-name" style="margin-top:6px;">Lit face → gradient foot</div>
+    <p style="font-size:12px; margin-top:8px; line-height:1.55;">The vertical gradient plus the brighter
+      <code>border-lt</code> top edge is the object's half of the light. The halo behind this panel is the
+      room's half.</p>
+  </div>
+</div>
+<pre class="recipe"><code>/* halo — sits behind the header, on the screen field */
+background: radial-gradient(ellipse 90% 45% at 50% -5%,
+  var(--halo) 0%, var(--field-mid) 55%, var(--field-base) 100%);
+
+/* card — lit face to gradient foot, brighter top edge */
+background: linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+border: 1px solid var(--border);
+border-top-color: var(--border-lt);</code></pre>
+
+<h2>4. The accent parameter <span class="tag param">· one-line token swap</span></h2>
+<p>Accent is a token, not a decision. Default is dusty blue <code>#659BC8</code> (confirmed v8 after the
+  challenge rounds); dusty violet <code>#8A91C9</code> is retained as the alternate value. The halo derives
+  from whichever accent is active — blue casts <code>#141A22</code>, violet casts <code>#161821</code> — so
+  swapping the parameter re-lights the whole screen, not just one control. Moss (<i>earned</i>) never moves.</p>
+<div class="mini-stage">
+  <div>
+    <div class="halo-demo mini-halo">
+      <div class="card">
+        <div class="card-name">Bench Press</div>
+        <div style="color:var(--text-2); font-size:13px; margin-top:4px;">4×6 @ 82.5kg · RPE 8</div>
+        <div class="set-row" style="margin-top:8px;">
+          <span class="set-n">1</span>
+          <span class="set-val val">82.5kg × 6</span>
+          <span class="tap done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-n">2</span>
+          <span class="set-val val">82.5kg × 6 <span class="pill now">Now</span></span>
+          <span class="tap current">●</span>
+        </div>
+        <div class="set-row">
+          <span class="set-n">3</span>
+          <span class="set-val val" style="color:var(--text-muted);">82.5kg × 6</span>
+          <span class="tap">·</span>
+        </div>
+      </div>
+    </div>
+    <div class="variant-label">Default — dusty blue</div>
+  </div>
+  <div>
+    <div class="halo-demo mini-halo variant-violet">
+      <div class="card">
+        <div class="card-name">Bench Press</div>
+        <div style="color:var(--text-2); font-size:13px; margin-top:4px;">4×6 @ 82.5kg · RPE 8</div>
+        <div class="set-row" style="margin-top:8px;">
+          <span class="set-n">1</span>
+          <span class="set-val val">82.5kg × 6</span>
+          <span class="tap done">✓</span>
+        </div>
+        <div class="set-row">
+          <span class="set-n">2</span>
+          <span class="set-val val">82.5kg × 6 <span class="pill now">Now</span></span>
+          <span class="tap current">●</span>
+        </div>
+        <div class="set-row">
+          <span class="set-n">3</span>
+          <span class="set-val val" style="color:var(--text-muted);">82.5kg × 6</span>
+          <span class="tap">·</span>
+        </div>
+      </div>
+    </div>
+    <div class="variant-label">Alternate — dusty violet</div>
+  </div>
+</div>
+<pre class="recipe"><code>/* the entire diff between the two cards above */
+.variant-violet {
+  --accent: var(--accent-alt);       /* #8A91C9 */
+  --halo: var(--halo-alt);           /* #161821 */
+  --accent-tint: color-mix(in srgb, var(--accent-alt) 10%, transparent);
+}</code></pre>
+<p class="cap">Set 1 (done) and the neutral ramp are byte-identical between the two cards — only
+  <code>--accent</code>, <code>--accent-tint</code>, and <code>--halo</code> move, scoped to one ancestor
+  element. No component was touched, no new hex was introduced.</p>
+
+<h2>5. Provenance <span class="tag locked">· locked</span></h2>
+<p>Every value on this page is generated, not authored here. The source of truth is
+  <code>tokens/apex.json</code> in the <code>cadre</code> repo; <code>npm run tokens</code> emits
+  <code>generated/css/apex-tokens.css</code>, whose <code>:root</code> block this page — and every screen under
+  <code>docs/design-system/templates/</code> and <code>docs/design-system/screens/</code> — copies verbatim.
+  Change a color by editing <code>tokens/apex.json</code> and regenerating; never by hand-editing a
+  <code>:root</code> block downstream.</p>
+<div class="callout">
+  <p>The retired indigo system is not deleted — it survives only as a historical record in
+    <code>context/current-state-inventory.html</code>, flagged for retirement. It does not appear anywhere else
+    in the design system, including this page.</p>
+</div>

@@ -1,0 +1,576 @@
+<!-- @dsCard group="Context" -->
+<meta charset="utf-8">
+<title>Home Research — APEX Design System</title>
+<style>
+  :root {
+    /* === CANONICAL — from cadre generated/css/apex-tokens.css. Do not edit here. === */
+    --field-base:#090A0C;
+    --field-mid:#0C0E11;
+    --halo:#141A22;
+    --card-top:#14161B;
+    --card-base:#0E1013;
+    --border:#20232A;
+    --border-lt:#2C3039;
+    --text:#EDEEF0;
+    --text-2:#8F9098;
+    --text-muted:#55575F;
+    --accent:#659BC8;
+    --on-accent:#0B0C0E;
+    --logged:#6CA383;
+    --accent-tint:#659BC81A;
+    --logged-tint:#6CA3831A;
+    --r-card:10px;
+    --r-nested:6px;
+    --r-pill:999px;
+
+    /* === page chrome only (not an app token) === */
+    --page:#050506;
+  }
+
+  * { margin:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; }
+  body { background:var(--page); color:var(--text); padding:48px 28px 90px; max-width:880px; margin:0 auto; }
+
+  h1 { font-size:26px; font-weight:800; letter-spacing:-0.4px; }
+  .sub { color:var(--text-2); font-size:14px; line-height:1.62; margin-top:10px; max-width:720px; }
+
+  h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.3px; color:var(--text-muted);
+       margin:44px 0 14px; display:flex; align-items:center; gap:8px; }
+  h2 .n { color:var(--accent); font-size:11px; }
+
+  h3 { font-size:13px; font-weight:700; color:var(--text); letter-spacing:-0.1px; margin:0 0 6px; }
+
+  p, li { color:var(--text-2); font-size:14px; line-height:1.62; }
+  b { color:var(--text); font-weight:600; }
+  i { color:var(--text-2); }
+  ul { padding-left:18px; display:flex; flex-direction:column; gap:8px; }
+  ul.tight { gap:6px; }
+  ol { padding-left:20px; display:flex; flex-direction:column; gap:8px; }
+
+  code { color:var(--text-2); font-size:12.5px; background:var(--card-top); padding:1px 5px; border-radius:4px; }
+
+  .thesis { color:var(--text); font-size:15px; font-weight:500; line-height:1.55;
+            border-left:2px solid var(--accent); padding-left:14px; margin:2px 0 4px; }
+
+  .card { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+          border:1px solid var(--border); border-top-color:var(--border-lt);
+          border-radius:var(--r-card); padding:18px 20px; }
+  .card + .card { margin-top:12px; }
+  .card p + p { margin-top:8px; }
+  .card h3 + p { margin-top:2px; }
+
+  table { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px; }
+  .scroll { overflow-x:auto; }
+  th { text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+       color:var(--text-muted); padding:8px 10px; border-bottom:1px solid var(--border-lt); }
+  td { padding:9px 10px; border-bottom:1px solid var(--border); color:var(--text-2); vertical-align:top; line-height:1.5; }
+  td:first-child { color:var(--text); font-weight:600; }
+  tr:last-child td { border-bottom:none; }
+
+  .tag { display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.7px;
+         padding:2px 7px; border-radius:var(--r-pill); white-space:nowrap; }
+  .tag.in-code { background:var(--logged-tint); color:var(--logged); border:1px solid var(--logged); }
+  .tag.new { background:var(--accent-tint); color:var(--accent); border:1px solid var(--accent); }
+  .tag.gap { background:transparent; color:var(--text-muted); border:1px solid var(--border-lt); }
+
+  .foot { color:var(--text-muted); font-size:12px; line-height:1.55; margin-top:10px; }
+  .src { color:var(--text-muted); font-size:11px; font-weight:600; }
+
+  .callout { background:linear-gradient(180deg, var(--card-top) 0%, var(--card-base) 100%);
+             border:1px solid var(--border); border-top-color:var(--border-lt);
+             border-radius:var(--r-card); padding:16px 18px; margin-top:12px; }
+  .callout.warn { border-color:var(--border-lt); }
+
+  .issue-list { list-style:none; padding-left:0; }
+  .issue-list li { display:flex; gap:12px; align-items:baseline; padding:11px 0; border-bottom:1px solid var(--border); }
+  .issue-list li:last-child { border-bottom:none; }
+  .issue-tag { flex:0 0 auto; min-width:38px; text-align:center; padding:3px 8px; border-radius:var(--r-pill);
+               font-size:11px; font-weight:700; background:var(--card-top); color:var(--text-2);
+               border:1px solid var(--border-lt); font-variant-numeric:tabular-nums; }
+
+  .qmark { color:var(--accent); font-weight:700; }
+</style>
+
+<h1>Home Research</h1>
+<p class="sub">Outside-in research feeding the Home screen redesign, R2 campaign. Read this before designing in the
+  claude.ai/design session, alongside <code>home-brief.html</code> (which is the inside-out read of what ships today).
+  This document leads with the world — how the field designs Home, the philosophies available, the jobs the screen
+  actually serves — and only then turns to APEX's own decisions. It reports options; it decides nothing.</p>
+
+<div class="callout">
+  <p><b>Provenance.</b> Five researchers were commissioned and all five delivered:
+    <code>leaders.md</code> (industry teardown), <code>jtbd.md</code> (jobs-to-be-done),
+    <code>evolution.md</code> (adaptive-home architecture), <code>rising.md</code> (rising apps +
+    home-screen philosophies), and <code>baseline.md</code> (the Baseline app + integration audit).
+    Every claim traces to a named delivered file, shown as <span class="src">source.md</span> at the point
+    of claim. The Baseline sync state in §4 is a fresh cross-repo audit — git-diffed across the Baseline,
+    <code>health-api</code>, and <code>cadre-shared</code> trees — and is marked
+    <span class="tag in-code">verified</span>.</p>
+</div>
+
+<h2><span class="n">1</span>How the Field Designs Home</h2>
+<p>Ten training and health apps torn down top-to-bottom <span class="src">leaders.md</span>. The training-first
+  ones converge on a small set of repeating patterns; the social/content ones (Hevy, Strava) diverge onto a
+  feed and are the cautionary case. The through-line: <b>every leader's brilliance is subtractive; every
+  leader's failure mode is additive.</b></p>
+
+<div class="scroll">
+<table>
+  <tr><th>Repeating pattern</th><th>Who does it</th><th>What it earns</th></tr>
+  <tr>
+    <td>One dominant "today" object</td>
+    <td>Fitbod, Caliber, JuggernautAI, RP, Peloton (via Stack)</td>
+    <td>Answers "what do I do right now?" in under a second, started with one tap. The home's whole job.</td>
+  </tr>
+  <tr>
+    <td>Readiness beside the action, never instead of it</td>
+    <td>Whoop dials, Juggernaut readiness score, Fitbod muscle map</td>
+    <td>Frames the day's prescription. Best-in-class <i>modify</i> the prescription (Juggernaut, Fitbod); weaker
+      ones only display it (Whoop, which then lacks rest-day logic).</td>
+  </tr>
+  <tr>
+    <td>Progressive disclosure in three tiers</td>
+    <td>Whoop (glance → tap → dig), Strong (per-exercise), Apple (rings → trends)</td>
+    <td>Density without confusion. Whoop's rule: "each tile is a doorway, not a destination." Skip tiering and
+      even correct content reads as confusing (Juggernaut v1).</td>
+  </tr>
+  <tr>
+    <td>Program position always visible when a program exists</td>
+    <td>Juggernaut ("how far along"), RP meso-grid, Peloton schedule</td>
+    <td>Periodized training only feels meaningful when today's slot in the larger arc is legible.</td>
+  </tr>
+  <tr>
+    <td>Last-time numbers wherever a number is entered</td>
+    <td>Strong, Hevy, Caliber</td>
+    <td>The single highest-leverage logging affordance — pre-fill or display previous weight/reps at the point of
+      entry.</td>
+  </tr>
+  <tr>
+    <td>Persistent, reachable start; resumable mid-workout</td>
+    <td>Peloton floating button, Whoop global '+', Strava Record tab</td>
+    <td>State survives navigation and relaunch and surfaces as a resumable banner. (APEX's #70 gap is exactly the
+      missing half of this.)</td>
+  </tr>
+  <tr>
+    <td>A few identity metrics on open</td>
+    <td>Juggernaut SBD &amp; Total, Caliber Strength Score, Whoop Recovery %</td>
+    <td>One to three numbers that say "this is who you are right now" — not a wall of stats.</td>
+  </tr>
+  <tr>
+    <td>Rest days reframed, never blank</td>
+    <td>Apple (trend averages, "no penalty framing"), Fitbod (rest → recovery on the body map)</td>
+    <td>Rest reads as recovery, not failure. Streak apps (Peloton) handle it worst — a missed day reads as a
+      broken streak.</td>
+  </tr>
+</table>
+</div>
+
+<h3 style="margin-top:22px;">What only the best have (the differentiators)</h3>
+<div class="card">
+  <ul class="tight">
+    <li><b>The app shows its reasoning.</b> Fitbod's recovery map and Whoop's Daily Outlook explain <i>why</i>
+      today looks like this. Prescription + rationale converts algorithm skeptics into trusters. <span class="src">leaders.md</span></li>
+    <li><b>A visible autoregulation loop.</b> JuggernautAI and RP close the circle on-screen: readiness / RPE /
+      soreness demonstrably changes tomorrow's numbers. Rare, and precisely APEX's RPE-progression territory.</li>
+    <li><b>Separation of deciding from doing.</b> Peloton's Stack lets you queue calmly tonight and start with one
+      tap under fatigue tomorrow. No lifting app has stolen this yet.</li>
+    <li><b>Self vs. social split at the architecture level.</b> Strava's "You" tab concedes that "my training"
+      and "the feed" are different products; leaders never mix consumption content into the action path.</li>
+    <li><b>A single derived, actionable metric.</b> Caliber's Strength Balance compresses dozens of lift logs
+      into one directive ("your pull lags your push") — the "no vanity metrics" ideal made concrete.</li>
+    <li><b>Restraint as trust.</b> The most-praised surfaces (Whoop tier 1, Caliber home, Strong's logging
+      screen) show remarkably little.</li>
+  </ul>
+</div>
+
+<h3 style="margin-top:22px;">Failure patterns to avoid</h3>
+<div class="scroll">
+<table>
+  <tr><th>Anti-pattern</th><th>Who fell into it</th><th>What it costs</th></tr>
+  <tr><td>Social / content feed as the home surface</td><td>Hevy, Strava</td><td>Buries the primary action a tab away; home answers "what did others do?" not "what do I do?"</td></tr>
+  <tr><td>Recommendation-row merchandising</td><td>Peloton picks, Fitness+ upsell rows</td><td>Turns a training home into a content catalog; choice overload.</td></tr>
+  <tr><td>Density without tiering</td><td>JuggernautAI v1 dashboard, Whoop for novices</td><td>"Confusing," "tough to read" — right content, wrong disclosure.</td></tr>
+  <tr><td>Streaks that punish planned rest</td><td>Peloton</td><td>A designed rest day reads as failure.</td></tr>
+  <tr><td>Paywall interrupts around the core action</td><td>Fitbod (double paywall)</td><td>Friction wrapped around the one thing the user came to do.</td></tr>
+  <tr><td>Insight without prescription</td><td>Whoop's rest-day gap</td><td>Data that never changes what you do today — informed but directionless.</td></tr>
+</table>
+</div>
+
+<h2><span class="n">2</span>Philosophies of a Home Screen</h2>
+<p>Six recurring stances on what a Home screen is <i>for</i>, synthesised from a study of rising, opinionated
+  fitness apps (Ladder, Boostcamp, Alpha Progression, Gentler Streak, Bevel, Train Fitness, Caliber) and
+  best-in-class Today-screens outside fitness (Duolingo, Things 3, Copilot Money, Headspace, iOS Smart Stack /
+  Google Discover) <span class="src">rising.md</span>. Treat it as a menu of stances, not a ranking — each is a
+  different answer to "what is the home <i>for</i>?"</p>
+
+<div class="card">
+  <h3>The Queue</h3>
+  <p class="thesis">Home is the single next prescribed action in an authored sequence.</p>
+  <p><b>Embodied by</b> Duolingo's path, Boostcamp, Ladder's coach-assigned week, Alpha Progression's plan.
+    <b>Trade:</b> excellent adherence and zero decision-friction, low choice and high compliance — but brittle
+    around real-life exceptions (missed days, deload weeks, illness) unless paired with a forgiving fallback
+    state; Duolingo's streak-loss anxiety is the cautionary case.</p>
+  <p><b>For APEX this would mean</b> presenting the next prescribed session as one confident action, not a menu of
+    choices — with the forgiving rest / deload / missed fallback a periodized program demands so an exception
+    never reads as failure.</p>
+</div>
+<div class="card">
+  <h3>The Dashboard</h3>
+  <p class="thesis">Home is a hero metric plus a stack of supporting cards, ordered attention-needed-first.</p>
+  <p><b>Embodied by</b> Copilot Money (a derived pace-vs-target graph as hero, then "what needs my attention"),
+    Bevel, Alpha Progression's charts. <b>Trade:</b> rewards regular check-ins and gives real situational
+    awareness — but risks overload (Caliber) and has a hard cold-start blank slate when there is no data yet
+    (Bevel's literal empty dashboard).</p>
+  <p><b>For APEX this would mean</b> borrowing the hero-metric-then-attention-stack instinct — one derived,
+    comparative line (compliance vs plan, or e1RM trend direction) with cards ordered by what needs a decision
+    before how you are trending — while owning explicit answers to overload and cold-start.</p>
+</div>
+<div class="card">
+  <h3>The Coach</h3>
+  <p class="thesis">Home is one curated recommendation from a trusted authority, not a menu.</p>
+  <p><b>Embodied by</b> Headspace, Caliber's coach layer, Ladder's coach-assigned week, Bevel's AI tier.
+    <b>Trade:</b> removes decision fatigue almost entirely and feels premium and personal — but is only as
+    trustworthy as the coach or algorithm behind it; a weak or generic recommendation breaks trust faster than an
+    obviously-mechanical rule would.</p>
+  <p><b>For APEX this would mean</b> resolving recovery × program-state into a single synthesized directive line
+    above the start action rather than three raw percentages — earning trust by showing its reasoning, since a
+    wrong directive is loud.</p>
+</div>
+<div class="card">
+  <h3>The Ritual</h3>
+  <p class="thesis">Home is an emotionally-aware check-in that reframes stats relative to the individual, not a
+    scoreboard.</p>
+  <p><b>Embodied by</b> Gentler Streak — the only pure example, an Apple Design Award winner for exactly this
+    stance. <b>Trade:</b> meaningfully differentiated and strong for adherence and wellbeing (a "gentler"
+    acknowledgment reduces the anxiety-driven skipping that erodes adherence) — but trades away the clinical,
+    high-signal density an instrument-panel aesthetic wants.</p>
+  <p><b>For APEX this would mean</b> a framing layer: the same number ("60% of prescribed volume") read as honest
+    information, not a broken-streak banner — and a deliberate decision about whether APEX wants any of that
+    warmth or stays clinical by contrast.</p>
+</div>
+<div class="card">
+  <h3>The Committed List</h3>
+  <p class="thesis">Home is only what the user has deliberately promoted into "today," decoupled from what is
+    merely due.</p>
+  <p><b>Embodied by</b> Things 3, where "Today" is a verb the user performs, not a property the system infers.
+    <b>Trade:</b> maximally respects user intent and avoids the tyranny of auto-generated to-dos — but requires
+    active curation, a poor fit for a periodized program where the system is supposed to already know what is
+    next.</p>
+  <p><b>For APEX this would mean</b> a pressure-test rather than a primary model: does Home leave <i>any</i> room
+    to promote or demote what counts as today — defer a session, pull a lift forward — as a lightweight
+    commit/defer override on top of the system's prescription?</p>
+</div>
+<div class="card">
+  <h3>The Adaptive Stack</h3>
+  <p class="thesis">Home is no fixed template — module presence and order recomputed from context each time it is
+    opened.</p>
+  <p><b>Embodied by</b> iOS Smart Stack and Google Discover, and the thesis of <code>evolution.md</code>.
+    <b>Trade:</b> can feel magically relevant and wastes no space on irrelevant modules — but sacrifices the
+    muscle-memory comfort of "I always know where X is," and full personalisation needs more signal than a
+    single-user app should build.</p>
+  <p><b>For APEX this would mean</b> the governed module-stack architecture of §5 — a realistic rule-based,
+    two-or-three-state version, not full ML reflow; deterministic rules beat a ranker at n=1.</p>
+</div>
+
+<div class="callout warn">
+  <p><b>Cross-cutting failure modes.</b> <span class="src">rising.md</span> Across both the rising fitness apps
+    and the outside-fitness Today-screens, two failure modes recur: <b>dashboard overload</b> — every metric
+    crammed on with no hierarchy (Caliber's stated weakness; even a well-reviewed app gets dinged specifically for
+    a too-dense home) — and the <b>cold-start blank slate</b> (Bevel literally "starts with a completely blank
+    slate on the dashboard"). Any Dashboard- or Adaptive-Stack-flavoured APEX Home needs an explicit, designed
+    answer to both — a hierarchy that survives density, and a designed empty state for week one / new program / no
+    history — before it can be considered done.</p>
+</div>
+
+<h2><span class="n">3</span>The Jobs Home Must Do</h2>
+<p>Derived outside-in from how Ben actually uses a periodized strength app across a day, a week, and a cycle
+  <span class="src">jtbd.md</span>. The current layout was treated as a question, not an answer.</p>
+
+<h3>Moments of use</h3>
+<p>Every distinct moment Ben lands on Home, ordered by frequency × stakes. M1 and M2 are mutually exclusive and
+  together own the single hero slot; every other moment must be ignorable when M1/M2 is live.</p>
+<div class="scroll">
+<table>
+  <tr><th>#</th><th>Moment</th><th>What Home owes him</th></tr>
+  <tr><td>M1</td><td>Walking into the gym</td><td>The hero. Today's session named, one large Start target, zero scrolling, ignorable at arm's length.</td></tr>
+  <tr><td>M2</td><td>Mid-workout return</td><td>The most stateful moment, today invisible (#70). Resume must be unmissable in one glance: elapsed time, position (3 of 6), one tap to the exact set. Overrides everything. "Start Workout" while a session runs is Home lying.</td></tr>
+  <tr><td>M3</td><td>Morning check</td><td>Today's plan + recovery stated <i>as a consequence, not a score</i>. One compact line beats three columns of percentages. Health stays secondary.</td></tr>
+  <tr><td>M4</td><td>Pre-gym planning</td><td>Session name, exercise count / rough duration, a route to preview; week-X-of-Y context in one line, not a wall of program UI.</td></tr>
+  <tr><td>M5</td><td>Post-workout, same day</td><td>A quiet done state: duration, sets, PRs, progression commitments ("↑ next session · 100 lb" is moss, earned). The record must feel written.</td></tr>
+  <tr><td>M6</td><td>Rest day</td><td>Lead with recovery context + what's next + a live door to train anyway (#71). A rest day is a state, not a dead end. Kill the rotating quote or earn it.</td></tr>
+  <tr><td>M7</td><td>Off-program / between programs</td><td>Today homeless (#71). Home must always offer a path to freeform training — quiet on program days, primary in the no-program state. Read "unprogrammed," not "empty."</td></tr>
+  <tr><td>M8</td><td>Post-run / pain follow-up</td><td>Must appear <i>regardless of program state</i> (today a real branch bug), one tap to answer, vanish when resolved. Due-now, not resident.</td></tr>
+  <tr><td>M9</td><td>Check-in day (weigh-in / readiness)</td><td>Due-when-due (#49): appears on the day, one tap, disappears. Same grammar as the pain follow-up — one prompt vocabulary, no bespoke notification species.</td></tr>
+  <tr><td>M10</td><td>Program end</td><td>Celebration is a bounce-through, not a state. The persistent card's job is the next decision — start next / browse — and it must leave gracefully and route to run history (#73).</td></tr>
+  <tr><td>M11</td><td>Reflection / planning</td><td>Entry points, not content: overview ahead (#64), history behind (#63, #73), trends (Progress tab). Home states one line of where-you-are and routes to depth.</td></tr>
+</table>
+</div>
+
+<h3 style="margin-top:22px;">Ranked problems a great Home must solve</h3>
+<ol>
+  <li><b>The in-progress session is invisible (#70).</b> <code>getInProgressSession</code> exists; Home never
+    calls it. The only problem where Home <i>actively misleads</i>. Answer to the brief's "how loud?": the resume
+    surface overrides the hero slot entirely — it <i>is</i> the hero when it exists.</li>
+  <li><b>The common case must survive everything else on this list.</b> One glance, one tap, start today. Every
+    added job is a tax on M1 unless hierarchy makes it free. Fixing 3–7 by adding surface area is failing this.</li>
+  <li><b>Recovery data is not actionable.</b> Three numbers are a readout, not an instrument. Either it changes a
+    decision (the consequence, one line) or it earns one muted line and no more.</li>
+  <li><b>Off-program training is homeless (#71).</b> No-program is a locked door; rest days offer only a quote. A
+    program is the usual shape of training, not a precondition for it.</li>
+  <li><b>History is buried (#63, #73).</b> Work done is the product's evidence and has no front door. Home
+    doesn't render history — it gives it an address.</li>
+  <li><b>Due-now items have no grammar (#49, pain follow-up).</b> One prompt vocabulary: appears when due, one tap
+    to resolve, vanishes, never stacks.</li>
+  <li><b>Program context sprawls.</b> Name + chips + week line + block-colored timeline + calendar rings states the
+    same fact five ways in five-plus hues. State position once, delegate the map to overview (#64).</li>
+  <li><b>State transitions are unowned.</b> Completion is a redirect side-effect; dismissal is a flag flipped
+    elsewhere. Each state needs a designed entrance and exit.</li>
+</ol>
+
+<h3 style="margin-top:22px;">Anti-jobs — what Home must NOT become</h3>
+<div class="card">
+  <ul class="tight">
+    <li><b>Not a vanity dashboard.</b> No rings, gauges, streaks, tonnage, score-collecting. If a number neither
+      drives an action nor tells a story, it goes.</li>
+    <li><b>Not a feed or notification pile.</b> Prompts are finite, due-now, self-expiring. No backlog, no badge
+      count, never two prompts competing — Home does triage, not the user.</li>
+    <li><b>Not a duplicate of the other tabs.</b> Home states one line and routes; it does not re-render the
+      Workout day detail, Progress charts, or a history browser.</li>
+    <li><b>Not a launcher grid of equal choices.</b> One primary action per state, always; secondary doors are
+      visually subordinate.</li>
+    <li><b>Not a motivational surface.</b> No rotating quotes, no confetti-at-rest. Moss means earned, and appears
+      only when something was earned.</li>
+  </ul>
+</div>
+
+<h3 style="margin-top:22px;">Calendar: two owner-verified jobs (added 2026-08-17)</h3>
+<div class="callout warn">
+  <p><b>Ben reported directly how he actually uses today's Home calendar.</b> <span class="tag in-code">verified</span>
+    Two distinct jobs, not one:</p>
+  <p><b>1 · Adherence at a glance.</b> The filled green day-circles let him see instantly which days he trained
+    — "hit all six days this week," or scanning back two or three weeks to check adherence. A glance, not an
+    interaction.</p>
+  <p><b>2 · Date-indexed history access.</b> Tapping a day on the calendar and landing on that session's detail
+    is his standard way to review a past workout — "what did I do last Sunday." This is his primary
+    history-browsing path in the app today, which makes the calendar the de-facto live answer to <b>#63</b>
+    (history browsing).</p>
+  <p><b>Design implication.</b> Any Home design that drops or demotes the calendar without re-homing <i>both</i>
+    jobs is a regression, not a simplification — job 2 ties directly to #63. Note the moss mapping: the filled
+    done-days are literally "earned" — the same moss-means-earned semantic <code>home-brief.html</code> §4 locks
+    for the rest of the screen.</p>
+</div>
+
+<h2><span class="n">4</span>Baseline &amp; the Integration Options</h2>
+<p>Baseline is real, built, and on a shipping track. This section is a read-only audit of its repo, cross-referenced
+  against the shared Cloudflare Worker + D1 and the shared contract package <span class="src">baseline.md</span>.
+  The sync finding is a fresh cross-repo audit, git-diffed between both codebases and marked
+  <span class="tag in-code">verified</span>; the integration spectrum is framed as options for the brainstorm, not a
+  recommendation.</p>
+
+<div class="card">
+  <h3>What Baseline is</h3>
+  <p>Baseline is the <b>weight / body-composition app</b> scoped in APEX's own health-ecosystem spec — but it is
+    not a plan, it is a <b>shipping product</b>: a separate, standalone SwiftUI + MVVM iOS app (own repo) held to a
+    Principal-Engineer bar with a public App Store track. SwiftData + CloudKit sync (sensitive fields end-to-end
+    encrypted), HealthKit <i>write</i> mirroring, on-device camera OCR of InBody printouts, and WidgetKit widgets.
+    It ships under a shared umbrella brand, <b>Cadre</b> (bundle prefix <code>com.cadre.baseline</code>), whose
+    About screen already names APEX as a sibling. Three tabs — Trends · Now · Body — and it owns daily
+    <code>WeightEntry</code>, tape <code>Measurement</code>s, structured InBody <code>Scan</code>s, and
+    <code>Goal</code>s. <span class="src">baseline.md</span></p>
+</div>
+
+<div class="card">
+  <h3>Its landing tab is an APEX cousin</h3>
+  <p>Baseline's landing tab, <b>Now</b>, shares APEX's design instincts almost exactly. Over a gradient background:
+    a <b>270° arc</b> (290×248pt) wrapping an <b>84pt bold hero weight</b> with an animated numeric transition; a
+    <b>30D / 90D / All range toggle</b> that drives the arc; a <b>stats card</b> (Lowest / Average / Highest,
+    swapping to Current / Target / To-Go when a goal is active); and one full-width <b>Weigh In</b> CTA. Dark UI,
+    locked neutrals, a single swappable dusty-blue accent, no gamification — the same single-accent, high-contrast,
+    quiet-confidence direction as APEX's Precision-Blue era, arrived at independently. <span class="src">baseline.md</span></p>
+</div>
+
+<div class="callout warn">
+  <p><b>The sync / data reality (verified audit).</b> <span class="tag in-code">verified</span> Baseline's
+    D1-mirror code <b>exists but is dead</b>. Three independent, git-diffed facts:</p>
+  <p><b>1 · The mirror is hardcoded off.</b> <code>BaselineApp.swift</code> injects a
+    <code>NoOpOutboundMirror()</code> in the <i>only</i> build configuration that exists; the planned
+    <code>Baseline-Cadre</code> scheme + <code>CADRE_BUILD</code> flag that would swap in the real
+    <code>CloudflareOutboundMirror</code> was never added to <code>project.yml</code>. The Cadre-sync Settings
+    screen is a self-documented stub whose API-URL / key fields persist to UserDefaults but are never read.</p>
+  <p><b>2 · The contract mismatches the live worker.</b> Even fully wired, Baseline posts <i>flat</i> records to
+    <code>/v1/weight_entries</code> · <code>/scans</code> · <code>/measurements</code>, but the worker allows only
+    <code>body_weights</code> and <code>body_comp_scans</code> and expects a <code>{ app_id, records: [] }</code>
+    batch envelope — so every push would <b>400 today</b> on table name alone, and there is no server-side
+    <code>measurements</code> table at all.</p>
+  <p><b>3 · Reads are not the blocker.</b> The worker's generic <code>GET /v1/:table</code> already works for the
+    allowed tables, so once data lands APEX could read it back with no worker change. But nothing has ever written,
+    so <b>D1's body tables remain empty</b>. Both sides wrote code against a shared plan and never reconciled it.
+    <span class="src">baseline.md</span></p>
+</div>
+
+<h3 style="margin-top:22px;">Integration options spectrum — for Ben, no decision</h3>
+<p>Three levels at which APEX Home could relate to Baseline's weight / body-comp data, from loosest to tightest,
+  with the audit's honest costs. Presented as a spectrum to choose along; the audit's own headline is noted after
+  the table.</p>
+<div class="scroll">
+<table>
+  <tr><th>Option</th><th>What it is</th><th>Gains</th><th>Costs</th></tr>
+  <tr>
+    <td>(a) Data-level</td>
+    <td>Baseline fixes its dormant sync and writes weight / body-comp to the shared D1; APEX <i>reads</i> it back
+      (the worker's generic GET already works) and renders a compact value / sparkline card in the existing
+      <code>HealthCard</code> family. Apps stay fully separate; only data is shared.</td>
+    <td>Same-glance body-weight trend beside training state, near-zero UI coupling, reversible (one more read
+      source), consistent with APEX's swappable-modules tenet, and it feeds the already-planned cross-app
+      Dashboard. Respects the ownership asymmetry — Baseline ships publicly regardless.</td>
+    <td>Baseline goes first: add the build variant, wire <code>CloudflareOutboundMirror</code>, and fix the
+      contract (rename targets, wrap in the envelope, reconcile columns, decide <code>measurements</code>' fate) —
+      low single-digit days, but under Baseline's production CI / lint / test bar, so ~a week. APEX side: a small
+      D1 read client + Home card + fetch/cache hook (a new pattern for APEX), 1-2 days. Depends on Baseline
+      actually being logged into.</td>
+  </tr>
+  <tr>
+    <td>(b) Feature-level</td>
+    <td>APEX embeds weigh-in <i>capture</i> or Baseline UI directly — a Log Weigh-In quick action, or an embedded
+      arc — requiring either a shared Swift package carved out of Baseline's monolithic app target, or APEX
+      re-implementing weight logging natively against the same D1 tables.</td>
+    <td>Log a weigh-in without leaving APEX — closer to "one app for training day."</td>
+    <td><b>Multiple weeks.</b> Extract <code>WeightEntry</code> / unit-conversion / HealthKit-write / sync from a
+      target Baseline was never architected to export; APEX has no weight persistence today and must fork
+      CloudKit-vs-D1. Identity damage to both — Baseline stops being a clean single-purpose app, APEX absorbs a
+      non-workout concern.</td>
+  </tr>
+  <tr>
+    <td>(c) Full merge</td>
+    <td>APEX grows a 5th surface that is Baseline's Now / Trends / Body ported in; Baseline as an independent App
+      Store product is discontinued or forked.</td>
+    <td>One app, one data store, no sync problem to solve at all.</td>
+    <td><b>Weeks to a couple months</b> — a rewrite/port, not an integration: reconcile two SwiftData / SQLite
+      schemas, port the OCR + camera pipeline wholesale, and either kill Baseline's public track or maintain it as
+      a second product. <b>Severe identity damage:</b> Baseline ships to real App Store users on a review cycle,
+      APEX is personal — the asymmetry bites hardest here. Avoid unless the real decision is "stop shipping
+      Baseline publicly."</td>
+  </tr>
+</table>
+</div>
+<p class="foot"><b>The audit's headline:</b> (a) is its recommended scope — the only option whose cost matches the
+  payoff, anticipated by both apps' own design docs, and touching neither app's identity; (b) and (c) trade
+  architecture and product identity for convenience a well-designed (a) mostly delivers anyway. Recorded as the
+  audit's recommendation, not a decision — the choice stays open for the brainstorm. Note the separate axis: the
+  planned cross-app <b>Dashboard</b> wants weight in D1 regardless, so "does the trend reach the cloud?" is
+  independent of "does the trend appear on APEX Home?"; a weight-trend module on Home (§5, Weigh-In / Trend Story
+  territory) is compatible with all three. <span class="src">baseline.md</span></p>
+
+<h2><span class="n">5</span>The Evolving Home: A Module Stack</h2>
+<p>Research question: how do you architect a Home that gets <i>better</i> over time instead of being a frozen
+  layout? <span class="src">evolution.md</span></p>
+<p class="thesis">Make Home a ranked stack of state-driven modules — each a self-contained unit with a trigger,
+  content, one action, and an exit — ordered by deterministic rules over a small context object, governed hard
+  enough that it never becomes a feed.</p>
+<p>The layout is frozen (a vertical stack of cards in the locked design language); the <i>contents and order</i>
+  are alive. Shipping an improvement means adding or tuning a module and a rule — never re-architecting the
+  screen. Formally: <code>render( rank( eligible( modules, context ) ) )</code> over a <b>registry</b> of modules,
+  a <b>context</b> snapshot, a <b>ranking engine</b> (filter → sort by band then score → cap depth), and a dumb
+  <b>renderer</b> with stable identity so reorders animate.</p>
+
+<h3 style="margin-top:22px;">The module contract</h3>
+<p>A new module ships as one file conforming to the contract plus one registry line — no screen or layout change.
+  Four clauses, two registry obligations:</p>
+<div class="card">
+  <ul class="tight">
+    <li><b>1 · Trigger.</b> A predicate + score over the pure <code>HomeContext</code>: when am I relevant, how
+      strongly, and until when? Must include an <b>expiry</b> — no module is relevant forever.</li>
+    <li><b>2 · Content.</b> A <code>HomeCard</code> descriptor using an <i>existing</i> archetype (hero /
+      statement / prompt / stat). One idea per card. A content that fits no archetype is a design conversation,
+      not a new archetype by default — governance by construction.</li>
+    <li><b>3 · Action.</b> At most one primary action. A card with no action must instead tell a <i>story</i> — a
+      state change worth knowing. <b>Action or story; neither is disqualifying.</b></li>
+    <li><b>4 · Exit.</b> Every module names how its instance leaves: state-cleared, auto-expiry, or user-dismissed.
+      Dismissals persist per instance-key and are never overridden.</li>
+    <li><b>Registry · Band + cap fit.</b> Declare the band; if the band is at its cap, name which module you
+      outrank and why.</li>
+    <li><b>Registry · Success metric.</b> One sentence: what event counts as this card having earned its slot
+      (its action fired / its story acknowledged), logged automatically.</li>
+  </ul>
+</div>
+
+<h3 style="margin-top:22px;">Candidate module catalog</h3>
+<p>Twelve candidates over APEX's available context (program position, session state, e1RM logs, Whoop recovery,
+  weigh-ins, running log). Bands: <code>now</code> interrupts · <code>today</code> the day's prescription ·
+  <code>signal</code> stories &amp; warnings · <code>ambient</code> everything else.</p>
+<div class="scroll">
+<table>
+  <tr><th>Module</th><th>Band</th><th>Trigger</th><th>Action / story</th><th>Exit</th></tr>
+  <tr><td>Resume Session</td><td>now</td><td><code>session == inProgress</code></td><td>Resume → workout</td><td>State-cleared (finished / discarded)</td></tr>
+  <tr><td>Today's Workout</td><td>today</td><td>Workout day, no session yet</td><td>Start workout</td><td>Session started, or day ends</td></tr>
+  <tr><td>Rest Day</td><td>today</td><td>Rest day, no session</td><td>(story) recovery + tomorrow's preview</td><td>Day ends</td></tr>
+  <tr><td>Session Debrief</td><td>signal</td><td><code>completedToday</code></td><td>View session detail</td><td>Auto-expires at midnight</td></tr>
+  <tr><td>PR Story</td><td>signal</td><td>e1RM all-time high last session, &lt; 48h</td><td>View lift detail</td><td>48h or tap-through</td></tr>
+  <tr><td>Recovery Warning</td><td>signal</td><td>Red recovery <i>and</i> heavy day</td><td>View adjustment</td><td>Day ends; green/yellow folds into Today's Workout as a line</td></tr>
+  <tr><td>Deload Week</td><td>signal</td><td>First open of a deload week</td><td>(story) what changes</td><td>Shown once, then a badge for the week</td></tr>
+  <tr><td>Program Milestone</td><td>signal</td><td>Final week of block, or ≥ 90% complete</td><td>Review / plan next</td><td>State-cleared (next block / new program)</td></tr>
+  <tr><td>Missed Day</td><td>signal</td><td>Scheduled day passed unlogged</td><td>Reschedule / skip</td><td>User action or 72h</td></tr>
+  <tr><td>Weigh-In Prompt</td><td>ambient</td><td>Morning + no weigh-in in N days</td><td>One-tap log weight</td><td>Snooze today, or logged</td></tr>
+  <tr><td>Run Due</td><td>ambient</td><td>Running goal active, week target unmet, rest day</td><td>Log run</td><td>Target met / week ends / dismissed</td></tr>
+  <tr><td>Trend Story</td><td>ambient</td><td>e1RM 4-week slope crosses threshold, or streak milestone</td><td>View progress</td><td>72h; max one at a time</td></tr>
+</table>
+</div>
+<p class="foot">Ranking sketch: sort by band, then score within band. Caps — <code>now</code> exclusive
+  (suppresses <code>today</code>), <code>today</code> exactly one, <code>signal</code> ≤ 2, <code>ambient</code>
+  ≤ 2; total ≤ 5. Uneventful rest day → <code>[Rest Day]</code>, one card, and that's correct. Note the tie to §4:
+  the Weigh-In Prompt (#10) and a body-weight Trend Story are the modules that would consume Baseline data.</p>
+
+<h3 style="margin-top:22px;">Governance against junk-drawer drift</h3>
+<div class="card">
+  <p class="thesis">Every card must earn its slot with an action or a story, the stack is capped, and every card
+    must know how it leaves.</p>
+  <p><b>Feed-ification</b> — hard depth cap (hero + 3–4), no pagination, no "more for you." A short Home on a quiet
+    day is the system working. <b>Notification pile</b> — the exit clause is mandatory; expiries short; dismissed
+    means gone; prompts capped one per band per day. <b>Junk drawer</b> — the earn-your-slot rule is
+    disqualifying, not advisory; new modules name what they displace; the events log names modules that never fire
+    and they get deleted (cheap — one registry line). <b>Ranker mistrust</b> — deterministic, table-tested;
+    reorders only on state change, animated so causality is visible.</p>
+</div>
+
+<h3 style="margin-top:22px;">Why rules beat ML at n=1</h3>
+<div class="card">
+  <ul class="tight">
+    <li><b>No data.</b> Bandits need thousands of impressions; Ben generates ~5–10 a day. An epsilon-greedy
+      explorer at n=1 just shows the wrong card 10% of the time forever. (BaRT works because Spotify has ~600M
+      users.)</li>
+    <li><b>The rules are knowable.</b> At n=1 the model of the user <i>is</i> the user — Ben can write his own
+      relevance function. Encoding domain knowledge beats learning it.</li>
+    <li><b>Trust requires determinism.</b> Same state → same screen. Ben should predict what Home shows before he
+      opens it; surprise should come from his state (a PR, a red recovery), never from a ranker exploring.</li>
+    <li><b>Debuggability.</b> "Why is this card here?" must have a one-line answer.</li>
+  </ul>
+  <p>Evolution path, each step optional and reversible: <b>rules → logged rules → self-tuning rules → (maybe
+    never) learned ranking.</b> A pinch of adaptivity earns its keep later without ML — dismissal decay
+    (a thrice-dismissed ambient module auto-demotes) and action-rate review over the events log (informing human
+    curation, not runtime reranking).</p>
+</div>
+
+<h2><span class="n">6</span>Provocations for the Brainstorm</h2>
+<p>Sharp what-ifs that combine the research above. These are prompts to argue with, not proposals.</p>
+<div class="card">
+  <ul class="issue-list">
+    <li><span class="issue-tag">P1</span><span>What if Home leads with <b>readiness × program-state as one synthesized directive</b> (the Coach posture) instead of a static Today card plus three recovery numbers — Whoop's Daily Outlook aimed at a lifter?</span></li>
+    <li><span class="issue-tag">P2</span><span>What if the <b>wordmark header gives way to state</b> — the top of Home is the day's synthesis, and the "PEX" chrome shrinks into the pinned nav — so the first thing you read is your day, not the brand?</span></li>
+    <li><span class="issue-tag">P3</span><span>What if <b>Home is the module stack from §5 end to end</b>, and every existing section (timeline, calendar, health, pain follow-up) has to re-qualify as a module with a trigger, one action, and an exit — or it doesn't ship?</span></li>
+    <li><span class="issue-tag">P4</span><span>What if the <b>resume surface (#70) doesn't just win the hero slot — it changes the whole screen's register</b>, the way Duolingo's home escalates as a window closes: a live, urgent, minimal Home while a session is open?</span></li>
+    <li><span class="issue-tag">P5</span><span>What if <b>Baseline's weight trend is a module, not a tab</b> (§4 data-level + §5 candidate #12) — Home reads the D1 trend and shows one sparkline line, and Baseline stays a separate capture app?</span></li>
+    <li><span class="issue-tag">P6</span><span>Or the inverse: what if the <b>Weigh-In Prompt module lets APEX capture its own weight</b> (§4 feature-level) and fill the trend from day one — independent of Baseline's dormant sync — accepting the app-boundary blur the audit warns against?</span></li>
+    <li><span class="issue-tag">P7</span><span>What if the <b>rest-day state leads with recovery and a freeform-train door</b> (#71) instead of a quote — so a rest day is the moment Whoop data is most useful and off-program training finally has a home?</span></li>
+    <li><span class="issue-tag">P8</span><span>What if <b>one prompt grammar</b> (appears-when-due, one tap, self-expiring, one-per-band-per-day) absorbs the pain follow-up, weekly check-in (#49), missed-day, and weigh-in — so Home never grows a bespoke notification species again?</span></li>
+    <li><span class="issue-tag">P9</span><span>What if Home borrows Caliber's move and shows <b>exactly one derived, actionable metric</b> (a Strength-Balance-style directive) as its identity line — and every other number has to justify itself against it?</span></li>
+    <li><span class="issue-tag">P10</span><span>What if the whole "program context" block collapses to <b>one line of position stated once</b>, and the full block/week map, the calendar, and history all become <i>doors</i> (#64, #63, #73) — Home states, the other tabs detail?</span></li>
+    <li><span class="issue-tag">P11</span><span>What if we adopt Peloton's <b>deciding-vs-doing split</b> — a calm "queue tomorrow's session" affordance somewhere off-Home — so the gym moment (M1) is pure execution with no decision left in it?</span></li>
+    <li><span class="issue-tag">P12</span><span>What if we hold a hard rule that <b>the redesigned Home must be <i>quieter</i> than today while doing strictly more jobs</b> — fewer hues (two), fewer resident sections, more states — and treat any net-additive layout as a failed direction?</span></li>
+    <li><span class="issue-tag">P13</span><span>What if the <b>calendar splits into two things</b> — a compact week-strip story module on Home (the glance) and a disclosed calendar portal (tap or expand) that becomes the app's history browser, absorbing #63 — so the month grid stops being furniture and becomes a destination?</span></li>
+  </ul>
+</div>
+<div class="callout">
+  <p><b>None of this is decided.</b> Every table, philosophy, option, and provocation above is input for the
+    claude.ai/design brainstorm — not a layout, not a recommendation, not a constraint. The binding constraints
+    live in <code>home-brief.html</code> §4–5; this document only widens the aperture before that conversation
+    starts.</p>
+</div>

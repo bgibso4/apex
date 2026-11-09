@@ -62,6 +62,7 @@
       {
         "displayName": "components",
         "preset": "@react-native/jest-preset",
+        "resolver": "react-native-reanimated/jest/resolver.js",
         "testPathIgnorePatterns": [
           "/node_modules/",
           "/.worktrees/"

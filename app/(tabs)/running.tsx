@@ -10,7 +10,7 @@ import {
   StyleSheet, RefreshControl, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { Swipeable } from 'react-native-gesture-handler';
+import Swipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, ComponentSize } from '../../src/theme';
 import { getRunLogs, logRun, getPainTrend, getRunStats, deleteRun, updateRun } from '../../src/db';
@@ -266,8 +266,8 @@ function LogTab({
   startEdit: (run: RunLog) => void;
   handleDelete: (run: RunLog) => void;
 }) {
-  const openSwipeableRef = useRef<Swipeable | null>(null);
-  const swipeableRefs = useRef<Record<string, Swipeable>>({});
+  const openSwipeableRef = useRef<SwipeableMethods | null>(null);
+  const swipeableRefs = useRef<Record<string, SwipeableMethods>>({});
   return (
     <>
       {/* Log Form */}

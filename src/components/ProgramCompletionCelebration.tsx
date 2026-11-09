@@ -291,7 +291,7 @@ const SHOCK_BASE = 36;
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.bg,
     alignItems: 'center',
     justifyContent: 'center',

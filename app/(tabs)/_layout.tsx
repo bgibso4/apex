@@ -5,7 +5,16 @@
 
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
+import type { ColorValue } from 'react-native';
 import { Colors, FontSize, ComponentSize, Spacing } from '../../src/theme';
+
+// expo-router types the tab color as ColorValue; Ionicons accepts only string | OpaqueColorValue.
+// Our tint colors are string tokens, so the narrowing is safe.
+const tabIcon = (name: ComponentProps<typeof Ionicons>['name']) =>
+  function TabIcon({ color }: { color: ColorValue }) {
+    return <Ionicons name={name} size={22} color={color as string} />;
+  };
 
 export default function TabLayout() {
   return (
@@ -34,36 +43,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home" size={22} color={color} />
-          ),
+          tabBarIcon: tabIcon('home'),
         }}
       />
       <Tabs.Screen
         name="workout"
         options={{
           title: 'Workout',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="barbell" size={22} color={color} />
-          ),
+          tabBarIcon: tabIcon('barbell'),
         }}
       />
       <Tabs.Screen
         name="progress"
         options={{
           title: 'Progress',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="trending-up" size={22} color={color} />
-          ),
+          tabBarIcon: tabIcon('trending-up'),
         }}
       />
       <Tabs.Screen
         name="running"
         options={{
           title: 'Running',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="footsteps" size={22} color={color} />
-          ),
+          tabBarIcon: tabIcon('footsteps'),
         }}
       />
     </Tabs>

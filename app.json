@@ -7,9 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "apex",
-    "splash": {
-      "backgroundColor": "#0a0a0f"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.bgibso4.apex",
@@ -26,11 +23,12 @@
       "expo-secure-store",
       "expo-web-browser",
       "./plugins/withICloudBackup",
-      "./plugins/withIOS27Support"
+      "./plugins/withIOS27Support",
+      "expo-font",
+      "expo-sharing",
+      ["expo-splash-screen", { "backgroundColor": "#0a0a0f" }],
+      "expo-status-bar"
     ],
-    "autolinking": {
-      "searchPaths": ["./modules"]
-    },
     "experiments": {
       "typedRoutes": true
     }

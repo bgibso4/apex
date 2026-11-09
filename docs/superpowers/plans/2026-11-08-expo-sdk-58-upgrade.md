@@ -99,6 +99,6 @@
   - Session restore: with the workout in progress, swipe the app away, relaunch, and it lands on the Workout tab at the same set.
   - WHOOP OAuth: Settings → Connect WHOOP → browser → approve → back in APEX as "connected", and today's strain loads.
   - Running swipe: swipe a run row, Edit opens the form, and opening a second row closes the first.
-  - Backup export: the share sheet opens with a non-empty `.json`.
+  - Backup export: the share sheet opens with a non-empty `.db` file (src/db/backup.ts exports the SQLite file).
 - [ ] **Step 5: Update the docs.** Change "Expo SDK 54" to "Expo SDK 58" in `CLAUDE.md` (Tech Stack). Update memory `project_device_build_stale_ios.md`: `npm run device` works again on SDK 58, and the plugin status is whatever Task 3 decided. Commit `CLAUDE.md` with message `docs: note Expo SDK 58`.
 - [ ] **Step 6: Report to Ben.** Give the test and tsc counts, the prebuild and device evidence, and the smoke results. Ask whether to push and open a PR. Mention that the base branch `fix/ios27-sdk-build` is still unpushed, and that its scene patch becomes moot once this branch lands.

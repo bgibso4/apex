@@ -125,7 +125,7 @@ export function SplashScreen({ isReady, onFinished }: SplashScreenProps) {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: Colors.bg,
     zIndex: 100,
   },

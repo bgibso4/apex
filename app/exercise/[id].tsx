@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet, Linking, KeyboardAvoidingView, Platform, Alert, type ScrollViewInstance } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -349,7 +349,7 @@ export default function ExerciseDetailScreen() {
   // For e1RM we show "lbs", for time-based we don't show unit (it's in the formatted value)
   const showHeroUnit = primaryMetric && primaryMetric.unit !== 'sec';
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

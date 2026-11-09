@@ -23,7 +23,6 @@
       "expo-secure-store",
       "expo-web-browser",
       "./plugins/withICloudBackup",
-      "./plugins/withIOS27Support",
       "expo-font",
       "expo-sharing",
       ["expo-splash-screen", { "backgroundColor": "#0a0a0f" }],

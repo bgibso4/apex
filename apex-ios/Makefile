@@ -19,7 +19,8 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 # Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
 DEVICE         ?= iPhone
 
-.PHONY: setup sim generate build check-fast-scheme fast lint format test-hooks test-lint unused unused-run ci-checks run device
+.PHONY: setup sim generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
+	ci-checks run device design-import
 
 # Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
 # a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
@@ -73,6 +74,10 @@ format:
 test-hooks:
 	bats scripts/hooks/tests
 
+# Unit tests for the design tools in scripts/.
+test-scripts:
+	bats scripts/tests
+
 # Fixture tests for the SwiftLint custom rules.
 test-lint:
 	scripts/test-lint-rules.sh
@@ -87,7 +92,7 @@ unused-run: sim
 # module the Fast scheme's tests reach, so UIKit or an iOS-only API in one of them fails here. SwiftUI compiles on
 # macOS, so only the lint rule catches that import.
 ci-checks:
-	$(MAKE) --no-print-directory lint test-hooks test-lint fast unused-run
+	$(MAKE) --no-print-directory lint test-hooks test-scripts test-lint fast unused-run
 
 # Run on this checkout's simulator. Named, never `booted`: another worktree's simulator may be booted too.
 run: build
@@ -101,3 +106,10 @@ device: generate
 		-destination 'generic/platform=iOS' -derivedDataPath $(DERIVED) -allowProvisioningUpdates | $(BEAUTIFY)
 	xcrun devicectl device install app --device "$(DEVICE)" '$(DEVICE_PRODUCT)'
 	xcrun devicectl device process launch --device "$(DEVICE)" $(BUNDLE_ID)
+
+# Replace design/export with a new export (design/README.md), then list what that changed against git:
+# `??` is a new file, ` D` a removed one, ` M` a changed one.
+design-import:
+	@[ -n "$(ZIP)" ] || { echo "usage: make design-import ZIP=<path to the export zip>" >&2; exit 1; }
+	python3 -I scripts/design-import.py "$(ZIP)" design/export
+	@git -c core.quotePath=false status --short --untracked-files=all -- design/export

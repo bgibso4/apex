@@ -1,0 +1,4 @@
+/* APEX tokens — mirrors cadre generated/css/apex-tokens.css */
+@font-face{font-family:"Orbitron";src:url("fonts/Orbitron-ExtraBold.ttf") format("truetype");font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:"Exo 2";src:url("fonts/Exo2-ExtraBold.ttf") format("truetype");font-weight:800;font-style:normal;font-display:swap}
+:root{--field-base:#090A0C;--field-mid:#0C0E11;--halo:#141A22;--card-top:#14161B;--card-base:#0E1013;--border:#20232A;--border-lt:#2C3039;--text:#EDEEF0;--text-2:#8F9098;--text-muted:#55575F;--accent:#659BC8;--on-accent:#0B0C0E;--logged:#6CA383;--accent-tint:#659BC81A;--logged-tint:#6CA3831A;--r-card:10px;--r-nested:6px;--r-pill:999px;--font-sans:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;--font-wordmark:"Exo 2",sans-serif;--font-wordmark-alt:"Orbitron",sans-serif}

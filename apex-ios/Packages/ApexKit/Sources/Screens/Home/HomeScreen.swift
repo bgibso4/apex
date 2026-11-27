@@ -11,6 +11,9 @@ struct HomeScreen: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Tokens.Spacing.cardGap) {
                     Wordmark()
+                        #if DEBUG
+                            .opensLab()
+                        #endif
                     NoProgramCard(eyebrow: model.noProgramEyebrow)
                 }
                 .padding(.horizontal, Tokens.Spacing.screenPadding)

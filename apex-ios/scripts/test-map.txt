@@ -35,6 +35,9 @@ Packages/ApexKit/Sources/TestSupport/ ALL
 Packages/ApexKit/Sources/ScreenModels/App ALL
 Packages/ApexKit/Sources/Screens/DesignSystem/ ALL
 Packages/ApexKit/Sources/Screens/RootScreen.swift ALL
+# The device lab (Debug builds only): its sheet is on the root and its way in is on Home's wordmark.
+Packages/ApexKit/Sources/ScreenModels/Lab/ ALL
+Packages/ApexKit/Sources/Screens/Lab/ ALL
 UITests/Support/ ALL
 SnapshotTests/SnapshotHost.swift ALL
 # Every picture is compared through it. Its own tests are named so the map check knows the class.

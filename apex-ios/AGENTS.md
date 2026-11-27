@@ -20,6 +20,8 @@ Packages/ApexKit/              all logic, one local package (Package.swift)
   Sources/ScreenModels/        AppModel and one observable model per screen: all behaviour. Mac-buildable
   Sources/TestSupport/         DesignedState, the Swift side of the state catalog, and fixtures. Mac-buildable
   Sources/Screens/             SwiftUI views, one folder per screen. iOS-only
+  Sources/ScreenModels/Lab/    the device lab's models: LabModel, LabExhibit, LabTrial. Debug builds only
+  Sources/Screens/Lab/         the device lab's screens. Debug builds only (see "Device lab")
   Sources/Screens/DesignSystem/             components built on the tokens (Card, Eyebrow, the button styles, …)
   Sources/Screens/DesignSystem/Generated/   Tokens.swift, generated from design/tokens.json
   Sources/Screens/DesignSystem/Generated/Resources/   the wordmark's font and logo mark, copied from design/export
@@ -42,6 +44,7 @@ scripts/build-fingerprint.sh   whether the last simulator build still matches th
 scripts/test-times.py          the time report, checked against scripts/gate-ceiling.txt
 scripts/compare-snapshot.swift a state's recorded picture beside its mock
 scripts/frames.sh              a contact sheet of frames from a simulator recording
+scripts/paired-iphone.sh       the iPhone `make device` installs on when `DEVICE` is not given
 scripts/tests/                 bats tests for the scripts above, and their fixtures
 scripts/ci/                    what only CI runs: gate-plan.sh (does the gate run for this event), gate-run.sh (which
                                run passed the gate on a commit's files), and their bats tests
@@ -81,7 +84,7 @@ docs/                          iOS specs, plans and the roadmap. Created with th
 | `make design-import ZIP=<path>` | replaces `design/export/` from a new export, lists what changed against git, runs `mocks` |
 | `make mocks` | renders `design/mocks/<state>.png` for every state in `design/states.json` (`STATE=<name>` for one). Needs Google Chrome and the network; never runs in CI |
 | `make run` | build, install and launch on this checkout's simulator. `STATE=<name>` opens it in a designed state |
-| `make device` | build and install on a connected iPhone (`DEVICE=<name>`) |
+| `make device` | build, install and launch on the iPhone paired with this Mac (`DEVICE=<name, UDID or serial>` picks one of several). `STATE=<name>` opens it in that state, as `make run` does |
 
 Every simulator test run ends with a time report and appends a line to `.build/test-runs.log`. The simulator tests do not run in CI yet (plan 5): until then `make gate`, run locally, is the evidence.
 
@@ -105,7 +108,7 @@ Debug builds only; a Release build ignores them. Parsed in `Core/Launch/LaunchOp
 | Flag | Does |
 |---|---|
 | `-UITest` | no animations |
-| `-State <name>` | opens the app in a designed state (`make run STATE=`). An unknown name stops the app with a message listing the known ones |
+| `-State <name>` | opens the app in a designed state (`make run STATE=`), or with the device lab open at an exhibit (`lab.motion`). An unknown name stops the app with a message listing the known ones |
 
 ## Import line
 
@@ -120,7 +123,7 @@ A new test target must be added to the `Fast` scheme in `project.yml` (`ScreensT
 
 - **Mac tests prove behaviour:** every rule, state change and edge case, through the screen models and domain logic. They run in `make fast`, in milliseconds each.
 - **Pictures prove appearance:** one image per designed state, on the simulator. About 0.9 s each.
-- **Journeys prove wiring:** the real app, launched, with a real database on disk, moving between screens, killed and restored. Most screens add none. The one today takes about 6 s.
+- **Journeys prove wiring:** the real app, launched, with a real database on disk, moving between screens, killed and restored. Most screens add none. The one today takes about 7 s, of which the device lab's way in is 1.4 s.
 
 A behaviour is tested through its screen model on the Mac, never by a journey.
 
@@ -128,7 +131,7 @@ Which simulator run, when (wall time measured on 2026-11-27 with 8 tests):
 
 | When | Run | Took |
 |---|---|---|
-| Fixing one test | `make retest ONLY=…` | 4 s for a picture class, 11 s for the journey |
+| Fixing one test | `make retest ONLY=…` | 4 s for a picture class, 12 s for the journey |
 | End of a task | `make affected` | 12 to 16 s |
 | Before a pull request | `make gate` | 16 s |
 
@@ -146,6 +149,19 @@ The Swift side is `DesignedState` in `TestSupport`: one case per state, with the
 4. `make snapshots-record`, then `make retest ONLY=ApexSnapshotTests/<Screen>PictureTests`, then `make compare STATE=<name>` and open the image.
 
 A reference is `SnapshotTests/__Snapshots__/<Screen>PictureTests/state.<name>.png`, with the dot in the name written as a hyphen. A changed reference is named in its commit with the reason. Record a reference on a freshly booted simulator (`xcrun simctl shutdown "<simulator>"`, then `make snapshots-record`): fresh simulators draw the same picture byte for byte, and CI's is always fresh. A picture is compared at a perceptual precision of 0.98, through `CPUImageMatch` first (its file says why), with the app's animations off.
+
+## Device lab
+
+A screen in Debug builds where Ben tries a few values of one token on his phone and says which he wants (issue 96). Use it for anything only a phone can judge: a spring, a timing, a haptic.
+
+- **Opening it.** `make device STATE=lab.motion` installs the app and opens the lab at the Motion exhibit (`make run STATE=lab.motion` on the simulator). On the phone, away from the Mac: press and hold the APEX wordmark on Home. Swipe the sheet down to close it.
+- **What is in it.** The lab lists its exhibits (`LabExhibit`). An exhibit shows real moments from the design and a control over one `LabTrial`: the values to try, starting on the token's own. Every other value is the tokens'.
+- **Adding a device check.** A new kind of thing is a `LabExhibit` case and its screen in `Screens/Lab/`. A new value on an exhibit is a `LabTrial` with its candidates in `ScreenModels/Lab/LabTrial.swift`, never numbers in a view. To animate with a tried value, the token generator gives every spring `Tokens.Motion.<name>Bounce` and `Tokens.Motion.<name>(bounce:)` in Debug builds; another kind of value needs the same from `scripts/generate-tokens.swift`.
+- **Debug only.** Every file in `Sources/ScreenModels/Lab/` and `Sources/Screens/Lab/` is wrapped whole in `#if DEBUG` (`LabDebugOnlyTests` checks each file's first and last line), and each use outside sits in an `#if DEBUG` block, which nothing checks. No Release build runs in CI: after changing the lab's wiring, build Release once (`xcodebuild build -configuration Release … CODE_SIGNING_ALLOWED=NO`).
+- **Not a designed state.** The lab has no mock, so no `DesignedState` case, no picture and nothing in `design/states.json`. Its logic has Mac tests. One journey step holds its way in by hand.
+- **When Ben has picked:** change the number in `design/tokens.json`, `make generate`, and close the issue that asked.
+
+**Installing on the phone** (first done on 2026-11-27, Ben's iPhone 16 Pro, over the local network). Signing is automatic (`Signing.xcconfig`, `-allowProvisioningUpdates`) and that day nothing was asked of a person: the phone was already paired with this Mac, and the app opened without a prompt. On a phone that is new to this Mac or to this developer account, a person has to: plug it in, unlock it and tap Trust; turn on Developer Mode (Settings › Privacy & Security); and, if the app will not open, trust the developer under Settings › General › VPN & Device Management. The phone must be unlocked for the launch.
 
 ## Keeping it fast
 

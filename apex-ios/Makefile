@@ -16,8 +16,9 @@ BEAUTIFY := xcbeautify
 BUNDLE_ID      := com.cadre.apex
 APP_PRODUCT    := $(DERIVED)/Build/Products/Debug-iphonesimulator/Apex.app
 DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
-# Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
-DEVICE         ?= iPhone
+# Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`). Left empty, `make device` takes
+# the one iPhone paired with this Mac (scripts/paired-iphone.sh).
+DEVICE         ?=
 
 .PHONY: setup sim boot generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
 	ci-checks affected retest gate snapshots-record compare frames run device design-import mocks
@@ -175,12 +176,20 @@ run: build boot
 	xcrun simctl install '$(SIM_DEVICE)' '$(APP_PRODUCT)'
 	xcrun simctl launch --terminate-running-process '$(SIM_DEVICE)' $(BUNDLE_ID) $(if $(STATE),-State $(STATE))
 
-# Build for a connected iPhone and install it. Needs the phone plugged in, unlocked and trusted.
+# Build for an iPhone, install it and launch it, in a state when one is named (`STATE=lab.motion`). Needs the phone
+# connected (by cable or over the local network), unlocked and trusted. The phone is settled before the build, so a
+# missing one fails at once. Its name is read from the environment, never pasted into the recipe: a name may hold an
+# apostrophe. A running copy is stopped first, so the launch lands in the state. The `--` ends devicectl's own
+# options: without it `-State` is read as one of them.
+export DEVICE
 device: generate
-	set -o pipefail; xcodebuild $(XCB_FLAGS) build -project $(PROJECT) -scheme Apex \
-		-destination 'generic/platform=iOS' -derivedDataPath $(DERIVED) -allowProvisioningUpdates | $(BEAUTIFY)
-	xcrun devicectl device install app --device "$(DEVICE)" '$(DEVICE_PRODUCT)'
-	xcrun devicectl device process launch --device "$(DEVICE)" $(BUNDLE_ID)
+	@device="$$DEVICE"; [ -n "$$device" ] || device="$$(scripts/paired-iphone.sh)" || exit 1; \
+	set -o pipefail; set -x; \
+	xcodebuild $(XCB_FLAGS) build -project $(PROJECT) -scheme Apex \
+		-destination 'generic/platform=iOS' -derivedDataPath $(DERIVED) -allowProvisioningUpdates | $(BEAUTIFY) && \
+	xcrun devicectl device install app --device "$$device" '$(DEVICE_PRODUCT)' && \
+	xcrun devicectl device process launch --terminate-existing --device "$$device" -- $(BUNDLE_ID) \
+		$(if $(STATE),-State $(STATE))
 
 # Replace design/export with a new export (design/README.md), list what that changed against git (`??` is a new
 # file, ` D` a removed one, ` M` a changed one, `!!` one an ignore rule would keep out of git), then render the

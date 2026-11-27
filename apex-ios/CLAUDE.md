@@ -6,7 +6,7 @@ Rules, commands and the definition of done are in AGENTS.md. This file holds wha
 
 ## Where we are
 
-Foundation, plan 4 of 5 merged: the first screen (the tab bar and Home with no program) and the simulator test loop. CI runs the simulator tests from plan 5.
+The foundation is done (plans 1 to 5): the first screen, the simulator test loop, and CI running both `checks` and the simulator `gate`. Product segments follow `apex-ios/docs/roadmap.md`, which arrives with the first segment's pull request.
 
 ## Hooks (committed in the root `.claude/settings.json`, scripts in `apex-ios/scripts/hooks/`)
 

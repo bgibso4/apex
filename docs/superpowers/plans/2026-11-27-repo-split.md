@@ -273,7 +273,7 @@ In `.claude/launch.json`, `runtimeArgs` becomes `["--prefix", "apex-rn", "run", 
 
 ### Task 5: Ship
 
-- [ ] **Step 1: Push and open the pull request**
+- [x] **Step 1: Push and open the pull request**
 
 ```bash
 git push -u origin chore/repo-split
@@ -282,7 +282,7 @@ gh pr create --base main --title "Move the React Native app into apex-rn/" --bod
 
 The hand-off lists: the before and after numbers from Task 1, the simulator build result, what wasn't verified (an install on Ben's phone), and the one command he runs for that: `cd apex-rn && npm run device`.
 
-- [ ] **Step 2: Review**
+- [x] **Step 2: Review**
 
 One fresh reviewer agent reads the branch diff against this plan and the spec section. Fix what it finds; re-run the affected verification steps.
 

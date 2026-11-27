@@ -50,8 +50,10 @@ RESOLVED_DEST := $(PROJECT)/project.xcworkspace/xcshareddata/swiftpm
 # for updates on every call: measured on 2026-11-27, that took 1.9 s of a 4.3 s `make fast`, and needed the network.
 XCB_FLAGS     := -onlyUsePackageVersionsFromResolvedFile -skipPackageUpdates
 
-# Boot this checkout's simulator, return when it has finished booting, and leave it running. A test run that finds
-# it shut down boots it and shuts it down again: measured on 2026-11-27, that turns an 11 s run into one of 55 s.
+# Boot this checkout's simulator, return when it has finished booting, and leave it running: a cold boot takes
+# about 10 s on Ben's Mac, a boot that finds it running under a second. Every simulator test run calls this after
+# its build (scripts/sim-tests.sh). Left to xcodebuild, a shut-down simulator is booted and shut down again by
+# every run.
 # By ID: CI's image has an iPhone 17 for more than one iOS version, so its name alone is ambiguous to simctl.
 # Waiting: on a slow CI runner filing-cabinet's UI test runner once started before the simulator's accessibility had
 # loaded, and failed before any test ran.

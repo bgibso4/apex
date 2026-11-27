@@ -11,7 +11,8 @@ Prints the total test time, its share of the ceiling and the five slowest tests.
 Over the ceiling it says so, and exits 1 only with --enforce: CI passes that flag, and a local run never fails on
 time. It always exits 1 when no test ran, when a test did not pass, and when one test took over 60 s.
 With --main the second line is the change against main's total: MAIN_TESTS_JSON is the TESTS_JSON of the run that
-last passed the gate on main. A file that is missing or cannot be read makes that line say unknown, nothing more.
+passed the gate on exactly main's files. A file that is missing or cannot be read makes that line say unknown,
+nothing more: no run has passed on those files (main moved without an iOS run), or its results are gone.
 Run with `python3 -I`. Standard library only.
 """
 

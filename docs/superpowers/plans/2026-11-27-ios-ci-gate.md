@@ -183,7 +183,7 @@ gh pr create --draft --base main --title "apex-ios: the simulator gate in CI" --
 Find the run with `gh run list --branch feat/ios-ci-gate`, watch it with `gh run watch <id> --exit-status`.
 Expected: `plan` says the gate runs and that `main` has no gate results; `gate` builds once, runs 8 tests, prints the report with `change against main: unknown (no gate results for main)`, uploads `gate-results`, and is green.
 
-- [ ] **Step 4: Measure the job**
+- [x] **Step 4: Measure the job**
 
 From `gh run view <id> --log`, note for the hand-off: the job's wall time and its split (tool install, simulator boot, `build-for-testing`, `test-without-building`, upload); the gate's test time; one picture's seconds and the journey's seconds against the local 1.0 s and 6.1 s; and `checks`' wall time and split against 4 min 54 s (plan 4; its split is in the hand-off note).
 If `build-for-testing` waits more than 60 s before its first compile line, port filing-cabinet's boot-alongside build (the `ci-sim` target) into `sim-tests.sh` behind the same modes, with a bats test, and measure again.
@@ -235,7 +235,7 @@ Expected in CI: the gate's report shows the new ceiling and a share under 80%.
 **Files:**
 - Modify: `apex-ios/AGENTS.md`, `apex-ios/CLAUDE.md`
 
-- [ ] **Step 1: Update the rules files**
+- [x] **Step 1: Update the rules files**
 
 `AGENTS.md`, stating only what is true when this merges:
 
@@ -249,15 +249,15 @@ Expected in CI: the gate's report shows the new ceiling and a share under 80%.
 
 Verify: `grep -c '—' apex-ios/AGENTS.md apex-ios/CLAUDE.md` prints 0 twice. Commit: `docs(ios): what CI runs, and that the foundation is done`.
 
-- [ ] **Step 2: Evidence from `ios-verifier`**
+- [x] **Step 2: Evidence from `ios-verifier`**
 
 One agent, the make targets only: `fast`, `build`, `ci-checks`, `gate`, each PASS or FAIL with wall times; the Mac, bats and fixture counts; the gate's report copied whole; whether `git status --short` is clean afterwards.
 
-- [ ] **Step 3: Review**
+- [x] **Step 3: Review**
 
 One fresh reviewer agent on the most capable model reads the branch diff against this plan and the spec sections named at the top. Give it the Review Focus list verbatim. Fix what it finds, each fix with a test that failed first.
 
-- [ ] **Step 4: Mark the pull request ready and write its hand-off**
+- [x] **Step 4: Mark the pull request ready and write its hand-off**
 
 The hand-off lists: what CI now runs and when; `fast`, `ci-checks`, CI `checks` and CI `gate` times before and after, with each job's split; the gate's report from CI copied whole; the ceiling and the run it was recorded from; whether the boot-alongside build was needed; anything not verified, plainly. Two things cannot be verified before the merge and must be said: the skip on `main` (it first runs on this pull request's own merge) and the change against `main` (it first has a number on the next pull request).
 

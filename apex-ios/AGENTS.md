@@ -172,7 +172,7 @@ A screen in Debug builds where Ben tries a few values of one token on his phone 
 
 - The simulator tests have a ceiling on their total test time, in `scripts/gate-ceiling.txt`, with how it was recorded. It is CI's number: twice what CI's first gate run measured. The same tests take two to three times as long on CI's runner as on Ben's Mac, so a local share of the ceiling says little; the share that counts is in CI's report.
 - Every simulator run prints the report: the total, its share of the ceiling and the five slowest tests. Over 80% it warns. Over the ceiling it says so. CI's `gate` job fails then (`ENFORCE=1`); a local run never fails on time.
-- In CI the report is on the run's summary page, with the change against `main`: this run's total less the total of the run that passed the gate on `main`'s files. It says unknown when that run's results are gone.
+- In CI the report is on the run's summary page, with the change against `main`: this run's total less the total of the run that passed the gate on `main`'s files. It says unknown when no run passed on exactly those files (a merge that changed nothing under `apex-ios/` starts no iOS run, so `main` moves without one) or when that run's results are gone.
 - A run is never green when no test ran, a test did not pass or was skipped, or one test took over 60 s.
 - Over 80% in CI: say so in the hand-off, with the five slowest tests, and what the next screen will add.
 - Over the ceiling: speed a test up, move the behaviour to a Mac test, or remove the test. Raising the ceiling needs Ben.

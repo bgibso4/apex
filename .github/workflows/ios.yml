@@ -77,8 +77,9 @@ jobs:
       actions: read
       contents: read
     env:
-      # swift-snapshot-testing writes a failed picture and its difference here (xcodebuild hands TEST_RUNNER_
-      # variables to the tests).
+      # swift-snapshot-testing writes a failed picture here (xcodebuild hands TEST_RUNNER_ variables to the tests);
+      # the result bundle holds it too, with the reference and the difference. No picture has failed in CI yet, so
+      # what lands in this folder is not yet seen.
       TEST_RUNNER_SNAPSHOT_ARTIFACTS: ${{ github.workspace }}/apex-ios/.build/snapshot-artifacts
     steps:
       - uses: actions/checkout@v7

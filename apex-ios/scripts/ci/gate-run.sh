@@ -8,6 +8,9 @@
 # Why the tree: a pull request's run tests the pull request merged into main. When the pull request was up to date
 # with main, its merge commit has the head's tree, so those files were already tested. A pull request that was
 # behind main merges to a tree no run has seen, and the answer is no.
+# One known gap, which GitHub's API gives no cheap way to close: a pull request tested while behind main by a
+# commit, that commit then reverted on main, and the pull request merged with no new push. The merge has the head's
+# tree and counts, though the run tested the head with that commit.
 # A run is never counted on a guess: when GitHub cannot be asked the answer is no. It looks at pull request runs and
 # push runs alike, newest first, the last 50 successful ones.
 # Reads GITHUB_REPOSITORY; calls the GitHub API through gh (GH_TOKEN; the job needs `actions: read`). APEX_GH is a

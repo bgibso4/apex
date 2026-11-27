@@ -430,6 +430,15 @@ nojq_path() {
   [ "$("$HOOKS/swift-fingerprint.sh")" = c29fe36896af4459a2eb88f46315a68d7e5909b88b1115e24791a1e840c85fc1 ]
 }
 
+@test "the fingerprint with a file whose name starts with a dash is the pinned value" {
+  # shasum would read such a name as its options. Pinned from the one-shasum-a-file script, like the values above.
+  cd "$CLAUDE_PROJECT_DIR/apex-ios"
+  printf 'let t = 1\n' >./-top.swift
+  run "$HOOKS/swift-fingerprint.sh"
+  [ "$status" -eq 0 ]
+  [ "$output" = 895a84262bb1fe964713289fb8b445b156ad152bf01cf60f438704b5f5c12e6c ]
+}
+
 @test "the fingerprint of no files at all is the pinned value" {
   cd "$CLAUDE_PROJECT_DIR/apex-ios"
   git rm -q A.swift && git commit -qm none

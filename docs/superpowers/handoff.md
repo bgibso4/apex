@@ -20,7 +20,9 @@ Last updated: 2026-11-27, by the session that executed plan 1 and wrote plan 2.
 Execute `docs/superpowers/plans/2026-11-27-ios-skeleton-and-hooks.md` (plan 2 of 5) with `superpowers:executing-plans`, yourself, in this checkout. Tick its boxes as you go.
 
 - You are on branch `docs/ios-skeleton-plan`, which holds plan 2 and this note. The plan's first step branches `feat/ios-skeleton` from it, so one pull request carries all of it.
-- A lead session coordinates and talks with Ben. Another session may be discussing the data model in the same checkout; it writes no files here. If you find unexpected changes in the working tree, stop and say so.
+- A lead session (Herdr agent name `lead`) coordinates and talks with Ben. It writes no files in this checkout while you work. If you find unexpected changes in the working tree, stop and say so.
+- **Questions for Ben go through the lead.** Never stop to wait for an answer. Take the default the design rules imply, keep going, and list the question with the default you took under NEEDS BEN in your report.
+- **Lead's decisions on plan 2** (2026-11-27): it merges on green like any other; creating the lint and hook config is the approved design's own build step, and only later changes to them wait for Ben. Pulling the iOS `checks` job forward is right. Also add `.dev.vars` to the root `.gitignore` in this pull request (wrangler's secrets file, in a public repo).
 - Task 8 uses one `ios-verifier` agent and one reviewer agent. Ben's approved design calls for both.
 
 ## Then
@@ -51,11 +53,9 @@ The five foundation plans stay beside their spec in `docs/superpowers/plans/`. P
 
 ## Open with Ben
 
-- The data model and backend design round is in progress in another session. No screen that stores data is planned until it is approved.
+- Data is settled enough to build on (Ben, 2026-11-27): a SQL database on the phone is the source of truth; the Cloudflare copy is a backup only; Whoop sign-in is the one critical use of the Worker. The tables are designed with the first screen that stores data, not before.
+- How Ben is asked questions while away from his Mac is undecided (the Claude app's Remote Control, or GitHub issues labelled `needs-ben`; issue 89 is a trial). The lead handles it either way.
 - **The Worker's lockfile is stale, on `main`.** `workers/health-api/package-lock.json` resolves `@cadre/shared` to v0.2.0 while `package.json` pins v0.2.1. After a clean `npm ci`, 2 of its 26 tests fail, and a deploy from a clean install would ship a contract that drops `weight_increment` and the programs completion columns. It needs a lockfile refresh in its own pull request. Worker changes wait for Ben.
-- `workers/health-api/.dev.vars` (wrangler's secrets file) is not covered by any ignore rule, and the repo is public. No such file exists in this checkout today.
-- Plan 2 creates the lint config and the hook config for the first time and is written to merge on green, as the approved design's own build step. If Ben wants that pull request held for his OK, say so before it merges.
-- Plan 2 pulls the iOS `checks` job forward from plan 5, so that "merge on green" means something from the first iOS pull request.
 - Cadre's design reference is to be brought up to date from APEX's. Not started, not blocking.
 
 ## How to hand off

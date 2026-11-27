@@ -18,7 +18,7 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 # Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
 DEVICE         ?= iPhone
 
-.PHONY: setup sim generate build fast lint format test-lint unused unused-run run device
+.PHONY: setup sim generate build fast lint format test-hooks test-lint unused unused-run run device
 
 # Fail loudly, with the install command, when a required tool is missing.
 setup:
@@ -40,10 +40,12 @@ build: sim generate
 	set -o pipefail; xcodebuild build -project $(PROJECT) -scheme Apex \
 		-destination '$(SIM_DEST)' -derivedDataPath $(DERIVED) | $(BEAUTIFY)
 
-# The Mac-only loop: no simulator.
+# The Mac-only loop: no simulator. A pass records the sources' fingerprint as it was before the run, which is what
+# the stop gate compares against (scripts/hooks/stop-gate.sh).
 fast: generate
-	set -o pipefail; xcodebuild test -project $(PROJECT) -scheme Fast \
-		-destination 'platform=macOS' -derivedDataPath $(DERIVED) | $(BEAUTIFY)
+	fp="$$(scripts/hooks/swift-fingerprint.sh)"; set -o pipefail; xcodebuild test -project $(PROJECT) -scheme Fast \
+		-destination 'platform=macOS' -derivedDataPath $(DERIVED) | $(BEAUTIFY) && \
+		scripts/hooks/swift-fingerprint.sh record "$$fp"
 
 SWIFT_DIRS := App Packages/ApexKit/Sources Packages/ApexKit/Tests
 
@@ -54,6 +56,10 @@ lint:
 
 format:
 	swift format format --in-place --recursive $(SWIFT_DIRS)
+
+# Unit tests for the Claude Code hook scripts.
+test-hooks:
+	bats scripts/hooks/tests
 
 # Fixture tests for the SwiftLint custom rules.
 test-lint:

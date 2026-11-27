@@ -25,9 +25,10 @@
 1. **The way in by hand:** press and hold the APEX wordmark on Home. No visible control, so Home's picture is unchanged. It can move into Settings when Settings is designed.
 2. **The lab is a sheet** over the app, closed by swiping down. `STATE=lab.motion` opens the same sheet at the Motion exhibit.
 3. **The exhibit shows the two real moments** the design gives the snappy timing to: a set's tick (motion-decisions m10 and w1: the ring fills moss over the quick timing, the check pops in) and a row that follows the finger and snaps back on release (m3). Replay is the gesture itself: tap the tick again (it fades out, as w4 says), then tick it.
-4. **Bounce values:** 0, 0.1, 0.15, 0.2, 0.3 (the issue's). The token's own value is always among them and is where the trial starts.
+4. **Bounce values:** 0, 0.1, 0.15, 0.2, 0.3 (the issue's), plus 0.4 and 0.5. Found while building: the demo's tick pop peaks at 114% of its size (`tickPop` in `Workout Session Demo.dc.html`), and a 0.3 s spring from nothing only overshoots that far near a bounce of 0.47; at 0.3 it overshoots by about 5%, at 0.15 by under 1%. The token's own value is always among the values and is where the trial starts.
 5. **The generator gives every spring token the Debug-only pair,** not just `snappy`: one rule, no list of tokens on trial.
 6. **One simulator test step,** on the existing journey: the long press opens the lab. Nothing else exercises the only way in that works away from the Mac.
+7. **`make device` finds the phone itself.** Its default, `DEVICE=iPhone`, matched nothing: the phone is "Ben’s iPhone", with a typographic apostrophe, and devicectl matches the whole name. With `DEVICE` empty it now takes the one paired iPhone (`scripts/paired-iphone.sh`, with bats tests).
 
 ## Review Focus
 
@@ -55,6 +56,7 @@
 | `Packages/ApexKit/Sources/Screens/Lab/LabDoor.swift` | the sheet on the root and the long press that opens it |
 | `RootScreen.swift`, `Home/HomeScreen.swift`, `App/ApexApp.swift` (modify) | one `#if DEBUG` hook each |
 | `scripts/test-map.txt`, `Makefile`, `AGENTS.md`, `UITests/AppJourneyTests.swift` (modify) | map rows, `device STATE=`, the docs, the journey step |
+| `scripts/paired-iphone.sh`, `scripts/tests/paired-iphone.bats` | the iPhone `make device` installs on when `DEVICE` is not given |
 
 ---
 
@@ -64,7 +66,7 @@
 
 **Produces:** in Debug builds, for a spring token `snappy`: `Tokens.Motion.snappyBounce: Double` and `Tokens.Motion.snappy(bounce: Double) -> Animation`.
 
-- [ ] **Step 1: the failing test.** In `scripts.bats`, after "the generator writes every token kind":
+- [x] **Step 1: the failing test.** In `scripts.bats`, after "the generator writes every token kind":
 
 ```bash
 @test "a spring gets its bounce and a way to try another, in Debug builds only" {
@@ -77,10 +79,10 @@
 }
 ```
 
-- [ ] **Step 2:** `bats scripts/tests/scripts.bats -f "a spring gets"` fails.
-- [ ] **Step 3: implement.** A function `springTrials(_:) -> String?` builds the block from the spring tokens (nil when there is none); it goes into `Motion` through `enumeration`'s `nested` slot, ahead of `Duration`. The block opens with a comment saying it is for the device lab.
-- [ ] **Step 4:** the bats file passes, the committed-file format test included; `make generate` rewrites `Tokens.swift`.
-- [ ] **Step 5:** commit.
+- [x] **Step 2:** `bats scripts/tests/scripts.bats -f "a spring gets"` fails.
+- [x] **Step 3: implement.** A function `springTrials(_:) -> String?` builds the block from the spring tokens (nil when there is none); it goes into `Motion` through `enumeration`'s `nested` slot, ahead of `Duration`. The block opens with a comment saying it is for the device lab.
+- [x] **Step 4:** the bats file passes, the committed-file format test included; `make generate` rewrites `Tokens.swift`.
+- [x] **Step 5:** commit.
 
 ### Task 2: The lab's models
 
@@ -94,7 +96,7 @@ public nonisolated struct LabTrial: Equatable, Sendable {
     public let options: [Double]    // ascending, no repeats, the token's among them
     public var tried: Double        // starts on the token's
     public init(token: Double, candidates: [Double])
-    public static func snappyBounce(token: Double) -> LabTrial   // candidates 0, 0.1, 0.15, 0.2, 0.3
+    public static func snappyBounce(token: Double) -> LabTrial   // candidates 0, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5
 }
 
 public nonisolated enum LabExhibit: String, CaseIterable, Sendable {
@@ -116,15 +118,15 @@ public nonisolated enum LabExhibit: String, CaseIterable, Sendable {
 public let lab = LabModel()
 ```
 
-- [ ] **Step 1: the failing tests** (Swift Testing, each file wrapped in `#if DEBUG`):
-  - `LabTrialTests`: `aTrialStartsOnTheTokensValue`; `theOptionsAreInOrderWithNoRepeats` (candidates `[0.3, 0, 0.15, 0.3]`, token 0.15 gives `[0, 0.15, 0.3]`); `aTokenValueNobodyListedIsStillOffered` (token 0.12 with the snappy candidates gives `[0, 0.1, 0.12, 0.15, 0.2, 0.3]` and `tried == 0.12`); `theSnappyBounceTrialOffersTheIssuesValues`.
+- [x] **Step 1: the failing tests** (Swift Testing, each file wrapped in `#if DEBUG`):
+  - `LabTrialTests`: `aTrialStartsOnTheTokensValue`; `theOptionsAreInOrderWithNoRepeats` (candidates `[0.3, 0, 0.15, 0.3]`, token 0.15 gives `[0, 0.15, 0.3]`); `aTokenValueNobodyListedIsStillOffered` (token 0.12 with the snappy candidates gives `[0, 0.1, 0.12, 0.15, 0.2, 0.3, 0.4, 0.5]` and `tried == 0.12`); `theSnappyBounceTrialOffersTheIssuesValuesAndTwoBouncier`.
   - `LabExhibitTests`: `anExhibitsStateNameIsLabThenItsName` (`.motion.stateName == "lab.motion"`); `anExhibitIsFoundByItsStateName`; `anyOtherNameIsNoExhibit` (`"lab.nope"`, `"lab"`, `"motion"`, `"home.noProgram"`).
   - `LabModelTests`: `theLabStartsClosedAtItsList`; `openingAtAnExhibitShowsItOverTheList`; `theAppsLabStartsClosed` (`AppModel(home:)`).
   - `LabDebugOnlyTests.everyLabFileIsDebugOnly`: every `.swift` file under `Sources/ScreenModels/Lab` and `Sources/Screens/Lab` has `#if DEBUG` as its first line and `#endif` as its last; fails when either folder is empty.
-- [ ] **Step 2:** `make fast` fails to build.
-- [ ] **Step 3:** implement. `LabDebugOnlyTests` stays red until Task 3 adds `Screens/Lab`.
-- [ ] **Step 4:** `make fast`: everything but `everyLabFileIsDebugOnly` passes.
-- [ ] **Step 5:** commit with Task 3 (the stop gate wants `make fast` green).
+- [x] **Step 2:** `make fast` fails to build.
+- [x] **Step 3:** implement. `LabDebugOnlyTests` stays red until Task 3 adds `Screens/Lab`.
+- [x] **Step 4:** `make fast`: everything but `everyLabFileIsDebugOnly` passes.
+- [x] **Step 5:** commit with Task 3 (the stop gate wants `make fast` green).
 
 ### Task 3: The lab's screens and its two ways in
 
@@ -132,23 +134,24 @@ public let lab = LabModel()
 
 **Consumes:** Task 1's `Tokens.Motion.snappyBounce` and `snappy(bounce:)`; Task 2's types.
 
-- [ ] **Step 1: `LabDoor.swift`.** `View.labSheet(_ lab: LabModel)` puts `LabScreen` in a sheet bound to `lab.isOpen` and the model in the environment; `View.opensLab()` sets `isOpen` on a long press. `RootScreen` calls the first after `.tint`, `HomeScreen` the second on `Wordmark()`.
-- [ ] **Step 2: `LabScreen.swift`.** A `NavigationStack` on `model.path`, title "Device Lab": one `Card` per `LabExhibit.allCases` (title in `cardName`, summary in `value`, secondary colour) as a `NavigationLink(value:)`, on `ScreenField`. `.motion` leads to `MotionExhibit`.
-- [ ] **Step 3: `MotionExhibit.swift`, `SetTick.swift`, `SnapBackRow.swift`.** State: `LabTrial.snappyBounce(token: Tokens.Motion.snappyBounce)` and the set of ticked rows. A card of three set rows (`SnapBackRow`), each ending in a `SetTick`; under it a segmented picker over `trial.options` and one helper line naming the token's value. The tick is the design's (APEX README, "Workout session, set ticks": a 28 pt circle in a 44 pt tap area, grey ring, moss fill with a dark tick): the fill animates with `Tokens.Motion.quick`, the check arrives with `Tokens.Motion.snappy(bounce:)` and leaves with `quick`. The row's offset follows a horizontal drag and returns to zero with `Tokens.Motion.snappy(bounce:)`.
-- [ ] **Step 4: `ApexApp.model(stateName:)`.** In Debug, a name that is a lab state returns the real app with `lab.open(at:)`; the unknown-name message also lists the lab's state names.
-- [ ] **Step 5: `scripts/test-map.txt`.** `Packages/ApexKit/Sources/ScreenModels/Lab/ ALL` and `Packages/ApexKit/Sources/Screens/Lab/ ALL`, with a comment: the door is on Home and the sheet on the root.
-- [ ] **Step 6: the journey.** At the end of `AppJourneyTests`'s one test: `app.staticTexts["PEX"].press(forDuration: 1)`, then `app.staticTexts["Motion"].appears(within: 5)`. The test's name says so.
-- [ ] **Step 7: verify.** `make build`, `make fast` (all green now), `make lint`, `make gate` three times (report the test time against the 20 s ceiling, before and after), `make run STATE=lab.motion` with a screenshot opened, `make frames STATE=lab.motion`, `make run STATE=lab.nope` stops with the message.
-- [ ] **Step 8:** commit Tasks 2 and 3.
+- [x] **Step 1: `LabDoor.swift`.** `View.labSheet(_ lab: LabModel)` puts `LabScreen` in a sheet bound to `lab.isOpen` and the model in the environment; `View.opensLab()` sets `isOpen` on a long press. `RootScreen` calls the first after `.tint`, `HomeScreen` the second on `Wordmark()`.
+- [x] **Step 2: `LabScreen.swift`.** A `NavigationStack` on `model.path`, title "Device Lab": one `Card` per `LabExhibit.allCases` (title in `cardName`, summary in `value`, secondary colour) as a `NavigationLink(value:)`, on `ScreenField`. `.motion` leads to `MotionExhibit`.
+- [x] **Step 3: `MotionExhibit.swift`, `SetTick.swift`, `SnapBackRow.swift`.** State: `LabTrial.snappyBounce(token: Tokens.Motion.snappyBounce)` and the set of ticked rows. A card of three set rows (`SnapBackRow`), each ending in a `SetTick`; under it a segmented picker over `trial.options` and one helper line naming the token's value. The tick is the design's (APEX README, "Workout session, set ticks": a 28 pt circle in a 44 pt tap area, grey ring, moss fill with a dark tick): the fill animates with `Tokens.Motion.quick`, the check arrives with `Tokens.Motion.snappy(bounce:)` and leaves with `quick`. The row's offset follows a horizontal drag and returns to zero with `Tokens.Motion.snappy(bounce:)`.
+- [x] **Step 4: `ApexApp.model(stateName:)`.** In Debug, a name that is a lab state returns the real app with `lab.open(at:)`; the unknown-name message also lists the lab's state names.
+- [x] **Step 5: `scripts/test-map.txt`.** `Packages/ApexKit/Sources/ScreenModels/Lab/ ALL` and `Packages/ApexKit/Sources/Screens/Lab/ ALL`, with a comment: the door is on Home and the sheet on the root.
+- [x] **Step 6: the journey.** At the end of `AppJourneyTests`'s one test: `app.staticTexts["PEX"].press(forDuration: 1)`, then `app.staticTexts["Motion"].appears(within: 5)`. The test's name says so.
+- [x] **Step 6a: the motion itself.** With a scratch UI test that is never committed, and the simulator's slow animations on, record the tick at 0.15 and at 0.5 and the row let go at 0.5 and at 0. Open the frames: the bounce must change what is drawn.
+- [x] **Step 7: verify.** `make build`, `make fast` (all green now), `make lint`, `make gate` three times (report the test time against the 20 s ceiling, before and after), `make run STATE=lab.motion` with a screenshot opened, `make frames STATE=lab.motion`, `make run STATE=lab.nope` stops with the message.
+- [x] **Step 8:** commit Tasks 2 and 3.
 
 ### Task 4: The phone, Release, the docs
 
 **Files:** `Makefile`, `AGENTS.md`.
 
-- [ ] **Step 1: `make device STATE=`.** The launch line passes `-State $(STATE)` when `STATE` is set and `--terminate-existing`, so a second run lands in the state.
-- [ ] **Step 2: Release.** Build the Release configuration for the simulator without signing; `nm` on the app binary shows no symbol containing `Lab`. Report the command and the count.
-- [ ] **Step 3: the phone.** `make device STATE=lab.motion DEVICE=<the phone>`. If the phone cannot be reached, record exactly what was not verified and the one command Ben runs.
-- [ ] **Step 4: `AGENTS.md`.** The map (the `Lab/` folders), `make device`'s row, the launch-flags row, a "Device lab" section (what it is, the two ways in, how to add an exhibit, why it has no picture), and whatever `make device` needed from a person.
+- [x] **Step 1: `make device STATE=`.** The launch line passes `-State $(STATE)` when `STATE` is set, after a `--` (without it devicectl reads `-State` as its own option), and `--terminate-existing`, so a second run lands in the state. With `DEVICE` empty the target asks `scripts/paired-iphone.sh`, written test-first: one paired physical iPhone prints its identifier; none, or more than one, fails and says what to do.
+- [x] **Step 2: Release.** Build the Release configuration for the simulator without signing; `nm` on the app binary shows no symbol containing `Lab`. Report the command and the count.
+- [x] **Step 3: the phone.** `make device STATE=lab.motion DEVICE=<the phone>`. If the phone cannot be reached, record exactly what was not verified and the one command Ben runs.
+- [x] **Step 4: `AGENTS.md`.** The map (the `Lab/` folders), `make device`'s row, the launch-flags row, a "Device lab" section (what it is, the two ways in, how to add an exhibit, why it has no picture), and whatever `make device` needed from a person.
 - [ ] **Step 5:** `make ci-checks`; commit.
 
 ### Task 5: Evidence, review, merge, report

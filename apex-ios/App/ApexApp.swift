@@ -32,12 +32,23 @@ struct ApexApp: App {
         }
     }
 
-    /// The real app, or the designed state `-State` names. An unknown name stops the app and says which names exist:
-    /// it never opens some other state under that name.
+    /// The real app, or the state `-State` names: a designed state, or in a Debug build the real app with the device
+    /// lab open at one exhibit. An unknown name stops the app and says which names exist: it never opens some other
+    /// state under that name.
     private static func model(stateName: String?) -> AppModel {
-        guard let stateName else { return AppModel(home: HomeModel(lastEnded: nil, calendar: .current)) }
+        let app = AppModel(home: HomeModel(lastEnded: nil, calendar: .current))
+        guard let stateName else { return app }
+        #if DEBUG
+            if let exhibit = LabExhibit(stateName: stateName) {
+                app.lab.open(at: exhibit)
+                return app
+            }
+            let labStates = ". Lab states: \(LabExhibit.allCases.map(\.stateName).joined(separator: ", "))"
+        #else
+            let labStates = ""
+        #endif
         guard let state = DesignedState(rawValue: stateName) else {
-            let message = DesignedState.unknownMessage(for: stateName)
+            let message = DesignedState.unknownMessage(for: stateName) + labStates
             Logger(subsystem: "com.cadre.apex", category: "App").fault("\(message, privacy: .public)")
             fatalError(message)
         }

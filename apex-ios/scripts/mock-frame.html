@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>loading</title>
+<!--
+  The page headless Chrome loads for one designed state (scripts/render-mocks.py).
+  It shows ?page= in a 390 × 844 frame, clicks each ?click= switch in order, and reports through its title:
+  "done", "missing:<text>" or "no-render". Chrome takes the picture when its virtual time budget runs out,
+  so every wait below must fit inside that budget with room to spare.
+-->
+<style>
+  html, body { margin: 0; overflow: hidden; }
+  iframe { display: block; width: 390px; height: 844px; border: 0; }
+</style>
+<iframe id="frame"></iframe>
+<script>
+  // All the waiting for things to appear, added up. The demos render in steps: the screen first, its switches after.
+  const APPEAR_LIMIT_MS = 5000;
+  const POLL_MS = 100;
+  const SETTLE_MS = 600;
+
+  const query = new URLSearchParams(location.search);
+  const frame = document.getElementById("frame");
+  const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  let waited = 0;
+  async function appeared(find) {
+    for (; waited < APPEAR_LIMIT_MS; waited += POLL_MS) {
+      const found = find();
+      if (found) return found;
+      await pause(POLL_MS);
+    }
+    return null;
+  }
+
+  // A demo's switch: the element with no children whose text is exactly `text`. The phone-only pages hide their
+  // switches with CSS and keep them in the document, so a click still works.
+  function switchNamed(text) {
+    return [...frame.contentDocument.querySelectorAll("*")].find(
+      (element) => element.childElementCount === 0 && element.textContent.trim() === text
+    );
+  }
+
+  async function reach() {
+    if (!(await appeared(() => frame.contentDocument?.querySelector("[data-screen-label]")))) return "no-render";
+    for (const text of query.getAll("click")) {
+      const element = await appeared(() => switchNamed(text));
+      if (!element) return `missing:${text}`;
+      element.click();
+      await pause(SETTLE_MS);
+    }
+    return "done";
+  }
+
+  frame.src = query.get("page");
+  reach().then((result) => { document.title = result; });
+</script>

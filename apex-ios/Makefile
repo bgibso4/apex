@@ -20,7 +20,7 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 DEVICE         ?= iPhone
 
 .PHONY: setup sim generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
-	ci-checks run device design-import
+	ci-checks run device design-import mocks
 
 # Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
 # a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
@@ -112,9 +112,15 @@ device: generate
 	xcrun devicectl device install app --device "$(DEVICE)" '$(DEVICE_PRODUCT)'
 	xcrun devicectl device process launch --device "$(DEVICE)" $(BUNDLE_ID)
 
-# Replace design/export with a new export (design/README.md), then list what that changed against git:
-# `??` is a new file, ` D` a removed one, ` M` a changed one.
+# Replace design/export with a new export (design/README.md), list what that changed against git (`??` is a new
+# file, ` D` a removed one, ` M` a changed one), then render the reference images again.
 design-import:
 	@[ -n "$(ZIP)" ] || { echo "usage: make design-import ZIP=<path to the export zip>" >&2; exit 1; }
 	python3 -I scripts/design-import.py "$(ZIP)" design/export
 	@git -c core.quotePath=false status --short --untracked-files=all -- design/export
+	@$(MAKE) --no-print-directory mocks
+
+# Render the reference image of every designed state in design/states.json, or of one (`STATE=home.noProgram`).
+# Needs Google Chrome and the network: the demos load React from unpkg. Never run in CI; the images are committed.
+mocks:
+	python3 -I scripts/render-mocks.py design/states.json design/mocks $(STATE)

@@ -161,3 +161,57 @@ fails_untouched() {
   [ -f "$generated" ]
   swift format lint --strict "$generated"
 }
+
+# --- render-mocks ---
+
+# render_mocks NAME…: renders the fixture states named into out/, in the test folder.
+render_mocks() { run python3 -I "$SCRIPTS/render-mocks.py" "$SCRIPTS/tests/fixtures/mock/states.json" out "$@"; }
+
+@test "mocks writes a 1170 x 2532 image for a state" {
+  render_mocks fixture.grey
+  [ "$status" -eq 0 ]
+  [ "$output" = "wrote out/fixture.grey.png" ]
+  [ "$(sips -g pixelWidth -g pixelHeight out/fixture.grey.png | awk '/pixel/ { print $2 }' | xargs)" = "1170 2532" ]
+}
+
+@test "a switch click reaches a different state" {
+  render_mocks fixture.grey fixture.blue
+  [ "$status" -eq 0 ]
+  run cmp -s out/fixture.grey.png out/fixture.blue.png
+  [ "$status" -eq 1 ]
+}
+
+@test "rendering twice gives the same bytes" {
+  render_mocks fixture.grey
+  cp out/fixture.grey.png first.png
+  render_mocks fixture.grey
+  cmp out/fixture.grey.png first.png
+}
+
+@test "a missing switch fails, names the state and keeps the old image" {
+  mkdir out
+  printf old >out/fixture.broken.png
+  render_mocks fixture.broken
+  [ "$status" -eq 1 ]
+  [[ "$output" == "error: fixture.broken:"*Nope* ]] || false
+  [ "$(cat out/fixture.broken.png)" = old ]
+}
+
+@test "a page that never renders fails" {
+  render_mocks fixture.empty
+  [ "$status" -eq 1 ]
+  [[ "$output" == "error: fixture.empty:"* ]] || false
+  [ ! -e out/fixture.empty.png ]
+}
+
+@test "an unknown state name fails" {
+  render_mocks fixture.nope
+  [ "$status" -eq 1 ]
+  [[ "$output" == "error: fixture.nope:"* ]] || false
+}
+
+@test "a missing Chrome fails with a message" {
+  CHROME=/nonexistent/chrome render_mocks fixture.grey
+  [ "$status" -eq 1 ]
+  [[ "$output" == "error: Google Chrome not found"* ]] || false
+}

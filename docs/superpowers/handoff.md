@@ -2,14 +2,14 @@
 
 The one place a fresh session learns where the work stands. Overwrite it at every hand-off. Keep it short: anything durable belongs in the design doc, a plan, or `apex-ios/AGENTS.md`.
 
-Last updated: 2026-11-27, by the session that executed plan 4 and wrote plan 5.
+Last updated: 2026-11-27, by the session that executed plan 4 and wrote plan 5. The lead then rewrote "Do now" for two workers in their own worktrees.
 
 ## Read first, in this order
 
 1. `docs/superpowers/specs/2026-11-27-ios-agentic-foundations-design.html` · the approved design. Ben approved it on 2026-11-27.
 2. `apex-ios/AGENTS.md` · the iOS rules, then `apex-ios/CLAUDE.md` and `apex-ios/design/README.md`.
 3. The plan named under "Do now".
-4. Your memory index. It holds Ben's standing rules for this effort, including the approval to push, open pull requests and merge on green CI.
+4. Ben's standing rules for this effort, including the approval to push, open pull requests and merge on green CI. A session in a worktree does not load them by itself: read `~/.claude/projects/-Users-ben-projects-apex/memory/MEMORY.md`, then the files it lists under Feedback and the two it names "iOS data stack" and "Lead/worker sessions in Herdr".
 
 ## Where things stand
 
@@ -20,19 +20,44 @@ Last updated: 2026-11-27, by the session that executed plan 4 and wrote plan 5.
 
 ## Do now
 
-Execute `docs/superpowers/plans/2026-11-27-ios-ci-gate.md` (plan 5 of 5) with `superpowers:executing-plans`, yourself, in this checkout. Tick its boxes as you go.
+Two workers run at the same time, each in its own Herdr worktree (Ben, 2026-11-27: "use worktrees for each worker"). Your Herdr agent name says which one you are: `herdr agent list` shows it against your pane (`$HERDR_PANE_ID`).
 
-- You are on branch `docs/ios-ci-gate-plan`, which holds plan 5, plan 4's last ticks and this note. The plan's first step branches `feat/ios-ci-gate` from it, so one pull request carries all of it.
-- A lead session (Herdr agent name `lead`) coordinates and talks with Ben. It writes no files in this checkout while you work. If you find unexpected changes in the working tree, stop and say so.
+### For both workers
+
+- Your worktree is yours alone. The lead (Herdr agent name `lead`) sits in the main checkout at `~/projects/apex`, coordinates, and talks with Ben. If you find changes in your working tree that you did not make, stop and say so.
+- Your branch already exists and is checked out. It starts from `docs/ios-ci-gate-plan`, so it carries plan 5, plan 4's last ticks and this note.
+- **First command:** `make -C apex-ios setup`. It makes this worktree's own simulator (`APEX <folder> iPhone 17`).
+- **The other worker is building on this Mac while you are.** Wall times will be noisy. Before you call something slow or flaky, measure it again; if it only happens while the other worker is busy, say so in your report and do not chase it.
+- **The other pull request may merge first.** Before you merge, bring `origin/main` into your branch and run the checks again. The files most likely to collide: `apex-ios/Makefile`, `apex-ios/project.yml`, `apex-ios/AGENTS.md`.
 - **Questions for Ben go through the lead.** Never stop to wait for an answer. Take the default the design rules imply, keep going, and list the question with the default you took under NEEDS BEN in your report.
-- Task 5 uses one `ios-verifier` agent and one reviewer agent. Ben's approved design calls for both.
-- **Before you start, check "Open with Ben" below.** The lead may have added decisions there.
-- This plan changes `.github/`. The new `gate` job's first run is on this plan's own pull request; the skip on `main` first runs on its merge. Say plainly in the hand-off which of the two you saw work.
+- **Something only a phone can judge** (a feel, a timing, a haptic): take a default and list it under VERIFY ON DEVICE in your report. The lead files it with the `verify-on-device` label. It never blocks a merge.
+- Before a merge: one `ios-verifier` agent for the evidence and one fresh reviewer agent. Ben's approved design calls for both.
+- **Check "Open with Ben" below before you start.** The lead adds decisions there.
+- **When your pull request has merged:** delete your branch on the remote. You cannot delete the local one while your worktree holds it; the lead removes the worktree and the branch after your report.
 
-## Then
+### Worker `ci-gate`
 
-1. When plan 5 has merged, the foundation is done. Write `apex-ios/docs/roadmap.md`: the ordered list of product segments, from `apex-ios/design/export/inventory.md`. One segment is one pull request and one session. Commit it on a new branch with this note; it rides with the first segment's pull request.
-2. Update this note for the next session, commit, push, report to the lead (below). Then stop.
+Execute `docs/superpowers/plans/2026-11-27-ios-ci-gate.md` (plan 5 of 5) with `superpowers:executing-plans`, yourself. Tick its boxes as you go.
+
+- Task 1's first step (branch) is already done: you are on `feat/ios-ci-gate`. Tick it.
+- This plan changes `.github/`. The new `gate` job's first run is on this plan's own pull request; the skip on `main` first runs on its merge. Say plainly in your report which of the two you saw work.
+- **This note is yours to rewrite.** The other worker does not edit it.
+- When your pull request has merged, also delete `docs/ios-ci-gate-plan` on the remote.
+- Then: the foundation is done. Write `apex-ios/docs/roadmap.md`: the ordered list of product segments, from `apex-ios/design/export/inventory.md`. One segment is one pull request and one session. Commit it with this note, updated for the next session, on a new branch `docs/ios-roadmap` (from `origin/main`, in your worktree), and push; it rides with the first segment's pull request. Report to the lead (below). Then stop.
+
+### Worker `device-lab`
+
+Build what GitHub issue 96 describes (`gh issue view 96`), on your branch `feat/ios-device-lab`. Ben asked for it on 2026-11-27 so that he can try options on his phone and say which he wants; the issue is the approved brief, so do not wait for a design approval. Take the defaults and list them.
+
+- Write a short plan first with `superpowers:writing-plans` at `apex-ios/docs/plans/2026-11-27-device-lab.md`, commit it, then execute it yourself. It rides in your pull request.
+- **Do not edit this note.** What you learned that the docs don't say goes in your report; the lead passes it on.
+- **Ben must be able to open the lab by hand on the phone.** A launch state alone is not enough: it is gone the next time he opens the app from the home screen. Give Debug builds a way in from the app itself, as well as `STATE=lab.motion`. How is your call; list it as a default.
+- **The lab is not a designed state.** It has no mock, so it gets no picture and must not show up in what `make mocks`, `make compare` or the picture tests go through. Its logic (which value is being tried, falling back to the token) gets Mac tests. Add simulator test time only if you can say what it protects.
+- **Debug builds only.** Nothing of the lab compiles into Release, and `make unused` stays clean.
+- **Every value from tokens.** The lab overrides only the one value being tried; the list of options to try is data, not numbers in a view.
+- **The phone.** "Ben's iPhone" (iPhone 16 Pro) showed as unavailable when you were started: not plugged in, or locked. Try `make -C apex-ios device`. If the phone still cannot be reached, do not wait: prove the lab on the simulator (`make -C apex-ios run STATE=lab.motion`), merge, and put the one command Ben runs in your report with exactly what you could not verify. Anything `make device` needed from a person (trusting the developer profile, signing) goes in `apex-ios/AGENTS.md`.
+- Ben picking a bounce, `tokens.json` and closing issue 93 come later, through the lead. Not yours.
+- Report to the lead (below) when the pull request has merged. Then stop.
 
 The five foundation plans stay beside their spec in `docs/superpowers/plans/`. Product-segment plans go in `apex-ios/docs/`.
 
@@ -114,14 +139,15 @@ Not verified in plans 2 to 4: `make device` on Ben's phone; the stop gate's bloc
 
 - **Issue 93, open:** the "snappy" spring's bounce is 0.15, a default nobody has seen on a phone. One number in `tokens.json` when he answers.
 - **Issue 95, open:** seven defaults taken on Home where the mock is silent or disagrees with the design system. The ones that would change code: card padding (14 × 16 from the tokens, where the demo draws 16 all round), and the two tokens added from the demos (`card-title`, `accent-pressed`).
-- **`CPUImageMatch` was ported against plan 4's text.** The tolerance is unchanged (0.98) and the check passes nothing a correct comparison would fail. In pull request 97 and in the report to the lead. Not yet asked of Ben in an issue.
+- **`CPUImageMatch` was ported against plan 4's text.** The tolerance is unchanged (0.98) and the check passes nothing a correct comparison would fail. Asked of Ben in issue 98 with "keep it" recommended. Until he answers: it stays, and the tolerance does not move.
+- **`scripts/hooks/swift-fingerprint.sh` stays as it is until Ben answers issue 98** (lead, 2026-11-27). The one-process speed-up is recommended there; a hook script still waits for his yes.
 - **Tokens, not hardcoded values** (Ben, 2026-11-27): "I don't want to be hard coding anything. The code needs to be very reusable." He wants the principal-engineer rules held hardest now. Load that skill before writing code.
 - **Slow and flaky tests are what Ben most wants kept out** (lead, 2026-11-27). Report the `checks` job's split in every hand-off, and say what you would cut if it keeps growing. A stall or a flake is a bug to find that day, not something to re-run past.
 - **Re-imports must be easy for Ben** (2026-11-27): `design/README.md`, "When a new export arrives".
 - **Branches must not pile up** (Ben, 2026-11-27). When your code pull request merges, delete its branch and the plan branch it carried, locally and on the remote.
 - Data is settled enough to build on (Ben, 2026-11-27): a SQL database on the phone is the source of truth; the Cloudflare copy is a backup only; Whoop sign-in is the one critical use of the Worker. The tables are designed with the first screen that stores data, not before.
 - How Ben is asked questions while away from his Mac is the lead's to handle (GitHub issues labelled `needs-ben` for now).
-- **When you report done, expect a clean-up message** (Ben, 2026-11-27): delete your merged branches locally and on the remote, then the lead closes your tab.
+- **Finished sessions leave nothing behind** (Ben, 2026-11-27): delete your merged branches on the remote before you report; the lead then removes your worktree, its local branch and your Herdr space. Delete any scratch folder you made (for example under `.superpowers/`) yourself, one explicit path per `rm` call.
 - A follow-up for arsenal, not this repo: worktree cleanup could delete the worktree's `APEX <folder> iPhone 17` simulator.
 - Cadre's design reference is to be brought up to date from APEX's. Not started, not blocking.
 

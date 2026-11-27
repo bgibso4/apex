@@ -105,13 +105,15 @@ jobs:
             tee apex-ios/.build/gate.log
 
       # The time report on the run's summary page: the gate's output from its "test time:" line to its end.
+      # No quote character inside a ${…} here: the runner's bash is 3.2, which reads one there as an open string.
       - name: Show the time report
         if: always()
         run: |
           report="$(sed -n '/^test time:/,$p' apex-ios/.build/gate.log 2>/dev/null || true)"
+          [ -n "$report" ] || report="The gate stopped before its time report: read the log of this job."
           {
             echo '```'
-            echo "${report:-The gate stopped before its time report. See the job's log.}"
+            echo "$report"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -124,8 +126,9 @@ jobs:
           if-no-files-found: ignore
           path: apex-ios/.build/results/gate.xcresult.json
 
+      # Also when the job is cancelled or runs out of time: a run that hangs is the one whose evidence is wanted.
       - name: Upload what failed
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v7
         with:
           name: gate-failures

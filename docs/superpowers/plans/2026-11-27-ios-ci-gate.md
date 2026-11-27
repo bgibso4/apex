@@ -199,11 +199,11 @@ Expected: exit non-zero, with `error: no test ran` or xcodebuild's own error. Th
 **Files:**
 - Modify: `apex-ios/scripts/gate-ceiling.txt`, `apex-ios/scripts/affected-tests.sh`, `apex-ios/scripts/test-times.py`, `apex-ios/scripts/test-map.txt`, their bats tests
 
-- [ ] **Step 1: Record the ceiling again**
+- [x] **Step 1: Record the ceiling again**
 
 Take the test time from Task 3's first green gate run in CI. The ceiling is twice that, rounded up to the next 10 s. Rewrite the file's comment: the date, the run's URL, the measurement, the rule. If the number is the same as today's, still rewrite the comment: the file must say it came from CI.
 
-- [ ] **Step 2: Three small fixes, each with a test that fails first**
+- [x] **Step 2: Three small fixes, each with a test that fails first**
 
 ```
 affected.bats (add)
@@ -221,7 +221,7 @@ test-map.txt
 Run: `make -C apex-ios test-scripts`
 Expected: 77 pass.
 
-- [ ] **Step 3: Commit and push**
+- [x] **Step 3: Commit and push**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): the gate's ceiling recorded from CI; three fixes from plan 4's review"

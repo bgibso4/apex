@@ -6,7 +6,7 @@ Rules, commands and the definition of done are in AGENTS.md. This file holds wha
 
 ## Where we are
 
-Foundation, plan 3 of 5 merged: the design export, tokens and `make mocks`. No product screen exists yet.
+Foundation, plan 4 of 5 merged: the first screen (the tab bar and Home with no program) and the simulator test loop. CI runs the simulator tests from plan 5.
 
 ## Hooks (committed in the root `.claude/settings.json`, scripts in `apex-ios/scripts/hooks/`)
 

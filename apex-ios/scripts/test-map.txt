@@ -1,0 +1,40 @@
+# Which simulator test classes a changed path can affect (read by scripts/affected-tests.sh, `make affected`).
+# Paths are relative to apex-ios/. A change outside apex-ios/ affects nothing.
+#
+#   <path prefix> <Class> ...   a changed path under the prefix runs those classes
+#   <path prefix> ALL           runs every simulator test (shared code)
+#   <path prefix> NONE          runs nothing (cannot affect the simulator tests)
+#
+# A path takes the union of every rule whose prefix matches; "*.md" matches Markdown anywhere. A path no rule
+# matches runs everything, so a gap here costs time, never coverage. Test files need no rule: a file under UITests/
+# or SnapshotTests/ runs the *Tests classes it declares or extends, and SnapshotTests/__Snapshots__/<Class>/ runs
+# <Class>. A new screen adds its rows here; `make ci-checks` fails while a test class is missing from this file.
+
+# Cannot affect the simulator tests. Package tests run on the Mac, in `make fast`.
+*.md NONE
+docs/ NONE
+design/ NONE
+scripts/ NONE
+Packages/ApexKit/Tests/ NONE
+
+# Shared: everything.
+design/tokens.json ALL
+scripts/generate-tokens.swift ALL
+Makefile ALL
+project.yml ALL
+Package.resolved ALL
+App/ ALL
+Packages/ApexKit/Package.swift ALL
+Packages/ApexKit/Sources/Core/ ALL
+Packages/ApexKit/Sources/TestSupport/ ALL
+Packages/ApexKit/Sources/ScreenModels/App ALL
+Packages/ApexKit/Sources/Screens/DesignSystem/ ALL
+Packages/ApexKit/Sources/Screens/RootScreen.swift ALL
+UITests/Support/ ALL
+SnapshotTests/SnapshotHost.swift ALL
+# Every picture is compared through it. Its own tests are named so the map check knows the class.
+SnapshotTests/CPUImageMatch.swift ALL CPUImageMatchTests
+
+# One screen each.
+Packages/ApexKit/Sources/ScreenModels/Home/ AppJourneyTests HomePictureTests
+Packages/ApexKit/Sources/Screens/Home/ AppJourneyTests HomePictureTests

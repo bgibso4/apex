@@ -350,7 +350,7 @@ make -C apex-ios mocks && make -C apex-ios mocks && git status --short apex-ios/
 
 Expected: 18 tests pass; two images, and the second run changes nothing (`git status` shows them only as new). Open both with the Read tool. `home.workoutDay.png`: the APEX wordmark, a CHECK-IN DUE card, "Upper Strength · Heavy Pull" with a blue Start Workout button, the Recovery and This week cards, the glass tab bar. `home.noProgram.png`: the same, with "No Active Program" and a blue "Choose a program" button in place of the workout card. List both paths in the hand-off.
 
-- [ ] **Step 5: See whether the tests run in CI**
+- [x] **Step 5: See whether the tests run in CI**
 
 The mocks tests need Chrome on the runner. After the push in Task 5, read the `checks` log: if the six mocks tests fail because Chrome is missing, move them to their own file `scripts/tests/mocks.bats` run by a new `test-mocks` target that `ci-checks` does not call, record it as a ruling, and say in the hand-off that they run locally only. Do not skip them silently inside a test.
 
@@ -380,11 +380,11 @@ git add apex-ios && git commit -m "feat(ios): make mocks renders reference image
 
 Verify: `grep -c '—' apex-ios/AGENTS.md apex-ios/CLAUDE.md apex-ios/design/README.md` prints 0 three times. Commit: `docs(ios): rules for the design folder, tokens and designed states`.
 
-- [ ] **Step 2: Evidence from `ios-verifier`**
+- [x] **Step 2: Evidence from `ios-verifier`**
 
 One agent: `make -C apex-ios fast`, `make -C apex-ios build`, `make -C apex-ios ci-checks`, each PASS or FAIL with wall times, the bats and fixture counts, and whether `git status --short` is clean afterwards.
 
-- [ ] **Step 3: Push and open the pull request**
+- [x] **Step 3: Push and open the pull request**
 
 ```bash
 git push -u origin feat/ios-design-import
@@ -393,14 +393,14 @@ gh pr create --base main --title "apex-ios: design export, tokens and make mocks
 
 The hand-off lists: the make targets added, `make fast` and `ci-checks` times before and after, the three images opened (`apex-ios/build/launch-tokens.png`, the two mocks), the `needs-ben` issue for the snappy bounce, whether the mocks tests ran in CI, and anything not verified.
 
-- [ ] **Step 4: Review**
+- [x] **Step 4: Review**
 
 One fresh reviewer agent on the most capable model reads the branch diff against this plan and the spec's "Mocks" section. Leave `design/export/` out of the diff it reads (`git diff main...HEAD -- . ':!apex-ios/design/export'`); it checks the export only by count and size. Fix what it finds; re-run the affected steps.
 
-- [ ] **Step 5: Merge on green**
+- [x] **Step 5: Merge on green**
 
 Wait for the `checks` job on the last commit (a watch started before the run registers reports "no checks" and exits 0: that is not green). Read its log for the test counts. Then `gh pr merge --merge --delete-branch`, `git checkout main && git pull`.
 
-- [ ] **Step 6: Hand off**
+- [x] **Step 6: Hand off**
 
 Follow `docs/superpowers/handoff.md`: write plan 4, update the note, report to the lead, stop.

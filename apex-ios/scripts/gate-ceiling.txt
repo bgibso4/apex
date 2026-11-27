@@ -1,0 +1,5 @@
+# The most seconds the simulator tests may take in all (scripts/test-times.py reads this; AGENTS.md, "Keeping it fast").
+# Recorded 2026-11-27 on Ben's Mac (Xcode 27.2, iOS 27.0 simulator) from three `make gate` runs of 8 tests:
+# 6.7 s, 6.5 s and 6.5 s. The ceiling is twice the largest, rounded up to the next 10 s.
+# Plan 5 records it again from CI's first run. After that, changing this number needs Ben's OK.
+20

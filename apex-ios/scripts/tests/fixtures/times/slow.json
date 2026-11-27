@@ -1,0 +1,42 @@
+{
+  "devices": [],
+  "testNodes": [
+    {
+      "name": "Apex",
+      "nodeType": "Test Plan",
+      "result": "Passed",
+      "children": [
+        {
+          "name": "ApexUITests",
+          "nodeType": "Unit test bundle",
+          "result": "Passed",
+          "children": [
+            {
+              "name": "JourneyTests",
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "duration": "2s",
+                  "durationInSeconds": 2,
+                  "name": "testQuick()",
+                  "nodeIdentifier": "JourneyTests/testQuick()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "61s",
+                  "durationInSeconds": 61,
+                  "name": "testLong()",
+                  "nodeIdentifier": "JourneyTests/testLong()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

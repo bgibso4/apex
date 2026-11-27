@@ -1,13 +1,13 @@
 import XCTest
 
-/// The wiring from the app's entry point to its tabs: the real app, with no designed state.
+/// The wiring from the app's entry point to its tabs, and to the device lab: the real app, with no designed state.
 @MainActor
 final class AppJourneyTests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
     }
 
-    func testTheAppLaunchesToHomeAndTheTabsSwitch() {
+    func testTheAppLaunchesToHomeTheTabsSwitchAndTheLabOpens() {
         let app = launchApp()
         let homeCard = app.staticTexts["No Active Program"]
         XCTAssertTrue(homeCard.appears(within: 10))
@@ -21,5 +21,10 @@ final class AppJourneyTests: XCTestCase {
 
         tabs["Home"].tap()
         XCTAssertTrue(homeCard.appears(within: 5))
+
+        // The device lab's way in by hand (Debug builds): press and hold the wordmark. Nothing else exercises it,
+        // and it is the only way in on a phone that is away from the Mac.
+        app.staticTexts["PEX"].press(forDuration: 1)
+        XCTAssertTrue(app.staticTexts["Motion"].appears(within: 5), "The lab did not open from the wordmark")
     }
 }

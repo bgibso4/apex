@@ -95,6 +95,14 @@ enum Tokens {
         static let smooth = Animation.spring(duration: 0.35, bounce: 0)
         static let snappy = Animation.spring(duration: 0.3, bounce: 0.15)
 
+        #if DEBUG
+            // For the device lab: each spring's bounce, and the same spring with another bounce.
+            static let smoothBounce: Double = 0
+            static func smooth(bounce: Double) -> Animation { .spring(duration: 0.35, bounce: bounce) }
+            static let snappyBounce: Double = 0.15
+            static func snappy(bounce: Double) -> Animation { .spring(duration: 0.3, bounce: bounce) }
+        #endif
+
         enum Duration {
             static let chartBarStagger: TimeInterval = 0.04
             static let chartBars: TimeInterval = 0.5

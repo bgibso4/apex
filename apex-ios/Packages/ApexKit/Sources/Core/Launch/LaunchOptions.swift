@@ -2,7 +2,7 @@
 public struct LaunchOptions: Sendable, Equatable {
     /// `-UITest`: the app runs under a UI test, with animations off.
     public private(set) var isUITest = false
-    /// `-State <name>`: the designed state the app opens in.
+    /// `-State <name>`: the state the app opens in. A designed state, or the device lab at one exhibit.
     public private(set) var stateName: String?
 
     public init(arguments: [String], isDebugBuild: Bool) {

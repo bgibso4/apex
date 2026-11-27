@@ -18,6 +18,9 @@ public struct RootScreen: View {
             }
         }
         .tint(Tokens.Color.accent)
+        #if DEBUG
+            .labSheet(model.lab)
+        #endif
     }
 
     @ViewBuilder private func screen(for tab: AppTab) -> some View {

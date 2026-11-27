@@ -118,7 +118,7 @@ git add apex-ios && git commit -m "feat(ios): the time report enforces the ceili
 - It reads `GITHUB_REPOSITORY` and calls the API through `gh` (`GH_TOKEN`; the job needs `actions: read`). `APEX_GH` is the seam for the tests.
 - Why the tree: a pull request's run tests the pull request merged into `main`. When the pull request was up to date with `main`, its merge commit has the head's tree, so those files were already tested.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Port `gate-passed.bats`: a fixture repo, a stub `gh` that answers from files.
 
@@ -131,12 +131,12 @@ Port `gate-passed.bats`: a fixture repo, a stub `gh` that answers from files.
 @test "a sha that is no commit here is no"
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 69 earlier tests pass; the 6 new ones fail, the script does not exist.
 
-- [ ] **Step 3: Write the script, run, commit**
+- [x] **Step 3: Write the script, run, commit**
 
 Run: `make -C apex-ios test-scripts`
 Expected: 75 pass. Then, against the real repository, find plan 4's merge: `GITHUB_REPOSITORY=bgibso4/apex apex-ios/scripts/ci/gate-run.sh origin/main` exits 1 with a warning (no run has a `gate` job yet).

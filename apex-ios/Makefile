@@ -98,9 +98,9 @@ format:
 test-hooks:
 	bats scripts/hooks/tests
 
-# Unit tests for the design tools in scripts/.
+# Unit tests for the scripts in scripts/ and scripts/ci/.
 test-scripts:
-	bats scripts/tests
+	bats scripts/tests scripts/ci/tests
 
 # Fixture tests for the SwiftLint custom rules.
 test-lint:

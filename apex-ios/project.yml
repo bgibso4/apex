@@ -24,6 +24,9 @@ settings:
 packages:
   ApexKit:
     path: Packages/ApexKit
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    exactVersion: 1.19.7
 
 targets:
   Apex:
@@ -54,6 +57,30 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UIUserInterfaceStyle: Dark
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+
+  # The pictures: one image per designed state, drawn inside the app.
+  ApexSnapshotTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: SnapshotTests
+        excludes:
+          - "**/.DS_Store"
+          - "**/__Snapshots__/**"
+    dependencies:
+      # Screens and TestSupport come from the host app (TEST_HOST): linking them again would build the package
+      # products a second time, as dynamic frameworks.
+      - target: Apex
+      - package: SnapshotTesting
+        product: SnapshotTesting
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_ID).snapshottests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Apex.app/Apex
+        BUNDLE_LOADER: $(TEST_HOST)
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
 
@@ -93,6 +120,7 @@ schemes:
       config: Debug
       # Every simulator test: what `make gate` runs. Package tests run on the Mac, in Fast.
       targets:
+        - name: ApexSnapshotTests
         - name: ApexUITests
 
   # Mac-only loop: no app target, no simulator. Every package test target but ScreensTests is listed here;

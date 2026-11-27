@@ -19,8 +19,8 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 # Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
 DEVICE         ?= iPhone
 
-.PHONY: setup sim generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
-	ci-checks affected retest gate run device design-import mocks
+.PHONY: setup sim boot generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
+	ci-checks affected retest gate snapshots-record compare run device design-import mocks
 
 # Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
 # a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
@@ -37,8 +37,22 @@ sim:
 	@xcrun simctl list devices 'iOS $(SIM_OS)' | grep -qF '    $(SIM_DEVICE) (' || \
 		xcrun simctl create '$(SIM_DEVICE)' '$(SIM_MODEL)' com.apple.CoreSimulator.SimRuntime.iOS-$(subst .,-,$(SIM_OS))
 
+# The generated project is gitignored, so the pins for the app's packages (swift-snapshot-testing and what it needs)
+# live in the tracked ./Package.resolved. XcodeGen cannot carry that file, so `generate` copies it to where Xcode
+# reads it, and every build refuses to resolve to anything else (XCB_FLAGS). After changing a package's version in
+# project.yml: build once without the flag, then copy $(RESOLVED_DEST)/Package.resolved back here and commit it.
+RESOLVED_DEST := $(PROJECT)/project.xcworkspace/xcshareddata/swiftpm
+# Flags for every xcodebuild call (and Periphery's build).
+XCB_FLAGS     := -onlyUsePackageVersionsFromResolvedFile
+
+# Boot this checkout's simulator and leave it running. A test run that finds it shut down boots it and shuts it
+# down again: measured on 2026-11-27, that turns an 11 s run into one of 55 s.
+boot: sim
+	@xcrun simctl boot '$(SIM_DEVICE)' 2>/dev/null || true
+
 # Everything generated: the tokens (design/tokens.json to Generated/Tokens.swift), the wordmark's font and logo mark
-# (copied from the export only when they differ: a rewritten file would recompile Screens), then the Xcode project.
+# (copied from the export only when they differ: a rewritten file would recompile Screens), then the Xcode project
+# and its package pins.
 GENERATED_RESOURCES := Packages/ApexKit/Sources/Screens/DesignSystem/Generated/Resources
 generate:
 	@command -v xcodegen >/dev/null || { echo "error: xcodegen is missing. Install it: brew install xcodegen" >&2; exit 1; }
@@ -47,10 +61,11 @@ generate:
 		cmp -s design/export/$$file $(GENERATED_RESOURCES)/$$file || cp design/export/$$file $(GENERATED_RESOURCES)/$$file; \
 	done
 	xcodegen generate --quiet
+	@mkdir -p $(RESOLVED_DEST) && cp Package.resolved $(RESOLVED_DEST)/Package.resolved
 
 build: sim generate
 	scripts/build-fingerprint.sh forget
-	set -o pipefail; xcodebuild build -project $(PROJECT) -scheme Apex \
+	set -o pipefail; xcodebuild $(XCB_FLAGS) build -project $(PROJECT) -scheme Apex \
 		-destination '$(SIM_DEST)' -derivedDataPath $(DERIVED) | $(BEAUTIFY)
 
 # The Fast scheme's test list (project.yml) is written by hand. A package test target left out of it would run
@@ -64,11 +79,11 @@ check-fast-scheme: generate
 # The Mac-only loop: no simulator. A pass records the sources' fingerprint as it was before the run, which is what
 # the stop gate compares against (scripts/hooks/stop-gate.sh).
 fast: check-fast-scheme
-	fp="$$(scripts/hooks/swift-fingerprint.sh)"; set -o pipefail; xcodebuild test -project $(PROJECT) -scheme Fast \
+	fp="$$(scripts/hooks/swift-fingerprint.sh)"; set -o pipefail; xcodebuild $(XCB_FLAGS) test -project $(PROJECT) -scheme Fast \
 		-destination 'platform=macOS' -derivedDataPath $(DERIVED) | $(BEAUTIFY) && \
 		scripts/hooks/swift-fingerprint.sh record "$$fp"
 
-SWIFT_DIRS := App Packages/ApexKit/Sources Packages/ApexKit/Tests UITests
+SWIFT_DIRS := App Packages/ApexKit/Sources Packages/ApexKit/Tests SnapshotTests UITests
 
 # swift-format owns formatting; SwiftLint owns everything else. Both are strict.
 lint:
@@ -94,7 +109,7 @@ test-lint:
 unused: generate unused-run
 
 unused-run: sim
-	periphery scan -- -destination '$(SIM_DEST)'
+	periphery scan -- -destination '$(SIM_DEST)' $(XCB_FLAGS)
 
 # Everything CI's `checks` job runs (.github/workflows/ios.yml). `fast` is the Mac slice: it compiles for macOS every
 # module the Fast scheme's tests reach, so UIKit or an iOS-only API in one of them fails here. SwiftUI compiles on
@@ -113,28 +128,38 @@ ci-checks: generate
 #   make affected                               at the end of a task: the classes the branch's changes touch
 #                                               (scripts/test-map.txt; BASE=<ref>, default origin/main)
 #   make gate                                   before a pull request: every simulator test
-SIM_TESTS = ONLY='$(ONLY)' BASE='$(BASE)' SIM_DEST='$(SIM_DEST)' PROJECT='$(PROJECT)' DERIVED='$(DERIVED)' \
-	scripts/sim-tests.sh
+#   make snapshots-record [ONLY=…]              rewrites each picture's reference that fails or is missing. A non-zero
+#                                               exit is expected: the library reports recording as a failure. Run
+#                                               `make retest ONLY=<the classes>` to confirm green
+SIM_TESTS = ONLY='$(ONLY)' BASE='$(BASE)' SIM_DEST='$(SIM_DEST)' XCB_FLAGS='$(XCB_FLAGS)' PROJECT='$(PROJECT)' \
+	DERIVED='$(DERIVED)' scripts/sim-tests.sh
 
-affected: sim generate
+affected: boot generate
 	@$(SIM_TESTS) affected
 
-retest: sim
+retest: boot
 	@$(SIM_TESTS) retest
 
-gate: sim generate
+gate: boot generate
 	@$(SIM_TESTS) gate
+
+snapshots-record: boot generate
+	@$(SIM_TESTS) record
+
+# A designed state's recorded picture beside its mock, for the eye: build/compare/<state>.png. Open it.
+compare:
+	@[ -n "$(STATE)" ] || { echo "usage: make compare STATE=<designed state, such as home.noProgram>" >&2; exit 1; }
+	@swift scripts/compare-snapshot.swift "$(STATE)"
 
 # Run on this checkout's simulator, in a designed state when one is named (`STATE=home.noProgram`). The simulator is
 # named, never `booted`: another worktree's simulator may be booted too.
-run: build
-	xcrun simctl boot '$(SIM_DEVICE)' 2>/dev/null || true
+run: build boot
 	xcrun simctl install '$(SIM_DEVICE)' '$(APP_PRODUCT)'
 	xcrun simctl launch --terminate-running-process '$(SIM_DEVICE)' $(BUNDLE_ID) $(if $(STATE),-State $(STATE))
 
 # Build for a connected iPhone and install it. Needs the phone plugged in, unlocked and trusted.
 device: generate
-	set -o pipefail; xcodebuild build -project $(PROJECT) -scheme Apex \
+	set -o pipefail; xcodebuild $(XCB_FLAGS) build -project $(PROJECT) -scheme Apex \
 		-destination 'generic/platform=iOS' -derivedDataPath $(DERIVED) -allowProvisioningUpdates | $(BEAUTIFY)
 	xcrun devicectl device install app --device "$(DEVICE)" '$(DEVICE_PRODUCT)'
 	xcrun devicectl device process launch --device "$(DEVICE)" $(BUNDLE_ID)

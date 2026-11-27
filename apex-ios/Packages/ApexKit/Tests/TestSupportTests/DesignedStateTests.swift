@@ -15,6 +15,17 @@ struct DesignedStateTests {
         #expect(withoutImage == [], "add each to design/states.json and run make mocks")
     }
 
+    @Test func everyScreenHasAPictureTestClass() {
+        let screens = Set(DesignedState.allCases.map(\.screen)).sorted()
+        let withoutClass = screens.filter { screen in
+            let file = "SnapshotTests/\(screen.prefix(1).uppercased() + screen.dropFirst())PictureTests.swift"
+            return !FileManager.default.fileExists(atPath: Self.iosRoot.appending(path: file).path)
+        }
+
+        #expect(
+            withoutClass == [], "add SnapshotTests/<Screen>PictureTests.swift for each, and its rows in test-map.txt")
+    }
+
     @Test func aStatesScreenIsTheNameBeforeTheDot() {
         #expect(DesignedState.homeNoProgram.screen == "home")
     }

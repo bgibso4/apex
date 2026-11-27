@@ -31,7 +31,10 @@ Packages/ApexKit/Sources/ScreenModels/App ALL
 Packages/ApexKit/Sources/Screens/DesignSystem/ ALL
 Packages/ApexKit/Sources/Screens/RootScreen.swift ALL
 UITests/Support/ ALL
+SnapshotTests/SnapshotHost.swift ALL
+# Every picture is compared through it. Its own tests are named so the map check knows the class.
+SnapshotTests/CPUImageMatch.swift ALL CPUImageMatchTests
 
 # One screen each.
-Packages/ApexKit/Sources/ScreenModels/Home/ AppJourneyTests
-Packages/ApexKit/Sources/Screens/Home/ AppJourneyTests
+Packages/ApexKit/Sources/ScreenModels/Home/ AppJourneyTests HomePictureTests
+Packages/ApexKit/Sources/Screens/Home/ AppJourneyTests HomePictureTests

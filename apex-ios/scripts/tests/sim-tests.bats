@@ -19,7 +19,7 @@ setup() {
   cd "$FIX"
 
   # Stub xcodebuild: logs each call. build-for-testing makes the app and exits STUB_BUILD_STATUS;
-  # test-without-building exits STUB_TEST_STATUS.
+  # test-without-building logs the record mode it was given and exits STUB_TEST_STATUS.
   export CALLS="$BATS_TEST_TMPDIR/calls"
   cat >"$FIX/bin/xcodebuild" <<'STUB'
 #!/usr/bin/env bash
@@ -28,7 +28,9 @@ case " $* " in
 *" build-for-testing "*)
   [ "${STUB_BUILD_STATUS:-0}" -eq 0 ] && mkdir -p "$DERIVED/Build/Products/Debug-iphonesimulator/Apex.app"
   exit "${STUB_BUILD_STATUS:-0}" ;;
-*" test-without-building "*) exit "${STUB_TEST_STATUS:-0}" ;;
+*" test-without-building "*)
+  echo "record=${TEST_RUNNER_SNAPSHOT_TESTING_RECORD:-unset}" >>"$CALLS"
+  exit "${STUB_TEST_STATUS:-0}" ;;
 esac
 STUB
   cat >"$FIX/bin/affected" <<'STUB'
@@ -47,10 +49,11 @@ called() { grep -q -- "$1" "$CALLS" 2>/dev/null; }
 @test "gate builds once, then tests without building, everything" {
   sim gate
   [ "$status" -eq 0 ]
-  [ "$(wc -l <"$CALLS" | tr -d ' ')" -eq 2 ]
+  [ "$(grep -c build-for-testing "$CALLS")" -eq 1 ]
   sed -n 1p "$CALLS" | grep -q build-for-testing
   sed -n 2p "$CALLS" | grep -q test-without-building
   sed -n 2p "$CALLS" | grep -q -- "-resultBundlePath .build/results/gate.xcresult"
+  called "record=unset"
   run ! called -only-testing
 }
 
@@ -112,6 +115,21 @@ called() { grep -q -- "$1" "$CALLS" 2>/dev/null; }
   ONLY="ApexSnapshotTests/HomePictureTests" sim retest
   [ "$status" -eq 0 ]
   run ! called build-for-testing
+}
+
+@test "record builds, then rewrites only the pictures that fail or are missing" {
+  sim record
+  [ "$status" -eq 0 ]
+  sed -n 1p "$CALLS" | grep -q build-for-testing
+  called "-only-testing:ApexSnapshotTests"
+  called "record=failed"
+  scripts/build-fingerprint.sh current
+}
+
+@test "record takes ONLY to narrow it" {
+  ONLY="ApexSnapshotTests/HomePictureTests" sim record
+  called "-only-testing:ApexSnapshotTests/HomePictureTests"
+  run ! called "-only-testing:ApexSnapshotTests "
 }
 
 @test "a failed build records no fingerprint and runs no test" {

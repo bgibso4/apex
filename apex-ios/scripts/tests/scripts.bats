@@ -235,3 +235,35 @@ render_mocks() { run python3 -I "$SCRIPTS/render-mocks.py" "$SCRIPTS/tests/fixtu
   [ "$status" -eq 1 ]
   [[ "$output" == "error: Google Chrome not found"* ]] || false
 }
+
+# --- compare-snapshot ---
+
+# A folder shaped like apex-ios/ with one recorded picture and its mock (both the committed mock's image).
+compare_fixture() {
+  mkdir -p SnapshotTests/__Snapshots__/HomePictureTests design/mocks
+  cp "$SCRIPTS/../design/mocks/home.noProgram.png" SnapshotTests/__Snapshots__/HomePictureTests/state.home-noProgram.png
+  cp "$SCRIPTS/../design/mocks/home.noProgram.png" design/mocks/home.noProgram.png
+}
+
+compare() { run swift "$SCRIPTS/compare-snapshot.swift" "$@"; }
+
+@test "compare puts the app's picture beside the mock and prints the path" {
+  compare_fixture
+  compare home.noProgram
+  [ "$status" -eq 0 ]
+  [[ "$output" == */build/compare/home.noProgram.png ]] || false
+  [ -f "$output" ]
+  # Two 1170-wide images and the gap between them.
+  [ "$(sips -g pixelWidth -g pixelHeight build/compare/home.noProgram.png | awk '/pixel/ { print $2 }' | tr '\n' ' ')" = "2364 2532 " ]
+}
+
+@test "compare fails naming a state with no picture, or with no mock" {
+  compare_fixture
+  compare home.workoutDay
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"home.workoutDay has no recorded picture"* ]] || false
+  rm design/mocks/home.noProgram.png
+  compare home.noProgram
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"home.noProgram has no mock"* ]] || false
+}

@@ -305,7 +305,7 @@ The swift-snapshot-testing pin is the newest release, `exact`. The tracked `Pack
 
 The tolerance is filing-cabinet's: every pixel within a perceptual precision of 0.98. Do not port `CPUImageMatch`: it answers a fault seen only on GitHub's runners, and plan 5 ports it if CI shows that fault.
 
-- [ ] **Step 1: Write the failing Mac test**
+- [x] **Step 1: Write the failing Mac test**
 
 ```
 DesignedStateTests (add)
@@ -314,7 +314,7 @@ DesignedStateTests (add)
 
 Run: `make -C apex-ios fast`. Expected: it fails naming `home`.
 
-- [ ] **Step 2: Write the host and the Home picture class, and record**
+- [x] **Step 2: Write the host and the Home picture class, and record**
 
 Port `SnapshotHost` without variants, text sizes or scrolling. Start with no settle wait beyond its "frames stopped moving" loop.
 
@@ -326,22 +326,22 @@ make -C apex-ios retest ONLY=ApexSnapshotTests/HomePictureTests
 
 Expected: the Mac test passes; a reference appears under `SnapshotTests/__Snapshots__/HomePictureTests/` (recording reports a failure, as the library does); retest is green. Open the reference with the Read tool.
 
-- [ ] **Step 3: Measure what the glass needs**
+- [x] **Step 3: Measure what the glass needs**
 
 The tab bar and the gear are system glass, which settles over a few frames. Run `make -C apex-ios retest ONLY=ApexSnapshotTests/HomePictureTests` ten times. If all ten pass, the wait stays at zero. If any fails, raise the settle time through 0.25, 0.5 and 1 s, re-recording each time, to the smallest value that passes ten of ten. Record in the hand-off: the settle time chosen and the seconds one picture costs (the test's duration in the run's output). The spec's target is one second or less a picture.
 
-- [ ] **Step 4: Prove the picture can fail**
+- [x] **Step 4: Prove the picture can fail**
 
 Change the card's title to "No Active Programs", run `make -C apex-ios affected`. Expected: `HomePictureTests` fails and the journey fails. Restore it; `affected` is green.
 
-- [ ] **Step 5: Write `compare` and look**
+- [x] **Step 5: Write `compare` and look**
 
 Port `compare-snapshot.swift`: it takes the state's name, finds the one reference under `SnapshotTests/__Snapshots__/` whose file name ends in `<name>.png`, and fails naming the state when there is none or `design/mocks/<name>.png` is missing.
 
 Run: `make -C apex-ios compare STATE=home.noProgram`, open `apex-ios/build/compare/home.noProgram.png`.
 Expected: app on the left, mock on the right. List in the hand-off what matches and every difference you can see, with the reason for each (a card not built yet, system glass against drawn glass, 402 against 390 points wide).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): one picture per designed state, and make compare"

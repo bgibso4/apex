@@ -6,7 +6,7 @@
 #   build-fingerprint.sh            print the current fingerprint
 #   build-fingerprint.sh current    exit 0 when it equals the one recorded after the last good build
 #   build-fingerprint.sh record FP  record FP (apex-ios/.build/apex-test-build)
-#   build-fingerprint.sh forget     drop the record (`make build` and `make snapshots-record` call this first)
+#   build-fingerprint.sh forget     drop the record (`make build` calls this first, and so does every run that builds)
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)/apex-ios"
 recorded=".build/apex-test-build"

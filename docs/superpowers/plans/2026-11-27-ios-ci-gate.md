@@ -163,16 +163,16 @@ git add apex-ios && git commit -m "feat(ios): find the CI run that passed the ga
 
 What filing-cabinet's CI learned that this job does not copy yet: its build names no device (`generic/platform=iOS Simulator`) and runs while the simulator boots, because an `xcodebuild` that asked a freshly booted CoreSimulator for its destination once waited 3 to 5 minutes. Step 4 measures whether APEX meets that; port it only if it does.
 
-- [ ] **Step 1: `make boot` by ID**
+- [x] **Step 1: `make boot` by ID**
 
 Run locally: `xcrun simctl shutdown "APEX $(basename "$PWD") iPhone 17"; /usr/bin/time -p make -C apex-ios boot; /usr/bin/time -p make -C apex-ios boot`
 Expected: the first returns when the simulator is booted (about 20 to 40 s), the second in under a second. Then `make -C apex-ios gate` is green.
 
-- [ ] **Step 2: Write the two jobs and the cache key**
+- [x] **Step 2: Write the two jobs and the cache key**
 
 Check the workflow before pushing: `python3 -c 'import yaml,sys; yaml.safe_load(open(".github/workflows/ios.yml"))'` (or `ruby -ryaml`), and read it once against the Interfaces above.
 
-- [ ] **Step 3: Commit, push, open the pull request as a draft**
+- [x] **Step 3: Commit, push, open the pull request as a draft**
 
 ```bash
 git add .github apex-ios && git commit -m "ci(ios): the simulator gate, and the skip for a merge that already passed"
@@ -189,7 +189,7 @@ From `gh run view <id> --log`, note for the hand-off: the job's wall time and it
 If `build-for-testing` waits more than 60 s before its first compile line, port filing-cabinet's boot-alongside build (the `ci-sim` target) into `sim-tests.sh` behind the same modes, with a bats test, and measure again.
 If the picture test fails on CI though it passes locally, read the uploaded `gate-failures` first: `CPUImageMatch.swift` says what was measured on Ben's Mac. A reference is recorded on a freshly booted simulator; do not re-record to make CI pass before knowing what differs.
 
-- [ ] **Step 5: Prove a run that ran nothing fails**
+- [x] **Step 5: Prove a run that ran nothing fails**
 
 Run locally: `make -C apex-ios retest ONLY=ApexUITests/NoSuchTests`
 Expected: exit non-zero, with `error: no test ran` or xcodebuild's own error. The gate goes through the same script, so no CI run is spent on this.

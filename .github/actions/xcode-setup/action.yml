@@ -1,6 +1,11 @@
 name: Xcode setup
 description: >-
   What an iOS job needs before `make -C apex-ios`: Xcode 27, the tools and the package cache. Used by ios.yml.
+inputs:
+  job:
+    description: >-
+      The job, `checks` or `gate`. Each has its own package cache: `checks` also holds the checkouts Periphery makes.
+    required: true
 runs:
   using: composite
   steps:
@@ -28,7 +33,7 @@ runs:
         [ "$(swiftlint version)" = "0.65.1" ] || { echo "error: SwiftLint $(swiftlint version), expected 0.65.1 (update .github/actions/xcode-setup and local together)" >&2; exit 1; }
 
     # Package checkouts only. A fresh checkout gives every source file a new modification time, so cached build
-    # products are never reused.
+    # products are never reused. Package.resolved holds the pins, so a changed pin starts a new cache.
     - name: Cache Swift packages
       uses: actions/cache@v6
       with:
@@ -36,4 +41,4 @@ runs:
           apex-ios/.build/DerivedData/SourcePackages
           ~/Library/Caches/com.github.peripheryapp/*/SourcePackages
           ~/Library/Caches/org.swift.swiftpm
-        key: ${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-checks-${{ hashFiles('apex-ios/Packages/ApexKit/Package.swift', 'apex-ios/project.yml') }}
+        key: ${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-${{ inputs.job }}-${{ hashFiles('apex-ios/Package.resolved', 'apex-ios/Packages/ApexKit/Package.swift', 'apex-ios/project.yml') }}

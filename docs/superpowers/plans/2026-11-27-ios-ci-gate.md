@@ -65,7 +65,7 @@ apex-ios/
 - Produces: `sim-tests.sh` reads `ENFORCE` and `MAIN_RESULTS` from the environment: `ENFORCE=1` adds `--enforce`, a non-empty `MAIN_RESULTS` adds `--main "$MAIN_RESULTS"`. The Makefile's `SIM_TESTS` passes both through, so CI runs `make gate ENFORCE=1 MAIN_RESULTS=<path>`.
 - Produces: every run leaves its tests JSON at `.build/results/<mode>.xcresult.json` (it does today); Task 3 uploads `gate.xcresult.json`.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/ios-ci-gate docs/ios-ci-gate-plan
@@ -74,7 +74,7 @@ make -C apex-ios setup && /usr/bin/time -p make -C apex-ios fast && /usr/bin/tim
 
 Note the three times (when plan 4 merged: `fast` 4.4 s, `ci-checks` 48.9 s, `gate` 16.9 s wall and 7.2 s of test time). Task 5 compares against them.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 `main.json`: six tests in one suite, 26.5 s in all (the `seven` fixture is 28.0 s).
 
@@ -93,12 +93,12 @@ sim-tests.bats (add)
     # MAIN_RESULTS="$TIMES/main.json" sim gate -> output contains "change against main: +1.5 s"
 ```
 
-- [ ] **Step 3: Run them and watch them fail**
+- [x] **Step 3: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 64 earlier tests pass, the 5 new ones fail.
 
-- [ ] **Step 4: Implement, run, commit**
+- [x] **Step 4: Implement, run, commit**
 
 Run: `make -C apex-ios test-scripts && make -C apex-ios gate`
 Expected: 69 script tests pass; the local gate prints no "change against main" line and exits 0.
@@ -118,7 +118,7 @@ git add apex-ios && git commit -m "feat(ios): the time report enforces the ceili
 - It reads `GITHUB_REPOSITORY` and calls the API through `gh` (`GH_TOKEN`; the job needs `actions: read`). `APEX_GH` is the seam for the tests.
 - Why the tree: a pull request's run tests the pull request merged into `main`. When the pull request was up to date with `main`, its merge commit has the head's tree, so those files were already tested.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Port `gate-passed.bats`: a fixture repo, a stub `gh` that answers from files.
 
@@ -131,12 +131,12 @@ Port `gate-passed.bats`: a fixture repo, a stub `gh` that answers from files.
 @test "a sha that is no commit here is no"
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 69 earlier tests pass; the 6 new ones fail, the script does not exist.
 
-- [ ] **Step 3: Write the script, run, commit**
+- [x] **Step 3: Write the script, run, commit**
 
 Run: `make -C apex-ios test-scripts`
 Expected: 75 pass. Then, against the real repository, find plan 4's merge: `GITHUB_REPOSITORY=bgibso4/apex apex-ios/scripts/ci/gate-run.sh origin/main` exits 1 with a warning (no run has a `gate` job yet).
@@ -163,16 +163,16 @@ git add apex-ios && git commit -m "feat(ios): find the CI run that passed the ga
 
 What filing-cabinet's CI learned that this job does not copy yet: its build names no device (`generic/platform=iOS Simulator`) and runs while the simulator boots, because an `xcodebuild` that asked a freshly booted CoreSimulator for its destination once waited 3 to 5 minutes. Step 4 measures whether APEX meets that; port it only if it does.
 
-- [ ] **Step 1: `make boot` by ID**
+- [x] **Step 1: `make boot` by ID**
 
 Run locally: `xcrun simctl shutdown "APEX $(basename "$PWD") iPhone 17"; /usr/bin/time -p make -C apex-ios boot; /usr/bin/time -p make -C apex-ios boot`
 Expected: the first returns when the simulator is booted (about 20 to 40 s), the second in under a second. Then `make -C apex-ios gate` is green.
 
-- [ ] **Step 2: Write the two jobs and the cache key**
+- [x] **Step 2: Write the two jobs and the cache key**
 
 Check the workflow before pushing: `python3 -c 'import yaml,sys; yaml.safe_load(open(".github/workflows/ios.yml"))'` (or `ruby -ryaml`), and read it once against the Interfaces above.
 
-- [ ] **Step 3: Commit, push, open the pull request as a draft**
+- [x] **Step 3: Commit, push, open the pull request as a draft**
 
 ```bash
 git add .github apex-ios && git commit -m "ci(ios): the simulator gate, and the skip for a merge that already passed"
@@ -183,13 +183,13 @@ gh pr create --draft --base main --title "apex-ios: the simulator gate in CI" --
 Find the run with `gh run list --branch feat/ios-ci-gate`, watch it with `gh run watch <id> --exit-status`.
 Expected: `plan` says the gate runs and that `main` has no gate results; `gate` builds once, runs 8 tests, prints the report with `change against main: unknown (no gate results for main)`, uploads `gate-results`, and is green.
 
-- [ ] **Step 4: Measure the job**
+- [x] **Step 4: Measure the job**
 
 From `gh run view <id> --log`, note for the hand-off: the job's wall time and its split (tool install, simulator boot, `build-for-testing`, `test-without-building`, upload); the gate's test time; one picture's seconds and the journey's seconds against the local 1.0 s and 6.1 s; and `checks`' wall time and split against 4 min 54 s (plan 4; its split is in the hand-off note).
 If `build-for-testing` waits more than 60 s before its first compile line, port filing-cabinet's boot-alongside build (the `ci-sim` target) into `sim-tests.sh` behind the same modes, with a bats test, and measure again.
 If the picture test fails on CI though it passes locally, read the uploaded `gate-failures` first: `CPUImageMatch.swift` says what was measured on Ben's Mac. A reference is recorded on a freshly booted simulator; do not re-record to make CI pass before knowing what differs.
 
-- [ ] **Step 5: Prove a run that ran nothing fails**
+- [x] **Step 5: Prove a run that ran nothing fails**
 
 Run locally: `make -C apex-ios retest ONLY=ApexUITests/NoSuchTests`
 Expected: exit non-zero, with `error: no test ran` or xcodebuild's own error. The gate goes through the same script, so no CI run is spent on this.
@@ -199,11 +199,11 @@ Expected: exit non-zero, with `error: no test ran` or xcodebuild's own error. Th
 **Files:**
 - Modify: `apex-ios/scripts/gate-ceiling.txt`, `apex-ios/scripts/affected-tests.sh`, `apex-ios/scripts/test-times.py`, `apex-ios/scripts/test-map.txt`, their bats tests
 
-- [ ] **Step 1: Record the ceiling again**
+- [x] **Step 1: Record the ceiling again**
 
 Take the test time from Task 3's first green gate run in CI. The ceiling is twice that, rounded up to the next 10 s. Rewrite the file's comment: the date, the run's URL, the measurement, the rule. If the number is the same as today's, still rewrite the comment: the file must say it came from CI.
 
-- [ ] **Step 2: Three small fixes, each with a test that fails first**
+- [x] **Step 2: Three small fixes, each with a test that fails first**
 
 ```
 affected.bats (add)
@@ -221,7 +221,7 @@ test-map.txt
 Run: `make -C apex-ios test-scripts`
 Expected: 77 pass.
 
-- [ ] **Step 3: Commit and push**
+- [x] **Step 3: Commit and push**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): the gate's ceiling recorded from CI; three fixes from plan 4's review"
@@ -235,7 +235,7 @@ Expected in CI: the gate's report shows the new ceiling and a share under 80%.
 **Files:**
 - Modify: `apex-ios/AGENTS.md`, `apex-ios/CLAUDE.md`
 
-- [ ] **Step 1: Update the rules files**
+- [x] **Step 1: Update the rules files**
 
 `AGENTS.md`, stating only what is true when this merges:
 
@@ -249,15 +249,15 @@ Expected in CI: the gate's report shows the new ceiling and a share under 80%.
 
 Verify: `grep -c '—' apex-ios/AGENTS.md apex-ios/CLAUDE.md` prints 0 twice. Commit: `docs(ios): what CI runs, and that the foundation is done`.
 
-- [ ] **Step 2: Evidence from `ios-verifier`**
+- [x] **Step 2: Evidence from `ios-verifier`**
 
 One agent, the make targets only: `fast`, `build`, `ci-checks`, `gate`, each PASS or FAIL with wall times; the Mac, bats and fixture counts; the gate's report copied whole; whether `git status --short` is clean afterwards.
 
-- [ ] **Step 3: Review**
+- [x] **Step 3: Review**
 
 One fresh reviewer agent on the most capable model reads the branch diff against this plan and the spec sections named at the top. Give it the Review Focus list verbatim. Fix what it finds, each fix with a test that failed first.
 
-- [ ] **Step 4: Mark the pull request ready and write its hand-off**
+- [x] **Step 4: Mark the pull request ready and write its hand-off**
 
 The hand-off lists: what CI now runs and when; `fast`, `ci-checks`, CI `checks` and CI `gate` times before and after, with each job's split; the gate's report from CI copied whole; the ceiling and the run it was recorded from; whether the boot-alongside build was needed; anything not verified, plainly. Two things cannot be verified before the merge and must be said: the skip on `main` (it first runs on this pull request's own merge) and the change against `main` (it first has a number on the next pull request).
 

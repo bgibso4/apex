@@ -12,13 +12,17 @@ green=".build/apex-fast-green"
 covered=('*.swift' design/tokens.json)
 
 fingerprint() {
-	# Hash each file (path + content), then hash the sorted list. Deleted-but-tracked files are skipped.
+	# Hash each file (content, then path), then hash the sorted list. Deleted-but-tracked files are skipped.
+	# One shasum for every file: one a file took 0.75 s over 74 files (2026-11-27), and grew with each file. The
+	# value is the same as it was then; scripts/hooks/tests/hooks.bats pins it. One exception, which no file here
+	# has: shasum writes a name holding a backslash or a newline escaped, so such a file gives another value
+	# (it still follows the file's content). The `--` keeps a name that starts with a dash from being read as options.
 	git ls-files -co --exclude-standard -z -- "${covered[@]}" | sort -z |
 		while IFS= read -r -d '' file; do
 			if [ -f "$file" ]; then
-				printf '%s  %s\n' "$(shasum -a 256 <"$file" | cut -d' ' -f1)" "$file"
+				printf '%s\0' "$file"
 			fi
-		done | shasum -a 256 | cut -d' ' -f1
+		done | xargs -0 shasum -a 256 -- | shasum -a 256 | cut -d' ' -f1
 }
 
 # The working tree (untracked files included) against the merge base with origin/main, or main when there is no

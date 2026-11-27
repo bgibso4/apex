@@ -10,10 +10,10 @@ setup() {
   cd "$BATS_TEST_TMPDIR"
 }
 
-# report FIXTURE CEILING [--enforce]: the report for a fixture against a ceiling file holding CEILING seconds.
+# report FIXTURE CEILING [flags…]: the report for a fixture against a ceiling file holding CEILING seconds.
 report() {
   printf '# Recorded for a test.\n%s\n' "$2" >ceiling.txt
-  run python3 -I "$SCRIPTS/test-times.py" "$TIMES/$1.json" ceiling.txt ${3:-}
+  run python3 -I "$SCRIPTS/test-times.py" "$TIMES/$1.json" ceiling.txt "${@:3}"
 }
 
 @test "the report gives the total, the share of the ceiling and the slowest five" {
@@ -76,6 +76,49 @@ report() {
   run python3 -I "$SCRIPTS/test-times.py" "$TIMES/seven.json" missing.txt
   [ "$status" -eq 1 ]
   [[ "$output" == "error: missing.txt must hold one number"* ]] || false
+}
+
+@test "a ceiling that is not a positive number fails" {
+  for ceiling in 0 -5 nan inf; do
+    report seven "$ceiling" --enforce
+    [ "$status" -eq 1 ]
+    [ "$output" = "error: ceiling.txt must hold one number above zero, the ceiling in seconds" ]
+  done
+}
+
+@test "with main's results the report gives the change against main" {
+  report seven 100 --main "$TIMES/main.json"
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" = "test time: 28.0 s of a 100 s ceiling (28%) · 7 tests" ]
+  [ "${lines[1]}" = "change against main: +1.5 s (main 26.5 s)" ]
+  [ "${lines[2]}" = "slowest:" ]
+}
+
+@test "a change that is faster than main shows a minus" {
+  report main 100 --main "$TIMES/seven.json"
+  [ "$status" -eq 0 ]
+  [ "${lines[1]}" = "change against main: -1.5 s (main 28.0 s)" ]
+}
+
+@test "missing results for main say unknown and change nothing else" {
+  report seven 20 --enforce
+  [ "$status" -eq 1 ]
+  without="$output"
+  report seven 20 --enforce --main no-such-file.json
+  [ "$status" -eq 1 ]
+  [ "${lines[1]}" = "change against main: unknown (no gate results for main)" ]
+  [ "$(printf '%s\n' "$output" | sed 2d)" = "$without" ]
+  report seven 100 --main no-such-file.json
+  [ "$status" -eq 0 ]
+}
+
+@test "results for main that cannot be read say unknown too" {
+  for content in 'not json' '[]' '{"testNodes": ["text"]}' '{"testNodes": [{"nodeType": "Test Case", "durationInSeconds": "3"}]}'; do
+    printf '%s\n' "$content" >main.json
+    report seven 100 --main main.json
+    [ "$status" -eq 0 ]
+    [ "${lines[1]}" = "change against main: unknown (no gate results for main)" ]
+  done
 }
 
 @test "nested suites are walked" {

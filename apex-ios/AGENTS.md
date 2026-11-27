@@ -46,13 +46,15 @@ scripts/compare-snapshot.swift a state's recorded picture beside its mock
 scripts/frames.sh              a contact sheet of frames from a simulator recording
 scripts/paired-iphone.sh       the iPhone `make device` installs on when `DEVICE` is not given
 scripts/tests/                 bats tests for the scripts above, and their fixtures
+scripts/ci/                    what only CI runs: gate-plan.sh (does the gate run for this event), gate-run.sh (which
+                               run passed the gate on a commit's files), and their bats tests
 scripts/pre-commit             lint, only when apex-ios files are staged
 scripts/pre-commit-wrapper     the git hook `make setup` installs: runs pre-commit, passes on a branch without it
 scripts/test-lint-rules.sh     fixture tests for the custom lint rules (lint-fixtures/, lint-negatives/)
 scripts/hooks/                 Claude Code hooks (see CLAUDE.md) and their bats tests
 docs/                          iOS specs, plans and the roadmap. Created with the first product segment
 /.claude/settings.json         the hook wiring
-/.github/workflows/ios.yml     CI: the checks job
+/.github/workflows/ios.yml     CI: the checks job and the gate
 /.github/actions/xcode-setup/  CI: Xcode and tool setup
 ```
 
@@ -68,7 +70,8 @@ docs/                          iOS specs, plans and the roadmap. Created with th
 | `make fast` | Mac tests, no simulator. The loop agents live in |
 | `make retest ONLY="<Target/Class[/test]> …"` | runs the named simulator tests with no build. Refuses when the sources changed since the last build |
 | `make affected` | builds once, then runs the simulator test classes the branch's changes touch (`scripts/test-map.txt`; `BASE=<ref>`, default `origin/main`) |
-| `make gate` | builds once, then runs every simulator test: what CI will run before a merge |
+| `make gate` | builds once, then runs every simulator test: what CI's `gate` job runs. CI adds `ENFORCE=1` (over the ceiling fails) and `MAIN_RESULTS=<main's tests JSON>` (the report shows the change against `main`) |
+| `make boot` | boots this checkout's simulator and returns when it has finished booting. Every simulator test run calls it itself, after its build |
 | `make snapshots-record` | rewrites each picture's reference that fails or is missing (`ONLY=` narrows it). It exits non-zero, as the library reports recording as a failure: run `retest` after it |
 | `make compare STATE=<name>` | writes `build/compare/<name>.png`: the state's recorded picture on the left, its mock on the right |
 | `make frames STATE=<name>` | records the app launching into the state and writes `build/frames/<name>.png`, 10 frames a second for `DURATION` seconds (default 2). Needs `ffmpeg` |
@@ -77,14 +80,14 @@ docs/                          iOS specs, plans and the roadmap. Created with th
 | `make unused` | Periphery dead-code scan |
 | `make test-lint` | fixture tests for the SwiftLint custom rules |
 | `make test-hooks` | bats tests for the hook scripts and the pre-commit script |
-| `make test-scripts` | bats tests for the scripts in `scripts/`. The mock tests need Google Chrome |
+| `make test-scripts` | bats tests for the scripts in `scripts/` and `scripts/ci/`. The mock tests need Google Chrome |
 | `make ci-checks` | everything CI's `checks` job runs: generate, a check that the committed generated files match, the test-map check, lint, hook tests, script tests, lint-rule tests, the Mac tests, Periphery |
 | `make design-import ZIP=<path>` | replaces `design/export/` from a new export, lists what changed against git, runs `mocks` |
 | `make mocks` | renders `design/mocks/<state>.png` for every state in `design/states.json` (`STATE=<name>` for one). Needs Google Chrome and the network; never runs in CI |
 | `make run` | build, install and launch on this checkout's simulator. `STATE=<name>` opens it in a designed state |
 | `make device` | build, install and launch on the iPhone paired with this Mac (`DEVICE=<name, UDID or serial>` picks one of several). `STATE=<name>` opens it in that state, as `make run` does |
 
-Every simulator test run ends with a time report and appends a line to `.build/test-runs.log`. The simulator tests do not run in CI yet (plan 5): until then `make gate`, run locally, is the evidence.
+Every simulator test run ends with a time report and appends a line to `.build/test-runs.log`. CI runs them all in its `gate` job: on every pull request, and on a push to `main` unless a run already passed the gate on exactly the same files (`scripts/ci/gate-plan.sh`).
 
 A package's version changes in `project.yml`. Then build once without the Makefile's `XCB_FLAGS`, copy `Apex.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` over `Package.resolved` and commit it.
 
@@ -132,6 +135,10 @@ Which simulator run, when (wall time measured on 2026-11-27 with 8 tests):
 | Fixing one test | `make retest ONLY=…` | 4 s for a picture class, 12 s for the journey |
 | End of a task | `make affected` | 12 to 16 s |
 | Before a pull request | `make gate` | 16 s |
+| On a pull request | CI: `checks` and `gate`, side by side (`plan` decides in 6 s that the gate runs) | `checks` about 5 min, `gate` about 8 min 30 s |
+| On a push to `main` | CI: `checks`. `gate` too, unless a run already passed it on exactly the same files: the merge of a pull request that was up to date with `main` skips it | about 5 min |
+
+Of the `gate` job's 8 min 30 s the tests themselves are about 20 s. The rest: tools 25 s, the build about a minute, the simulator's first boot 80 to 120 s, then about 3 min in which `xcodebuild` waits on the freshly booted simulator, and 30 to 45 s launching the two test hosts.
 
 Simulator tests are XCTest classes; Mac tests use Swift Testing. A UI test launches with `launchApp()` (`-UITest`) and waits for a condition with `appears(within:)`, `disappears(within:)` or `satisfies(_:within:)`, never for a fixed time.
 
@@ -163,11 +170,14 @@ A screen in Debug builds where Ben tries a few values of one token on his phone 
 
 ## Keeping it fast
 
-- The simulator tests have a ceiling on their total test time, in `scripts/gate-ceiling.txt`, with how it was recorded. Today it is recorded from Ben's Mac; plan 5 records it again from CI.
-- Every simulator run prints the report: the total, its share of the ceiling and the five slowest tests. Over 80% it warns. Over the ceiling it says so, and fails only when `test-times.py` is given `--enforce`: no local run passes that flag, and CI will from plan 5.
+- The simulator tests have a ceiling on their total test time, in `scripts/gate-ceiling.txt`, with how it was recorded. It is CI's number: twice what CI's first gate run measured. The same tests take two to three times as long on CI's runner as on Ben's Mac, so a local share of the ceiling says little; the share that counts is in CI's report.
+- Every simulator run prints the report: the total, its share of the ceiling and the five slowest tests. Over 80% it warns. Over the ceiling it says so. CI's `gate` job fails then (`ENFORCE=1`); a local run never fails on time.
+- In CI the report is on the run's summary page, with the change against `main`: this run's total less the total of the run that passed the gate on `main`'s files. It says unknown when no run passed on exactly those files (a merge that changed nothing under `apex-ios/` starts no iOS run, so `main` moves without one) or when that run's results are gone.
 - A run is never green when no test ran, a test did not pass or was skipped, or one test took over 60 s.
+- Over 80% in CI: say so in the hand-off, with the five slowest tests, and what the next screen will add.
 - Over the ceiling: speed a test up, move the behaviour to a Mac test, or remove the test. Raising the ceiling needs Ben.
-- Keep the simulator booted: the test targets boot it and leave it running, because a run that finds it shut down takes about 40 s longer.
+- Keep the simulator booted: a test run boots it after its build and leaves it running, because a run that finds it shut down takes longer (about 10 s on Ben's Mac).
+- The build comes before the boot on purpose. On CI's runner everything is slow for minutes after a simulator's first boot: a build that started after it took 8 min where it takes about one. What is left is a wait of about 3 min before the first test, inside `xcodebuild`, which no test time counts.
 
 ## Definition of done
 
@@ -186,7 +196,7 @@ Anything not checked is stated plainly in the hand-off ("didn't verify X because
 
 A pull request merges without Ben when all of these hold:
 
-1. Every CI check is green. None skipped, none re-run until it passed by luck. A pull request with no checks reported is not green.
+1. Every CI check is green: `checks`, `plan` and `gate`. None skipped, none re-run until it passed by luck. A pull request with no checks reported, or whose `gate` job did not run, is not green.
 2. The second agent's review has passed.
 3. The hand-off lists the images the agent opened, and states plainly anything it didn't verify.
 

@@ -11,8 +11,14 @@
 # A run that ran tests ends with the time report (scripts/test-times.py, against scripts/gate-ceiling.txt), and
 # is not green when the report is not: no test ran, a test did not pass, or one test took over 60 s.
 # Every run appends a line to .build/test-runs.log: time, mode, scope, build seconds, test seconds, exit status.
-# Reads ONLY BASE SIM_DEST XCB_FLAGS PROJECT DERIVED from the environment (the Makefile exports them).
-# APEX_XCODEBUILD, APEX_XCRESULTTOOL, APEX_AFFECTED_CMD and APEX_BEAUTIFY are seams for the bats tests.
+# CI's gate sets two more: ENFORCE=1 fails a run that is over the ceiling, and MAIN_RESULTS=<main's tests JSON> adds
+# the change against main to the report (.github/workflows/ios.yml).
+# Reads ONLY BASE SIM_DEST XCB_FLAGS PROJECT DERIVED ENFORCE MAIN_RESULTS from the environment (the Makefile exports
+# them).
+# The simulator boots after the build, not before it (`make boot`). On a CI runner everything is slow for minutes
+# after a simulator's first boot: in run 46052910220, which booted first, the token generator took 212 s where it
+# takes 8 s and the build about 8 min. So the build runs with the simulator still shut down.
+# APEX_XCODEBUILD, APEX_XCRESULTTOOL, APEX_AFFECTED_CMD, APEX_BEAUTIFY and APEX_BOOT_CMD are seams for the bats tests.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)/apex-ios" || exit
 mode="${1:-}"
@@ -20,6 +26,7 @@ xcodebuild="${APEX_XCODEBUILD:-xcodebuild}"
 affected="${APEX_AFFECTED_CMD:-scripts/affected-tests.sh}"
 beautify="${APEX_BEAUTIFY:-xcbeautify}"
 xcresulttool="${APEX_XCRESULTTOOL:-xcrun xcresulttool}"
+boot="${APEX_BOOT_CMD:-make --no-print-directory boot}"
 fingerprint="scripts/build-fingerprint.sh"
 app="$DERIVED/Build/Products/Debug-iphonesimulator/Apex.app"
 results=".build/results/$mode.xcresult"
@@ -73,6 +80,14 @@ else
 	[ "$status" -eq 0 ] && "$fingerprint" record "$before"
 fi
 
+boot_seconds=0
+if [ "$status" -eq 0 ]; then
+	start=$SECONDS
+	$boot
+	status=$?
+	boot_seconds=$((SECONDS - start))
+fi
+
 test_seconds=0
 if [ "$status" -eq 0 ]; then
 	start=$SECONDS
@@ -81,8 +96,11 @@ if [ "$status" -eq 0 ]; then
 	status=$?
 	test_seconds=$((SECONDS - start))
 	mkdir -p .build/results
+	report=()
+	[ "${ENFORCE:-}" = 1 ] && report+=(--enforce)
+	[ -n "${MAIN_RESULTS:-}" ] && report+=(--main "$MAIN_RESULTS")
 	$xcresulttool get test-results tests --path "$results" --compact >"$results.json" &&
-		python3 -I scripts/test-times.py "$results.json" scripts/gate-ceiling.txt
+		python3 -I scripts/test-times.py "$results.json" scripts/gate-ceiling.txt ${report[@]+"${report[@]}"}
 	report_status=$?
 	[ "$status" -ne 0 ] || status=$report_status
 fi
@@ -92,5 +110,5 @@ printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$mode" "$sco
 	"$status" >>.build/test-runs.log
 count="$(echo "$scope" | wc -w | tr -d ' ')"
 [ "$scope" = ALL ] && what="everything" || what="$count test ids"
-echo "test-runs: $mode · $what · build ${build_seconds} s · tests ${test_seconds} s · exit $status"
+echo "test-runs: $mode · $what · build ${build_seconds} s · boot ${boot_seconds} s · tests ${test_seconds} s · exit $status"
 exit "$status"

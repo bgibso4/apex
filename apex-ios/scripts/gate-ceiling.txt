@@ -1,5 +1,6 @@
 # The most seconds the simulator tests may take in all (scripts/test-times.py reads this; AGENTS.md, "Keeping it fast").
-# Recorded 2026-11-27 on Ben's Mac (Xcode 27.2, iOS 27.0 simulator) from three `make gate` runs of 8 tests:
-# 6.7 s, 6.5 s and 6.5 s. The ceiling is twice the largest, rounded up to the next 10 s.
-# Plan 5 records it again from CI's first run. After that, changing this number needs Ben's OK.
-20
+# Recorded 2026-11-27 from CI's first gate measurement: 8 tests took 15.7 s on the xcode-27 runner (Xcode 27, iOS 27.0
+# simulator), in https://github.com/bgibso4/apex/actions/runs/46055171364. The same tests take 6.5 s on Ben's Mac.
+# The rule: twice the measurement, rounded up to the next 10 s. CI's gate job fails a pull request that is over it.
+# Changing this number needs Ben's OK.
+40

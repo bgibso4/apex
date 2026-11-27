@@ -16,20 +16,125 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  CODE_SIGNING_ALLOWED: "NO"
+  # The image's own simulator; the tests run on it and Periphery builds for it. Locally the Makefile names one per
+  # checkout.
+  SIM_DEVICE: iPhone 17
+
 jobs:
-  # Lint, the hook and lint-rule tests, the Mac tests and the dead-code scan. No simulator tests yet.
+  # Lint, the hook, script and lint-rule tests, the Mac tests and the dead-code scan. On every pull request and
+  # every push to main.
   checks:
     name: checks
     # Xcode 27 image (macOS 27, iOS 27.0 simulators incl. iPhone 17).
     runs-on: xcode-27
     timeout-minutes: 30
-    env:
-      CODE_SIGNING_ALLOWED: "NO"
-      # The image's own simulator; Periphery builds for it. Locally the Makefile names one per checkout.
-      SIM_DEVICE: iPhone 17
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: ./.github/actions/xcode-setup
+        with:
+          job: checks
       - run: make -C apex-ios ci-checks
+
+  # Whether the gate runs, and which run holds main's test times (apex-ios/scripts/ci/gate-plan.sh). The gate runs
+  # on every pull request. On a push to main it is skipped only when a run already passed it on exactly the same
+  # files: the merge of a pull request that was up to date with main.
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # gate-run.sh lists this workflow's runs and their jobs.
+      actions: read
+      contents: read
+    outputs:
+      gate: ${{ steps.decide.outputs.gate }}
+      main_run: ${{ steps.decide.outputs.main_run }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The decision compares the trees of this commit and of its first parent.
+          fetch-depth: 0
+      - id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: apex-ios/scripts/ci/gate-plan.sh
+
+  # Every picture and every journey, on the simulator, in one job that builds once. The same `make gate` an agent
+  # runs locally, with the time ceiling enforced (apex-ios/scripts/gate-ceiling.txt). Its name is what gate-run.sh
+  # looks for: rename both together.
+  gate:
+    name: gate
+    needs: plan
+    if: needs.plan.outputs.gate == 'true'
+    runs-on: xcode-27
+    timeout-minutes: 30
+    permissions:
+      # Downloads main's gate results from another run.
+      actions: read
+      contents: read
+    env:
+      # swift-snapshot-testing writes a failed picture here (xcodebuild hands TEST_RUNNER_ variables to the tests);
+      # the result bundle holds it too, with the reference and the difference. No picture has failed in CI yet, so
+      # what lands in this folder is not yet seen.
+      TEST_RUNNER_SNAPSHOT_ARTIFACTS: ${{ github.workspace }}/apex-ios/.build/snapshot-artifacts
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/xcode-setup
+        with:
+          job: gate
+
+      # main's test times, for the report's "change against main". Without them the report says unknown: an expired
+      # artifact must not fail a pull request.
+      - name: Download main's gate results
+        if: needs.plan.outputs.main_run != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN_RUN: ${{ needs.plan.outputs.main_run }}
+        run: |
+          gh run download "$MAIN_RUN" --name gate-results --dir apex-ios/.build/main-results ||
+            echo "::warning::could not download the gate results of run $MAIN_RUN: the report will say unknown"
+
+      - name: make gate
+        run: |
+          set -o pipefail
+          mkdir -p apex-ios/.build
+          make -C apex-ios gate ENFORCE=1 MAIN_RESULTS=.build/main-results/gate.xcresult.json 2>&1 |
+            tee apex-ios/.build/gate.log
+
+      # The time report on the run's summary page: the gate's output from its "test time:" line to its end.
+      # No quote character inside a ${…} here: the runner's bash is 3.2, which reads one there as an open string.
+      - name: Show the time report
+        if: always()
+        run: |
+          report="$(sed -n '/^test time:/,$p' apex-ios/.build/gate.log 2>/dev/null || true)"
+          [ -n "$report" ] || report="The gate stopped before its time report: read the log of this job."
+          {
+            echo '```'
+            echo "$report"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # main's number for the next pull request: gate-plan.sh finds this run, and the gate downloads this artifact.
+      - name: Upload the gate results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate-results
+          if-no-files-found: ignore
+          path: apex-ios/.build/results/gate.xcresult.json
+
+      # Also when the job is cancelled or runs out of time: a run that hangs is the one whose evidence is wanted.
+      - name: Upload what failed
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate-failures
+          if-no-files-found: ignore
+          path: |
+            apex-ios/.build/results/gate.xcresult
+            apex-ios/.build/snapshot-artifacts
+            apex-ios/.build/boot.log

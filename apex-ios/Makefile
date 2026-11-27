@@ -33,9 +33,12 @@ setup:
 		install -m 755 scripts/pre-commit-wrapper "$$hooks/pre-commit"
 	@$(MAKE) --no-print-directory sim generate
 
+# This checkout's simulator as `simctl list` prints it: its name, then its ID and state. Nothing when it is missing.
+SIM_LISTED := xcrun simctl list devices 'iOS $(SIM_OS)' | grep -F '    $(SIM_DEVICE) ('
+
 # Create this checkout's simulator when it is missing.
 sim:
-	@xcrun simctl list devices 'iOS $(SIM_OS)' | grep -qF '    $(SIM_DEVICE) (' || \
+	@$(SIM_LISTED) >/dev/null || \
 		xcrun simctl create '$(SIM_DEVICE)' '$(SIM_MODEL)' com.apple.CoreSimulator.SimRuntime.iOS-$(subst .,-,$(SIM_OS))
 
 # The generated project is gitignored, so the pins for the app's packages (swift-snapshot-testing and what it needs)
@@ -47,10 +50,17 @@ RESOLVED_DEST := $(PROJECT)/project.xcworkspace/xcshareddata/swiftpm
 # for updates on every call: measured on 2026-11-27, that took 1.9 s of a 4.3 s `make fast`, and needed the network.
 XCB_FLAGS     := -onlyUsePackageVersionsFromResolvedFile -skipPackageUpdates
 
-# Boot this checkout's simulator and leave it running. A test run that finds it shut down boots it and shuts it
-# down again: measured on 2026-11-27, that turns an 11 s run into one of 55 s.
+# Boot this checkout's simulator, return when it has finished booting, and leave it running: a cold boot takes
+# about 10 s on Ben's Mac, a boot that finds it running under a second. Every simulator test run calls this after
+# its build (scripts/sim-tests.sh). Left to xcodebuild, a shut-down simulator is booted and shut down again by
+# every run.
+# By ID: CI's image has an iPhone 17 for more than one iOS version, so its name alone is ambiguous to simctl.
+# Waiting: on a slow CI runner filing-cabinet's UI test runner once started before the simulator's accessibility had
+# loaded, and failed before any test ran.
 boot: sim
-	@xcrun simctl boot '$(SIM_DEVICE)' 2>/dev/null || true
+	@udid="$$($(SIM_LISTED) | head -1 | grep -oE '[0-9A-F-]{36}')"; mkdir -p .build; \
+		xcrun simctl bootstatus "$$udid" -b >.build/boot.log 2>&1 || \
+		{ cat .build/boot.log >&2; echo "error: $(SIM_DEVICE) on iOS $(SIM_OS) did not boot" >&2; exit 1; }
 
 # Everything generated: the tokens (design/tokens.json to Generated/Tokens.swift), the wordmark's font and logo mark
 # (copied from the export only when they differ: a rewritten file would recompile Screens), then the Xcode project
@@ -99,9 +109,9 @@ format:
 test-hooks:
 	bats scripts/hooks/tests
 
-# Unit tests for the design tools in scripts/.
+# Unit tests for the scripts in scripts/ and scripts/ci/.
 test-scripts:
-	bats scripts/tests
+	bats scripts/tests scripts/ci/tests
 
 # Fixture tests for the SwiftLint custom rules.
 test-lint:
@@ -124,28 +134,31 @@ ci-checks: generate
 	scripts/affected-tests.sh --check-map
 	$(MAKE) --no-print-directory lint test-hooks test-scripts test-lint fast unused-run
 
-# Simulator test runs, all through scripts/sim-tests.sh. It builds once, runs the tests without building again and
+# Simulator test runs, all through scripts/sim-tests.sh. It builds once, boots the simulator (`make boot`, after the
+# build: the script says why), runs the tests without building again and
 # appends a line per run to .build/test-runs.log.
 #   make retest ONLY="<Target/Class[/test]> …"  while fixing: no build; refuses when the sources changed since the last one
 #   make affected                               at the end of a task: the classes the branch's changes touch
 #                                               (scripts/test-map.txt; BASE=<ref>, default origin/main)
-#   make gate                                   before a pull request: every simulator test
+#   make gate                                   before a pull request: every simulator test. CI adds ENFORCE=1 (over
+#                                               the ceiling fails) and MAIN_RESULTS=<main's tests JSON> (the report
+#                                               shows the change against main)
 #   make snapshots-record [ONLY=…]              rewrites each picture's reference that fails or is missing. A non-zero
 #                                               exit is expected: the library reports recording as a failure. Run
 #                                               `make retest ONLY=<the classes>` to confirm green
 SIM_TESTS = ONLY='$(ONLY)' BASE='$(BASE)' SIM_DEST='$(SIM_DEST)' XCB_FLAGS='$(XCB_FLAGS)' PROJECT='$(PROJECT)' \
-	DERIVED='$(DERIVED)' scripts/sim-tests.sh
+	DERIVED='$(DERIVED)' ENFORCE='$(ENFORCE)' MAIN_RESULTS='$(MAIN_RESULTS)' scripts/sim-tests.sh
 
-affected: boot generate
+affected: sim generate
 	@$(SIM_TESTS) affected
 
-retest: boot
+retest: sim
 	@$(SIM_TESTS) retest
 
-gate: boot generate
+gate: sim generate
 	@$(SIM_TESTS) gate
 
-snapshots-record: boot generate
+snapshots-record: sim generate
 	@$(SIM_TESTS) record
 
 # A designed state's recorded picture beside its mock, for the eye: build/compare/<state>.png. Open it.

@@ -131,7 +131,8 @@ ci-checks: generate
 	scripts/affected-tests.sh --check-map
 	$(MAKE) --no-print-directory lint test-hooks test-scripts test-lint fast unused-run
 
-# Simulator test runs, all through scripts/sim-tests.sh. It builds once, runs the tests without building again and
+# Simulator test runs, all through scripts/sim-tests.sh. It builds once, boots the simulator (`make boot`, after the
+# build: the script says why), runs the tests without building again and
 # appends a line per run to .build/test-runs.log.
 #   make retest ONLY="<Target/Class[/test]> …"  while fixing: no build; refuses when the sources changed since the last one
 #   make affected                               at the end of a task: the classes the branch's changes touch
@@ -145,16 +146,16 @@ ci-checks: generate
 SIM_TESTS = ONLY='$(ONLY)' BASE='$(BASE)' SIM_DEST='$(SIM_DEST)' XCB_FLAGS='$(XCB_FLAGS)' PROJECT='$(PROJECT)' \
 	DERIVED='$(DERIVED)' ENFORCE='$(ENFORCE)' MAIN_RESULTS='$(MAIN_RESULTS)' scripts/sim-tests.sh
 
-affected: boot generate
+affected: sim generate
 	@$(SIM_TESTS) affected
 
-retest: boot
+retest: sim
 	@$(SIM_TESTS) retest
 
-gate: boot generate
+gate: sim generate
 	@$(SIM_TESTS) gate
 
-snapshots-record: boot generate
+snapshots-record: sim generate
 	@$(SIM_TESTS) record
 
 # A designed state's recorded picture beside its mock, for the eye: build/compare/<state>.png. Open it.

@@ -78,6 +78,14 @@ report() {
   [[ "$output" == "error: missing.txt must hold one number"* ]] || false
 }
 
+@test "a ceiling that is not a positive number fails" {
+  for ceiling in 0 -5 nan inf; do
+    report seven "$ceiling" --enforce
+    [ "$status" -eq 1 ]
+    [ "$output" = "error: ceiling.txt must hold one number above zero, the ceiling in seconds" ]
+  done
+}
+
 @test "with main's results the report gives the change against main" {
   report seven 100 --main "$TIMES/main.json"
   [ "$status" -eq 0 ]

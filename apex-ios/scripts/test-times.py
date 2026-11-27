@@ -4,7 +4,8 @@
     test-times.py TESTS_JSON CEILING_FILE [--enforce] [--main MAIN_TESTS_JSON]
 
 TESTS_JSON is the output of `xcrun xcresulttool get test-results tests --path <bundle> --compact`. CEILING_FILE
-(scripts/gate-ceiling.txt) holds `#` comment lines and one number: the most seconds the tests may take in all.
+(scripts/gate-ceiling.txt) holds `#` comment lines and one number above zero: the most seconds the tests may take in
+all.
 
 Prints the total test time, its share of the ceiling and the five slowest tests. Over 80% of the ceiling it warns.
 Over the ceiling it says so, and exits 1 only with --enforce: CI passes that flag, and a local run never fails on
@@ -16,6 +17,7 @@ Run with `python3 -I`. Standard library only.
 
 import argparse
 import json
+import math
 import pathlib
 import sys
 
@@ -53,12 +55,13 @@ def change_against_main(main_results, total):
 
 
 def ceiling_in(path):
-    """The one number in the ceiling file, or None when there is no file or no one number in it."""
+    """The one number in the ceiling file, or None when there is no file or no one number above zero in it."""
     try:
         numbers = [line for line in path.read_text().split("\n") if line.strip() and not line.startswith("#")]
-        return float(numbers[0]) if len(numbers) == 1 else None
+        ceiling = float(numbers[0]) if len(numbers) == 1 else None
     except (OSError, ValueError):
         return None
+    return ceiling if ceiling is not None and math.isfinite(ceiling) and ceiling > 0 else None
 
 
 def main(arguments):
@@ -72,7 +75,7 @@ def main(arguments):
 
     ceiling = ceiling_in(ceiling_file)
     if ceiling is None:
-        print(f"error: {ceiling_file} must hold one number, the ceiling in seconds")
+        print(f"error: {ceiling_file} must hold one number above zero, the ceiling in seconds")
         return 1
     tests = tests_in(options.results)
     if not tests:

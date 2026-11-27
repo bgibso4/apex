@@ -15,7 +15,10 @@
 # the change against main to the report (.github/workflows/ios.yml).
 # Reads ONLY BASE SIM_DEST XCB_FLAGS PROJECT DERIVED ENFORCE MAIN_RESULTS from the environment (the Makefile exports
 # them).
-# APEX_XCODEBUILD, APEX_XCRESULTTOOL, APEX_AFFECTED_CMD and APEX_BEAUTIFY are seams for the bats tests.
+# The simulator boots after the build, not before it (`make boot`). On a CI runner everything is slow for minutes
+# after a simulator's first boot: in run 46052910220, which booted first, the token generator took 212 s where it
+# takes 8 s and the build about 8 min. So the build runs with the simulator still shut down.
+# APEX_XCODEBUILD, APEX_XCRESULTTOOL, APEX_AFFECTED_CMD, APEX_BEAUTIFY and APEX_BOOT_CMD are seams for the bats tests.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)/apex-ios" || exit
 mode="${1:-}"
@@ -23,6 +26,7 @@ xcodebuild="${APEX_XCODEBUILD:-xcodebuild}"
 affected="${APEX_AFFECTED_CMD:-scripts/affected-tests.sh}"
 beautify="${APEX_BEAUTIFY:-xcbeautify}"
 xcresulttool="${APEX_XCRESULTTOOL:-xcrun xcresulttool}"
+boot="${APEX_BOOT_CMD:-make --no-print-directory boot}"
 fingerprint="scripts/build-fingerprint.sh"
 app="$DERIVED/Build/Products/Debug-iphonesimulator/Apex.app"
 results=".build/results/$mode.xcresult"
@@ -76,6 +80,14 @@ else
 	[ "$status" -eq 0 ] && "$fingerprint" record "$before"
 fi
 
+boot_seconds=0
+if [ "$status" -eq 0 ]; then
+	start=$SECONDS
+	$boot
+	status=$?
+	boot_seconds=$((SECONDS - start))
+fi
+
 test_seconds=0
 if [ "$status" -eq 0 ]; then
 	start=$SECONDS
@@ -98,5 +110,5 @@ printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$mode" "$sco
 	"$status" >>.build/test-runs.log
 count="$(echo "$scope" | wc -w | tr -d ' ')"
 [ "$scope" = ALL ] && what="everything" || what="$count test ids"
-echo "test-runs: $mode · $what · build ${build_seconds} s · tests ${test_seconds} s · exit $status"
+echo "test-runs: $mode · $what · build ${build_seconds} s · boot ${boot_seconds} s · tests ${test_seconds} s · exit $status"
 exit "$status"

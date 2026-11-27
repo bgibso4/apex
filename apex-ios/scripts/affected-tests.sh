@@ -89,7 +89,12 @@ fi
 
 merge_base="$(git merge-base "${1:-origin/main}" HEAD)"
 # --relative: only paths under apex-ios/, written from it. --no-renames: a moved file counts under its old path too.
-changed="$({ git diff --name-only --relative --no-renames "$merge_base"; git ls-files --others --exclude-standard; } | sort -u)"
+# core.quotePath=false: git otherwise prints a path with a non-ASCII character quoted and escaped, and no rule
+# matches that.
+changed="$({
+	git -c core.quotePath=false diff --name-only --relative --no-renames "$merge_base"
+	git -c core.quotePath=false ls-files --others --exclude-standard
+} | sort -u)"
 
 # The classes to run, or ALL alone as soon as anything asks for everything.
 picked=""

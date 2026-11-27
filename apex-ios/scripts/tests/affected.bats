@@ -111,6 +111,24 @@ affected() { run --separate-stderr "$AFFECTED" "$@"; }
   [ -z "$output" ]
 }
 
+@test "a changed path with a non-ASCII name is matched by its rule" {
+  change "docs/Demo · Ended.html"
+  printf 'new\n' >"docs/Demo · Untracked.html"
+  affected main
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+  [[ "$stderr" == *"docs/Demo · Ended.html → nothing"* ]] || false
+  [[ "$stderr" == *"docs/Demo · Untracked.html → nothing"* ]] || false
+}
+
+@test "the committed map runs nothing for the lint, format and dead-code configs and .gitignore" {
+  cp "$SCRIPTS/test-map.txt" scripts/test-map.txt
+  change .swiftlint.yml .swift-format .periphery.yml .gitignore
+  affected main
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
 @test "check-map fails on a class that does not exist" {
   printf 'Sources/Screens/Run/ RunPictureTests\n' >>scripts/test-map.txt
   affected --check-map

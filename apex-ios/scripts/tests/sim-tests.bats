@@ -2,7 +2,7 @@
 bats_require_minimum_version 1.5.0
 
 # scripts/sim-tests.sh: what each mode runs, build once, the retest check, the run log and the time report.
-# xcodebuild, xcresulttool and the affected script are stubs. Every `[[ ]]` below ends in `|| false`: on macOS's bash 3.2 a failing `[[ ]]` that is
+# xcodebuild, xcresulttool, the affected script and the simulator boot are stubs. Every `[[ ]]` below ends in `|| false`: on macOS's bash 3.2 a failing `[[ ]]` that is
 # not a test's last command does not fail the test.
 SCRIPTS="$BATS_TEST_DIRNAME/.."
 
@@ -43,10 +43,16 @@ STUB
 #!/usr/bin/env bash
 cat "$TIMES/${STUB_RESULTS:-seven}.json"
 STUB
-  chmod +x "$FIX/bin/xcodebuild" "$FIX/bin/affected" "$FIX/bin/xcresulttool"
+  # Stub boot: logs the call beside xcodebuild's and exits STUB_BOOT_STATUS.
+  cat >"$FIX/bin/boot" <<'STUB'
+#!/usr/bin/env bash
+echo boot >>"$CALLS"
+exit "${STUB_BOOT_STATUS:-0}"
+STUB
+  chmod +x "$FIX/bin/xcodebuild" "$FIX/bin/affected" "$FIX/bin/xcresulttool" "$FIX/bin/boot"
   export TIMES="$SCRIPTS/tests/fixtures/times"
   export APEX_XCODEBUILD="$FIX/bin/xcodebuild" APEX_AFFECTED_CMD="$FIX/bin/affected" APEX_BEAUTIFY=cat
-  export APEX_XCRESULTTOOL="$FIX/bin/xcresulttool"
+  export APEX_XCRESULTTOOL="$FIX/bin/xcresulttool" APEX_BOOT_CMD="$FIX/bin/boot"
   export DERIVED="$FIX/.build/DerivedData" PROJECT=P.xcodeproj SIM_DEST="platform=iOS Simulator,name=X"
   unset ONLY BASE ENFORCE MAIN_RESULTS
 }
@@ -54,13 +60,16 @@ STUB
 sim() { run --separate-stderr scripts/sim-tests.sh "$@"; }
 called() { grep -q -- "$1" "$CALLS" 2>/dev/null; }
 
-@test "gate builds once, then tests without building, everything" {
+@test "gate builds once, boots the simulator, then tests without building, everything" {
   sim gate
   [ "$status" -eq 0 ]
   [ "$(grep -c build-for-testing "$CALLS")" -eq 1 ]
   sed -n 1p "$CALLS" | grep -q build-for-testing
-  sed -n 2p "$CALLS" | grep -q test-without-building
-  sed -n 2p "$CALLS" | grep -q -- "-resultBundlePath .build/results/gate.xcresult"
+  [ "$(sed -n 2p "$CALLS")" = boot ]
+  sed -n 3p "$CALLS" | grep -q test-without-building
+  sed -n 3p "$CALLS" | grep -q -- "-resultBundlePath .build/results/gate.xcresult"
+  [ "$(wc -l <"$CALLS" | tr -d " ")" -eq 4 ] # and the record mode the tests were given
+  [[ "$output" == *"test-runs: gate · everything · build "*" s · boot "*" s · tests "*" s · exit 0" ]] || false
   called "record=unset"
   run ! called -only-testing
 }
@@ -95,6 +104,30 @@ called() { grep -q -- "$1" "$CALLS" 2>/dev/null; }
   run ! called build-for-testing
   called test-without-building
   called "-only-testing:ApexUITests/A/testB"
+}
+
+@test "retest boots the simulator before the tests" {
+  sim gate
+  rm "$CALLS"
+  ONLY="ApexUITests/A" sim retest
+  [ "$status" -eq 0 ]
+  [ "$(sed -n 1p "$CALLS")" = boot ]
+  sed -n 2p "$CALLS" | grep -q test-without-building
+}
+
+@test "a simulator that does not boot fails the run and runs no test" {
+  STUB_BOOT_STATUS=3 sim gate
+  [ "$status" -eq 3 ]
+  run ! called test-without-building
+  [[ "$output" != *"test time:"* ]] || false
+  [ "$(cut -f6 .build/test-runs.log)" = 3 ]
+  scripts/build-fingerprint.sh current # the build stays good for retest
+}
+
+@test "a failed build boots nothing" {
+  STUB_BUILD_STATUS=65 sim gate
+  [ "$status" -eq 65 ]
+  run ! called boot
 }
 
 @test "retest with no ONLY runs the affected classes" {

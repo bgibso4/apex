@@ -10,8 +10,13 @@
 # or SnapshotTests/ runs the *Tests classes it declares or extends, and SnapshotTests/__Snapshots__/<Class>/ runs
 # <Class>. A new screen adds its rows here; `make ci-checks` fails while a test class is missing from this file.
 
-# Cannot affect the simulator tests. Package tests run on the Mac, in `make fast`.
+# Cannot affect the simulator tests. Package tests run on the Mac, in `make fast`. The simulator build reads none
+# of the lint, format and dead-code configs.
 *.md NONE
+.gitignore NONE
+.swiftlint.yml NONE
+.swift-format NONE
+.periphery.yml NONE
 docs/ NONE
 design/ NONE
 scripts/ NONE

@@ -408,6 +408,34 @@ nojq_path() {
   [ "$before" != "$("$HOOKS/swift-fingerprint.sh")" ]
 }
 
+@test "the fingerprint of a fixed set of files, and of one changed, added and removed, is the pinned value" {
+  # The values are what the script printed when it started one shasum per file (before issue 98's speed-up). A
+  # recorded green fingerprint must still mean green after a change to how it is computed, so these never move.
+  cd "$CLAUDE_PROJECT_DIR/apex-ios"
+  mkdir -p design Sources/Deep
+  printf '{"a": 1}\n' >design/tokens.json
+  printf 'let b = 2\n' >"Sources/Deep/B C.swift"
+  printf 'let m = 3\n' >"Sources/Demo · M.swift"
+  printf 'let d = 4\n' >D.swift
+  printf 'not covered\n' >notes.md
+  git add -A && git commit -qm fixed
+  [ "$("$HOOKS/swift-fingerprint.sh")" = 525f0e40ca8ffcd2d476e27b964fd55d999f96705668919caa3674a005983910 ]
+  set_swift 'let a = 2' # changed
+  [ "$("$HOOKS/swift-fingerprint.sh")" = d757356fd910d8d2ba92dd3cadb0742fbab5321d7cdfe163779b4ee4493c7e60 ]
+  printf 'let e = 5\n' >E.swift # added, untracked
+  [ "$("$HOOKS/swift-fingerprint.sh")" = 8a4fcb389030c92857bafb0e531f6893d2d2feb5e2430cb3f837b15ae6998ff2 ]
+  rm D.swift # removed, still tracked
+  [ "$("$HOOKS/swift-fingerprint.sh")" = c29fe36896af4459a2eb88f46315a68d7e5909b88b1115e24791a1e840c85fc1 ]
+  printf 'more\n' >>notes.md # not covered
+  [ "$("$HOOKS/swift-fingerprint.sh")" = c29fe36896af4459a2eb88f46315a68d7e5909b88b1115e24791a1e840c85fc1 ]
+}
+
+@test "the fingerprint of no files at all is the pinned value" {
+  cd "$CLAUDE_PROJECT_DIR/apex-ios"
+  git rm -q A.swift && git commit -qm none
+  [ "$("$HOOKS/swift-fingerprint.sh")" = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 ]
+}
+
 @test "the fingerprint ignores Swift outside apex-ios" {
   before="$("$HOOKS/swift-fingerprint.sh")"
   mkdir -p "$CLAUDE_PROJECT_DIR/apex-rn"

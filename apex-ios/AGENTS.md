@@ -43,13 +43,15 @@ scripts/test-times.py          the time report, checked against scripts/gate-cei
 scripts/compare-snapshot.swift a state's recorded picture beside its mock
 scripts/frames.sh              a contact sheet of frames from a simulator recording
 scripts/tests/                 bats tests for the scripts above, and their fixtures
+scripts/ci/                    what only CI runs: gate-plan.sh (does the gate run for this event), gate-run.sh (which
+                               run passed the gate on a commit's files), and their bats tests
 scripts/pre-commit             lint, only when apex-ios files are staged
 scripts/pre-commit-wrapper     the git hook `make setup` installs: runs pre-commit, passes on a branch without it
 scripts/test-lint-rules.sh     fixture tests for the custom lint rules (lint-fixtures/, lint-negatives/)
 scripts/hooks/                 Claude Code hooks (see CLAUDE.md) and their bats tests
 docs/                          iOS specs, plans and the roadmap. Created with the first product segment
 /.claude/settings.json         the hook wiring
-/.github/workflows/ios.yml     CI: the checks job
+/.github/workflows/ios.yml     CI: the checks job and the gate
 /.github/actions/xcode-setup/  CI: Xcode and tool setup
 ```
 
@@ -74,7 +76,7 @@ docs/                          iOS specs, plans and the roadmap. Created with th
 | `make unused` | Periphery dead-code scan |
 | `make test-lint` | fixture tests for the SwiftLint custom rules |
 | `make test-hooks` | bats tests for the hook scripts and the pre-commit script |
-| `make test-scripts` | bats tests for the scripts in `scripts/`. The mock tests need Google Chrome |
+| `make test-scripts` | bats tests for the scripts in `scripts/` and `scripts/ci/`. The mock tests need Google Chrome |
 | `make ci-checks` | everything CI's `checks` job runs: generate, a check that the committed generated files match, the test-map check, lint, hook tests, script tests, lint-rule tests, the Mac tests, Periphery |
 | `make design-import ZIP=<path>` | replaces `design/export/` from a new export, lists what changed against git, runs `mocks` |
 | `make mocks` | renders `design/mocks/<state>.png` for every state in `design/states.json` (`STATE=<name>` for one). Needs Google Chrome and the network; never runs in CI |

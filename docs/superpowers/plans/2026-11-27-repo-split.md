@@ -286,7 +286,7 @@ The hand-off lists: the before and after numbers from Task 1, the simulator buil
 
 One fresh reviewer agent reads the branch diff against this plan and the spec section. Fix what it finds; re-run the affected verification steps.
 
-- [ ] **Step 3: Merge on green**
+- [x] **Step 3: Merge on green**
 
 ```bash
 gh pr checks --watch

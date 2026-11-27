@@ -12,7 +12,13 @@ DERIVED  := $(CURDIR)/.build/DerivedData
 SIM_DEST := platform=iOS Simulator,name=$(SIM_DEVICE),OS=$(SIM_OS)
 BEAUTIFY := xcbeautify
 
-.PHONY: setup sim generate fast
+BUNDLE_ID      := com.cadre.apex
+APP_PRODUCT    := $(DERIVED)/Build/Products/Debug-iphonesimulator/Apex.app
+DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
+# Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
+DEVICE         ?= iPhone
+
+.PHONY: setup sim generate build fast run device
 
 # Fail loudly, with the install command, when a required tool is missing.
 setup:
@@ -30,7 +36,24 @@ generate:
 	@command -v xcodegen >/dev/null || { echo "error: xcodegen is missing. Install it: brew install xcodegen" >&2; exit 1; }
 	xcodegen generate --quiet
 
+build: sim generate
+	set -o pipefail; xcodebuild build -project $(PROJECT) -scheme Apex \
+		-destination '$(SIM_DEST)' -derivedDataPath $(DERIVED) | $(BEAUTIFY)
+
 # The Mac-only loop: no simulator.
 fast: generate
 	set -o pipefail; xcodebuild test -project $(PROJECT) -scheme Fast \
 		-destination 'platform=macOS' -derivedDataPath $(DERIVED) | $(BEAUTIFY)
+
+# Run on this checkout's simulator. Named, never `booted`: another worktree's simulator may be booted too.
+run: build
+	xcrun simctl boot '$(SIM_DEVICE)' 2>/dev/null || true
+	xcrun simctl install '$(SIM_DEVICE)' '$(APP_PRODUCT)'
+	xcrun simctl launch '$(SIM_DEVICE)' $(BUNDLE_ID)
+
+# Build for a connected iPhone and install it. Needs the phone plugged in, unlocked and trusted.
+device: generate
+	set -o pipefail; xcodebuild build -project $(PROJECT) -scheme Apex \
+		-destination 'generic/platform=iOS' -derivedDataPath $(DERIVED) -allowProvisioningUpdates | $(BEAUTIFY)
+	xcrun devicectl device install app --device "$(DEVICE)" '$(DEVICE_PRODUCT)'
+	xcrun devicectl device process launch --device "$(DEVICE)" $(BUNDLE_ID)

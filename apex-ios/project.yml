@@ -25,6 +25,34 @@ packages:
   ApexKit:
     path: Packages/ApexKit
 
+targets:
+  Apex:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - "**/.DS_Store"
+    dependencies:
+      - package: ApexKit
+        product: Core
+      - package: ApexKit
+        product: Screens
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_ID)
+        PRODUCT_NAME: Apex
+        # No Info.plist file until a key needs one.
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: APEX
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # iPhone only, portrait only, dark only.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+
 # Empty aggregate: a scheme needs one build target from this project, and Fast must not
 # build the app. The package tests it runs come from the scheme's test targets.
 aggregateTargets:
@@ -33,6 +61,18 @@ aggregateTargets:
 
 # Hand-written schemes; XcodeGen's auto-generated ones are off so these are the only ones.
 schemes:
+  Apex:
+    build:
+      targets:
+        Apex: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      # Everything, on the simulator. Test targets are added here as they appear.
+      targets:
+        - package: ApexKit/CoreTests
+
   # Mac-only loop: no app target, no simulator. Package test targets are added here as they appear.
   Fast:
     build:

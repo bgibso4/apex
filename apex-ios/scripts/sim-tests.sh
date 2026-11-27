@@ -11,7 +11,10 @@
 # A run that ran tests ends with the time report (scripts/test-times.py, against scripts/gate-ceiling.txt), and
 # is not green when the report is not: no test ran, a test did not pass, or one test took over 60 s.
 # Every run appends a line to .build/test-runs.log: time, mode, scope, build seconds, test seconds, exit status.
-# Reads ONLY BASE SIM_DEST XCB_FLAGS PROJECT DERIVED from the environment (the Makefile exports them).
+# CI's gate sets two more: ENFORCE=1 fails a run that is over the ceiling, and MAIN_RESULTS=<main's tests JSON> adds
+# the change against main to the report (.github/workflows/ios.yml).
+# Reads ONLY BASE SIM_DEST XCB_FLAGS PROJECT DERIVED ENFORCE MAIN_RESULTS from the environment (the Makefile exports
+# them).
 # APEX_XCODEBUILD, APEX_XCRESULTTOOL, APEX_AFFECTED_CMD and APEX_BEAUTIFY are seams for the bats tests.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)/apex-ios" || exit
@@ -81,8 +84,11 @@ if [ "$status" -eq 0 ]; then
 	status=$?
 	test_seconds=$((SECONDS - start))
 	mkdir -p .build/results
+	report=()
+	[ "${ENFORCE:-}" = 1 ] && report+=(--enforce)
+	[ -n "${MAIN_RESULTS:-}" ] && report+=(--main "$MAIN_RESULTS")
 	$xcresulttool get test-results tests --path "$results" --compact >"$results.json" &&
-		python3 -I scripts/test-times.py "$results.json" scripts/gate-ceiling.txt
+		python3 -I scripts/test-times.py "$results.json" scripts/gate-ceiling.txt ${report[@]+"${report[@]}"}
 	report_status=$?
 	[ "$status" -ne 0 ] || status=$report_status
 fi

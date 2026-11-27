@@ -128,12 +128,14 @@ ci-checks: generate
 #   make retest ONLY="<Target/Class[/test]> …"  while fixing: no build; refuses when the sources changed since the last one
 #   make affected                               at the end of a task: the classes the branch's changes touch
 #                                               (scripts/test-map.txt; BASE=<ref>, default origin/main)
-#   make gate                                   before a pull request: every simulator test
+#   make gate                                   before a pull request: every simulator test. CI adds ENFORCE=1 (over
+#                                               the ceiling fails) and MAIN_RESULTS=<main's tests JSON> (the report
+#                                               shows the change against main)
 #   make snapshots-record [ONLY=…]              rewrites each picture's reference that fails or is missing. A non-zero
 #                                               exit is expected: the library reports recording as a failure. Run
 #                                               `make retest ONLY=<the classes>` to confirm green
 SIM_TESTS = ONLY='$(ONLY)' BASE='$(BASE)' SIM_DEST='$(SIM_DEST)' XCB_FLAGS='$(XCB_FLAGS)' PROJECT='$(PROJECT)' \
-	DERIVED='$(DERIVED)' scripts/sim-tests.sh
+	DERIVED='$(DERIVED)' ENFORCE='$(ENFORCE)' MAIN_RESULTS='$(MAIN_RESULTS)' scripts/sim-tests.sh
 
 affected: boot generate
 	@$(SIM_TESTS) affected

@@ -65,7 +65,7 @@ apex-ios/
 - Produces: `sim-tests.sh` reads `ENFORCE` and `MAIN_RESULTS` from the environment: `ENFORCE=1` adds `--enforce`, a non-empty `MAIN_RESULTS` adds `--main "$MAIN_RESULTS"`. The Makefile's `SIM_TESTS` passes both through, so CI runs `make gate ENFORCE=1 MAIN_RESULTS=<path>`.
 - Produces: every run leaves its tests JSON at `.build/results/<mode>.xcresult.json` (it does today); Task 3 uploads `gate.xcresult.json`.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/ios-ci-gate docs/ios-ci-gate-plan
@@ -74,7 +74,7 @@ make -C apex-ios setup && /usr/bin/time -p make -C apex-ios fast && /usr/bin/tim
 
 Note the three times (when plan 4 merged: `fast` 4.4 s, `ci-checks` 48.9 s, `gate` 16.9 s wall and 7.2 s of test time). Task 5 compares against them.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 `main.json`: six tests in one suite, 26.5 s in all (the `seven` fixture is 28.0 s).
 
@@ -93,12 +93,12 @@ sim-tests.bats (add)
     # MAIN_RESULTS="$TIMES/main.json" sim gate -> output contains "change against main: +1.5 s"
 ```
 
-- [ ] **Step 3: Run them and watch them fail**
+- [x] **Step 3: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 64 earlier tests pass, the 5 new ones fail.
 
-- [ ] **Step 4: Implement, run, commit**
+- [x] **Step 4: Implement, run, commit**
 
 Run: `make -C apex-ios test-scripts && make -C apex-ios gate`
 Expected: 69 script tests pass; the local gate prints no "change against main" line and exits 0.

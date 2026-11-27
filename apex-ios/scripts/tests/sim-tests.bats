@@ -48,7 +48,7 @@ STUB
   export APEX_XCODEBUILD="$FIX/bin/xcodebuild" APEX_AFFECTED_CMD="$FIX/bin/affected" APEX_BEAUTIFY=cat
   export APEX_XCRESULTTOOL="$FIX/bin/xcresulttool"
   export DERIVED="$FIX/.build/DerivedData" PROJECT=P.xcodeproj SIM_DEST="platform=iOS Simulator,name=X"
-  unset ONLY BASE
+  unset ONLY BASE ENFORCE MAIN_RESULTS
 }
 
 sim() { run --separate-stderr scripts/sim-tests.sh "$@"; }
@@ -192,6 +192,24 @@ called() { grep -q -- "$1" "$CALLS" 2>/dev/null; }
   STUB_TEST_STATUS=65 STUB_RESULTS=failed sim gate
   [ "$status" -eq 65 ]
   [[ "$output" == *"did not pass (Failed)"* ]] || false
+}
+
+@test "ENFORCE=1 fails a run over the ceiling" {
+  printf '# For the tests.\n20\n' >scripts/gate-ceiling.txt
+  sim gate
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"over the ceiling"* ]] || false
+  ENFORCE=1 sim gate
+  [ "$status" -eq 1 ]
+  [ "$(sed -n 2p .build/test-runs.log | cut -f6)" = 1 ]
+}
+
+@test "MAIN_RESULTS reaches the report" {
+  sim gate
+  [[ "$output" != *"change against main"* ]] || false
+  MAIN_RESULTS="$TIMES/main.json" sim gate
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"change against main: +1.5 s (main 26.5 s)"* ]] || false
 }
 
 @test "an unknown mode is a usage error" {

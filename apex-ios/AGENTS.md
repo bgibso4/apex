@@ -129,7 +129,7 @@ Which simulator run, when (wall time measured on 2026-11-27 with 8 tests):
 
 | When | Run | Took |
 |---|---|---|
-| Fixing one test | `make retest ONLY=…` | 4 s for a picture class, 11 s for the journey |
+| Fixing one test | `make retest ONLY=…` | 4 s for a picture class, 12 s for the journey |
 | End of a task | `make affected` | 12 to 16 s |
 | Before a pull request | `make gate` | 16 s |
 
@@ -155,7 +155,7 @@ A screen in Debug builds where Ben tries a few values of one token on his phone 
 - **Opening it.** `make device STATE=lab.motion` installs the app and opens the lab at the Motion exhibit (`make run STATE=lab.motion` on the simulator). On the phone, away from the Mac: press and hold the APEX wordmark on Home. Swipe the sheet down to close it.
 - **What is in it.** The lab lists its exhibits (`LabExhibit`). An exhibit shows real moments from the design and a control over one `LabTrial`: the values to try, starting on the token's own. Every other value is the tokens'.
 - **Adding a device check.** A new kind of thing is a `LabExhibit` case and its screen in `Screens/Lab/`. A new value on an exhibit is a `LabTrial` with its candidates in `ScreenModels/Lab/LabTrial.swift`, never numbers in a view. To animate with a tried value, the token generator gives every spring `Tokens.Motion.<name>Bounce` and `Tokens.Motion.<name>(bounce:)` in Debug builds; another kind of value needs the same from `scripts/generate-tokens.swift`.
-- **Debug only.** Every file under a `Lab/` folder is wrapped whole in `#if DEBUG` (`LabDebugOnlyTests` checks), and each use outside sits in an `#if DEBUG` block. No Release build runs in CI: after changing the lab's wiring, build Release once (`xcodebuild build -configuration Release … CODE_SIGNING_ALLOWED=NO`).
+- **Debug only.** Every file in `Sources/ScreenModels/Lab/` and `Sources/Screens/Lab/` is wrapped whole in `#if DEBUG` (`LabDebugOnlyTests` checks each file's first and last line), and each use outside sits in an `#if DEBUG` block, which nothing checks. No Release build runs in CI: after changing the lab's wiring, build Release once (`xcodebuild build -configuration Release … CODE_SIGNING_ALLOWED=NO`).
 - **Not a designed state.** The lab has no mock, so no `DesignedState` case, no picture and nothing in `design/states.json`. Its logic has Mac tests. One journey step holds its way in by hand.
 - **When Ben has picked:** change the number in `design/tokens.json`, `make generate`, and close the issue that asked.
 

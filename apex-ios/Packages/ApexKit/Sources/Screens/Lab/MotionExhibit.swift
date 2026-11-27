@@ -29,7 +29,7 @@
                     }
                 }
                 .pickerStyle(.segmented)
-                Text("Tick a set, or drag a row and let go. The token is \(bounce.token.formatted()).")
+                Text("Tick a set, or drag a row left and let go. The token is \(bounce.token.formatted()).")
                     .font(Tokens.Typography.helper)
                     .foregroundStyle(Tokens.Color.textSecondary)
             }

@@ -1,7 +1,7 @@
 #if DEBUG
     /// One token value on trial in the device lab: the values to try, and the one being tried. A trial starts on the
     /// token's own value, which is always among the values offered.
-    public nonisolated struct LabTrial: Equatable, Sendable {
+    public nonisolated struct LabTrial: Sendable {
         /// The token's own value.
         public let token: Double
         /// The values to try: ascending, no repeats, the token's among them.

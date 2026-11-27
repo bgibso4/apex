@@ -121,7 +121,7 @@ A new test target must be added to the `Fast` scheme in `project.yml` (`ScreensT
 
 - **Mac tests prove behaviour:** every rule, state change and edge case, through the screen models and domain logic. They run in `make fast`, in milliseconds each.
 - **Pictures prove appearance:** one image per designed state, on the simulator. About 0.9 s each.
-- **Journeys prove wiring:** the real app, launched, with a real database on disk, moving between screens, killed and restored. Most screens add none. The one today takes about 6 s.
+- **Journeys prove wiring:** the real app, launched, with a real database on disk, moving between screens, killed and restored. Most screens add none. The one today takes about 7 s, of which the device lab's way in is 1.4 s.
 
 A behaviour is tested through its screen model on the Mac, never by a journey.
 

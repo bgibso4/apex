@@ -152,7 +152,7 @@ public let lab = LabModel()
 - [x] **Step 2: Release.** Build the Release configuration for the simulator without signing; `nm` on the app binary shows no symbol containing `Lab`. Report the command and the count.
 - [x] **Step 3: the phone.** `make device STATE=lab.motion DEVICE=<the phone>`. If the phone cannot be reached, record exactly what was not verified and the one command Ben runs.
 - [x] **Step 4: `AGENTS.md`.** The map (the `Lab/` folders), `make device`'s row, the launch-flags row, a "Device lab" section (what it is, the two ways in, how to add an exhibit, why it has no picture), and whatever `make device` needed from a person.
-- [ ] **Step 5:** `make ci-checks`; commit.
+- [x] **Step 5:** `make ci-checks`; commit.
 
 ### Task 5: Evidence, review, merge, report
 

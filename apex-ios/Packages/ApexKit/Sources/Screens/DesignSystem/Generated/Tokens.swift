@@ -65,6 +65,7 @@ enum Tokens {
         static let cardGap: CGFloat = 12
         static let cardPaddingHorizontal: CGFloat = 16
         static let cardPaddingVertical: CGFloat = 14
+        static let contentTop: CGFloat = 24
         static let screenPadding: CGFloat = 20
         static let sectionGap: CGFloat = 24
         static let sectionLabelGap: CGFloat = 8

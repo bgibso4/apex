@@ -15,8 +15,8 @@ UTF8_FLAG = 0x800
 
 
 def entry_name(info):
-    """The entry's name. zipfile reads a name stored without the UTF-8 flag as CP437; zips made on a Mac
-    store UTF-8 there, so read the same bytes as UTF-8 when they are valid UTF-8."""
+    """The entry's name. zipfile reads a name stored without the UTF-8 flag as CP437; the macOS `zip` command
+    stores UTF-8 there, so read the same bytes as UTF-8 when they are valid UTF-8."""
     if info.flag_bits & UTF8_FLAG:
         return info.filename
     try:
@@ -34,9 +34,12 @@ def import_export(zip_path, dest):
             if path.is_absolute() or ".." in path.parts:
                 sys.exit(f"error: {name} points outside the folder; nothing was imported")
         wanted = [(name, info) for name, info in files if PurePosixPath(name).parts[0] != SKIPPED]
+        if not wanted:
+            sys.exit(f"error: {zip_path} has nothing to import; nothing was changed")
 
         # Extract beside DEST, then swap: DEST is replaced whole, or not touched at all.
         staging = dest.with_name(dest.name + ".importing")
+        shutil.rmtree(staging, ignore_errors=True)  # left by an interrupted run
         try:
             for name, info in wanted:
                 target = staging / name

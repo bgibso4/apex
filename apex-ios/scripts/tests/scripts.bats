@@ -71,6 +71,23 @@ path.write_bytes(path.read_bytes().replace(b"Demo XX", "Demo ·".encode()))' exp
   [ ! -e dest ]
 }
 
+@test "a zip with nothing to import fails and leaves the folder as it was" {
+  mkdir dest && touch dest/keep.html
+  make_zip export.zip shots/c.png
+  import_export export.zip dest
+  [ "$status" -eq 1 ]
+  [[ "$output" == error:* ]] || false
+  [ "$(ls -A dest)" = keep.html ]
+}
+
+@test "files left behind by an interrupted import are not imported" {
+  mkdir dest.importing && touch dest.importing/stale.html
+  make_zip export.zip a.html
+  import_export export.zip dest
+  [ "$status" -eq 0 ]
+  [ "$(ls -A dest)" = a.html ]
+}
+
 # --- generate-tokens ---
 
 # One token of each kind.
@@ -136,11 +153,14 @@ fails_untouched() {
   has_line ".sRGB, red: 0x65 / 255, green: 0x9B / 255, blue: 0xC8 / 255, opacity: 0x1A / 255)"
 }
 
+# The file is not even rewritten: a new modification time would recompile Screens on every build.
 @test "a second run changes nothing" {
   generate
   cp Tokens.swift first.swift
+  inode="$(ls -i Tokens.swift)"
   generate
   cmp Tokens.swift first.swift
+  [ "$(ls -i Tokens.swift)" = "$inode" ]
 }
 
 @test "the generator fails on an unknown key and leaves the output as it was" {

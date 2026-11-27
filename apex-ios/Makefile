@@ -113,11 +113,12 @@ device: generate
 	xcrun devicectl device process launch --device "$(DEVICE)" $(BUNDLE_ID)
 
 # Replace design/export with a new export (design/README.md), list what that changed against git (`??` is a new
-# file, ` D` a removed one, ` M` a changed one), then render the reference images again.
+# file, ` D` a removed one, ` M` a changed one, `!!` one an ignore rule would keep out of git), then render the
+# reference images again.
 design-import:
 	@[ -n "$(ZIP)" ] || { echo "usage: make design-import ZIP=<path to the export zip>" >&2; exit 1; }
 	python3 -I scripts/design-import.py "$(ZIP)" design/export
-	@git -c core.quotePath=false status --short --untracked-files=all -- design/export
+	@git -c core.quotePath=false status --short --untracked-files=all --ignored -- design/export
 	@$(MAKE) --no-print-directory mocks
 
 # Render the reference image of every designed state in design/states.json, or of one (`STATE=home.noProgram`).

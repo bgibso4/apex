@@ -11,10 +11,7 @@ Ben's design export and what is made from it. Run commands as `make -C apex-ios 
 
 ## Rules
 
-1. Never edit `export/` by hand. A new export arrives only through `make design-import`.
-2. The design system is `export/APEX README.md`. The copy under `export/_ds/` is stale; never read values from it.
-3. The export's own rules hold (`export/CLAUDE.md`): only options stamped Locked count, the highest turn wins, and where a demo and a Motion tile differ the tile is right.
-4. `shots/` (the exploration screenshots, about 140 MB) is left out of git, so Explorations pages show missing images.
+The rules for this folder are among the hard rules in `AGENTS.md`: `export/` is never edited by hand, which file is the design system, and how the export's decisions are read. One fact belongs here only: `shots/` (the exploration screenshots, about 140 MB) is left out of git, so Explorations pages show missing images.
 
 ## Commands
 
@@ -25,8 +22,8 @@ Ben's design export and what is made from it. Run commands as `make -C apex-ios 
 
 Ben gives the zip's path and never diffs anything himself. A session does the rest, on a new branch:
 
-1. `make design-import ZIP=<path>`. It lists the files added (`??`), removed (` D`) and changed (` M`).
-2. Read the text diffs to learn what changed: `git diff -- 'design/export/*.md'` covers the `*-decisions.md` logs, `inventory.md`, `APEX README.md` and the notes.
+1. `make design-import ZIP=<path>`. It lists the files added (`??`), removed (` D`) and changed (` M`). A file marked `!!` matches an ignore rule and would never reach git: narrow the rule, never the export.
+2. Read the text diffs to learn what changed. From the repo root: `git add -A apex-ios/design/export`, then `git diff --cached -- 'apex-ios/design/export/*.md'`. That covers the `*-decisions.md` logs, `inventory.md`, `APEX README.md` and the notes, new files included.
 3. If the design system's values changed, update `tokens.json` and run `make generate`.
-4. Open every image under `mocks/` that git shows as changed. A state that fails names a switch the demo no longer has: fix `states.json`.
+4. Open every image under `mocks/` that git shows as changed. A state that fails says why: a switch the demo no longer has (fix `states.json`), or a demo that never rendered (check the network).
 5. Open the pull request. It lists the screens affected, as follow-up work.

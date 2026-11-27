@@ -16,6 +16,7 @@ import json
 import os
 import re
 import shutil
+import socketserver
 import subprocess
 import sys
 import tempfile
@@ -33,6 +34,13 @@ VIRTUAL_TIME_MS = 10000
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
+
+
+class Server(socketserver.ThreadingTCPServer):
+    """Not http.server's own server: that one looks up this machine's host name when it starts, which takes
+    over 30 s on a CI runner."""
+
+    daemon_threads = True
 
 
 def render(state, port, out_dir):
@@ -79,11 +87,11 @@ def main(states_path, out_dir, names):
             sys.exit(f"error: {name}: no such state in {states_path}")
     out_dir.mkdir(parents=True, exist_ok=True)
     handler = functools.partial(QuietHandler, directory=ROOT)
-    with http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler) as server:
+    with Server(("127.0.0.1", 0), handler) as server:
         threading.Thread(target=server.serve_forever, daemon=True).start()
         try:
             for name in names or states:
-                render(states[name], server.server_port, out_dir)
+                render(states[name], server.server_address[1], out_dir)
         finally:
             server.shutdown()
 

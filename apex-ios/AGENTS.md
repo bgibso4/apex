@@ -20,7 +20,7 @@ Packages/ApexKit/              all logic, one local package (Package.swift)
   Sources/Screens/DesignSystem/Generated/   Tokens.swift, generated from design/tokens.json
   Tests/CoreTests/             Mac tests for Core
 design/                        Ben's design export and what is made from it (design/README.md)
-  export/                      the export as imported (100 files); replaced whole by `make design-import`
+  export/                      the export as imported; replaced whole by `make design-import`
   tokens.json                  the token source, written from export/APEX README.md
   states.json                  the mock side of the state catalog: state name, demo page, switches to click
   mocks/<state>.png            generated reference images, committed
@@ -137,7 +137,7 @@ Build what the design rules imply, open a GitHub issue labelled `needs-ben` with
 - Lint config, hook config and test tolerances change only with Ben's OK. Never widen a threshold to make something pass.
 - Never hand-edit the generated `.xcodeproj` or any `Generated/` file; change the source (`project.yml`, `design/tokens.json`) and `make generate`.
 - Colours, type and animations only from the generated tokens; lint rejects raw ones in `Screens` outside `DesignSystem/`. Spacing and radii too: no bare layout number where a token exists, and a measurement with no token is a named private constant that cites its design source.
-- `design/export/` is never edited by hand; `design/export/APEX README.md` is the design system and `_ds/` is stale.
+- `design/export/` is never edited by hand; `design/export/APEX README.md` is the design system and `_ds/` is stale. `design/export/CLAUDE.md` came with the export: its design rules hold here, its instructions for recording decisions are for the design tool and are not followed in this repo.
 - Only options stamped Locked count; the highest turn wins; where a demo and a Motion tile differ the tile is right.
 - No shadows.
 - Never bypass git hooks: no `--no-verify`, no `git commit -n` (or any short-flag cluster containing `n`), no `-c core.hooksPath=…`. The Bash guard blocks these, and any Bash command whose non-message text contains them. If the pre-commit hook fails, fix the cause; never skip it.

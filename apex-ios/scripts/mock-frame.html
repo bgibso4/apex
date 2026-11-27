@@ -3,13 +3,13 @@
 <title>loading</title>
 <!--
   The page headless Chrome loads for one designed state (scripts/render-mocks.py).
-  It shows ?page= in a 390 × 844 frame, clicks each ?click= switch in order, and reports through its title:
-  "done", "missing:<text>" or "no-render". Chrome takes the picture when its virtual time budget runs out,
-  so every wait below must fit inside that budget with room to spare.
+  It shows ?page= in a frame the size of the window (render-mocks.py sets that), clicks each ?click= switch in
+  order, and reports through its title: "done", "missing:<text>" or "no-render". Chrome takes the picture when
+  its virtual time budget runs out, so every wait below must fit inside that budget with room to spare.
 -->
 <style>
   html, body { margin: 0; overflow: hidden; }
-  iframe { display: block; width: 390px; height: 844px; border: 0; }
+  iframe { display: block; width: 100vw; height: 100vh; border: 0; }
 </style>
 <iframe id="frame"></iframe>
 <script>
@@ -32,16 +32,28 @@
     return null;
   }
 
-  // A demo's switch: the element with no children whose text is exactly `text`. The phone-only pages hide their
-  // switches with CSS and keep them in the document, so a click still works.
+  // The demo's screen, once it is laid out. The demos keep an unrendered copy in a hidden template from the start,
+  // so being in the document is not enough: a demo whose scripts never loaded has that copy and nothing else.
+  function screen() {
+    return [...(frame.contentDocument?.querySelectorAll("[data-screen-label]") ?? [])].find(
+      (element) => element.getClientRects().length > 0
+    );
+  }
+
+  // A demo's switch: the element with no children whose text is exactly `text`, outside the screen (the screen
+  // can show the same word). The phone-only pages hide their switches with CSS and keep them in the document, so
+  // a click still works.
   function switchNamed(text) {
     return [...frame.contentDocument.querySelectorAll("*")].find(
-      (element) => element.childElementCount === 0 && element.textContent.trim() === text
+      (element) =>
+        element.childElementCount === 0 &&
+        element.textContent.trim() === text &&
+        !element.closest("[data-screen-label]")
     );
   }
 
   async function reach() {
-    if (!(await appeared(() => frame.contentDocument?.querySelector("[data-screen-label]")))) return "no-render";
+    if (!(await appeared(screen))) return "no-render";
     for (const text of query.getAll("click")) {
       const element = await appeared(() => switchNamed(text));
       if (!element) return `missing:${text}`;

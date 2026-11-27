@@ -1,6 +1,7 @@
 // Reads design/tokens.json and writes Packages/ApexKit/Sources/Screens/DesignSystem/Generated/Tokens.swift.
 // The whole source is read and checked before anything is written: a token the generator does not understand
-// stops it with the output untouched. The output is deterministic. Run it with `make generate`:
+// stops it with the output untouched. The output is deterministic, and a file that would not change is not
+// rewritten, so `make generate` before every build recompiles nothing. Run it with `make generate`:
 //   swift scripts/generate-tokens.swift [INPUT [OUTPUT]]
 
 import Foundation
@@ -146,6 +147,7 @@ let text = """
 
     """
 
+if FileManager.default.contents(atPath: output.path) == Data(text.utf8) { exit(0) }
 do {
     try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
     try text.write(to: output, atomically: true, encoding: .utf8)

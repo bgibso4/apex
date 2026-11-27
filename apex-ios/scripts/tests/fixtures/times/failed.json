@@ -1,0 +1,49 @@
+{
+  "devices": [],
+  "testNodes": [
+    {
+      "name": "Apex",
+      "nodeType": "Test Plan",
+      "result": "Failed",
+      "children": [
+        {
+          "name": "ApexUITests",
+          "nodeType": "Unit test bundle",
+          "result": "Passed",
+          "children": [
+            {
+              "name": "JourneyTests",
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "duration": "2s",
+                  "durationInSeconds": 2,
+                  "name": "testFine()",
+                  "nodeIdentifier": "JourneyTests/testFine()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "3s",
+                  "durationInSeconds": 3,
+                  "name": "testBroken()",
+                  "nodeIdentifier": "JourneyTests/testBroken()",
+                  "nodeType": "Test Case",
+                  "result": "Failed",
+                  "children": [
+                    {
+                      "name": "XCTAssertTrue failed",
+                      "nodeType": "Failure Message",
+                      "result": "Failed"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

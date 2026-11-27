@@ -371,7 +371,7 @@ slowest:
 
 It lists at most five. Over 80% of the ceiling it adds a line starting `warning:`. Over the ceiling it adds a line starting `error:` and exits 1 only with `--enforce`: CI passes that flag in plan 5, and locally the gate never fails on time. It always exits 1, with an `error:` line naming the cause, when no test ran, when any test's `result` is not `Passed`, and when one test took over 60 s. The change against `main` is plan 5's: it needs `main`'s number from CI.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Fixtures are small hand-written JSON files in the shape above (take one real output from Task 3's bundle as the model).
 
@@ -389,30 +389,30 @@ Fixtures are small hand-written JSON files in the shape above (take one real out
   # test cases three levels down, as xcresulttool nests them
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 39 earlier tests pass, the 8 new ones fail.
 
-- [ ] **Step 3: Write `test-times.py` and wire it into `sim-tests.sh`**
+- [x] **Step 3: Write `test-times.py` and wire it into `sim-tests.sh`**
 
 Python standard library only, run with `-I`.
 
-- [ ] **Step 4: Record the ceiling**
+- [x] **Step 4: Record the ceiling**
 
 Run `make -C apex-ios gate` three times. The ceiling is twice the largest test time of the three, rounded up to the next 10 s. Write it to `gate-ceiling.txt` with the three measurements in its comment. This is a local number; plan 5 records it again from CI's first run, which is still the design's own build step.
 
 Run: `make -C apex-ios test-scripts && make -C apex-ios gate`
 Expected: 47 bats tests pass; the gate ends with the report, under 80%, exit 0.
 
-- [ ] **Step 5: Write `frames` and look**
+- [x] **Step 5: Write `frames` and look**
 
 `frames.sh STATE DURATION`: install the built app, start `xcrun simctl io <simulator> recordVideo`, launch with `-State`, wait, stop the recording with an interrupt, and have `ffmpeg` tile it at 10 frames a second into one image. It fails with the install command when `ffmpeg` is missing. This state has no motion of its own, so the sheet proves the tool: it shows the launch settling into Home.
 
 Run: `make -C apex-ios frames STATE=home.noProgram`, open `apex-ios/build/frames/home.noProgram.png`.
 Expected: about 20 frames in order, the last ones the finished screen.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): the gate's time report and ceiling, and make frames"

@@ -267,3 +267,17 @@ compare() { run swift "$SCRIPTS/compare-snapshot.swift" "$@"; }
   [ "$status" -eq 1 ]
   [[ "$output" == *"home.noProgram has no mock"* ]] || false
 }
+
+# --- frames ---
+
+@test "frames with no ffmpeg fails with the install command" {
+  PATH=/usr/bin:/bin run "$SCRIPTS/frames.sh" home.noProgram 2
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"brew install ffmpeg"* ]] || false
+}
+
+@test "frames refuses a duration that is not a number of seconds" {
+  run "$SCRIPTS/frames.sh" home.noProgram soon
+  [ "$status" -eq 64 ]
+  [[ "$output" == *"usage"* ]] || false
+}

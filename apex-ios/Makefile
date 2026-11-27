@@ -20,7 +20,7 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 DEVICE         ?= iPhone
 
 .PHONY: setup sim boot generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
-	ci-checks affected retest gate snapshots-record compare run device design-import mocks
+	ci-checks affected retest gate snapshots-record compare frames run device design-import mocks
 
 # Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
 # a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
@@ -150,6 +150,12 @@ snapshots-record: boot generate
 compare:
 	@[ -n "$(STATE)" ] || { echo "usage: make compare STATE=<designed state, such as home.noProgram>" >&2; exit 1; }
 	@swift scripts/compare-snapshot.swift "$(STATE)"
+
+# A contact sheet of frames from the app launching into a designed state, for checking a motion's order and timing:
+# build/frames/<state>.png, 10 frames a second for DURATION seconds (default 2). Needs ffmpeg. Open it.
+frames: build boot
+	@[ -n "$(STATE)" ] || { echo "usage: make frames STATE=<designed state> [DURATION=<seconds>]" >&2; exit 1; }
+	@SIM_DEVICE='$(SIM_DEVICE)' APP_PRODUCT='$(APP_PRODUCT)' BUNDLE_ID='$(BUNDLE_ID)' scripts/frames.sh "$(STATE)" $(DURATION)
 
 # Run on this checkout's simulator, in a designed state when one is named (`STATE=home.noProgram`). The simulator is
 # named, never `booted`: another worktree's simulator may be booted too.

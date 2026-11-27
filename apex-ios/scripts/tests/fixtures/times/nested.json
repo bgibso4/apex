@@ -1,0 +1,64 @@
+{
+  "devices": [],
+  "testNodes": [
+    {
+      "name": "Apex",
+      "nodeType": "Test Plan",
+      "result": "Passed",
+      "children": [
+        {
+          "name": "ApexUITests",
+          "nodeType": "Unit test bundle",
+          "result": "Passed",
+          "children": [
+            {
+              "name": "OuterTests",
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "duration": "1s",
+                  "durationInSeconds": 1,
+                  "name": "testOuter()",
+                  "nodeIdentifier": "OuterTests/testOuter()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "name": "MiddleTests",
+                  "nodeType": "Test Suite",
+                  "result": "Passed",
+                  "children": [
+                    {
+                      "duration": "2s",
+                      "durationInSeconds": 2,
+                      "name": "testMiddle()",
+                      "nodeIdentifier": "MiddleTests/testMiddle()",
+                      "nodeType": "Test Case",
+                      "result": "Passed"
+                    },
+                    {
+                      "name": "InnerTests",
+                      "nodeType": "Test Suite",
+                      "result": "Passed",
+                      "children": [
+                        {
+                          "duration": "3s",
+                          "durationInSeconds": 3,
+                          "name": "testInner()",
+                          "nodeIdentifier": "InnerTests/testInner()",
+                          "nodeType": "Test Case",
+                          "result": "Passed"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 
-# scripts/sim-tests.sh: what each mode runs, build once, the retest check and the run log. xcodebuild and the
-# affected script are stubs. Every `[[ ]]` below ends in `|| false`: on macOS's bash 3.2 a failing `[[ ]]` that is
+# scripts/sim-tests.sh: what each mode runs, build once, the retest check, the run log and the time report.
+# xcodebuild, xcresulttool and the affected script are stubs. Every `[[ ]]` below ends in `|| false`: on macOS's bash 3.2 a failing `[[ ]]` that is
 # not a test's last command does not fail the test.
 SCRIPTS="$BATS_TEST_DIRNAME/.."
 
@@ -10,7 +10,8 @@ setup() {
   export TMPDIR="$BATS_TEST_TMPDIR"
   FIX="$BATS_TEST_TMPDIR/repo/apex-ios"
   mkdir -p "$FIX/scripts" "$FIX/SnapshotTests/__Snapshots__/HomePictureTests" "$FIX/docs" "$FIX/bin"
-  cp "$SCRIPTS/sim-tests.sh" "$SCRIPTS/build-fingerprint.sh" "$FIX/scripts/"
+  cp "$SCRIPTS/sim-tests.sh" "$SCRIPTS/build-fingerprint.sh" "$SCRIPTS/test-times.py" "$FIX/scripts/"
+  printf '# For the tests.\n100\n' >"$FIX/scripts/gate-ceiling.txt"
   printf 'let a = 1\n' >"$FIX/A.swift"
   printf 'png\n' >"$FIX/SnapshotTests/__Snapshots__/HomePictureTests/home.noProgram.png"
   printf 'notes\n' >"$FIX/docs/notes.md"
@@ -37,8 +38,15 @@ STUB
 #!/usr/bin/env bash
 printf '%s' "${STUB_AFFECTED:-}"
 STUB
-  chmod +x "$FIX/bin/xcodebuild" "$FIX/bin/affected"
+  # Stub xcresulttool: prints the test results of STUB_RESULTS, one of the time report's fixtures.
+  cat >"$FIX/bin/xcresulttool" <<'STUB'
+#!/usr/bin/env bash
+cat "$TIMES/${STUB_RESULTS:-seven}.json"
+STUB
+  chmod +x "$FIX/bin/xcodebuild" "$FIX/bin/affected" "$FIX/bin/xcresulttool"
+  export TIMES="$SCRIPTS/tests/fixtures/times"
   export APEX_XCODEBUILD="$FIX/bin/xcodebuild" APEX_AFFECTED_CMD="$FIX/bin/affected" APEX_BEAUTIFY=cat
+  export APEX_XCRESULTTOOL="$FIX/bin/xcresulttool"
   export DERIVED="$FIX/.build/DerivedData" PROJECT=P.xcodeproj SIM_DEST="platform=iOS Simulator,name=X"
   unset ONLY BASE
 }
@@ -155,6 +163,27 @@ called() { grep -q -- "$1" "$CALLS" 2>/dev/null; }
   [ "$(sed -n 1p .build/test-runs.log | cut -f2,3)" = "$(printf 'gate\tALL')" ]
   [ "$(sed -n 2p .build/test-runs.log | cut -f2,3,4,6)" = "$(printf 'retest\tApexUITests/A\t0\t0')" ]
   [[ "$output" == *"test-runs: retest"* ]] || false
+}
+
+@test "a run that ran tests ends with the time report" {
+  sim gate
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"test time: 28.0 s of a 100 s ceiling (28%) · 7 tests"* ]] || false
+  ONLY="ApexUITests/A" sim retest
+  [[ "$output" == *"test time: 28.0 s"* ]] || false
+}
+
+@test "a run whose report fails is not green, though xcodebuild passed" {
+  STUB_RESULTS=empty sim gate
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"error: no test ran"* ]] || false
+  [ "$(cut -f6 .build/test-runs.log)" = 1 ]
+}
+
+@test "a failed run keeps xcodebuild's status and still prints the report" {
+  STUB_TEST_STATUS=65 STUB_RESULTS=failed sim gate
+  [ "$status" -eq 65 ]
+  [[ "$output" == *"did not pass (Failed)"* ]] || false
 }
 
 @test "an unknown mode is a usage error" {

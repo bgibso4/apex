@@ -1,0 +1,82 @@
+{
+  "devices": [],
+  "testNodes": [
+    {
+      "name": "Apex",
+      "nodeType": "Test Plan",
+      "result": "Passed",
+      "children": [
+        {
+          "name": "ApexSnapshotTests",
+          "nodeType": "Unit test bundle",
+          "result": "Passed",
+          "children": [
+            {
+              "name": "PictureTests",
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "duration": "3s",
+                  "durationInSeconds": 3,
+                  "name": "test3()",
+                  "nodeIdentifier": "PictureTests/test3()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "7s",
+                  "durationInSeconds": 7,
+                  "name": "test7()",
+                  "nodeIdentifier": "PictureTests/test7()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "1s",
+                  "durationInSeconds": 1,
+                  "name": "test1()",
+                  "nodeIdentifier": "PictureTests/test1()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "5s",
+                  "durationInSeconds": 5,
+                  "name": "test5()",
+                  "nodeIdentifier": "PictureTests/test5()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "2s",
+                  "durationInSeconds": 2,
+                  "name": "test2()",
+                  "nodeIdentifier": "PictureTests/test2()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "6s",
+                  "durationInSeconds": 6,
+                  "name": "test6()",
+                  "nodeIdentifier": "PictureTests/test6()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                },
+                {
+                  "duration": "4s",
+                  "durationInSeconds": 4,
+                  "name": "test4()",
+                  "nodeIdentifier": "PictureTests/test4()",
+                  "nodeType": "Test Case",
+                  "result": "Passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

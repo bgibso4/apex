@@ -8,15 +8,18 @@
 #                          library reports a rewritten reference as a failure: run retest to confirm green
 # affected, gate and record build once (build-for-testing), record the build fingerprint (even when tests then fail, so
 # retest works next), then run test-without-building. The run's result bundle is .build/results/<mode>.xcresult.
+# A run that ran tests ends with the time report (scripts/test-times.py, against scripts/gate-ceiling.txt), and
+# is not green when the report is not: no test ran, a test did not pass, or one test took over 60 s.
 # Every run appends a line to .build/test-runs.log: time, mode, scope, build seconds, test seconds, exit status.
 # Reads ONLY BASE SIM_DEST XCB_FLAGS PROJECT DERIVED from the environment (the Makefile exports them).
-# APEX_XCODEBUILD, APEX_AFFECTED_CMD and APEX_BEAUTIFY are seams for the bats tests.
+# APEX_XCODEBUILD, APEX_XCRESULTTOOL, APEX_AFFECTED_CMD and APEX_BEAUTIFY are seams for the bats tests.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)/apex-ios" || exit
 mode="${1:-}"
 xcodebuild="${APEX_XCODEBUILD:-xcodebuild}"
 affected="${APEX_AFFECTED_CMD:-scripts/affected-tests.sh}"
 beautify="${APEX_BEAUTIFY:-xcbeautify}"
+xcresulttool="${APEX_XCRESULTTOOL:-xcrun xcresulttool}"
 fingerprint="scripts/build-fingerprint.sh"
 app="$DERIVED/Build/Products/Debug-iphonesimulator/Apex.app"
 results=".build/results/$mode.xcresult"
@@ -76,6 +79,11 @@ if [ "$status" -eq 0 ]; then
 	"$xcodebuild" test-without-building "${common[@]}" -resultBundlePath "$results" ${args[@]+"${args[@]}"} | "$beautify"
 	status=$?
 	test_seconds=$((SECONDS - start))
+	mkdir -p .build/results
+	$xcresulttool get test-results tests --path "$results" --compact >"$results.json" &&
+		python3 -I scripts/test-times.py "$results.json" scripts/gate-ceiling.txt
+	report_status=$?
+	[ "$status" -ne 0 ] || status=$report_status
 fi
 
 mkdir -p .build

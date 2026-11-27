@@ -1,0 +1,18 @@
+{
+  "devices": [],
+  "testNodes": [
+    {
+      "name": "Apex",
+      "nodeType": "Test Plan",
+      "result": "Passed",
+      "children": [
+        {
+          "name": "ApexUITests",
+          "nodeType": "Unit test bundle",
+          "result": "Passed",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -81,7 +81,8 @@ custom_rules:
   # Every module but Screens, listed or not: a new module is Mac-buildable by default.
   no_ui_imports_in_mac_modules:
     name: "No UI imports in Mac-buildable modules"
-    regex: '^import (SwiftUI|UIKit)\b'
+    # Any spelling: attributes (@preconcurrency, @testable), an access level, one symbol (import struct …), indented.
+    regex: '^[ \t]*(@\w+(\([^)\n]*\))?[ \t]+)*((public|package|internal|fileprivate|private)[ \t]+)?import[ \t]+((struct|class|enum|protocol|typealias|func|let|var)[ \t]+)?(SwiftUI|UIKit)\b'
     included: 'Packages/ApexKit/(Sources|Tests)/'
     excluded: 'Packages/ApexKit/(Sources/Screens|Tests/ScreensTests)/'
     message: "Only Screens may import SwiftUI or UIKit: every other module builds for macOS so its tests run in make fast."

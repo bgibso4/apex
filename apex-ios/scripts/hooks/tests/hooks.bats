@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+# Every `[[ ]]` below ends in `|| false`: on macOS's bash 3.2 a failing `[[ ]]` that is not a test's last command
+# does not fail the test.
 HOOKS="$BATS_TEST_DIRNAME/.."
 SCRIPTS="$BATS_TEST_DIRNAME/../.."
 REPO="$BATS_TEST_DIRNAME/../../../.."
@@ -45,7 +47,7 @@ stub() {
 @test "guard blocks edits inside the xcodeproj" {
   run bash -c "'$HOOKS/guard-generated.sh' <<<'$(edit_json /r/apex-ios/Apex.xcodeproj/project.pbxproj)'"
   [ "$status" -eq 2 ]
-  [[ "$output" == *"make -C apex-ios generate"* ]]
+  [[ "$output" == *"make -C apex-ios generate"* ]] || false
 }
 
 @test "guard blocks edits under Generated" {
@@ -94,7 +96,7 @@ stub() {
   export APEX_FAST_CMD="echo ran >>'$RAN'; echo 'Test testFoo failed'; exit 1"
   run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
   [ "$(jq -r .decision <<<"$output")" = "block" ]
-  [[ "$(jq -r .reason <<<"$output")" == *"make -C apex-ios fast failed"* ]]
+  [[ "$(jq -r .reason <<<"$output")" == *"make -C apex-ios fast failed"* ]] || false
   fast_ran
 }
 
@@ -127,6 +129,45 @@ stub() {
   git -C "$CLAUDE_PROJECT_DIR" add -A
   git -C "$CLAUDE_PROJECT_DIR" commit -q -m rn
   printf 'export const a = 2\n' >"$CLAUDE_PROJECT_DIR/apex-rn/app.ts"
+  export APEX_FAST_CMD="echo ran >>'$RAN'; exit 1"
+  run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+  fast_did_not_run
+}
+
+@test "a branch behind main is compared with where it left main, not with main's tip" {
+  git -C "$CLAUDE_PROJECT_DIR" checkout -q -b rn-work
+  mkdir -p "$CLAUDE_PROJECT_DIR/apex-rn"
+  printf 'export const a = 1\n' >"$CLAUDE_PROJECT_DIR/apex-rn/app.ts"
+  git -C "$CLAUDE_PROJECT_DIR" add -A
+  git -C "$CLAUDE_PROJECT_DIR" commit -q -m rn
+  # main moves on with a Swift change this branch never saw.
+  git -C "$CLAUDE_PROJECT_DIR" checkout -q main
+  set_swift 'let a = 2'
+  git -C "$CLAUDE_PROJECT_DIR" commit -q -am swift
+  git -C "$CLAUDE_PROJECT_DIR" checkout -q rn-work
+  export APEX_FAST_CMD="echo ran >>'$RAN'; exit 1"
+  run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+  fast_did_not_run
+}
+
+@test "origin/main is the base when it exists, even if the local main is stale" {
+  # origin/main gains a Swift commit; the local main never hears of it; the branch starts from origin/main.
+  local origin="$BATS_TEST_TMPDIR/origin.git"
+  git clone -q --bare "$CLAUDE_PROJECT_DIR" "$origin"
+  git -C "$CLAUDE_PROJECT_DIR" remote add origin "$origin"
+  set_swift 'let a = 2'
+  git -C "$CLAUDE_PROJECT_DIR" commit -q -am swift
+  git -C "$CLAUDE_PROJECT_DIR" push -q origin main
+  git -C "$CLAUDE_PROJECT_DIR" checkout -q -b rn-work
+  git -C "$CLAUDE_PROJECT_DIR" branch -f main HEAD~1
+  mkdir -p "$CLAUDE_PROJECT_DIR/apex-rn"
+  printf 'export const a = 1\n' >"$CLAUDE_PROJECT_DIR/apex-rn/app.ts"
+  git -C "$CLAUDE_PROJECT_DIR" add -A
+  git -C "$CLAUDE_PROJECT_DIR" commit -q -m rn
   export APEX_FAST_CMD="echo ran >>'$RAN'; exit 1"
   run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
   [ "$status" -eq 0 ]
@@ -181,7 +222,7 @@ stub() {
   run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
   [ "$status" -eq 0 ]
   [ "$(jq -r .decision <<<"$output")" = "block" ]
-  [[ "$(jq -r .reason <<<"$output")" == *"stop gate error"* ]]
+  [[ "$(jq -r .reason <<<"$output")" == *"stop gate error"* ]] || false
   [ -z "$(find "$TMPDIR" -maxdepth 1 -name 'apex-fast.lock.*')" ]
 }
 
@@ -199,7 +240,7 @@ stub() {
   export APEX_FAST_CMD="printf 'noise\n\033[31mFailing tests:\033[0m\n    HomeTests.testGreeting\n\nmore noise\n'; exit 1"
   run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
   [ "$(jq -r .reason <<<"$output" | head -n1)" = "    HomeTests.testGreeting" ]
-  [[ "$(jq -r .reason <<<"$output")" != *$'\033'* ]]
+  [[ "$(jq -r .reason <<<"$output")" != *$'\033'* ]] || false
 }
 
 @test "guard blocks a short flag after a backslash line continuation" {
@@ -218,7 +259,7 @@ stub() {
   run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
   [ "$status" -eq 0 ]
   [ "$(jq -r .decision <<<"$output")" = "block" ]
-  [[ "$(jq -r .reason <<<"$output")" == *"Test testFoo failed"* ]]
+  [[ "$(jq -r .reason <<<"$output")" == *"Test testFoo failed"* ]] || false
 }
 
 @test "stop gate blocks when make fast exits non-zero with no test output" {
@@ -238,8 +279,8 @@ stub() {
   done
   run "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
   [ "$status" -eq 0 ]
-  [[ "$(jq -r .systemMessage <<<"$output")" == *"still failing after 3 attempts"* ]]
-  [[ "$(jq -r .systemMessage <<<"$output")" == *"make -C apex-ios fast"* ]]
+  [[ "$(jq -r .systemMessage <<<"$output")" == *"still failing after 3 attempts"* ]] || false
+  [[ "$(jq -r .systemMessage <<<"$output")" == *"make -C apex-ios fast"* ]] || false
   [ ! -e "$TMPDIR/apex-stop-s1" ]
 }
 
@@ -255,7 +296,7 @@ nojq_path() {
   bin="$(nojq_path)"
   run env PATH="$bin" "$bin/bash" "$HOOKS/stop-gate.sh" <<<"$(stop_json)"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"jq missing: Fast gate skipped. Install it: brew install jq"* ]]
+  [[ "$output" == *"jq missing: Fast gate skipped. Install it: brew install jq"* ]] || false
 }
 
 @test "guards still fail closed with a message when jq is missing" {
@@ -264,7 +305,7 @@ nojq_path() {
   for script in format-on-edit guard-generated guard-hook-bypass; do
     run env PATH="$bin" "$bin/bash" "$HOOKS/$script.sh" <<<"$(stop_json)"
     [ "$status" -eq 2 ]
-    [[ "$output" == *"jq missing: brew install jq"* ]]
+    [[ "$output" == *"jq missing: brew install jq"* ]] || false
   done
 }
 
@@ -413,7 +454,7 @@ nojq_path() {
   commands="$(jq -r '.hooks[][].hooks[].command' "$REPO/.claude/settings.json")"
   [ "$(wc -l <<<"$commands")" -eq 5 ]
   while read -r command; do
-    [[ "$command" == '"$CLAUDE_PROJECT_DIR"/apex-ios/scripts/hooks/'*.sh ]]
+    [[ "$command" == '"$CLAUDE_PROJECT_DIR"/apex-ios/scripts/hooks/'*.sh ]] || false
     script="$REPO/${command#\"\$CLAUDE_PROJECT_DIR\"/}"
     [ -f "$script" ]
     [ -x "$script" ]

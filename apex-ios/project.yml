@@ -73,7 +73,8 @@ schemes:
       targets:
         - package: ApexKit/CoreTests
 
-  # Mac-only loop: no app target, no simulator. Package test targets are added here as they appear.
+  # Mac-only loop: no app target, no simulator. Every package test target but ScreensTests is listed here;
+  # `make fast` fails when one is missing (check-fast-scheme).
   Fast:
     build:
       targets:

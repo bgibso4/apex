@@ -513,11 +513,11 @@ The real proof is the run on the pull request in Task 8. If the `xcode-27` runne
 
 ### Task 8: Ship
 
-- [ ] **Step 1: Evidence from `ios-verifier`**
+- [x] **Step 1: Evidence from `ios-verifier`**
 
 One agent. Ask it to run, from the repo root, `make -C apex-ios fast`, `make -C apex-ios build` and `make -C apex-ios ci-checks`, and to return PASS or FAIL for each with wall times and any errors.
 
-- [ ] **Step 2: Push and open the pull request**
+- [x] **Step 2: Push and open the pull request**
 
 ```bash
 git push -u origin feat/ios-skeleton
@@ -526,7 +526,7 @@ gh pr create --base main --title "apex-ios: skeleton, hooks and the checks job" 
 
 The hand-off lists: the make targets that exist, the wall times of `fast` and `ci-checks`, the image opened (`apex-ios/build/launch.png`), and what was not verified: `make device` on Ben's phone, and the stop gate seen live (unless it was).
 
-- [ ] **Step 3: Review**
+- [x] **Step 3: Review**
 
 One fresh reviewer agent reads the branch diff against this plan and the spec sections named at the top. Fix what it finds; re-run the affected verification steps.
 

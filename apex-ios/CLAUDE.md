@@ -14,7 +14,7 @@ Foundation, plan 2 of 5 merged: the skeleton and the hooks. No product screen ex
 - **Format on edit** (`format-on-edit.sh`): formats edited Swift files under `apex-ios/`.
 - **Guards** (PreToolUse): `guard-generated.sh` blocks edits to the generated `.xcodeproj` and `Generated/` under `apex-ios/`; `guard-hook-bypass.sh` blocks the git hook-bypass flags named in AGENTS.md's hard rules.
 - A green stop gate means the Mac tests pass. It does not compile `Screens` or the app: run `make build`.
-- No hook acts on work outside `apex-ios/`, except the guard against bypassing git hooks, which applies to every commit.
+- No hook acts on work outside `apex-ios/`, except the guard against bypassing git hooks, which reads every Bash command in the repo.
 - Hook behaviour is covered by `make test-hooks`. Changing hook config needs Ben's OK.
 
 ## Verification

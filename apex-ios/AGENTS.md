@@ -68,7 +68,12 @@ Debug builds only; a Release build ignores them. Parsed in `Core/Launch/LaunchOp
 
 ## Import line
 
-Only `Screens` imports SwiftUI or UIKit. Every other module builds for macOS, so its tests run in `make fast`. The `no_ui_imports_in_mac_modules` lint rule and CI's Mac slice both catch a stray import, in a new module too: no list names the modules.
+Only `Screens` imports SwiftUI or UIKit. Every other module builds for macOS, so its tests run in `make fast`. Two checks hold the line:
+
+- The `no_ui_imports_in_mac_modules` lint rule rejects either import, in any spelling, in every module but `Screens`. It goes by path and names no modules, so a new module is covered from its first file.
+- The Mac slice (`make fast`, also in CI) compiles for macOS every module the `Fast` scheme's tests reach, so UIKit or an iOS-only API fails to build. SwiftUI compiles on macOS: only the lint rule catches that one.
+
+A new test target must be added to the `Fast` scheme in `project.yml` (`ScreensTests` is the one exception: it runs on the simulator). `make fast` fails until it is.
 
 ## Where tests go
 

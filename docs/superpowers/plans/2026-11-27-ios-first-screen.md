@@ -423,7 +423,7 @@ git add apex-ios && git commit -m "feat(ios): the gate's time report and ceiling
 **Files:**
 - Modify: `apex-ios/AGENTS.md`, `apex-ios/CLAUDE.md`
 
-- [ ] **Step 1: Update the rules files**
+- [x] **Step 1: Update the rules files**
 
 `AGENTS.md`, stating only what is true when this merges:
 
@@ -440,11 +440,11 @@ git add apex-ios && git commit -m "feat(ios): the gate's time report and ceiling
 
 Verify: `grep -c '—' apex-ios/AGENTS.md apex-ios/CLAUDE.md` prints 0 twice. Commit: `docs(ios): rules for screen models, pictures, journeys and the gate`.
 
-- [ ] **Step 2: Evidence from `ios-verifier`**
+- [x] **Step 2: Evidence from `ios-verifier`**
 
 One agent, the make targets only: `fast`, `build`, `ci-checks`, `gate`, each PASS or FAIL with wall times; the Mac, bats and fixture counts; the gate's time report copied whole; whether `git status --short` is clean afterwards.
 
-- [ ] **Step 3: Push and open the pull request**
+- [x] **Step 3: Push and open the pull request**
 
 ```bash
 git push -u origin feat/ios-first-screen
@@ -453,14 +453,14 @@ gh pr create --base main --title "apex-ios: the first screen, pictures, a journe
 
 The hand-off lists: the make targets added; `fast`, `ci-checks` and CI `checks` times before and after; the gate's build seconds, test seconds and report; the settle time and the cost of one picture against the one-second target; the journey's seconds; the ceiling and how it was set; the images opened (`build/home.noProgram-run.png`, `build/home-live.png`, the recorded reference, `build/compare/home.noProgram.png`, `build/frames/home.noProgram.png`) with the differences from the mock; the `needs-ben` issue; and plainly that CI did not run the simulator tests, so the gate's evidence is local.
 
-- [ ] **Step 4: Review**
+- [x] **Step 4: Review**
 
 One fresh reviewer agent on the most capable model reads the branch diff against this plan and the spec sections named at the top, leaving reference images out of the diff it reads. Fix what it finds, each fix with a test that failed first; re-run the affected steps.
 
-- [ ] **Step 5: Merge on green**
+- [x] **Step 5: Merge on green**
 
 Wait for the `checks` job on the last commit with `gh run watch <id> --exit-status`, and read its log for the counts. Then `gh pr merge --merge --delete-branch`, `git checkout main && git pull`, and delete `docs/ios-first-screen-plan` locally and on the remote.
 
-- [ ] **Step 6: Hand off**
+- [x] **Step 6: Hand off**
 
 Follow `docs/superpowers/handoff.md`: write plan 5, update the note, report to the lead, stop.

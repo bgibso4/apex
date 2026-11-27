@@ -18,7 +18,7 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 # Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
 DEVICE         ?= iPhone
 
-.PHONY: setup sim generate build fast run device
+.PHONY: setup sim generate build fast lint format test-lint unused unused-run run device
 
 # Fail loudly, with the install command, when a required tool is missing.
 setup:
@@ -44,6 +44,26 @@ build: sim generate
 fast: generate
 	set -o pipefail; xcodebuild test -project $(PROJECT) -scheme Fast \
 		-destination 'platform=macOS' -derivedDataPath $(DERIVED) | $(BEAUTIFY)
+
+SWIFT_DIRS := App Packages/ApexKit/Sources Packages/ApexKit/Tests
+
+# swift-format owns formatting; SwiftLint owns everything else. Both are strict.
+lint:
+	swiftlint lint --strict --quiet
+	swift format lint --strict --recursive $(SWIFT_DIRS)
+
+format:
+	swift format format --in-place --recursive $(SWIFT_DIRS)
+
+# Fixture tests for the SwiftLint custom rules.
+test-lint:
+	scripts/test-lint-rules.sh
+
+# Dead-code scan (.periphery.yml, strict). Builds with its own derived data, on this checkout's simulator.
+unused: generate unused-run
+
+unused-run: sim
+	periphery scan -- -destination '$(SIM_DEST)'
 
 # Run on this checkout's simulator. Named, never `booted`: another worktree's simulator may be booted too.
 run: build

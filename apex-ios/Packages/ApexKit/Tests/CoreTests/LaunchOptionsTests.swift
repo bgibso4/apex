@@ -15,6 +15,7 @@ struct LaunchOptionsTests {
     }
 
     @Test func unknownFlagsAreIgnored() {
-        #expect(!LaunchOptions(arguments: ["Apex", "-NSDocumentRevisionsDebugMode", "YES"], isDebugBuild: true).isUITest)
+        #expect(
+            !LaunchOptions(arguments: ["Apex", "-NSDocumentRevisionsDebugMode", "YES"], isDebugBuild: true).isUITest)
     }
 }

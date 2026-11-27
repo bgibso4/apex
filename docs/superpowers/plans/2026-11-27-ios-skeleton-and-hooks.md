@@ -530,7 +530,7 @@ The hand-off lists: the make targets that exist, the wall times of `fast` and `c
 
 One fresh reviewer agent reads the branch diff against this plan and the spec sections named at the top. Fix what it finds; re-run the affected verification steps.
 
-- [ ] **Step 4: Merge on green**
+- [x] **Step 4: Merge on green**
 
 ```bash
 gh pr checks --watch
@@ -539,6 +539,6 @@ gh pr merge --merge --delete-branch
 
 Only when the `checks` job passed and the review passed. A pull request with no checks reported is not green: find out why the workflow did not start. Then `git checkout main && git pull`.
 
-- [ ] **Step 5: Hand off**
+- [x] **Step 5: Hand off**
 
 Follow `docs/superpowers/handoff.md`: write plan 3, update the note, report to the lead, stop.

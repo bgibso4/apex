@@ -1,0 +1,658 @@
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>APEX iOS Foundations</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@800&display=swap">
+<style>
+/* Layout: one reading column (max 760px) under a sticky chip nav. Cards only for decisions, options and the model.
+   Single dark look, taken from APEX's own design system. */
+:root {
+  color-scheme: dark;
+  --field: #090A0C;
+  --field-mid: #0C0E11;
+  --halo: #141A22;
+  --card-top: #14161B;
+  --card-base: #0E1013;
+  --border: #20232A;
+  --border-lt: #2C3039;
+  --text: #EDEEF0;
+  --text-2: #A3A5AD;
+  --text-muted: #7C7E86;
+  --accent: #659BC8;
+  --accent-tint: rgba(101, 155, 200, 0.10);
+  --moss: #6CA383;
+  --moss-tint: rgba(108, 163, 131, 0.10);
+  --tonal: rgba(237, 238, 240, 0.06);
+  --on-accent: #0B0C0E;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-wordmark: "Exo 2", -apple-system, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r-card: 10px;
+  --r-nested: 6px;
+}
+* { box-sizing: border-box; }
+body {
+  background: radial-gradient(ellipse 90% 520px at 50% -60px, var(--halo) 0%, var(--field-mid) 55%, var(--field) 100%) no-repeat, var(--field);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--field); }
+.wrap {
+  max-width: 760px; margin: 0 auto; padding-block: 28px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px;
+}
+header.top { display: flex; flex-direction: column; gap: 10px; }
+.wordmark { font-family: var(--font-wordmark); font-weight: 800; font-size: 34px; letter-spacing: -0.5px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.sub { color: var(--text-2); margin: 0; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin: 0; }
+h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; margin: 0; text-wrap: balance; }
+h3 { font-size: 15px; font-weight: 700; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 64px; }
+.group { display: flex; flex-direction: column; gap: 10px; }
+ul, ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 68ch; }
+code { font-family: var(--font-mono); font-size: 0.88em; background: var(--tonal); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+a { color: var(--accent); }
+strong { font-weight: 700; }
+.muted { color: var(--text-2); }
+.small { font-size: 13px; }
+
+nav.chips {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  margin: -12px 0 -28px; padding-block: 10px;
+  background: linear-gradient(180deg, var(--field) 70%, transparent);
+}
+nav.chips .row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+nav.chips a {
+  flex: none; text-decoration: none; color: var(--text-2); font-size: 13px; font-weight: 600;
+  padding: 6px 12px; border-radius: 999px; background: var(--tonal);
+}
+nav.chips a:hover, nav.chips a:focus-visible { color: var(--text); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.card {
+  background: linear-gradient(180deg, var(--card-top), var(--card-base));
+  border: 1px solid var(--border); border-top-color: var(--border-lt);
+  border-radius: var(--r-card); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.tag.you { background: var(--moss-tint); color: var(--moss); }
+.tag.mine { background: var(--tonal); color: var(--text-2); }
+.tag.open { background: var(--accent-tint); color: var(--accent); }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--tonal); border-radius: var(--r-card); padding: 4px; align-self: flex-start; }
+.seg button {
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--text-2); background: transparent; border: 0;
+  padding: 7px 12px; border-radius: var(--r-nested); cursor: pointer; min-height: 34px;
+}
+.seg button[aria-pressed="true"] { background: var(--border-lt); color: var(--text); }
+
+.decisions { display: flex; flex-direction: column; }
+.decision { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); align-items: start; }
+.decision:first-child { border-top: 0; }
+.decision > div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.decision .why { color: var(--text-2); font-size: 13px; }
+@media (max-width: 520px) { .decision { grid-template-columns: 1fr; gap: 6px; } }
+
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); padding: 8px 12px 8px 0; white-space: nowrap; }
+td { padding: 9px 12px 9px 0; border-top: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-right: 0; }
+pre.tree { margin: 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; overflow-x: auto; color: var(--text-2); }
+pre.tree b { color: var(--text); font-weight: 600; }
+pre.tree .new { color: var(--accent); }
+pre.tree .gone { color: var(--text-muted); }
+
+.model { gap: 18px; }
+.sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px 20px; }
+.slider { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.slider label { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--text-2); }
+.slider output { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.bar { display: flex; flex-direction: column; gap: 5px; }
+.bar .head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--text-2); }
+.bar .head b { color: var(--text); font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
+.track { position: relative; height: 14px; border-radius: 999px; background: var(--tonal); }
+.fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; min-width: 4px; transition: width 300ms cubic-bezier(.2,.8,.2,1); }
+.fill.old { background: var(--text-muted); }
+.fill.new { background: var(--accent); }
+.fill.over { background: var(--text); }
+.ceiling { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--moss); transition: left 300ms cubic-bezier(.2,.8,.2,1); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--text-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+.verdict { font-size: 14px; }
+
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.option { text-align: left; }
+.option[aria-pressed="true"] { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-tint), transparent 70%), linear-gradient(180deg, var(--card-top), var(--card-base)); }
+.option .pro, .option .con { font-size: 13px; color: var(--text-2); }
+.option .pick { color: var(--accent); font-size: 12px; font-weight: 600; }
+
+.steps { counter-reset: step; list-style: none; padding: 0; gap: 0; max-width: none; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
+.steps li:first-child { border-top: 0; }
+.steps li::before { content: counter(step); width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--accent); color: var(--accent); font-size: 13px; font-weight: 700; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.steps li > div { min-width: 0; }
+
+.reply textarea {
+  width: 100%; min-height: 150px; resize: vertical; font-family: var(--font-mono); font-size: 13px; line-height: 1.5;
+  color: var(--text); background: var(--field); border: 1px solid var(--border); border-radius: var(--r-nested); padding: 10px 12px;
+}
+.btn { font: inherit; font-size: 15px; font-weight: 700; color: var(--on-accent); background: var(--accent); border: 0; border-radius: var(--r-card); min-height: 46px; padding: 0 20px; cursor: pointer; align-self: flex-start; }
+.qa { display: flex; flex-direction: column; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .fill, .ceiling { transition: none; } }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Design doc &middot; Approved by Ben &middot; 27 Nov 2026</p>
+  <h1 class="wordmark">APEX iOS Foundations</h1>
+  <p class="sub">How this repo gets set up so agents can build the native app from your mocks, in pull requests that merge when CI is green, without waiting on you. Nothing here is built yet.</p>
+</header>
+
+<nav class="chips" aria-label="Sections"><div class="row">
+  <a href="#why">Why</a><a href="#decisions">Decisions</a><a href="#layout">Repo layout</a><a href="#project">The iOS project</a>
+  <a href="#tests">Tests</a><a href="#speed">Keeping it fast</a><a href="#mocks">Mocks</a><a href="#flow">Workflow</a>
+  <a href="#later">Crashes and backend</a><a href="#order">Build order</a>
+</div></nav>
+
+<section id="why">
+  <p class="eyebrow">Why</p>
+  <h2>The tooling decides how fast and how well everything after it gets built</h2>
+  <p>You spent months on high-fidelity mocks with motion. Agents will turn them into a native app. Their work is only as good as the checks around it: what they can run, what they can see, and what stops them calling something done when it isn't. Filing-cabinet proved the approach. It also showed where it hurts: the simulator tests grew until an end-of-task run took over 20 minutes.</p>
+  <div class="grid3">
+    <div class="card"><h3>Goals</h3><ul class="small">
+      <li>An agent can take a segment from mock to a merged pull request alone.</li>
+      <li>Every screen is checked against its mock by image, by the agent.</li>
+      <li>Test time is measured from day one and has a ceiling.</li>
+      <li>The React Native app and the iOS app share only the repo root.</li>
+    </ul></div>
+    <div class="card"><h3>Not goals</h3><ul class="small">
+      <li>Accessibility: VoiceOver, Reduce Motion, larger text, audits.</li>
+      <li>Telemetry or analytics.</li>
+      <li>Accounts, server sync, TestFlight. All later.</li>
+      <li>Any product screen beyond one small proof.</li>
+    </ul></div>
+    <div class="card"><h3>Failure, even if it works</h3><ul class="small">
+      <li>An agent says done while tests fail or a screen was never looked at.</li>
+      <li>The suite creeps back toward 20 minutes.</li>
+      <li>Work stalls waiting for you.</li>
+      <li>iOS tooling leaks into the React Native app, or the reverse.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="decisions">
+  <p class="eyebrow">Decisions</p>
+  <h2>What you decided and what I decided</h2>
+  <div class="seg" role="group" aria-label="Filter decisions">
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="you" aria-pressed="false">You decided</button>
+    <button type="button" data-filter="mine" aria-pressed="false">My calls</button>
+  </div>
+  <div class="decisions" id="decisionList">
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The suite is kept fast by a time ceiling.</strong><span class="why">Option A in <a href="#speed">Keeping it fast</a>, chosen 27 Nov.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Agents push branches, open pull requests, and merge them when CI is green.</strong><span class="why">Chosen 27 Nov: "everything gets green, everything looks good, just go." The conditions are in <a href="#flow">Workflow</a>.</span></div></div>
+
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Each segment runs in a fresh agent session, handed off through Herdr.</strong><span class="why">Asked for on 27 Nov. See <a href="#flow">Workflow</a>.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The data model and backend get designed before product work starts.</strong><span class="why">Raised 27 Nov. Its own design round, in parallel with the tooling. See <a href="#later">Crashes and backend</a>.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The React Native app moves into its own folder.</strong><span class="why">It keeps working and stays frozen. Nothing is deleted.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Hooks are committed in <code>.claude/settings.json</code>.</strong><span class="why">An exception to your global rule, as filing-cabinet has.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>APEX owns its design system and tokens. Cadre is a reference, never a dependency.</strong><span class="why">The export's design system is loaded into the iOS folder. Updating Cadre from it is a separate follow-up.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>No accessibility work.</strong><span class="why">Also recorded in your motion log on 25 Nov.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>No telemetry. Crash reports only, free. No accounts for now.</strong></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Filing-cabinet's workflow is the base. Agents never wait on you. You review when you want; nothing waits on a review.</strong></div></div>
+
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>Folders are <code>apex-rn/</code> and <code>apex-ios/</code>. <code>workers/</code> and <code>docs/</code> stay at the root.</strong><span class="why">The Worker outlives the React Native app. The existing docs are shared history; moving 165 files buys nothing.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>iOS 27 minimum. iPhone, portrait, dark only, English only.</strong><span class="why">July's spec said iOS 26. Your Mac runs Xcode 27.2 and the mocks were audited against iOS 27.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>One test tier. No nightly run.</strong><span class="why">Every simulator test runs before a pull request can merge. A test parked in a nightly run is a test nobody reads.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>The pinned simulator is an iPhone 17 on iOS 27.0.</strong><span class="why">402 &times; 874 points, the same as your iPhone 16 Pro. The mocks are drawn at 390 &times; 844, so comparisons are side by side, never pixel-matched.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>Bundle ID <code>com.cadre.apex</code>.</strong><span class="why">A new ID lets both apps sit on your phone. It matches filing-cabinet's prefix and can change until the first TestFlight upload.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>The exploration screenshots stay out of git.</strong><span class="why"><code>shots/</code> is 355 images and about 130 MB. The demos, decision logs and notes carry everything locked. Explorations pages show missing images without it.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>When a mock doesn't cover something, the agent builds what the design rules imply, flags it for you and keeps going.</strong><span class="why">Filing-cabinet's rule was to stop and ask. That conflicts with never waiting.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>Identifiers for UI tests are added only where a journey needs one.</strong><span class="why">Filing-cabinet tagged every control and tested the coverage. That was accessibility work.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>New iOS specs and plans live in <code>apex-ios/docs/</code>.</strong><span class="why">This doc sits in the root <code>docs/</code> because it covers both sides.</span></div></div>
+    <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>Same stack as filing-cabinet.</strong><span class="why">XcodeGen, Swift 6 language mode, Swift Testing, SwiftLint, swift-format, Periphery, swift-snapshot-testing pinned to an exact version.</span></div></div>
+  </div>
+</section>
+
+<section id="layout">
+  <p class="eyebrow">Repo layout</p>
+  <h2>Two folders that share only the root</h2>
+  <p>Today the React Native app is the repo root. It moves into <code>apex-rn/</code> with <code>git mv</code>, so history follows. When it retires, removing it is one folder.</p>
+  <div class="seg" role="group" aria-label="Layout before or after">
+    <button type="button" data-layout="after" aria-pressed="true">After</button>
+    <button type="button" data-layout="before" aria-pressed="false">Today</button>
+  </div>
+  <div class="card">
+<pre class="tree" id="treeAfter">apex/
+├── <b>CLAUDE.md</b>            <span class="new">a short pointer: which folder, which rules</span>
+├── <b>.claude/settings.json</b> <span class="new">hooks, committed; they act on apex-ios only</span>
+├── <b>.github/workflows/</b>   <span class="new">rn.yml and ios.yml, each runs only for its own folder</span>
+├── <b>apex-rn/</b>             <span class="new">the whole React Native app, frozen</span>
+│   ├── CLAUDE.md         today's root CLAUDE.md, paths updated
+│   ├── app/ src/ __tests__/ __mocks__/ assets/ modules/ plugins/
+│   └── package.json and its config files
+├── <b>apex-ios/</b>            <span class="new">everything native</span>
+│   ├── AGENTS.md CLAUDE.md Makefile project.yml
+│   ├── App/ Packages/ApexKit/ SnapshotTests/ UITests/
+│   ├── design/           your export, tokens.json, reference images
+│   ├── scripts/          and scripts/hooks/
+│   └── docs/             iOS specs, plans, roadmap
+├── <b>workers/health-api/</b>  unchanged
+├── <b>PRIVACY.md</b>           unchanged: its web address may be registered elsewhere
+└── <b>docs/</b>                unchanged: shared history</pre>
+<pre class="tree" id="treeBefore" hidden>apex/
+├── <b>CLAUDE.md</b>            React Native rules
+├── <b>.github/workflows/</b>   ci.yml: TypeScript, lint, Jest
+├── app/ src/ __tests__/ __mocks__/ assets/ modules/ plugins/
+├── package.json babel.config.js metro.config.js tsconfig.json ...
+├── <b>workers/health-api/</b>
+└── <b>docs/</b>
+<span class="gone">    no iOS project, no hooks, no .claude/settings.json</span></pre>
+  </div>
+  <div class="group">
+    <h3>How the rules stay separate</h3>
+    <ul>
+      <li>The root <code>CLAUDE.md</code> holds no rules of its own. It says which folder owns which work and that one pull request touches one side.</li>
+      <li><code>apex-ios/CLAUDE.md</code> is <code>@AGENTS.md</code> plus Claude-only notes, as in filing-cabinet. <code>apex-ios/AGENTS.md</code> is the single copy of the iOS rules.</li>
+      <li><code>apex-rn/CLAUDE.md</code> is today's file with one addition: the app is frozen, critical fixes only.</li>
+      <li>Hooks check paths. A session that only touches <code>apex-rn/</code> never triggers the iOS gate.</li>
+      <li>Of the root <code>.claude/</code> folder, only <code>settings.json</code> is committed. Skills, local settings and launch files stay untracked, as your global rule says.</li>
+    </ul>
+  </div>
+  <div class="group">
+    <h3>Proving the move broke nothing</h3>
+    <p>From <code>apex-rn/</code>: Jest, the TypeScript check and lint pass as they do today, and a clean prebuild plus a simulator build succeeds. The first install on your phone from the new folder is yours to do whenever you next reload it; the doc for it is one command. Arsenal's bootstrap for apex is updated to install in <code>apex-rn/</code>. Old branches such as <code>feat/exercise-specific-fields</code> will conflict with the move; they are stale and stay as they are.</p>
+  </div>
+</section>
+
+<section id="project">
+  <p class="eyebrow">The iOS project</p>
+  <h2>Filing-cabinet's shape, started small</h2>
+  <p>Logic lives in one local Swift package, <code>ApexKit</code>. Any module that doesn't import SwiftUI or UIKit must build for macOS, so its tests run on the Mac in seconds with no simulator. A lint rule and CI both catch a stray import. The app target is thin: an entry point and wiring.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Module</th><th>Holds</th><th>Tests run on</th><th>Arrives</th></tr></thead>
+    <tbody>
+      <tr><td><code>Core</code></td><td>Shared vocabulary, launch options, the injected clock</td><td>Mac</td><td>Foundation</td></tr>
+      <tr><td><code>ScreenModels</code></td><td>One observable model per screen. All behaviour lives here</td><td>Mac</td><td>Foundation</td></tr>
+      <tr><td><code>Screens</code></td><td>SwiftUI views, the design system, generated tokens</td><td>Simulator</td><td>Foundation</td></tr>
+      <tr><td><code>TestSupport</code></td><td>Fakes and fixtures, shared by tests, previews and launch flags</td><td>Mac</td><td>Foundation</td></tr>
+      <tr><td><code>Training</code></td><td>The ported domain logic: 1RM, progression, program resolution, PRs</td><td>Mac</td><td>With the first plan that needs it</td></tr>
+      <tr><td><code>Store</code></td><td>The database</td><td>Mac</td><td>After the backend conversation</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted small">A module exists only once it has code. Names beyond the first four are the builder's to settle.</p>
+
+  <div class="group">
+    <h3>One entry point</h3>
+    <p><code>make</code>, run as <code>make -C apex-ios &lt;target&gt;</code>. Agents and you use the same commands.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Command</th><th>Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>setup</code></td><td>Checks tools, installs the git hook, creates this checkout's simulator, generates the project</td></tr>
+        <tr><td><code>fast</code></td><td>Mac tests. No simulator. The loop agents live in</td></tr>
+        <tr><td><code>affected</code></td><td>The simulator tests the branch's changes touch. The end-of-task run</td></tr>
+        <tr><td><code>retest ONLY=</code></td><td>Re-runs named tests without rebuilding. The while-fixing run</td></tr>
+        <tr><td><code>gate</code></td><td>Exactly what CI runs before a merge, with the time report</td></tr>
+        <tr><td><code>mocks</code></td><td>Renders the reference image for each designed state from your demos</td></tr>
+        <tr><td><code>compare STATE=</code></td><td>Writes mock and app side by side for one state</td></tr>
+        <tr><td><code>frames STATE=</code></td><td>Records the simulator and writes a contact sheet of frames, for motion</td></tr>
+        <tr><td><code>run STATE=</code></td><td>Launches the simulator straight into a named state</td></tr>
+        <tr><td><code>design-import ZIP=</code></td><td>Replaces the design folder from a new export and re-renders the references</td></tr>
+        <tr><td><code>build</code> <code>lint</code> <code>format</code> <code>unused</code> <code>snapshots-record</code> <code>device</code></td><td>As in filing-cabinet</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="group">
+    <h3>Hooks, ported from filing-cabinet</h3>
+    <ul>
+      <li><strong>Stop gate.</strong> An agent can't finish while the Mac tests fail on the Swift it changed. After three failed attempts it hands back and says so.</li>
+      <li><strong>Format on edit.</strong> Every edited Swift file is formatted.</li>
+      <li><strong>Guards.</strong> Generated files can't be hand-edited. Git hooks can't be bypassed.</li>
+      <li><strong>Pre-commit.</strong> Lint and format check, only when iOS files are staged.</li>
+    </ul>
+    <p>All of it has its own tests, as in filing-cabinet. Lint config, hook config and test tolerances change only with your OK.</p>
+  </div>
+
+  <div class="group">
+    <h3>Parallel agents don't collide</h3>
+    <p>Filing-cabinet has one shared simulator. Here each checkout gets its own, named after the worktree and created on demand, and its own build folder. Two agents in two worktrees can run simulator tests at once.</p>
+  </div>
+</section>
+
+<section id="tests">
+  <p class="eyebrow">Tests</p>
+  <h2>Three layers, and what each one is for</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Layer</th><th>Proves</th><th>Runs on</th><th class="num">Cost each</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Mac tests</strong></td><td>Behaviour: every rule, state change and edge case, through the screen models and domain logic</td><td>Mac</td><td class="num">milliseconds</td></tr>
+      <tr><td><strong>Pictures</strong></td><td>Appearance: one image per designed state, compared with the last approved image and shown beside the mock</td><td>Simulator</td><td class="num">about 1 to 2 s</td></tr>
+      <tr><td><strong>Journeys</strong></td><td>Wiring: the real app, launched, with a real database on disk, moving between screens, killed and restored</td><td>Simulator</td><td class="num">5 to 30 s</td></tr>
+    </tbody>
+  </table></div>
+  <div class="group">
+    <h3>Dropped from filing-cabinet</h3>
+    <ul>
+      <li>The accessibility audit target and its exemption list.</li>
+      <li>Light mode and largest-text pictures. One picture per state, where filing-cabinet drew three.</li>
+      <li>Reduce Motion code paths and their flags.</li>
+      <li>The test that every control carries an identifier.</li>
+      <li>The nightly run and the issues it opened.</li>
+    </ul>
+  </div>
+  <div class="group">
+    <h3>One catalog of designed states</h3>
+    <p>Each state you designed gets a name, such as <code>home.noProgram</code> or <code>workout.midSession</code>. That one name drives its fixture, its picture test, its SwiftUI preview, its mock reference, <code>make run STATE=</code> and <code>make compare STATE=</code>. A state is added once and everything else follows.</p>
+  </div>
+  <div class="group">
+    <h3>What runs when</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>When</th><th>Runs</th><th class="num">Target time</th></tr></thead>
+      <tbody>
+        <tr><td>An agent stops</td><td>Mac tests, when Swift changed</td><td class="num">under 1 min</td></tr>
+        <tr><td>Fixing one test</td><td><code>retest</code>: that test, no rebuild</td><td class="num">seconds</td></tr>
+        <tr><td>End of a task</td><td><code>affected</code>: the touched screens' pictures and journeys</td><td class="num">1 to 6 min</td></tr>
+        <tr><td>Pull request ready</td><td>CI: checks, every picture, every journey</td><td class="num">about 12 min</td></tr>
+        <tr><td>Merge to main</td><td>Checks only, when the PR already passed on the same files</td><td class="num">about 5 min</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted small">Targets, to be replaced by measurements in the foundation. CI starts as one simulator job that builds once. It is split only if the ceiling forces it.</p>
+  </div>
+</section>
+
+<section id="speed">
+  <p class="eyebrow">Keeping it fast &middot; option A chosen</p>
+  <h2>What I meant, and whether it's the right way</h2>
+  <p>You asked. "Hard cap on journeys" and "time budgets" were two names for one worry: nothing in filing-cabinet pushed back when a slow test was added. Each one cost five seconds and looked harmless. A hundred and thirteen of them cost ten minutes. So the question is what pushes back.</p>
+  <div class="group">
+    <h3>First, most of the saving is structural and needs no enforcement</h3>
+    <ul>
+      <li><strong>Behaviour is tested on the Mac.</strong> In filing-cabinet many journeys existed to prove a behaviour. Here a behaviour test goes through the screen model and costs milliseconds.</li>
+      <li><strong>One picture per state.</strong> Dark only, one text size.</li>
+      <li><strong>A journey is for a flow across the real app's seams.</strong> Launch, database on disk, navigation, kill and restore. Most screens add none. I expect six to ten at cutover.</li>
+    </ul>
+  </div>
+
+  <div class="card model">
+    <h3>See the difference at APEX's size</h3>
+    <div class="seg" role="group" aria-label="What the change touches">
+      <button type="button" data-scope="shared" aria-pressed="true">A change to shared code</button>
+      <button type="button" data-scope="one" aria-pressed="false">A change to one screen</button>
+    </div>
+    <div class="sliders">
+      <div class="slider"><label for="mScreens">Screens <output id="oScreens">16</output></label><input id="mScreens" type="range" min="4" max="30" value="16"></div>
+      <div class="slider"><label for="mStates">Designed states per screen <output id="oStates">8</output></label><input id="mStates" type="range" min="2" max="14" value="8"></div>
+      <div class="slider"><label for="mPic">Seconds per picture <output id="oPic">2.2</output></label><input id="mPic" type="range" min="0.5" max="2.2" step="0.1" value="2.2"></div>
+      <div class="slider"><label for="mJourneys">Journeys <output id="oJourneys">8</output></label><input id="mJourneys" type="range" min="0" max="40" value="8"></div>
+      <div class="slider"><label for="mCeil">Ceiling, minutes <output id="oCeil">6</output></label><input id="mCeil" type="range" min="3" max="15" value="6"></div>
+    </div>
+    <div class="bars">
+      <div class="bar"><div class="head"><span>Filing-cabinet's original setup at this size</span><b id="tOld">0</b></div><div class="track"><div class="fill old" id="fOld"></div><div class="ceiling" data-ceil></div></div></div>
+      <div class="bar"><div class="head"><span>This design</span><b id="tNew">0</b></div><div class="track"><div class="fill new" id="fNew"></div><div class="ceiling" data-ceil></div></div></div>
+    </div>
+    <div class="legend"><span><i style="background:var(--text-muted)"></i>Three pictures a state, ten journeys and two audits a screen</span><span><i style="background:var(--accent)"></i>One picture a state, journeys as set</span><span><i style="background:var(--moss)"></i>The ceiling</span></div>
+    <p class="verdict" id="verdict"></p>
+    <p class="muted small">A model, using rates measured on your Mac in filing-cabinet: 2.2 s a picture, 5.3 s a journey, 7 s an audit. It counts test time only, with no build. Real APEX numbers are measured in the foundation.</p>
+  </div>
+
+  <p>Drag the picture cost down and the screen count up. Two things show. A one-screen change is always quick. And at APEX's size, pictures alone approach the ceiling at 2.2 seconds each, which is why the foundation must measure and cut that cost. Half of it in filing-cabinet was a one-second wait before each picture.</p>
+
+  <div class="group">
+    <h3>Then, what pushes back when the suite grows anyway</h3>
+    <div class="options" id="speedOptions">
+      <div class="card option" data-choice="A" aria-pressed="true">
+        <h3>A &middot; A time ceiling</h3>
+        <p class="small">The gate has a ceiling on test time, set at about twice what it measures when first recorded. Every pull request shows the total, the change against main and the five slowest tests. Over 80% it warns. Over the ceiling the pull request fails until something is sped up, moved to the Mac, or removed. Raising the ceiling needs your OK.</p>
+        <p class="small">It is checked in CI, against CI's own timings. Locally, <code>make gate</code> prints the same report and never fails on time.</p>
+        <p class="pro">For: measures the thing you care about. Agents can fix a breach without you.</p>
+        <p class="con">Against: timing varies run to run. The headroom is what keeps that from tripping it.</p>
+        <p class="pick">Chosen by Ben, 27 Nov</p>
+      </div>
+      <div class="card option" data-choice="B">
+        <h3>B &middot; An approved list</h3>
+        <p class="small">The journeys are a named list in one file, as filing-cabinet's smoke set was. Adding one needs your OK.</p>
+        <p class="pro">For: simple, and never fails by chance.</p>
+        <p class="con">Against: it counts tests when the problem is minutes. It doesn't cover pictures. An agent that wants a new journey waits on you.</p>
+      </div>
+      <div class="card option" data-choice="C">
+        <h3>C &middot; Rules and a report</h3>
+        <p class="small">The placement rules above, plus the timing report on every pull request. Nothing fails on time.</p>
+        <p class="pro">For: nothing new that can block.</p>
+        <p class="con">Against: this is roughly where filing-cabinet was. Each addition looked fine on its own.</p>
+      </div>
+    </div>
+    <p>With A there is no separate count cap on journeys. Every journey runs in the gate, so each one spends from the same ceiling. I'm withdrawing "hard cap" as its own idea. Under all three, a single test that runs longer than 60 seconds fails, which stops hangs and one giant journey.</p>
+  </div>
+</section>
+
+<section id="mocks">
+  <p class="eyebrow">Mocks</p>
+  <h2>From your export to an image the agent can check</h2>
+  <div class="group">
+    <h3>The export lives in <code>apex-ios/design/</code></h3>
+    <p>Imported from <code>~/Desktop/Home screen redesign brief-project.zip</code>: the demos, the phone-only pages in <code>app/</code>, every decision log, the build notes, the design system README, the fonts and the Explorations pages. <code>make design-import ZIP=</code> replaces it from a new export in one step, so the remaining screens and later changes arrive as an ordinary diff. Your export's own rules hold: only options stamped Locked count, the highest turn wins, and where a demo and a Motion tile differ the tile is right.</p>
+  </div>
+  <div class="group">
+    <h3>Reference images are generated</h3>
+    <p>I rendered <code>app/home.dc.html</code> in headless Chrome at 390 &times; 844 and it came out correct. <code>make mocks</code> does that for every named state and commits the images. A demo's default state needs nothing more. Other states are reached by a short script that clicks the demo's own switches; the foundation proves this on one of them. A state that can't be reached that way gets a hand-captured image.</p>
+  </div>
+  <div class="group">
+    <h3>Two checks, two jobs</h3>
+    <ul>
+      <li><strong>Against the mock:</strong> <code>make compare</code> puts the mock and the app side by side. The agent opens the image and lists it in the hand-off. This is judgement, since HTML and native never match to the pixel.</li>
+      <li><strong>Against itself:</strong> the picture test fails when a screen changes from its last approved image. A changed reference is named in the commit with the reason.</li>
+    </ul>
+  </div>
+  <div class="group">
+    <h3>Tokens</h3>
+    <p><code>apex-ios/design/tokens.json</code> is written from the export's design system: colours, the type scale, spacing, radii and motion timings. A committed generator turns it into Swift and colour assets. Views use only generated tokens; a lint rule rejects raw values. Nothing depends on Cadre.</p>
+  </div>
+  <div class="group">
+    <h3>Motion</h3>
+    <ul>
+      <li>Your three timings and every locked moment become named tokens. Views animate only with those.</li>
+      <li><code>make frames</code> gives the agent a strip of frames to check order and timing against the Motion tile.</li>
+      <li>UI tests run with animations off, so motion never slows or breaks them.</li>
+      <li>How it feels on a phone is yours to judge. Each segment lists its moments for you in one issue. It never blocks the next segment.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="flow">
+  <p class="eyebrow">Workflow</p>
+  <h2>How a segment gets built and merged without you</h2>
+  <ol class="steps">
+    <li><div><strong>Take the next segment</strong> from <code>apex-ios/docs/roadmap.md</code>, the ordered list of what to build.</div></li>
+    <li><div><strong>Write its plan</strong> from the demo, the decision log and the build notes.</div></li>
+    <li><div><strong>Build it test-first.</strong> The stop gate keeps the Mac tests green throughout.</div></li>
+    <li><div><strong>Run <code>affected</code> and <code>compare</code></strong> for every state touched, and open the images.</div></li>
+    <li><div><strong>A second agent reviews</strong> the branch. Findings are fixed.</div></li>
+    <li><div><strong>Open the pull request</strong> with the images and anything not verified.</div></li>
+    <li><div><strong>CI is green: merge it</strong> and start the next segment from main.</div></li>
+  </ol>
+  <div class="group">
+    <h3>When an agent may merge</h3>
+    <p>You approved this on 27 Nov. A pull request merges without you when all of these hold:</p>
+    <ul>
+      <li>Every CI check is green. None skipped, none re-run until it passed by luck.</li>
+      <li>The second agent's review has passed.</li>
+      <li>The hand-off lists the images the agent opened, and states plainly anything it didn't verify.</li>
+    </ul>
+    <p>It merges with a merge commit and deletes the branch. While CI runs, the next segment may start on top of the open branch.</p>
+  </div>
+  <div class="group">
+    <h3>What still waits for you</h3>
+    <ul>
+      <li>Any change to lint config, hook config, test tolerances or the time ceiling. That pull request stays open until you say yes.</li>
+      <li>Anything that touches production: the Worker, its database, secrets.</li>
+      <li>Force-pushes and anything that rewrites <code>main</code>. Never done.</li>
+    </ul>
+    <p>Anything only you can judge, such as a gap in a mock or how a motion feels on the phone, becomes a GitHub issue labelled <code>needs-ben</code> with the default the agent took. Work continues on that default.</p>
+  </div>
+  <div class="group">
+    <h3>A fresh session for each segment</h3>
+    <p>You asked for this on 27 Nov, to stop one long session filling up and getting worse. One segment, one session:</p>
+    <ul>
+      <li>When a pull request merges, the session writes the next plan, updates the hand-off note, starts a new agent in a new Herdr tab named for the segment, and stops.</li>
+      <li>The new session starts from files, never from a conversation: the design doc, the plan with its ticked boxes, and <code>docs/superpowers/handoff.md</code>.</li>
+      <li>A session also hands off mid-segment, at a task boundary, when its context is getting long.</li>
+      <li>Finished tabs are left for you to close. Nothing closes a tab it didn't open, and never the project's first tab.</li>
+    </ul>
+    <p class="muted small">The Herdr commands are personal tooling, so they become an arsenal skill and are not committed here. Until that exists they are written out in the hand-off note.</p>
+  </div>
+</section>
+
+<section id="later">
+  <p class="eyebrow">Crashes and backend</p>
+  <h2>Decided now, built later</h2>
+  <div class="group">
+    <h3>Crash reports</h3>
+    <p>No SDK and no service. The app records Apple's own crash and hang diagnostics to a file, and one command copies them off your phone when it's plugged in. Once the app is on TestFlight, Xcode shows crashes with no code at all. Logging is Apple's logger. This is built when the app first goes on your phone, not in the foundation.</p>
+  </div>
+  <div class="group">
+    <h3>Backend</h3>
+    <p>Not part of the tooling, but the first product segment can't start without it: the data model is a foundation too (Ben, 27 Nov). It gets its own design round with you, run while the tooling is being built, and it must be approved before any screen that stores data. What that round starts from:</p>
+    <ul>
+      <li>The redesign changes the data whatever the server is: exercises keyed by ID, muscle tags, a generic cardio record, more than one session a day, a session's planned day and its real date. July's rule of no schema changes until cutover collides with that and has to be revisited.</li>
+      <li>Today's Worker uses one shared key. That works for you alone and has no accounts.</li>
+      <li>Whoop sign-in needs a server whatever else is chosen.</li>
+      <li>The iCloud file backup already exists and needs no account.</li>
+      <li>For other people without accounts, iCloud's private database is the route: each person's own iCloud is the account.</li>
+    </ul>
+  </div>
+  <div class="group">
+    <h3>What this changes in July's migration spec</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>July said</th><th>Now</th></tr></thead>
+      <tbody>
+        <tr><td>iOS 26</td><td>iOS 27</td></tr>
+        <tr><td>Tokens generated from the Cadre repo</td><td>Tokens owned by <code>apex-ios/design/</code></td></tr>
+        <tr><td>Beacon's test harness, identifier enforcement, accessibility audits</td><td>Filing-cabinet's harness, without the accessibility parts</td></tr>
+        <tr><td>React Native app stays at the root</td><td>Moves to <code>apex-rn/</code></td></tr>
+        <tr><td>Screen list from July</td><td>The export's inventory is the list</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted small">Everything else in that spec stands until revisited: the data migration, the cutover steps, the Worker.</p>
+  </div>
+</section>
+
+<section id="order">
+  <p class="eyebrow">Build order</p>
+  <h2>The foundation as its own stack</h2>
+  <p>The plan will settle the details. This is the shape: six pull requests, each one usable on its own.</p>
+  <ol class="steps">
+    <li><div><strong>Move the React Native app</strong> into <code>apex-rn/</code>. Root pointer file, CI limited to its folder, proof that it still tests and builds.</div></li>
+    <li><div><strong>The iOS skeleton.</strong> Project, package, Makefile, lint, <code>AGENTS.md</code>, an app that launches to an empty screen, Mac tests running.</div></li>
+    <li><div><strong>Hooks.</strong> Stop gate, format on edit, guards, pre-commit, with their tests.</div></li>
+    <li><div><strong>Design.</strong> The export imported, <code>tokens.json</code> and its generator, <code>make mocks</code>.</div></li>
+    <li><div><strong>One real screen, end to end.</strong> The tab bar and Home with no program: screen model, picture, one journey (the app launches to Home and the tabs switch), <code>compare</code>, <code>frames</code>, the time report and the ceiling.</div></li>
+    <li><div><strong>CI.</strong> Checks and the gate for iOS, and the skip for a merge that already passed.</div></li>
+  </ol>
+  <div class="group">
+    <h3>Left to the builder</h3>
+    <ul>
+      <li>How pictures are taken, and how far the per-picture cost can come down. Target: one second or less.</li>
+      <li>The format of the state catalog and of the file that maps states to demos.</li>
+      <li>How the mock renderer drives a demo, and whether React is vendored so it runs offline.</li>
+      <li>Script internals, the SwiftLint rule set, CI caching.</li>
+    </ul>
+  </div>
+  <div class="group">
+    <h3>Follow-ups, not in this work</h3>
+    <ul>
+      <li>The roadmap of product segments, written as the foundation finishes.</li>
+      <li>The data and backend design round, started in parallel with the tooling.</li>
+      <li>A Herdr hand-off skill in arsenal.</li>
+      <li>TestFlight uploads, from filing-cabinet's scripts.</li>
+      <li>Bringing Cadre's design reference up to date from APEX's.</li>
+      <li>Crash capture, with the first build on your phone.</li>
+    </ul>
+  </div>
+  <div class="group">
+    <h3>Risks</h3>
+    <ul>
+      <li>The design is about 90% done. Re-imports will happen, which is why import is one command.</li>
+      <li>Merging on green means a mistake no check catches reaches main before you see it. The review agent and the image checks are the guard, and any merge can be reverted.</li>
+      <li>The picture cost is unknown until measured. If it stays near two seconds, the gate needs a second CI job sooner.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var all = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+  var state = { scope: "shared" };
+
+  function press(buttons, chosen) {
+    buttons.forEach(function (b) { b.setAttribute("aria-pressed", b === chosen ? "true" : "false"); });
+  }
+
+  // Decision filter
+  var filters = all("[data-filter]");
+  filters.forEach(function (button) {
+    button.addEventListener("click", function () {
+      press(filters, button);
+      var kind = button.dataset.filter;
+      all("#decisionList .decision").forEach(function (row) { row.hidden = kind !== "all" && row.dataset.kind !== kind; });
+    });
+  });
+
+  // Layout before and after
+  var layouts = all("[data-layout]");
+  layouts.forEach(function (button) {
+    button.addEventListener("click", function () {
+      press(layouts, button);
+      $("treeAfter").hidden = button.dataset.layout !== "after";
+      $("treeBefore").hidden = button.dataset.layout !== "before";
+    });
+  });
+
+  // Test time model. Rates measured in filing-cabinet on Ben's Mac (2026-11-22).
+  var RATE = { picture: 2.2, journey: 5.3, audit: 7, longJourney: 8 };
+  function clock(seconds) {
+    var s = Math.round(seconds), m = Math.floor(s / 60), r = s % 60;
+    return m + " min " + (r < 10 ? "0" : "") + r + " s";
+  }
+  function model() {
+    var screens = +$("mScreens").value, states = +$("mStates").value, perPicture = +$("mPic").value;
+    var journeys = +$("mJourneys").value, ceiling = +$("mCeil").value * 60;
+    var scope = state.scope === "one" ? 1 : screens;
+    var old = scope * states * 3 * RATE.picture + scope * 10 * RATE.journey + scope * 2 * RATE.audit;
+    var touchedJourneys = state.scope === "one" ? Math.min(journeys, 2) : journeys;
+    var now = scope * states * perPicture + touchedJourneys * RATE.longJourney;
+    $("oScreens").textContent = screens; $("oStates").textContent = states;
+    $("oPic").textContent = perPicture.toFixed(1); $("oJourneys").textContent = journeys; $("oCeil").textContent = ceiling / 60;
+    var max = Math.max(old, now, ceiling) * 1.04;
+    $("tOld").textContent = clock(old); $("tNew").textContent = clock(now);
+    $("fOld").style.width = (old / max * 100) + "%"; $("fNew").style.width = (now / max * 100) + "%";
+    $("fNew").className = "fill " + (now > ceiling ? "over" : "new");
+    all("[data-ceil]").forEach(function (line) { line.style.left = (ceiling / max * 100) + "%"; });
+    var share = now / ceiling, text;
+    if (share > 1) text = "Over the ceiling by " + clock(now - ceiling) + ". Under option A this pull request fails until tests get faster, move to the Mac, or go.";
+    else if (share > 0.8) text = "At " + Math.round(share * 100) + "% of the ceiling. Under option A the pull request carries a warning.";
+    else text = "At " + Math.round(share * 100) + "% of the ceiling. " + Math.round(old / Math.max(now, 1)) + " times quicker than the original setup at this size.";
+    $("verdict").textContent = text;
+  }
+  ["mScreens", "mStates", "mPic", "mJourneys", "mCeil"].forEach(function (id) { $(id).addEventListener("input", model); });
+  var scopes = all("[data-scope]");
+  scopes.forEach(function (button) {
+    button.addEventListener("click", function () { press(scopes, button); state.scope = button.dataset.scope; model(); });
+  });
+
+  model();
+})();
+</script>

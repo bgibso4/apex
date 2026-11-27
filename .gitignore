@@ -12,3 +12,12 @@ node_modules/
 
 # macOS
 .DS_Store
+
+# Wrangler's local secrets file
+.dev.vars
+
+# Agent tooling: only .claude/settings.json is tracked
+.claude/*
+!.claude/settings.json
+skills-lock.json
+.herdr/

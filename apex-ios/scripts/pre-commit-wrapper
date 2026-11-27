@@ -1,0 +1,7 @@
+#!/bin/sh
+# Copied by `make -C apex-ios setup` to the shared git hooks folder as `pre-commit`. Every branch and worktree
+# uses that folder, so on a branch from before the iOS app, where the script does not exist, this passes.
+script="$(git rev-parse --show-toplevel)/apex-ios/scripts/pre-commit"
+[ -f "$script" ] || exit 0
+[ -x "$script" ] || exit 0
+exec "$script" "$@"

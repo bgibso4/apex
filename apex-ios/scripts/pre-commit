@@ -1,0 +1,7 @@
+#!/bin/bash
+# Run by the wrapper `make setup` installs in the shared hooks folder (scripts/pre-commit-wrapper).
+# Lints only when the commit stages something under apex-ios/: a commit to the other side never pays for it.
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+[ -n "$(git diff --cached --name-only -- apex-ios)" ] || exit 0
+make --no-print-directory -C apex-ios lint

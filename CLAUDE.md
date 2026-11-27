@@ -4,7 +4,7 @@ Two apps live in this repo and share only this root. One pull request touches on
 
 | Work on | Folder | Read first |
 |---|---|---|
-| The native iOS app · all new work | `apex-ios/` | Not created yet. Design: `docs/superpowers/specs/2026-11-27-ios-agentic-foundations-design.html` |
+| The native iOS app · all new work | `apex-ios/` | `apex-ios/AGENTS.md` |
 | The React Native app · frozen, critical fixes only | `apex-rn/` | `apex-rn/CLAUDE.md` |
 | The Cloudflare Worker | `workers/health-api/` | `docs/superpowers/specs/2026-03-22-health-api-d1-design.md` |
 

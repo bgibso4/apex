@@ -18,4 +18,18 @@ struct LaunchOptionsTests {
         #expect(
             !LaunchOptions(arguments: ["Apex", "-NSDocumentRevisionsDebugMode", "YES"], isDebugBuild: true).isUITest)
     }
+
+    @Test func theStateNameFollowsItsFlag() {
+        #expect(
+            LaunchOptions(arguments: ["Apex", "-State", "home.noProgram"], isDebugBuild: true).stateName
+                == "home.noProgram")
+    }
+
+    @Test func aStateFlagWithNoValueIsNoState() {
+        #expect(LaunchOptions(arguments: ["Apex", "-State"], isDebugBuild: true).stateName == nil)
+    }
+
+    @Test func aReleaseBuildIgnoresTheStateFlag() {
+        #expect(LaunchOptions(arguments: ["Apex", "-State", "home.noProgram"], isDebugBuild: false).stateName == nil)
+    }
 }

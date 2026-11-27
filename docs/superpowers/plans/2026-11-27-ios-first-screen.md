@@ -107,7 +107,7 @@ public enum DesignedState: String, CaseIterable, Sendable {
 
 - Produces, in `Core`: `LaunchOptions.stateName: String?`, the value after `-State`, Debug builds only.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/ios-first-screen docs/ios-first-screen-plan
@@ -116,7 +116,7 @@ make -C apex-ios setup && /usr/bin/time -p make -C apex-ios fast && /usr/bin/tim
 
 Note both warm times (when plan 3 merged: `fast` 2.0 to 2.4 s, `ci-checks` 35 s). Task 6 compares against them.
 
-- [ ] **Step 2: Add the modules and write the failing tests**
+- [x] **Step 2: Add the modules and write the failing tests**
 
 `Package.swift`: targets `ScreenModels` and `TestSupport`, test targets `ScreenModelsTests` and `TestSupportTests`, with `moduleSettings`; main-actor default isolation only where the module's code needs it. Add both test targets to the `Fast` scheme in `project.yml`.
 
@@ -135,16 +135,16 @@ LaunchOptionsTests (add)
   aReleaseBuildIgnoresTheStateFlag
 ```
 
-- [ ] **Step 3: Run them and watch them fail**
+- [x] **Step 3: Run them and watch them fail**
 
 Run: `make -C apex-ios fast`
 Expected: it does not compile (the types do not exist). Stub the types with wrong return values, run again, and see the 9 new tests fail on their assertions with the 4 old ones passing.
 
-- [ ] **Step 4: Write the models**
+- [x] **Step 4: Write the models**
 
 Signatures in Interfaces. The eyebrow's date is month and day in English, formatted in the model's calendar and its time zone.
 
-- [ ] **Step 5: Run everything and commit**
+- [x] **Step 5: Run everything and commit**
 
 Run: `make -C apex-ios fast && make -C apex-ios lint && make -C apex-ios build`
 Expected: 13 Mac tests pass; lint clean; the app still builds (nothing uses the new modules yet, so `make unused` may report them: that is Task 2's to clear, do not suppress).

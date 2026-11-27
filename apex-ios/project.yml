@@ -83,3 +83,5 @@ schemes:
       config: Debug
       targets:
         - package: ApexKit/CoreTests
+        - package: ApexKit/ScreenModelsTests
+        - package: ApexKit/TestSupportTests

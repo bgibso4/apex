@@ -42,8 +42,9 @@ sim:
 # reads it, and every build refuses to resolve to anything else (XCB_FLAGS). After changing a package's version in
 # project.yml: build once without the flag, then copy $(RESOLVED_DEST)/Package.resolved back here and commit it.
 RESOLVED_DEST := $(PROJECT)/project.xcworkspace/xcshareddata/swiftpm
-# Flags for every xcodebuild call (and Periphery's build).
-XCB_FLAGS     := -onlyUsePackageVersionsFromResolvedFile
+# Flags for every xcodebuild call (and Periphery's build). The second stops xcodebuild asking each package's remote
+# for updates on every call: measured on 2026-11-27, that took 1.9 s of a 4.3 s `make fast`, and needed the network.
+XCB_FLAGS     := -onlyUsePackageVersionsFromResolvedFile -skipPackageUpdates
 
 # Boot this checkout's simulator and leave it running. A test run that finds it shut down boots it and shuts it
 # down again: measured on 2026-11-27, that turns an 11 s run into one of 55 s.

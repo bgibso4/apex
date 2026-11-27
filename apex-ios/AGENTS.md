@@ -82,7 +82,7 @@ docs/                          iOS specs, plans and the roadmap. Created with th
 
 Every simulator test run ends with a time report and appends a line to `.build/test-runs.log`. The simulator tests do not run in CI yet (plan 5): until then `make gate`, run locally, is the evidence.
 
-A package's version changes in `project.yml`. Then build once without `-onlyUsePackageVersionsFromResolvedFile`, copy `Apex.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` over `Package.resolved` and commit it.
+A package's version changes in `project.yml`. Then build once without the Makefile's `XCB_FLAGS`, copy `Apex.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` over `Package.resolved` and commit it.
 
 ## Module dependencies
 

@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>A stand-in demo: one grey screen and a hidden switch that turns it blue</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  div { height: 100%; background: #808080; }
+  span { display: none; }
+</style>
+<!-- The screen shows the switch's word too, as a real screen can: a click must land on the switch. -->
+<div data-screen-label="x"><p>Blue</p></div>
+<script>
+  // As in the real demos, the switch arrives after the screen does.
+  setTimeout(() => {
+    const blue = document.createElement("span");
+    blue.textContent = "Blue";
+    blue.onclick = () => { document.querySelector("div").style.background = "#0000ff"; };
+    document.body.append(blue);
+  }, 300);
+</script>

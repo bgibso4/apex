@@ -6,7 +6,7 @@ Rules, commands and the definition of done are in AGENTS.md. This file holds wha
 
 ## Where we are
 
-Foundation, plan 2 of 5 merged: the skeleton and the hooks. No product screen exists yet.
+Foundation, plan 3 of 5 merged: the design export, tokens and `make mocks`. No product screen exists yet.
 
 ## Hooks (committed in the root `.claude/settings.json`, scripts in `apex-ios/scripts/hooks/`)
 

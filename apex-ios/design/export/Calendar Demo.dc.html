@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+@font-face { font-family:'ApexExo2'; src:url('./Exo2-ExtraBold.ttf') format('truetype'); font-weight:800; font-display:block; }
+body{margin:0;background:#050506;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}
+a{color:#659BC8;text-decoration:none} a:hover{color:#8FB6D9}
+</style>
+</helmet>
+<div style="min-height:100vh;padding:40px 32px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center">
+<div style="width:390px;margin:0 0 20px">
+<div style="color:#EDEEF0;font-size:13px;font-weight:600">Calendar · reference build</div>
+<p style="color:#8F9098;font-size:12.5px;line-height:1.6;margin:6px 0 0;text-wrap:pretty">Everything locked in Calendar Explorations, on one phone (turns 1 to 5, and 6 to 12 from 2026-11-24). Swipe or use the arrows to flip months (slide), tap a day (240ms fade), leave August to see Today. A day card has no button: tap the card. Tap today or an upcoming day’s card for its preview page. Monday the 17th’s session was done on Tuesday morning, so Monday reads as missed and Tuesday has two sessions, the moved one tagged. Range runs Jul 6 (first log) to Oct 18 (end of the active program). History opens the session list.</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;justify-content:center">
+<sc-for list="{{ opts2 }}" as="o" hint-placeholder-count="3">
+<div id="{{ o.id }}" style="flex:none;width:390px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600;color:#EDEEF0">{{ o.name }}</span><span style="margin-left:auto;flex:none;font-size:11px;font-weight:600;color:{{ o.stFg }};background:{{ o.stBg }};border:1px solid {{ o.stBd }};border-radius:999px;padding:2px 8px;white-space:nowrap">{{ o.stamp }}</span></div>
+<div data-screen-label="Calendar demo" style="width:390px;height:844px;box-sizing:border-box;border:1px solid #20232A;border-radius:44px;overflow:hidden;position:relative;background:radial-gradient(ellipse 90% 45% at 50% -5%,#141A22 0%,#0C0E11 55%,#090A0C 100%)">
+
+<div data-h1sc data-h1top="128" onScroll="{{ o.onScroll }}" style="position:absolute;inset:0;overflow-y:auto">
+<div style="display:flex;flex-direction:column;gap:12px;padding:104px 20px 190px"><div data-h1big style="display:flex;flex-direction:column"><div style="padding-top:11px;padding-bottom:9px"><span style="color:#EDEEF0;font-size:28px;font-weight:800;letter-spacing:-0.4px;line-height:1.1">Calendar</span></div></div>
+<sc-if value="{{ o.hLarge }}" hint-placeholder-val="{{ false }}"><div style="color:#EDEEF0;font-size:26px;font-weight:800;letter-spacing:-0.4px;margin:0 0 4px">Calendar</div></sc-if>
+
+<div onPointerDown="{{ o.down }}" onPointerUp="{{ o.up }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:4px 10px 8px;touch-action:pan-y;user-select:none;overflow:hidden">
+<div style="display:flex;align-items:center;gap:4px;padding-left:6px">
+<span style="color:#EDEEF0;font-size:{{ o.mtFs }};font-weight:{{ o.mtFw }};letter-spacing:{{ o.mtLs }};flex:1">{{ o.monthTitle }}</span>
+<sc-if value="{{ o.tMonth }}" hint-placeholder-val="{{ false }}"><span onClick="{{ o.today }}" style="min-height:44px;display:flex;align-items:center;padding:0 8px;color:#659BC8;font-size:14px;font-weight:600;cursor:pointer">Today</span></sc-if>
+<span style="display:flex;margin-right:-6px">
+<span onClick="{{ o.prev }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:{{ o.arFs }};cursor:pointer;color:{{ o.prevFg }}">‹</span>
+<span onClick="{{ o.next }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:{{ o.arFs }};cursor:pointer;color:{{ o.nextFg }}">›</span>
+</span>
+</div>
+<sc-if value="{{ o.hasMsub }}" hint-placeholder-val="{{ false }}"><div style="color:#8F9098;font-size:11px;font-weight:600;padding:0 6px 8px;margin-top:-6px">{{ o.msub }}</div></sc-if>
+<div data-grid="{{ o.id }}">
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr))"><sc-for list="{{ dow }}" as="l" hint-placeholder-count="7"><span style="text-align:center;color:#7C7E86;font-size:{{ o.dowFs }};font-weight:700;padding-bottom:4px">{{ l }}</span></sc-for></div>
+<sc-for list="{{ o.rows }}" as="r" hint-placeholder-count="5">
+<sc-if value="{{ r.isLabel }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;padding:2px 6px 10px"><span style="color:{{ r.fg }};font-size:11px;font-weight:{{ r.fw }};text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap">{{ r.text }}</span><span style="flex:1;height:0;border-top:1px {{ r.ls }} {{ r.lc }}"></span></div></sc-if>
+<sc-if value="{{ r.isWeek }}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr))">
+<sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="7">
+<div onClick="{{ c.pick }}" style="height:{{ o.cellH }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;opacity:{{ c.op }}">
+<span style="width:{{ o.circ }};height:{{ o.circ }};border-radius:999px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:{{ o.numFs }};font-variant-numeric:tabular-nums;background:{{ c.bg }};border:{{ c.bd }};color:{{ c.fg }};font-weight:{{ c.fw }};box-shadow:{{ c.sh }}">{{ c.label }}</span>
+<span style="height:7px;display:flex;align-items:center;justify-content:center"><span style="width:{{ c.dotW }};height:4px;border-radius:999px;background:{{ c.dotBg }}"></span></span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</div>
+
+<sc-if value="{{ o.d.single }}" hint-placeholder-val="{{ true }}">
+<div data-day="{{ o.id }}" onClick="{{ o.d.cardTap }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:14px 16px;cursor:{{ o.d.cur }};transition:scale .3s cubic-bezier(.34,1.56,.64,1),filter .12s ease" onPointerDown="{{ o.d.pDown }}" onPointerUp="{{ o.d.pUp }}" onPointerLeave="{{ o.d.pUp }}">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">{{ o.d.eyebrow }}</div>
+<div style="color:#EDEEF0;font-size:16px;font-weight:700;margin-top:5px">{{ o.d.title }}</div>
+<sc-if value="{{ o.d.hasSub }}" hint-placeholder-val="{{ true }}"><div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums">{{ o.d.sub }}</div></sc-if>
+<sc-for list="{{ o.d.runs }}" as="r" hint-placeholder-count="0"><div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums"><span style="color:#EDEEF0">Run</span> · {{ r.line }}</div></sc-for>
+<sc-if value="{{ o.d.hasRec }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:18px;margin-top:12px;padding-top:11px;border-top:1px solid #20232A;font-variant-numeric:tabular-nums"><span style="color:#7C7E86;font-size:12px;font-weight:600">Recovery <span style="color:#EDEEF0">{{ o.d.rec.r }}</span></span><span style="color:#7C7E86;font-size:12px;font-weight:600">Sleep <span style="color:#EDEEF0">{{ o.d.rec.s }}</span></span><span style="color:#7C7E86;font-size:12px;font-weight:600">Strain <span style="color:#EDEEF0">{{ o.d.rec.st }}</span></span></div></sc-if>
+
+</div>
+</sc-if>
+<sc-if value="{{ o.d.isDone }}" hint-placeholder-val="{{ false }}"><div data-day="{{ o.id }}" style="display:flex;flex-direction:column;gap:12px"><sc-for list="{{ o.d.sessions }}" as="ss" hint-placeholder-count="1"><div onClick="{{ ss.open }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:14px 16px;cursor:pointer;transition:scale .3s cubic-bezier(.34,1.56,.64,1),filter .12s ease" style-active="scale:0.98;filter:brightness(0.9)"><div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">{{ ss.eyebrow }}</div><div style="display:flex;align-items:center;gap:8px;margin-top:5px"><span style="color:#EDEEF0;font-size:16px;font-weight:700">{{ ss.title }}</span><sc-if value="{{ ss.moved }}" hint-placeholder-val="{{ false }}"><span style="flex:none;display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:rgba(237,238,240,0.08);color:#8F9098;font-size:11px;font-weight:700">Moved</span></sc-if></div><div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums">{{ ss.sub }}</div><sc-for list="{{ ss.runs }}" as="r" hint-placeholder-count="0"><div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums"><span style="color:#EDEEF0">Run</span> · {{ r.line }}</div></sc-for><sc-if value="{{ ss.hasRec }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:18px;margin-top:12px;padding-top:11px;border-top:1px solid #20232A;font-variant-numeric:tabular-nums"><span style="color:#7C7E86;font-size:12px;font-weight:600">Recovery <span style="color:#EDEEF0">{{ ss.rec.r }}</span></span><span style="color:#7C7E86;font-size:12px;font-weight:600">Sleep <span style="color:#EDEEF0">{{ ss.rec.s }}</span></span><span style="color:#7C7E86;font-size:12px;font-weight:600">Strain <span style="color:#EDEEF0">{{ ss.rec.st }}</span></span></div></sc-if></div></sc-for></div></sc-if>
+</div>
+</div>
+
+<div style="position:absolute;top:0;left:0;right:0;z-index:4;padding-bottom:14px;pointer-events:none"><div data-h1edge style="position:absolute;left:0;right:0;top:0;bottom:-28px;opacity:0;background:linear-gradient(180deg,rgba(9,10,12,0.96) 0%,rgba(9,10,12,0.92) 72%,rgba(9,10,12,0) 100%);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%)"></div>
+<div style="position:relative;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;color:#EDEEF0;font-size:13px;font-weight:600"><span>7:52</span><span>100%</span></div>
+<div style="position:relative;display:flex;align-items:center;gap:10px;padding:6px 20px 0;margin-top:-8px;min-height:44px">
+<div onClick="{{ o.back }}" style="pointer-events:auto;flex:none;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#EDEEF0;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.05) 100%);border:1px solid rgba(255,255,255,0.16);box-shadow:inset 0 1px 0 rgba(255,255,255,0.34),inset 0 -1px 0 rgba(0,0,0,0.32),0 0 0 1px rgba(0,0,0,0.55);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-sizing:border-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></div>
+<sc-if value="{{ o.hLeft }}" hint-placeholder-val="{{ false }}"><span style="color:#EDEEF0;font-size:20px;font-weight:800;letter-spacing:-0.3px">Calendar</span></sc-if>
+<sc-if value="{{ o.hCenter }}" hint-placeholder-val="{{ false }}"><span data-h1small style="position:absolute;left:72px;right:72px;top:6px;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#EDEEF0;font-size:17px;font-weight:700;pointer-events:none;opacity:0"><span style="line-height:20px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Calendar</span></span></sc-if>
+<sc-if value="{{ o.hLarge }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;top:6px;bottom:0;display:flex;align-items:center;justify-content:center;color:#EDEEF0;font-size:17px;font-weight:700;opacity:{{ o.inlineOp }}">Calendar</span></sc-if>
+<span style="flex:1"></span>
+<sc-if value="{{ o.tBar }}" hint-placeholder-val="{{ false }}"><div onClick="{{ o.today }}" style="pointer-events:auto;position:relative;height:44px;padding:0 16px;border-radius:999px;display:flex;align-items:center;color:#659BC8;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.05) 100%);border:1px solid rgba(255,255,255,0.16);box-shadow:inset 0 1px 0 rgba(255,255,255,0.34),inset 0 -1px 0 rgba(0,0,0,0.32),0 0 0 1px rgba(0,0,0,0.55);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-sizing:border-box">Today</div></sc-if>
+<div onClick="{{ o.history }}" style="pointer-events:auto;position:relative;flex:none;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#EDEEF0;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.05) 100%);border:1px solid rgba(255,255,255,0.16);box-shadow:inset 0 1px 0 rgba(255,255,255,0.34),inset 0 -1px 0 rgba(0,0,0,0.32),0 0 0 1px rgba(0,0,0,0.55);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-sizing:border-box"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></div>
+</div>
+</div>
+
+<sc-if value="{{ o.tFloat }}" hint-placeholder-val="{{ false }}"><div onClick="{{ o.today }}" style="position:absolute;left:50%;bottom:84px;z-index:5;height:44px;padding:0 18px;border-radius:999px;display:flex;align-items:center;color:#659BC8;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(180deg,rgba(40,44,52,0.85) 0%,rgba(22,24,29,0.85) 100%);border:1px solid rgba(255,255,255,0.14);box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-sizing:border-box;transition:opacity .22s,transform .26s cubic-bezier(.2,.8,.2,1);opacity:{{ o.floatOp }};transform:{{ o.floatTf }};pointer-events:{{ o.floatEv }}">Today</div></sc-if>
+<div style="position:absolute;inset:0;z-index:5;overflow:hidden;background:radial-gradient(ellipse 90% 45% at 50% -5%,#141A22 0%,#0C0E11 55%,#090A0C 100%);transform:{{ o.pvTf }};transition:transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:{{ o.pvEv }}"><div data-pv="{{ o.id }}" data-h1sc data-h1top="128" style="position:absolute;inset:0;overflow-y:auto"><div style="display:flex;flex-direction:column;gap:12px;padding:104px 20px 130px"><div data-h1big style="display:flex;flex-direction:column"><div style="padding-top:11px;padding-bottom:9px"><span style="color:#EDEEF0;font-size:28px;font-weight:800;letter-spacing:-0.4px;line-height:1.1">{{ o.pv.date }}</span></div></div><div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:14px 16px"><div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">{{ o.pv.eyebrow }}</div><div style="color:#EDEEF0;font-size:16px;font-weight:700;margin-top:5px">{{ o.pv.title }}</div><div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums">{{ o.pv.sub }}</div></div><sc-for list="{{ o.pv.secs }}" as="sec" hint-placeholder-count="3"><div style="display:flex;align-items:baseline;margin:6px 2px -4px"><span style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">{{ sec.title }}</span><span style="margin-left:auto;color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">{{ sec.right }}</span></div><div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:0 16px"><sc-for list="{{ sec.rows }}" as="r" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:10px;min-height:{{ r.mh }};border-top:{{ r.bt }};font-variant-numeric:tabular-nums"><div style="flex:1;min-width:0;color:#EDEEF0;font-size:14px;font-weight:600">{{ r.a }}</div><span style="flex:none;text-align:right"><span style="display:block;color:{{ r.bFg }};font-size:13px;font-weight:600">{{ r.b }}</span><sc-if value="{{ r.hasB2 }}" hint-placeholder-val="{{ false }}"><span style="display:block;color:#8F9098;font-size:11px;font-weight:600;margin-top:2px">{{ r.b2 }}</span></sc-if></span></div></sc-for></div></sc-for></div></div><div style="position:absolute;top:0;left:0;right:0;padding-bottom:14px"><div data-h1edge style="position:absolute;left:0;right:0;top:0;bottom:-28px;opacity:0;background:linear-gradient(180deg,rgba(9,10,12,0.96) 0%,rgba(9,10,12,0.92) 72%,rgba(9,10,12,0) 100%);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%)"></div><div style="position:relative;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;color:#EDEEF0;font-size:13px;font-weight:600"><span>7:52</span><span>100%</span></div><div style="position:relative;display:flex;align-items:center;padding:6px 20px 0;margin-top:-8px;min-height:44px"><div onClick="{{ o.pvBack }}" style="pointer-events:auto;flex:none;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#EDEEF0;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.05) 100%);border:1px solid rgba(255,255,255,0.16);box-shadow:inset 0 1px 0 rgba(255,255,255,0.34),inset 0 -1px 0 rgba(0,0,0,0.32),0 0 0 1px rgba(0,0,0,0.55);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-sizing:border-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></div><span data-h1small style="position:absolute;left:72px;right:72px;top:6px;bottom:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#EDEEF0;font-size:17px;font-weight:700;pointer-events:none;opacity:0"><span style="line-height:20px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ o.pv.date }}</span></span></div></div></div>
+<div style="position:absolute;left:50%;bottom:144px;transform:translateX(-50%);z-index:7;padding:10px 14px;border-radius:8px;background:#20232A;color:#EDEEF0;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .2s;opacity:{{ o.toastOp }}">{{ o.toast }}</div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:6;pointer-events:none"><div style="position:absolute;left:0;right:0;bottom:0;height:92px;background:linear-gradient(0deg,rgba(9,10,12,0.7) 0%,rgba(9,10,12,0.35) 50%,rgba(9,10,12,0) 100%)"></div><div style="position:relative;margin:0 20px 26px;height:62px;box-sizing:border-box;padding:4px;border-radius:999px;display:flex;background:rgba(28,30,36,0.62);border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.2),0 0 0 1px rgba(0,0,0,0.5);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);pointer-events:auto"><div style="flex:1;height:54px;border-radius:999px;background:rgba(255,255,255,0.11);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#659BC8;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.3 3.3a1.1 1.1 0 0 1 1.4 0l8.4 7.1a1 1 0 0 1-1.3 1.5l-.8-.7V20a1.4 1.4 0 0 1-1.4 1.4h-3.4v-5.6a.8.8 0 0 0-.8-.8h-2.8a.8.8 0 0 0-.8.8v5.6H6.4A1.4 1.4 0 0 1 5 20v-8.8l-.8.7a1 1 0 0 1-1.3-1.5Z"/></svg><span>Home</span></div><div style="flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="1.2" y="9.2" width="2.6" height="5.6" rx="1"/><rect x="4.4" y="6.4" width="3.4" height="11.2" rx="1.3"/><rect x="7.6" y="10.8" width="8.8" height="2.4" rx=".6"/><rect x="16.2" y="6.4" width="3.4" height="11.2" rx="1.3"/><rect x="20.2" y="9.2" width="2.6" height="5.6" rx="1"/></svg><span>Workout</span></div><div style="flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17.5l5.6-5.8 4 3.6L20.5 7"/><path d="M14.8 6.6h5.9v5.9"/></svg><span>Progress</span></div><div style="flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15.2" cy="3.9" r="2.1" fill="currentColor" stroke="none"/><path d="M13.6 7.6l-2.9 6"/><path d="M7.4 10.2l3.4-2.6 3.2 2.4 2.8.4"/><path d="M10.7 13.6l3.2 2.6-1.4 5"/><path d="M10.7 13.6l-2.2 3.6-4.2.6"/></svg><span>Run</span></div></div><div style="position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:134px;height:5px;border-radius:999px;background:rgba(237,238,240,0.82)"></div></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ o.chips }}" as="ch" hint-placeholder-count="7"><div onClick="{{ ch.pick }}" style="min-height:30px;display:flex;align-items:center;padding:0 10px;border-radius:999px;cursor:pointer;font-size:11px;font-weight:600;border:1px solid {{ ch.bd }};color:{{ ch.fg }};background:{{ ch.bg }}">{{ ch.label }}</div></sc-for>
+</div>
+<sc-if value="{{ o.hasLabTog }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:6px"><sc-for list="{{ o.labOpts }}" as="lo" hint-placeholder-count="2"><div onClick="{{ lo.pick }}" style="flex:1;min-height:34px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;border:1px solid {{ lo.bd }};background:{{ lo.bg }};color:{{ lo.fg }}">{{ lo.label }}</div></sc-for></div></sc-if>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;margin:0 2px;text-wrap:pretty">{{ o.note }}</div>
+</div>
+</sc-for>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  _h1() { const c = x => Math.max(0, Math.min(1, x));
+    document.querySelectorAll('[data-h1sc]').forEach(sc => {
+      const ph = sc.parentElement, big = sc.querySelector('[data-h1big]'), small = ph.querySelector('[data-h1small]'), edge = ph.querySelector('[data-h1edge]');
+      if (!big) return;
+      const top = +sc.dataset.h1top, gap = parseFloat(getComputedStyle(big.parentElement).rowGap) || 0;
+      const r = big.getBoundingClientRect(), R = sc.getBoundingClientRect(); const s0 = Math.max(0, r.top - R.top + sc.scrollTop + r.height + gap - top);
+      const paint = () => { const y = sc.scrollTop; if (small) small.style.opacity = c((y - (s0 - 18)) / 16); big.style.opacity = c((s0 - y) / 36); if (edge) edge.style.opacity = c((y - s0) / 24); };
+      const key = big.textContent;
+      if (sc._h1key !== key) { sc._h1key = key; sc.scrollTop = s0; setTimeout(() => { sc.scrollTop = s0; sc._h1paint && sc._h1paint(); }, 120); }
+      sc._h1paint = paint; if (!sc._h1on) { sc._h1on = true; sc.addEventListener('scroll', () => sc._h1paint && sc._h1paint(), { passive: true }); }
+      paint(); }); }
+  componentDidUpdate() { this._h1(); }
+  state = { o: {}, toast: null };
+  componentWillUnmount() { clearTimeout(this._t); }
+  componentDidMount() { setTimeout(() => this._h1(), 60); this._msg = e => { const q = e.data; if (!q || q.apexCmd !== 'calSel') return; const vm = Number(q.sel.split('-')[0]);
+    this.setState(s => ({ o: { ...s.o, '2f': { ...(s.o['2f'] || { vm: 7, sel: '7-20' }), vm, sel: q.sel, pv: null } } }));
+    const sc = document.querySelector('[data-screen-label="Calendar demo"] div[style*="overflow-y:auto"]'); if (sc) sc.scrollTop = 0; };
+    window.addEventListener('message', this._msg); }
+  say(id, t) { clearTimeout(this._t); this.setState({ toast: { id, t } }); this._t = setTimeout(() => this.setState({ toast: null }), 1600); }
+  upd(id, def, patch, cb) { this.setState(s => { const cur = s.o[id] || def; return { o: { ...s.o, [id]: { ...cur, ...(typeof patch === 'function' ? patch(cur) : patch) } } }; }, cb); }
+  anim(sel, dir, big) {
+    const m = big ? (this.state.motion || 'slide') : (this.state.dayMotion || 'fade240'); if (m === 'none') return;
+    const el = document.querySelector(sel); if (!el || !el.animate) return;
+    const fade = m === 'fade' || m === 'fade240';
+    const kf = fade ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: `translateX(${dir * (big ? 28 : 14)}px)` }, { opacity: 1, transform: 'none' }];
+    el.animate(kf, { duration: m === 'fade240' ? 240 : m === 'fade' ? 160 : 260, easing: fade ? 'ease-out' : 'cubic-bezier(.2,.8,.2,1)' });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const MONL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const DOWL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const TODAY = new Date(2026, 7, 20), P0 = new Date(2026, 7, 3), P1 = new Date(2026, 9, 18), F0 = new Date(2026, 6, 6);
+    const T = {
+      1: { name: 'Lower Strength · Squat', min: 58, ex: [['Back Squat',5,5,245],['Romanian Deadlift',3,8,185],['Bulgarian Split Squat',3,10,50],['Leg Curl',3,12,90],['Plank',3,'45s',0]] },
+      2: { name: 'Upper Strength · Heavy Push', min: 54, ex: [['Bench Press',5,5,195],['Overhead Press',3,8,115],['Incline DB Press',3,10,60],['Dips',3,10,0],['Triceps Pushdown',3,12,50]] },
+      4: { name: 'Upper Strength · Heavy Pull', min: 55, ex: [['Weighted Pull-up',5,5,35],['Barbell Row',4,6,165],['Chest-Supported Row',3,10,55],['Face Pull',3,15,40],['Hammer Curl',3,12,35],['Farmer Carry',3,'40 m',70]] },
+      5: { name: 'Run + Hips', min: 45, ex: [['Easy Run',1,'30 min',0],['Hip Airplane',3,6,0],['Copenhagen Plank',3,'20s',0],['90/90 Switch',2,8,0]] },
+      6: { name: 'Full Body · Volume', min: 60, ex: [['Trap Bar Deadlift',4,6,275],['Front Squat',3,8,155],['DB Bench Press',3,10,65],['Pull-up',3,8,0],['Walking Lunge',3,10,40]] },
+    };
+    const FT = {
+      1: { name: 'Foundations · A', min: 46, ex: [['Goblet Squat',3,10,50],['Push-up',3,12,0],['DB Row',3,10,45],['Dead Bug',3,10,0]] },
+      3: { name: 'Foundations · B', min: 48, ex: [['Deadlift',3,6,185],['Overhead Press',3,8,85],['Lat Pulldown',3,10,100]] },
+      5: { name: 'Foundations · C', min: 44, ex: [['Split Squat',3,8,30],['Bench Press',3,8,145],['Cable Row',3,10,90]] },
+    };
+    const INIT = { 1: 'L', 2: 'U', 4: 'U', 5: 'R', 6: 'F' };
+    const PRD = { '7-18': [], '7-11': [0], '7-13': [1], '7-15': [0], '6-29': [0] };
+    const RUNS = { '7-16': [4.2, 41], '7-9': [3.8, 37], '6-26': [3.5, 34] };
+    const key = d => `${d.getMonth()}-${d.getDate()}`;
+    const same = (a, b) => key(a) === key(b) && a.getFullYear() === b.getFullYear();
+    const blk = w => w <= 5 ? 'Hypertrophy' : w <= 9 ? 'Strength' : 'Peak';
+    const rnd = (x, st) => Math.round(x / st) * st;
+
+    const day = d => {
+      const wd = d.getDay(), dd = d.getDate(), m = d.getMonth();
+      const inP = d >= P0 && d <= P1, inF = d >= F0 && d < P0;
+      let k = 'none';
+      if (same(d, TODAY)) k = 'today';
+      else if (inP) k = !T[wd] ? 'rest' : d < TODAY ? (m === 7 && (dd === 7 || dd === 17) ? 'missed' : 'done') : 'sched';
+      else if (inF) k = FT[wd] ? 'done' : 'rest';
+      const tpl = inP ? T[wd] : inF ? FT[wd] : null;
+      const wk = inP ? Math.floor((d - P0) / 864e5 / 7) + 1 : 0;
+      const prs = k === 'done' ? (PRD[key(d)] || []) : [];
+      const ex = tpl ? tpl.ex.map(([name, sets, reps, base], i) => {
+        const inc = i < 2 ? 5 : 2.5, load = base ? rnd(base + Math.max(0, wk - 1) * inc, inc) : 0;
+        const pl = name.startsWith('Weighted') ? '+' : '';
+        const top = typeof reps === 'string' ? (load ? `${load} lb · ${reps}` : reps) : load ? `${pl}${load} × ${reps}` : `${reps} reps`;
+        const plan = `${sets} × ${reps}` + (load ? ` · ${pl}${load} lb` : '');
+        return { name, sets, top, plan, isPr: prs.includes(i), prev: load ? `was ${pl}${load - inc} × ${reps}` : '' };
+      }) : [];
+      const total = ex.reduce((a, e) => a + e.sets, 0);
+      const setsDone = total - (dd % 4 === 0 ? 2 : 0);
+      const min = tpl ? tpl.min + ((dd * 7) % 9) - 4 : 0;
+      const runs = [];
+      if (inP && wd === 5 && k === 'done') runs.push([(3 + (dd % 3) * 0.1).toFixed(1), 28 + dd % 4]);
+      if (RUNS[key(d)] && d < TODAY) runs.push([RUNS[key(d)][0].toFixed(1), RUNS[key(d)][1]]);
+      let rec = null;
+      if (k === 'today') rec = { r: '78%', s: '84%', st: '6.2' };
+      else if (k === 'done') rec = { r: (52 + (dd * 13 + m * 7) % 38) + '%', s: (70 + (dd * 7 + m) % 25) + '%', st: (((dd * 37 + m * 11) % 80 + 60) / 10).toFixed(1) };
+      const plannedRun = inP && wd === 5 && (k === 'sched' || k === 'today');
+      const initial = (k === 'rest' || k === 'none') ? (runs.length ? 'R' : '') : inP ? INIT[wd] : (wd === 1 ? 'A' : wd === 3 ? 'B' : 'C');
+      const extra = m === 7 && dd === 18 && k === 'done' ? [{ tpl: T[1], at: '6:10 AM', min: 58, sets: 18, total: 18, prs: 2 }] : [];
+      return { k, wd, dd, m, inP, inF, tpl, wk, prs, ex, total, setsDone, min, runs, rec, plannedRun, initial, extra, ownAt: extra.length ? '6:40 PM' : '' };
+    };
+
+    const OPTS = [
+      { id: '1a', v: 'A', name: 'Glance card', marks: 'run', open: 'today',
+        note: '8b as built, updated to the turn 20 buttons. One card: facts, any cardio logged, a recovery footer, then Tonal View session. The log lives one tap away. Amended: the grid gets a cardio dot, only for cardio that was logged.',
+        axes: 'Past: glance · Future: name, count, time · Opens: today · Cells: rings + cardio dot' },
+      { id: '1b', v: 'B', name: 'Ledger card', marks: 'run', open: 'today',
+        note: 'The log comes to the Calendar. Every lift with its top set, PRs in moss, the run and Whoop as the last rows. Future days list the plan with loads. The whole card opens the session, so it has no button.',
+        axes: 'Past: most of the log · Future: sets × reps · load · Opens: today · Cells: rings + run dot' },
+      { id: '1c', v: 'C', name: 'Stack of cards', marks: 'run', open: 'today',
+        note: 'Home’s card grammar applied to any day: session, run and recovery each get their own card. Today also gets Start Workout here, which makes the Calendar a second place to start.',
+        axes: 'Past: glance per card · Future: exercise names · Opens: today · Cells: rings + run dot' },
+      { id: '1d', v: 'D', name: 'Earned day', marks: 'initial', open: 'today',
+        note: 'A done day is earned, so it uses the 13c earned card: moss wash, Time · Sets · PRs, and PR lines with the previous best. Recovery and runs drop to one quiet card. Letters show what each day was.',
+        axes: 'Past: glance + PRs · Future: name, count, time · Opens: today · Cells: rings + session letter' },
+      { id: '1e', v: 'E', name: 'Day timeline', marks: 'run', open: 'none',
+        note: 'Opens on the month alone. A day is a list of what happened: recovery, session, runs. Each row opens its own detail. A rest day shows only its date.',
+        axes: 'Past: one row per thing · Future: one planned row · Opens: nothing · Cells: rings + run dot' },
+      { id: '1f', v: 'F', name: 'Day page', marks: 'pr', open: 'today',
+        note: 'No card. The day reads as a page under the month: time as the hero numeral, every lift, the run, Whoop as three numbers. PR days get a moss dot in the grid.',
+        axes: 'Past: full log · Future: sets × reps · load · Opens: today · Cells: rings + PR dot' },
+    ];
+    const CHIPS = [['Done', 7, 13], ['Two sessions', 7, 18], ['Missed', 7, 17], ['Run day', 7, 14], ['Rest + run', 7, 16], ['Today', 7, 20], ['Upcoming', 7, 24], ['Rest', 7, 19]];
+
+    const build = cfg => {
+      const def = { vm: 7, sel: cfg.open === 'today' ? '7-20' : null };
+      const st = s.o[cfg.id] || def;
+      const say = t => () => this.say(cfg.id, t);
+      const stop = fn => e => { e && e.stopPropagation && e.stopPropagation(); fn(); };
+      const num = k => { if (!k) return 0; const [a, b] = k.split('-').map(Number); return a * 100 + b; };
+      const pick = (m, dd) => e => { e && e.stopPropagation && e.stopPropagation(); const k = `${m}-${dd}`; if (k === st.sel) return; const dir = num(k) >= num(st.sel) ? 1 : -1; this.upd(cfg.id, def, cur => ({ sel: cfg.open === 'none' && cur.sel === k ? null : k }), () => cfg.anim && this.anim(`[data-day="${cfg.id}"]`, dir)); };
+      const flip = dir => this.upd(cfg.id, def, { vm: st.vm + dir }, () => cfg.anim && this.anim(`[data-grid="${cfg.id}"]`, dir, true));
+      const first = new Date(2026, st.vm, 1), lead = (first.getDay() + 6) % 7, n = new Date(2026, st.vm + 1, 0).getDate();
+      const cells = [];
+      for (let i = 0; i < lead; i++) cells.push({ label: '', bg: 'transparent', bd: 'none', fg: 'transparent', fw: 600, sh: 'none', op: 0, dotW: '0px', dotBg: 'transparent', mt: '', mtFg: 'transparent' });
+      for (let dd = 1; dd <= n; dd++) {
+        const d = new Date(2026, st.vm, dd), x = day(d);
+        const L = { dd, label: dd, bg: 'transparent', bd: '1px solid transparent', fg: '#7C7E86', fw: 600, sh: 'none', op: 1, dotW: '0px', dotBg: 'transparent', mt: '', mtFg: '#7C7E86', pick: pick(st.vm, dd) };
+        if (x.k === 'done') Object.assign(L, x.inP ? { bg: '#6CA383', fg: '#0B0C0E', fw: 700 } : { bd: '1.5px solid #6CA383', fg: '#6CA383' });
+        if (x.k === 'missed') Object.assign(L, { bd: '1px dashed #7C7E86' });
+        if (x.k === 'today') Object.assign(L, { bd: '2px solid #659BC8', bg: 'rgba(101,155,200,0.14)', fg: '#EDEEF0', fw: 700 });
+        if (x.k === 'sched') Object.assign(L, { bd: '1.5px solid #3A3D45', fg: '#8F9098' });
+        if (st.sel === `${st.vm}-${dd}`) L.sh = '0 0 0 2px #111317, 0 0 0 3.5px #EDEEF0';
+        if (cfg.marks === 'run' && x.runs.length) Object.assign(L, { dotW: '4px', dotBg: '#8F9098' });
+        if (cfg.marks === 'pr' && x.prs.length) Object.assign(L, { dotW: '4px', dotBg: '#6CA383' });
+        if (cfg.marks === 'initial' && x.initial) Object.assign(L, { mt: x.initial, mtFg: x.k === 'done' ? '#8F9098' : '#7C7E86' });
+        cells.push(L);
+      }
+
+      let det = { has: false };
+      if (st.sel) {
+        const [m, dd] = st.sel.split('-').map(Number);
+        const d = new Date(2026, m, dd), x = day(d);
+        const short = `${DOW[x.wd]}, ${MON[m]} ${dd}`, long = `${DOWL[x.wd]}, ${MON[m]} ${dd}`;
+        const isToday = x.k === 'today', isDone = x.k === 'done', isPlan = isToday || x.k === 'sched', isMissed = x.k === 'missed', isRest = x.k === 'rest' || x.k === 'none';
+        const progLine = x.inP ? `Pillars · Week ${x.wk} of 11 · ${blk(x.wk)}` : x.inF ? 'Foundations' : '';
+        const tplName = x.tpl ? x.tpl.name : '';
+        const prN = x.prs.length;
+        const sub = isDone ? `${x.min} min · ${x.setsDone} of ${x.total} sets` + (prN ? ` · ${prN} PR${prN > 1 ? 's' : ''}` : '')
+          : isPlan ? `${x.ex.length} exercises · about ${x.tpl.min} min` : isMissed ? 'Not logged' : '';
+        const openLog = say('Opens the logged session'), openPlan = say('Opens the Workout tab day view');
+        const runs = x.runs.map(([mi, t]) => ({ mi, t: `${t} min`, line: `${mi} mi · ${t} min`, tap: stop(say('Opens the run')) }));
+        const rows = isDone ? x.ex.map(e => ({ name: e.name, val: e.top, fg: e.isPr ? '#6CA383' : '#EDEEF0', tag: e.isPr ? 'PR' : '' }))
+          : isPlan ? x.ex.map(e => ({ name: e.name, val: e.plan, fg: '#8F9098', tag: '' })) : [];
+        const tl = [];
+        if (x.rec) tl.push({ k: 'Recovery', main: x.rec.r, sub: `Sleep ${x.rec.s} · Strain ${x.rec.st}`, tap: say('Opens Whoop') });
+        if (isDone) tl.push({ k: 'Session', main: tplName, sub, tap: openLog });
+        if (isPlan) tl.push({ k: isToday ? 'Today' : 'Planned', main: tplName, sub, tap: openPlan });
+        if (isMissed) tl.push({ k: 'Missed', main: tplName, sub: 'Not logged', tap: openPlan });
+        runs.forEach(r => tl.push({ k: 'Run', main: `${r.mi} mi`, sub: r.t, tap: r.tap }));
+        tl.forEach((t, i) => t.bt = i ? '1px solid #20232A' : 'none');
+        det = {
+          has: true, short, long, isDone, isPlan, isMissed, isRest, notDone: !isDone,
+          isMissedOrRest: isMissed || (isRest && !runs.length),
+          eyebrow: isToday ? `Today · ${short}` : x.inP ? `${short} · Week ${x.wk} · ${blk(x.wk)}` : x.inF ? `${short} · Foundations` : short,
+          headSub: isRest ? 'Rest day' : progLine,
+          eSub: isRest ? 'Rest day' : progLine,
+          sessEyebrow: isToday ? 'Today' : isDone ? 'Session' : isMissed ? 'Missed' : 'Planned',
+          title: isRest ? 'Rest day' : tplName,
+          sub, hasSub: !!sub, min: String(x.min), fStats: `${x.setsDone} of ${x.total} sets` + (prN ? ` · ${prN} PR${prN > 1 ? 's' : ''}` : ''),
+          rows, hasRows: rows.length > 0, rowsHead: isDone ? 'Top sets' : 'Planned',
+          runs, hasRuns: runs.length > 0,
+          rec: x.rec || { r: '', s: '', st: '' }, hasRec: !!x.rec,
+          dLine: runs.length > 0 || (!!x.rec && isDone),
+          stats: [{ v: `${x.min} min`, l: 'Time' }, { v: `${x.setsDone}/${x.total}`, l: 'Sets' }, { v: String(prN), l: 'PRs' }],
+          prList: x.prs.map(i => ({ name: x.ex[i].name, val: x.ex[i].top, prev: x.ex[i].prev })), hasPrs: prN > 0,
+          hasAction: isDone || isPlan, action: isDone ? 'View session' : 'Preview session', act: stop(isDone ? openLog : openPlan),
+          cardTap: isDone ? openLog : isPlan ? openPlan : () => {},
+          showSession: !isRest, cStart: isToday, cTonal: (isDone || x.k === 'sched'),
+          start: stop(say('Start Workout · begins the session')), whoop: stop(say('Opens Whoop')),
+          tl, hasTl: tl.length > 0,
+          single: !isDone, cardTap: isPlan ? stop(() => { const el = document.querySelector(`[data-pv="${cfg.id}"]`); if (el) el._h1key = null; this.upd(cfg.id, def, { pv: st.sel }); }) : () => {}, cur: isPlan ? 'pointer' : 'default', pDown: e => { if (isPlan) { e.currentTarget.style.scale = '0.98'; e.currentTarget.style.filter = 'brightness(0.9)'; } }, pUp: e => { e.currentTarget.style.scale = ''; e.currentTarget.style.filter = ''; },
+          sessions: !isDone ? [] : [...x.extra.map(e => ({ title: e.tpl.name, moved: true, sub: `${e.at} · ${e.min} min · ${e.sets} of ${e.total} sets` + (e.prs ? ` · ${e.prs} PRs` : '') })),
+              { title: tplName, moved: false, sub: (x.ownAt ? x.ownAt + ' · ' : '') + sub }]
+            .map((q, i) => ({ ...q, eyebrow: i ? 'Same day' : (x.inP ? `${short} · Week ${x.wk} · ${blk(x.wk)}` : x.inF ? `${short} · Foundations` : short),
+              runs: i ? [] : runs, hasRec: !!x.rec, rec: x.rec || { r: '', s: '', st: '' }, open: stop(openLog) })),
+        };
+        if (isRest && !runs.length) { det.dLine = false; }
+      }
+
+      // the preview page (8a): the day's card, then warm-up, exercises and post-workout, as the Workout tab lists them
+      const pvKey = st.pv || this._lpv && this._lpv[cfg.id];
+      if (st.pv) { this._lpv = this._lpv || {}; this._lpv[cfg.id] = st.pv; }
+      let pv = { eyebrow: '', title: '', sub: '', date: '', secs: [] };
+      if (pvKey) {
+        const [pm, pd] = pvKey.split('-').map(Number), pdte = new Date(2026, pm, pd), px = day(pdte), pshort = `${DOW[px.wd]}, ${MON[pm]} ${pd}`;
+        const rowsOf = (list) => list.map(([a, b, b2], i) => ({ a, b, b2: b2 || '', hasB2: !!b2, bFg: b2 ? '#C9CAD0' : '#8F9098', mh: b2 ? '56px' : '48px', bt: i ? '1px solid #20232A' : 'none' }));
+        pv = { date: pshort, eyebrow: px.k === 'today' ? `Today · ${pshort}` : `${pshort} · Week ${px.wk} · ${blk(px.wk)}`, title: px.tpl ? px.tpl.name : '', sub: px.tpl ? `${px.ex.length} exercises · about ${px.tpl.min} min` : '',
+          secs: [{ title: 'Warm-up', right: 'About 12 min', rows: rowsOf([['Jump Rope', '3 min'], ['Ankle Protocol', '5 exercises'], ['Dynamic Warm-up', 'Pick 3 to 5']]) },
+                 { title: 'Exercises', right: '', rows: rowsOf(px.ex.map(e => [e.name, e.plan, /lb/.test(e.plan) ? 'RPE ≤ 8' : ''])) },
+                 { title: 'Post-workout', right: '', rows: rowsOf([['Hip Mobility', '6 min'], ['Dead Hang', '2 × 45 sec']]) }] };
+      }
+      const seg = on => ({ bd: on ? '#659BC8' : '#2C3039', bg: on ? 'rgba(101,155,200,0.10)' : 'transparent', fg: on ? '#659BC8' : '#8F9098' });
+      return {
+        ...cfg, stamp: cfg.v === 'A' ? 'Locked' : 'Not picked',
+        stFg: cfg.v === 'A' ? '#0B0C0E' : '#7C7E86', stBg: cfg.v === 'A' ? '#6CA383' : 'transparent', stBd: cfg.v === 'A' ? '#6CA383' : '#2C3039',
+        isA: cfg.v === 'A', isB: cfg.v === 'B', isC: cfg.v === 'C', isD: cfg.v === 'D', isE: cfg.v === 'E', isF: cfg.v === 'F',
+        cells, d: det, monthTitle: `${MONL[st.vm]} 2026`,
+        prev: stop(() => st.vm > 6 && flip(-1)),
+        next: stop(() => st.vm < 9 && flip(1)),
+        st, def, vm: st.vm, today: () => { const dir = 7 >= st.vm ? 1 : -1; this.upd(cfg.id, def, { vm: 7, sel: '7-20' }, () => cfg.anim && this.anim(`[data-grid="${cfg.id}"]`, dir, true)); },
+        prevFg: st.vm > 6 ? '#8F9098' : '#2C3039', nextFg: st.vm < 9 ? '#8F9098' : '#2C3039',
+        down: e => { this._sx = e.clientX; },
+        up: e => { const dx = e.clientX - (this._sx == null ? e.clientX : this._sx); this._sx = null; if (dx < -40 && st.vm < 9) flip(1); if (dx > 40 && st.vm > 6) flip(-1); },
+        back: say('Back to Home'),
+        pv, pvTf: st.pv ? 'translateX(0)' : 'translateX(100%)', pvEv: st.pv ? 'auto' : 'none', pvBack: () => this.upd(cfg.id, def, { pv: null }),
+        chips: CHIPS.map(([label, m, dd]) => ({ label, ...seg(st.sel === `${m}-${dd}`), pick: () => this.upd(cfg.id, def, { vm: m, sel: `${m}-${dd}` }) })),
+        toast: s.toast && s.toast.id === cfg.id ? s.toast.t : '', toastOp: s.toast && s.toast.id === cfg.id ? 1 : 0,
+      };
+    };
+
+    const LABELS = {
+      program: { '6-6': ['Foundations · from Jul 6', '#8F9098'], '7-3': ['Pillars · from Aug 3', '#8F9098'] },
+      blocks: { '6-6': ['Foundations · Jul 6', '#8F9098'], '7-3': ['Pillars · Hypertrophy · Aug 3', '#8F9098'], '8-7': ['Strength · Week 6', '#7C7E86', 'block'], '9-5': ['Peak · Week 10', '#7C7E86', 'block'] },
+    };
+    const MSUB = { 6: 'Foundations from Jul 6', 7: 'Foundations until Aug 2 · Pillars from Aug 3', 8: 'Pillars · Weeks 5 to 9', 9: 'Pillars until Oct 18' };
+    const OPTS2 = [
+      { id: '2a', name: 'Inline title · Today in the bar · label rows', h: 'center', t: 'bar', b: 'program', anim: true,
+        note: 'Standard pushed screen: title centered in the bar with back and History. Once you leave August, a glass Today pill appears beside History. A label row marks where each program starts.' },
+      { id: '2b', name: 'Large title collapses · floating Today · block labels', h: 'large', t: 'float', b: 'blocks', anim: true,
+        note: 'Home’s header pattern: big title at rest that moves into the bar as you scroll (scroll the phone). Today floats above the tab bar when you’re away. Label rows mark programs and block changes (Strength, Peak).' },
+      { id: '2c', name: 'Title beside back · Today in the month row · month fact line', h: 'left', t: 'month', b: 'header', anim: true,
+        note: 'Title sits next to the back button, left-aligned. Today is a text button in the month row, left of the arrows. The program boundary is one fact line under the month name; the grid stays clean.' },
+      { id: '2d', name: 'Turn 4 · centered title · Today in month row · programs + blocks', h: 'center', t: 'month', b: 'final', anim: true,
+        note: 'The turn 4 mix, before 2f resized the title and month: centered title, Today in the month row, program rows (solid rule, start date) with dimmer dotted block rows under them. Month flips slide, the day card fades in over 240ms.' },
+      { id: '2e', name: 'Turn 4 · 2d with a bigger month row', h: 'center', t: 'month', b: 'final', big: true, anim: true,
+        note: 'Same as 2d, with the month row stepped up: month name 20px heavy (was 15px), arrows bigger, weekday letters 11px, day numbers 14px in 36px rings (was 12px in 32px). Today stays its current size.' },
+      { id: '2f', name: 'Turn 5 · title steps up, month steps down', h: 'center', t: 'month', b: 'final', big: 'mid', bigTitle: true, anim: true,
+        note: 'Locked: 2f header (Calendar 20/800, centered between back and History), 17/700 month row with Today beside the arrows when you leave the current month, program rows (solid) and block rows (dotted), cardio dots, the 1a day card, slide for months, 240ms fade for days.' },
+    ];
+    const build2 = cfg => {
+      const b = build({ ...cfg, v: 'A', marks: 'run', open: 'today' });
+      const st = b.st, vm = b.vm;
+      const cells = b.cells.slice(); while (cells.length % 7) cells.push({ dd: 0, label: '', bg: 'transparent', bd: 'none', fg: 'transparent', fw: 600, sh: 'none', op: 0, dotW: '0px', dotBg: 'transparent', mt: '', mtFg: 'transparent' });
+      const rows = [];
+      const lab = LABELS[cfg.b === 'final' ? 'blocks' : cfg.b];
+      for (let i = 0; i < cells.length; i += 7) {
+        const wk = cells.slice(i, i + 7);
+        if (lab) wk.forEach(c => { const L = c.dd && lab[`${vm}-${c.dd}`]; if (L) { const blk = L[2] === 'block' && cfg.b === 'final'; rows.push({ isLabel: true, isWeek: false, text: L[0], fg: L[1], fw: blk ? 600 : 700, ls: blk ? 'dotted' : 'solid', lc: blk ? '#2C3039' : '#20232A', cells: [] }); } });
+        rows.push({ isLabel: false, isWeek: true, cells: wk });
+      }
+      const off = vm !== 7, sy = st.sy || 0, p = Math.max(0, Math.min(1, (sy - 18) / 26));
+      return {
+        ...b, rows, off,
+        hCenter: cfg.h === 'center', hLarge: cfg.h === 'large', hLeft: cfg.h === 'left',
+        inlineOp: cfg.h === 'large' ? String(p) : '1',
+        edgeBg: sy > 2 ? 'linear-gradient(180deg,rgba(9,10,12,0.96) 0%,rgba(9,10,12,0.88) 75%,rgba(9,10,12,0) 100%)' : 'transparent',
+        onScroll: e => { const y = e.currentTarget.scrollTop; if (Math.abs(y - sy) > 1) this.upd(cfg.id, b.def, { sy: y }); },
+        tBar: cfg.t === 'bar' && off, tMonth: cfg.t === 'month' && off, tFloat: cfg.t === 'float',
+        floatOp: off ? '1' : '0', floatTf: off ? 'translate(-50%,0)' : 'translate(-50%,10px)', floatEv: off ? 'auto' : 'none',
+        hasMsub: cfg.b === 'header', msub: MSUB[vm],
+        history: () => this.say(cfg.id, 'Opens the session list (new page)'),
+        hasLabTog: false,
+        ...(() => { const S = { '2a': ['Header locked', 'part'], '2b': ['Not picked', 'no'], '2c': ['Today locked', 'part'], '2d': ['Superseded', 'no'], '2e': ['Rejected', 'no'], '2f': ['Locked', 'yes'] }[cfg.id] || ['Unreviewed', 'no'];
+          return { stamp: S[0], stFg: S[1] === 'yes' ? '#0B0C0E' : S[1] === 'part' ? '#6CA383' : '#7C7E86', stBg: S[1] === 'yes' ? '#6CA383' : 'transparent', stBd: S[1] === 'no' ? '#2C3039' : '#6CA383' }; })(),
+        mtFs: cfg.big === 'mid' ? '17px' : cfg.big ? '20px' : '15px', mtFw: cfg.big === 'mid' ? 700 : cfg.big ? 800 : 700, mtLs: cfg.big && cfg.big !== 'mid' ? '-0.3px' : '0px', ttFs: cfg.bigTitle ? '20px' : '17px', ttFw: cfg.bigTitle ? 800 : 700, ttLs: cfg.bigTitle ? '-0.3px' : '0px', arFs: cfg.big ? '24px' : '18px', dowFs: cfg.big ? '11px' : '11px', cellH: cfg.big ? '50px' : '46px', circ: cfg.big ? '36px' : '32px', numFs: cfg.big ? '14px' : '12px',
+        labOpts: [['program', 'Programs only'], ['blocks', 'Programs + blocks']].map(([k, label]) => { const on = (this.state.lab2d || 'program') === k; return { label, bd: on ? '#659BC8' : '#2C3039', bg: on ? 'rgba(101,155,200,0.10)' : 'transparent', fg: on ? '#659BC8' : '#8F9098', pick: () => this.setState({ lab2d: k }) }; }),
+      };
+    };
+    const mo = this.state.motion || 'slide';
+    const motionOpts = [['none', 'None'], ['fade', 'Crossfade'], ['slide', 'Slide by direction']].map(([k, label]) => ({ label, bd: mo === k ? '#659BC8' : '#2C3039', bg: mo === k ? 'rgba(101,155,200,0.10)' : 'transparent', fg: mo === k ? '#659BC8' : '#8F9098', pick: () => this.setState({ motion: k }) }));
+    const motionNote = { none: 'The grid swaps instantly.', fade: 'The month grid crossfades in 160ms.', slide: 'A later month slides in from the right, an earlier one from the left (28px, 260ms), so the swipe and the motion agree.' }[mo];
+    const dm = this.state.dayMotion || 'fade240';
+    const dayOpts = [['none', 'Instant'], ['fade', 'Fade 160ms'], ['fade240', 'Fade 240ms'], ['slide', 'Slide']].map(([k, label]) => ({ label, bd: dm === k ? '#659BC8' : '#2C3039', bg: dm === k ? 'rgba(101,155,200,0.10)' : 'transparent', fg: dm === k ? '#659BC8' : '#8F9098', pick: () => this.setState({ dayMotion: k }) }));
+    const dayNote = { none: 'The card swaps instantly. Snappiest.', fade: 'The card fades in over 160ms (what turn 2 had).', fade240: 'The card fades in over 240ms: still quick, but you can see it.', slide: 'The card slides 14px by direction, 260ms (what turn 2 had).' }[dm];
+    return { opts: OPTS.map(build), opts2: OPTS2.filter(c => c.id === '2f').map(c => ({ ...build2({ ...c, bigTitle: false }), name: 'Calendar', stamp: 'Locked' })), motionOpts, motionNote, dayOpts, dayNote, dow: ['M', 'T', 'W', 'T', 'F', 'S', 'S'] };
+  }
+}
+</script>
+</body>
+</html>

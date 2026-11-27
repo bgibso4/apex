@@ -14,6 +14,9 @@ lint_fixture() { # file -> swiftlint output
     local name dir
     name="$(basename "$1" .swift)"
     case "$name" in
+    *_in_design_system) dir="$tmp/$name/Packages/ApexKit/Sources/Screens/DesignSystem" ;;
+    *_in_core) dir="$tmp/$name/Packages/ApexKit/Sources/Core" ;;
+    no_raw_*) dir="$tmp/$name/Packages/ApexKit/Sources/Screens/Home" ;;
     *_in_screens_tests) dir="$tmp/$name/Packages/ApexKit/Tests/ScreensTests" ;;
     *_in_screens) dir="$tmp/$name/Packages/ApexKit/Sources/Screens" ;;
     no_ui_imports_in_mac_modules*) dir="$tmp/$name/Packages/ApexKit/Sources/NewModule" ;;
@@ -24,7 +27,8 @@ lint_fixture() { # file -> swiftlint output
     (cd "$tmp/$name" && swiftlint lint --no-cache --config "$root/.swiftlint.yml" --quiet Packages 2>&1)
 }
 
-for rule in no_print try_optional_needs_reason no_shared_in_package disable_needs_reason no_ui_imports_in_mac_modules; do
+for rule in no_print try_optional_needs_reason no_shared_in_package disable_needs_reason no_ui_imports_in_mac_modules \
+    no_raw_color no_raw_font no_raw_animation; do
     for file in "$root"/scripts/lint-fixtures/"$rule"*.swift; do
         out="$(lint_fixture "$file")"
         if grep -q "($rule)" <<<"$out"; then

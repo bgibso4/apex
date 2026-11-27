@@ -19,7 +19,8 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 # Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
 DEVICE         ?= iPhone
 
-.PHONY: setup sim generate build check-fast-scheme fast lint format test-hooks test-lint unused unused-run ci-checks run device
+.PHONY: setup sim generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
+	ci-checks run device design-import mocks
 
 # Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
 # a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
@@ -36,8 +37,10 @@ sim:
 	@xcrun simctl list devices 'iOS $(SIM_OS)' | grep -qF '    $(SIM_DEVICE) (' || \
 		xcrun simctl create '$(SIM_DEVICE)' '$(SIM_MODEL)' com.apple.CoreSimulator.SimRuntime.iOS-$(subst .,-,$(SIM_OS))
 
+# Everything generated: the tokens (design/tokens.json to Generated/Tokens.swift), then the Xcode project.
 generate:
 	@command -v xcodegen >/dev/null || { echo "error: xcodegen is missing. Install it: brew install xcodegen" >&2; exit 1; }
+	swift scripts/generate-tokens.swift
 	xcodegen generate --quiet
 
 build: sim generate
@@ -73,6 +76,10 @@ format:
 test-hooks:
 	bats scripts/hooks/tests
 
+# Unit tests for the design tools in scripts/.
+test-scripts:
+	bats scripts/tests
+
 # Fixture tests for the SwiftLint custom rules.
 test-lint:
 	scripts/test-lint-rules.sh
@@ -86,8 +93,11 @@ unused-run: sim
 # Everything CI's `checks` job runs (.github/workflows/ios.yml). `fast` is the Mac slice: it compiles for macOS every
 # module the Fast scheme's tests reach, so UIKit or an iOS-only API in one of them fails here. SwiftUI compiles on
 # macOS, so only the lint rule catches that import.
-ci-checks:
-	$(MAKE) --no-print-directory lint test-hooks test-lint fast unused-run
+# It starts by regenerating: a committed Generated/ file that differs from what its source gives fails here.
+ci-checks: generate
+	@[ -z "$$(git status --porcelain -- ':(glob)**/Generated/**')" ] || \
+		{ echo "error: generated files differ from the committed ones: run make -C apex-ios generate and commit" >&2; exit 1; }
+	$(MAKE) --no-print-directory lint test-hooks test-scripts test-lint fast unused-run
 
 # Run on this checkout's simulator. Named, never `booted`: another worktree's simulator may be booted too.
 run: build
@@ -101,3 +111,17 @@ device: generate
 		-destination 'generic/platform=iOS' -derivedDataPath $(DERIVED) -allowProvisioningUpdates | $(BEAUTIFY)
 	xcrun devicectl device install app --device "$(DEVICE)" '$(DEVICE_PRODUCT)'
 	xcrun devicectl device process launch --device "$(DEVICE)" $(BUNDLE_ID)
+
+# Replace design/export with a new export (design/README.md), list what that changed against git (`??` is a new
+# file, ` D` a removed one, ` M` a changed one, `!!` one an ignore rule would keep out of git), then render the
+# reference images again.
+design-import:
+	@[ -n "$(ZIP)" ] || { echo "usage: make design-import ZIP=<path to the export zip>" >&2; exit 1; }
+	python3 -I scripts/design-import.py "$(ZIP)" design/export
+	@git -c core.quotePath=false status --short --untracked-files=all --ignored -- design/export
+	@$(MAKE) --no-print-directory mocks
+
+# Render the reference image of every designed state in design/states.json, or of one (`STATE=home.noProgram`).
+# Needs Google Chrome and the network: the demos load React from unpkg. Never run in CI; the images are committed.
+mocks:
+	python3 -I scripts/render-mocks.py design/states.json design/mocks $(STATE)

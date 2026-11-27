@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../support.js"></script>
+<style id="ap-motion">@keyframes apSheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}@keyframes apSheetDown{from{transform:translateY(0)}to{transform:translateY(105%)}}@keyframes apScrimIn{from{opacity:0}to{opacity:1}}@keyframes apScrimOut{from{opacity:1}to{opacity:0}}@keyframes apMenuIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}@keyframes apDialogUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}@keyframes apKbUp{from{transform:translateY(100%)}to{transform:translateY(0)}}@keyframes apListA{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes apListB{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes apGrow{from{opacity:0;max-height:0}to{opacity:1;max-height:600px}}@keyframes apBarX{from{transform:scaleX(0)}to{transform:scaleX(1)}}@keyframes apBarY{from{transform:scaleY(0)}to{transform:scaleY(1)}}@keyframes apNumA{from{opacity:0;transform:translateY(55%)}to{opacity:1;transform:none}}@keyframes apNumB{from{opacity:0;transform:translateY(55%)}to{opacity:1;transform:none}}@keyframes apFadeIn{from{opacity:0}to{opacity:1}}@keyframes apFieldIn{from{background-color:rgba(237,238,240,0)}}.apbar{animation-play-state:paused!important}body.apin .apbar{animation-play-state:running!important}</style><style id="apex-embed">html,body{background:#090A0C!important;overflow:hidden!important;margin:0!important}body *{visibility:hidden}[data-screen-label],[data-screen-label] *{visibility:visible}[data-screen-label]{position:fixed!important;left:0!important;top:0!important;margin:0!important;border:0!important;border-radius:0!important;z-index:2147483647}</style><script>document.addEventListener("click",function(e){var t=e.target.closest("[data-nav],[data-navtab]");if(!t)return;var n=t.getAttribute("data-nav")||("tab:"+t.textContent.trim());e.stopPropagation();e.preventDefault();try{parent.postMessage({apexNav:n},"*")}catch(_){}},true);window.addEventListener("message",function(e){var q=e.data;if(!q||q.apexCmd!=="lens")return;var T=[].slice.call(document.querySelectorAll("[data-navtab]")).filter(function(x){return x.offsetParent});if(T.length<4)return;var cur=T.filter(function(x){return (x.getAttribute("style")||"").indexOf("0.11)")>0})[0];var f=T[q.from];if(!cur||!f||f===cur)return;var bar=cur.parentElement,br=bar.getBoundingClientRect(),fr=f.getBoundingClientRect(),cr=cur.getBoundingClientRect(),bs=cur.style.background,sh=cur.style.boxShadow;if(getComputedStyle(bar).position==="static")bar.style.position="relative";T.forEach(function(x){x.style.position="relative"});var L=document.createElement("div");L.style.cssText="position:absolute;z-index:0;pointer-events:none;border-radius:999px;background:rgba(255,255,255,0.11);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);top:"+(cr.top-br.top-bar.clientTop)+"px;height:"+cr.height+"px;width:"+cr.width+"px;left:"+(fr.left-br.left-bar.clientLeft)+"px;transition:left .38s cubic-bezier(.3,1.25,.5,1)";cur.style.background="transparent";cur.style.boxShadow="none";bar.insertBefore(L,bar.firstChild);L.getBoundingClientRect();L.style.left=(cr.left-br.left-bar.clientLeft)+"px";setTimeout(function(){L.remove();cur.style.background=bs;cur.style.boxShadow=sh},430)});</script></head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face { font-family:'ApexExo2'; src:url('../Exo2-ExtraBold.ttf') format('truetype'); font-weight:800; font-display:block; }
+body{margin:0;background:#050506;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}
+a{color:#659BC8;text-decoration:none} a:hover{color:#8FB6D9}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;justify-content:center;padding:40px 32px;box-sizing:border-box">
+
+<div data-screen-label="Home demo" style="width:390px;height:844px;flex:none;border:1px solid #20232A;border-radius:44px;overflow:hidden;position:relative;background:radial-gradient(ellipse 90% 45% at 50% -5%,#141A22 0%,#0C0E11 55%,#090A0C 100%)">
+<div style="position:relative;z-index:6;pointer-events:none;height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;color:#EDEEF0;font-size:13px;font-weight:600"><span>7:52</span><span>100%</span></div>
+<div ref="{{ rootRef }}" onScroll="{{ onScroll }}" style="position:absolute;top:54px;left:0;right:0;bottom:0;overflow-y:auto">
+<div style="display:flex;flex-direction:column;gap:12px;padding:4px 20px 120px">
+
+<sc-if value="{{ hdrFloat }}" hint-placeholder-val="{{ true }}">
+<div data-anim="card" style="display:flex;flex-direction:column;gap:2px">
+<sc-if value="{{ hdrBelow }}" hint-placeholder-val="{{ false }}"><div style="height:44px;flex:none"></div></sc-if>
+<div style="display:flex;align-items:center;min-height:{{ rowH }}"><span style="display:inline-flex;align-items:center;gap:{{ markGap }}"><img src="../logo-mark.png" alt="" style="height:{{ markPx }};width:auto;display:block"><span style="font-family:'ApexExo2';font-size:{{ markPx }};color:#EDEEF0;letter-spacing:{{ markLs }};line-height:1">PEX</span></span></div>
+<div style="color:#8F9098;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">{{ subheader }}</div>
+</div>
+</sc-if>
+<sc-if value="{{ hdrOverlay }}" hint-placeholder-val="{{ false }}"><div style="height:{{ spacerH }};flex:none;margin-bottom:-12px"></div></sc-if>
+
+<sc-if value="{{ ckOn }}" hint-placeholder-val="{{ true }}">
+<div data-anim="ck" onClick="{{ openSheet }}" style="box-sizing:border-box;overflow:hidden;background:linear-gradient(180deg,rgba(101,155,200,0.10) 0%,rgba(101,155,200,0.04) 100%),linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid rgba(101,155,200,0.40);border-radius:10px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer" style-active="opacity:0.85">
+<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="display:flex;align-items:center;gap:6px;color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#659BC8"><span data-dot="1" style="width:6px;height:6px;border-radius:50%;background:#659BC8"></span>Check-in due</span><span style="color:#EDEEF0;font-size:14px;font-weight:700">How’s the pain today?</span><span style="color:#8F9098;font-size:11px;font-variant-numeric:tabular-nums">Tue’s run · 32 min · 5.4 km</span></div>
+<span style="flex:none;color:#659BC8;font-size:14px;font-weight:700">Rate</span>
+</div>
+</sc-if>
+<sc-if value="{{ psActive }}" hint-placeholder-val="{{ true }}"><div data-anim="card" style="animation:apFadeIn .24s ease;background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:16px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Today · Thursday, Aug 20</div>
+<div style="color:#EDEEF0;font-size:20px;font-weight:800;letter-spacing:-0.3px;margin-top:6px">Upper Strength · Heavy Pull</div>
+<div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px">6 exercises · about 55 min</div>
+<div data-nav="tab:Workout" onClick="{{ tapStart }}" style="display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:10px;background:#659BC8;color:#0B0C0E;font-size:15px;font-weight:700;margin-top:16px;cursor:pointer" style-active="background:#5688B3">Start Workout</div>
+<div data-nav="tab:Workout" onClick="{{ tapPreview }}" style="display:flex;align-items:center;justify-content:center;min-height:44px;color:#8F9098;font-size:14px;font-weight:600;margin:6px 0 -8px;cursor:pointer" style-active="opacity:0.6">Preview session</div>
+</div></sc-if>
+<sc-if value="{{ psPaused }}" hint-placeholder-val="{{ false }}"><div data-anim="card" style="animation:apFadeIn .24s ease;background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:16px"><div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Paused</div><div style="color:#EDEEF0;font-size:20px;font-weight:800;letter-spacing:-0.3px;margin-top:6px">Since Thu, Aug 20</div><div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px">Next: Upper Strength · Heavy Pull</div><div data-nav="state:active" onClick="{{ tapResume }}" style="display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:10px;background:#659BC8;color:#0B0C0E;font-size:15px;font-weight:700;margin-top:16px;cursor:pointer" style-active="background:#5688B3">Resume program</div><div onClick="{{ tapLogFree }}" style="display:flex;align-items:center;justify-content:center;min-height:44px;color:#8F9098;font-size:14px;font-weight:600;margin:6px 0 -8px;cursor:pointer" style-active="opacity:0.6">Log a workout without a program</div></div></sc-if>
+<sc-if value="{{ psEnded }}" hint-placeholder-val="{{ false }}"><div data-anim="card" style="animation:apFadeIn .24s ease;background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:16px"><div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Pillars ended Aug 20</div><div style="color:#EDEEF0;font-size:20px;font-weight:800;letter-spacing:-0.3px;margin-top:6px">No Active Program</div><div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px">Pick one to get started on your goal.</div><div data-nav="library" onClick="{{ tapChoose }}" style="display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:10px;background:#659BC8;color:#0B0C0E;font-size:15px;font-weight:700;margin-top:16px;cursor:pointer" style-active="background:#5688B3">Choose a program</div><div onClick="{{ tapLogFree }}" style="display:flex;align-items:center;justify-content:center;min-height:44px;color:#8F9098;font-size:14px;font-weight:600;margin:6px 0 -8px;cursor:pointer" style-active="opacity:0.6">Log a workout without a program</div></div></sc-if>
+
+
+<div data-anim="card" onClick="{{ tapRecovery }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:14px 16px;cursor:pointer;transition:scale .3s cubic-bezier(.34,1.56,.64,1),filter .12s ease" style-active="scale:0.98;filter:brightness(0.9)">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Recovery</span><span style="color:#7C7E86;font-size:11px;font-weight:600">Whoop</span></div>
+<div style="display:flex;align-items:flex-end;gap:16px;margin-top:8px">
+<div style="flex:none"><div style="color:#EDEEF0;font-size:30px;font-weight:800;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;line-height:1">78%</div><div style="color:#8F9098;font-size:11.5px;font-weight:600;margin-top:6px;white-space:nowrap">30-day avg 68%</div></div>
+<div style="flex:1;display:flex;gap:4px">
+<sc-for list="{{ recBars }}" as="b" hint-placeholder-count="7">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="height:44px;width:100%;display:flex;align-items:flex-end;justify-content:center"><div style="width:10px;height:{{ b.h }};border-radius:3px;background:{{ b.bg }};transform-origin:bottom;animation:apBarY .5s cubic-bezier(.2,.8,.2,1) .25s both"></div></div><span style="color:{{ b.fg }};font-size:11px;font-weight:700">{{ b.d }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;gap:18px;margin-top:12px;padding-top:11px;border-top:1px solid #20232A;font-variant-numeric:tabular-nums"><span style="color:#7C7E86;font-size:12px;font-weight:600">Sleep <span style="color:#EDEEF0">84%</span></span><span style="color:#7C7E86;font-size:12px;font-weight:600">Strain <span style="color:#EDEEF0">6.2</span></span></div>
+</div>
+
+<div data-anim="card" data-nav="cal:7-20" onClick="{{ tapWeek }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:14px 16px 16px;cursor:pointer;transition:scale .3s cubic-bezier(.34,1.56,.64,1),filter .12s ease" style-active="scale:0.98;filter:brightness(0.9)">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">This week</div>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:12px">
+<div data-nav="cal:7-17" onClick="{{ tapD17 }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><span style="color:#7C7E86;font-size:11px;font-weight:700">M</span><span style="width:32px;height:32px;border-radius:50%;box-sizing:border-box;border:1px dashed #7C7E86;color:#7C7E86;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">17</span></div>
+<div data-nav="cal:7-18" onClick="{{ tapD18 }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><span style="color:#7C7E86;font-size:11px;font-weight:700">T</span><span style="width:32px;height:32px;border-radius:50%;background:#6CA383;color:#0B0C0E;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">18</span></div>
+<div data-nav="cal:7-19" onClick="{{ tapD19 }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><span style="color:#7C7E86;font-size:11px;font-weight:700">W</span><span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#7C7E86;font-size:13px;font-weight:600">19</span></div>
+<div data-nav="cal:7-20" onClick="{{ tapD20 }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><span style="color:#EDEEF0;font-size:11px;font-weight:700">T</span><span style="width:32px;height:32px;border-radius:50%;box-sizing:border-box;border:2px solid #659BC8;background:rgba(101,155,200,0.14);color:#EDEEF0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">20</span></div>
+<div data-nav="cal:7-21" onClick="{{ tapD21 }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><span style="color:#7C7E86;font-size:11px;font-weight:700">F</span><span style="width:32px;height:32px;border-radius:50%;box-sizing:border-box;border:{{ futBd }};color:#8F9098;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">21</span></div>
+<div data-nav="cal:7-22" onClick="{{ tapD22 }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><span style="color:#7C7E86;font-size:11px;font-weight:700">S</span><span style="width:32px;height:32px;border-radius:50%;box-sizing:border-box;border:{{ futBd }};color:#8F9098;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">22</span></div>
+<div data-nav="cal:7-23" onClick="{{ tapD23 }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><span style="color:#7C7E86;font-size:11px;font-weight:700">S</span><span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#7C7E86;font-size:13px;font-weight:600">23</span></div>
+</div>
+</div>
+
+<sc-if value="{{ notEnded }}" hint-placeholder-val="{{ true }}"><div data-anim="card" data-nav="program" onClick="{{ tapProgram }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:16px;cursor:pointer;transition:scale .3s cubic-bezier(.34,1.56,.64,1),filter .12s ease" style-active="scale:0.98;filter:brightness(0.9)">
+<sc-if value="{{ stdHead }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px"><span style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">{{ headLeft }}</span><span style="color:#7C7E86;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">{{ headRight }}</span></div>
+</sc-if>
+
+<sc-if value="{{ isHoriz }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:6px">
+<sc-for list="{{ hPhases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:30px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;gap:3px;height:6px">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;height:{{ w.hh }};border-radius:999px;background:#20232A;position:relative;overflow:hidden;align-self:center"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ w.pct }};background:{{ w.col }}"></div></div>
+</sc-for>
+</div>
+<sc-if value="{{ namesUnder }}" hint-placeholder-val="{{ true }}"><span style="color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;overflow:hidden">{{ p.name }}</span></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isFill }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:{{ blockGap }};align-items:flex-end">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:30px;display:flex;gap:{{ colGap }};align-items:flex-end">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;height:{{ w.vh }};border-radius:{{ colRadius }};background:#20232A;position:relative;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:{{ w.pct }};background:{{ w.col }}"></div></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCells }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:{{ blockGap }};align-items:flex-end">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:30px;display:flex;gap:{{ colGap }};align-items:flex-end">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{ w.cells }}" as="c" hint-placeholder-count="4"><div style="height:9px;border-radius:2px;background:{{ c.bg }}"></div></sc-for>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isHero }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:end">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="color:#EDEEF0;font-size:15px;font-weight:700">{{ progName }}</span><span style="color:#EDEEF0;font-size:34px;font-weight:800;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;line-height:1;margin-top:8px">{{ adherence }}</span><span style="color:#8F9098;font-size:11px;font-variant-numeric:tabular-nums">Adherence · {{ prs }} PRs</span></div>
+<div>
+<div style="display:flex;gap:6px;align-items:flex-end">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:24px;display:flex;align-items:flex-end">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;display:flex;justify-content:center"><div style="width:{{ thinW }};height:{{ w.th }};border-radius:999px;background:#20232A;position:relative;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:{{ w.pct }};background:{{ w.col }}"></div></div></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ namesUnder }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:6px;margin-top:8px">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3"><span style="flex:{{ p.n }};min-width:24px;color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;overflow:hidden;border-top:1px solid #20232A;padding-top:6px">{{ p.name }}</span></sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ vNamesUnder }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:{{ blockGap }};margin-top:8px">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3"><span style="flex:{{ p.n }};min-width:30px;color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;overflow:hidden;border-top:1px solid #20232A;padding-top:6px">{{ p.name }}</span></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ namesRow }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #20232A">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="5"><span style="display:inline-flex;align-items:center;gap:6px;color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap">{{ p.name }}<sc-if value="{{ p.sep }}" hint-placeholder-val="{{ true }}"><span style="color:#2C3039">·</span></sc-if></span></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ showStats }}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #20232A">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="color:#EDEEF0;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">{{ adherence }}</span><span style="color:#8F9098;font-size:11px">Adherence</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="color:#EDEEF0;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">{{ prs }}</span><span style="color:#8F9098;font-size:11px">PRs</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="color:#EDEEF0;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">{{ sessions }}</span><span style="color:#8F9098;font-size:11px">Sessions</span></div>
+</div>
+</sc-if>
+<sc-if value="{{ showNext }}" hint-placeholder-val="{{ false }}"><div style="color:#8F9098;font-size:11px;margin-top:12px">{{ nextLine }}</div></sc-if>
+<sc-if value="{{ showFooter }}" hint-placeholder-val="{{ false }}"><div style="display:flex;justify-content:space-between;color:#8F9098;font-size:11px;margin-top:12px;font-variant-numeric:tabular-nums"><span>{{ weekLine }}</span><span>{{ prs }} PRs · {{ sessions }} sessions</span></div></sc-if>
+</div></sc-if><sc-if value="{{ psEnded }}" hint-placeholder-val="{{ false }}"><div data-anim="card" data-nav="summaryEnded" onClick="{{ tapEndedCard }}" style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:16px;cursor:pointer;transition:scale .3s cubic-bezier(.34,1.56,.64,1),filter .12s ease" style-active="scale:0.98;filter:brightness(0.9)">
+<sc-if value="{{ stdHead }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px"><span style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">{{ headLeft }}</span><span style="color:#7C7E86;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">{{ headRight }}</span></div>
+</sc-if>
+
+<sc-if value="{{ isHoriz }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:6px">
+<sc-for list="{{ hPhases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:30px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;gap:3px;height:6px">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;height:{{ w.hh }};border-radius:999px;background:#20232A;position:relative;overflow:hidden;align-self:center"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ w.pct }};background:{{ w.col }}"></div></div>
+</sc-for>
+</div>
+<sc-if value="{{ namesUnder }}" hint-placeholder-val="{{ true }}"><span style="color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;overflow:hidden">{{ p.name }}</span></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isFill }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:{{ blockGap }};align-items:flex-end">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:30px;display:flex;gap:{{ colGap }};align-items:flex-end">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;height:{{ w.vh }};border-radius:{{ colRadius }};background:#20232A;position:relative;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:{{ w.pct }};background:{{ w.col }}"></div></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCells }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:{{ blockGap }};align-items:flex-end">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:30px;display:flex;gap:{{ colGap }};align-items:flex-end">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{ w.cells }}" as="c" hint-placeholder-count="4"><div style="height:9px;border-radius:2px;background:{{ c.bg }}"></div></sc-for>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isHero }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:end">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="color:#EDEEF0;font-size:15px;font-weight:700">{{ progName }}</span><span style="color:#EDEEF0;font-size:34px;font-weight:800;letter-spacing:-0.5px;font-variant-numeric:tabular-nums;line-height:1;margin-top:8px">{{ adherence }}</span><span style="color:#8F9098;font-size:11px;font-variant-numeric:tabular-nums">Adherence · {{ prs }} PRs</span></div>
+<div>
+<div style="display:flex;gap:6px;align-items:flex-end">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3">
+<div style="flex:{{ p.n }};min-width:24px;display:flex;align-items:flex-end">
+<sc-for list="{{ p.weeks }}" as="w" hint-placeholder-count="4">
+<div style="flex:1;display:flex;justify-content:center"><div style="width:{{ thinW }};height:{{ w.th }};border-radius:999px;background:#20232A;position:relative;overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:{{ w.pct }};background:{{ w.col }}"></div></div></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ namesUnder }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:6px;margin-top:8px">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3"><span style="flex:{{ p.n }};min-width:24px;color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;overflow:hidden;border-top:1px solid #20232A;padding-top:6px">{{ p.name }}</span></sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ vNamesUnder }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:{{ blockGap }};margin-top:8px">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3"><span style="flex:{{ p.n }};min-width:30px;color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;overflow:hidden;border-top:1px solid #20232A;padding-top:6px">{{ p.name }}</span></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ namesRow }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #20232A">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="5"><span style="display:inline-flex;align-items:center;gap:6px;color:{{ p.fg }};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap">{{ p.name }}<sc-if value="{{ p.sep }}" hint-placeholder-val="{{ true }}"><span style="color:#2C3039">·</span></sc-if></span></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ showStats }}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #20232A">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="color:#EDEEF0;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">{{ adherence }}</span><span style="color:#8F9098;font-size:11px">Adherence</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="color:#EDEEF0;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">{{ prs }}</span><span style="color:#8F9098;font-size:11px">PRs</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="color:#EDEEF0;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">{{ sessions }}</span><span style="color:#8F9098;font-size:11px">Sessions</span></div>
+</div>
+</sc-if>
+<sc-if value="{{ showNext }}" hint-placeholder-val="{{ false }}"><div style="color:#8F9098;font-size:11px;margin-top:12px">{{ nextLine }}</div></sc-if>
+<sc-if value="{{ showFooter }}" hint-placeholder-val="{{ false }}"><div style="display:flex;justify-content:space-between;color:#8F9098;font-size:11px;margin-top:12px;font-variant-numeric:tabular-nums"><span>{{ weekLine }}</span><span>{{ prs }} PRs · {{ sessions }} sessions</span></div></sc-if>
+</div></sc-if>
+
+</div>
+</div>
+
+<sc-if value="{{ hdrOverlay }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;top:0;left:0;right:0;z-index:4;padding-top:54px;padding-bottom:{{ edgePad }};background:{{ edgeBg }};backdrop-filter:{{ hdrBlur }};-webkit-backdrop-filter:{{ hdrBlur }};-webkit-mask-image:{{ edgeMask }};mask-image:{{ edgeMask }}">
+<div style="display:flex;flex-direction:column;gap:2px;padding:4px 20px {{ hdrPadB }}">
+<div style="display:flex;align-items:center;min-height:{{ rowH }}"><span style="display:inline-flex;align-items:center;gap:{{ markGap }}"><img src="../logo-mark.png" alt="" style="height:{{ markPx }};width:auto;display:block"><span style="font-family:'ApexExo2';font-size:{{ markPx }};color:#EDEEF0;letter-spacing:{{ markLs }};line-height:1">PEX</span></span></div>
+<div style="color:#8F9098;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;overflow:hidden;height:{{ subH }};opacity:{{ subOp }}">{{ subheader }}</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ hdrStd }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:0;left:0;right:0;z-index:4;pointer-events:none;height:{{ stdH }}"><div style="position:absolute;left:0;right:0;top:0;bottom:-28px;opacity:{{ stdEdge }};background:linear-gradient(180deg,rgba(9,10,12,0.96) 0%,rgba(9,10,12,0.92) 72%,rgba(9,10,12,0) 100%);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 76%,transparent 100%)"></div><div style="position:absolute;top:{{ gearTop }};left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;opacity:{{ stdOp }};transition:opacity .2s ease"><span style="display:inline-flex;align-items:center;gap:2px"><img src="../logo-mark.png" alt="" style="height:17px;width:auto;display:block"><span style="font-family:'ApexExo2';font-size:17px;color:#EDEEF0;letter-spacing:0.77px;line-height:1">PEX</span></span></div></div></sc-if>
+<div style="position:absolute;top:{{ gearTop }};right:20px;z-index:5">
+<div data-nav="settings" onClick="{{ tapSettings }}" style="width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#EDEEF0;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,0.14) 0%,rgba(255,255,255,0.05) 100%);border:1px solid rgba(255,255,255,0.16);box-shadow:inset 0 1px 0 rgba(255,255,255,0.34),inset 0 -1px 0 rgba(0,0,0,0.32),0 0 0 1px rgba(0,0,0,0.55);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-sizing:border-box" style-active="transform:scale(0.94)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.650 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.830l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+</div>
+</div>
+<div style="position:absolute;left:50%;bottom:118px;transform:translateX(-50%);z-index:7;padding:10px 14px;border-radius:8px;background:#20232A;color:#EDEEF0;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .2s;opacity:{{ toastOpacity }}">{{ toast }}</div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:3;pointer-events:none"><div style="position:absolute;left:0;right:0;bottom:0;height:92px;background:linear-gradient(0deg,rgba(9,10,12,0.7) 0%,rgba(9,10,12,0.35) 50%,rgba(9,10,12,0) 100%)"></div><div style="position:relative;margin:0 20px 26px;height:62px;box-sizing:border-box;padding:4px;border-radius:999px;display:flex;background:rgba(28,30,36,0.62);border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.2),0 0 0 1px rgba(0,0,0,0.5);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);pointer-events:auto"><div data-navtab style="cursor:pointer;flex:1;height:54px;border-radius:999px;background:rgba(255,255,255,0.11);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#659BC8;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.3 3.3a1.1 1.1 0 0 1 1.4 0l8.4 7.1a1 1 0 0 1-1.3 1.5l-.8-.7V20a1.4 1.4 0 0 1-1.4 1.4h-3.4v-5.6a.8.8 0 0 0-.8-.8h-2.8a.8.8 0 0 0-.8.8v5.6H6.4A1.4 1.4 0 0 1 5 20v-8.8l-.8.7a1 1 0 0 1-1.3-1.5Z"/></svg><span>Home</span></div><div data-navtab style="cursor:pointer;flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="1.2" y="9.2" width="2.6" height="5.6" rx="1"/><rect x="4.4" y="6.4" width="3.4" height="11.2" rx="1.3"/><rect x="7.6" y="10.8" width="8.8" height="2.4" rx=".6"/><rect x="16.2" y="6.4" width="3.4" height="11.2" rx="1.3"/><rect x="20.2" y="9.2" width="2.6" height="5.6" rx="1"/></svg><span>Workout</span></div><div data-navtab style="cursor:pointer;flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17.5l5.6-5.8 4 3.6L20.5 7"/><path d="M14.8 6.6h5.9v5.9"/></svg><span>Progress</span></div><div data-navtab style="cursor:pointer;flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15.2" cy="3.9" r="2.1" fill="currentColor" stroke="none"/><path d="M13.6 7.6l-2.9 6"/><path d="M7.4 10.2l3.4-2.6 3.2 2.4 2.8.4"/><path d="M10.7 13.6l3.2 2.6-1.4 5"/><path d="M10.7 13.6l-2.2 3.6-4.2.6"/></svg><span>Run</span></div></div><div style="position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:134px;height:5px;border-radius:999px;background:rgba(237,238,240,0.82)"></div></div>
+
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:5;background:rgba(0,0,0,0.55);transition:opacity .28s;opacity:{{ scrimOpacity }};pointer-events:{{ scrimEvents }}"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:6;background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #2C3039;border-bottom:none;border-radius:16px 16px 0 0;padding:0 16px 34px;transition:transform .32s cubic-bezier(.2,.8,.2,1);transform:{{ sheetTransform }}">
+<div onClick="{{ closeSheet }}" style="display:flex;justify-content:center;padding:10px 0 12px;cursor:pointer"><div style="width:36px;height:5px;border-radius:999px;background:#2C3039"></div></div>
+<sc-if value="{{ ckOn }}" hint-placeholder-val="{{ true }}">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Check-in · Run 2 days ago</div>
+<div style="color:#EDEEF0;font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-top:6px">How’s the pain today?</div>
+<div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums">Tue, Aug 18 · 32 min · 5.4 km</div>
+<div style="display:flex;align-items:baseline;gap:6px;margin-top:14px"><span style="color:{{ painNumColor }};font-size:34px;font-weight:800;letter-spacing:-0.5px;font-variant-numeric:tabular-nums">{{ painText }}</span><span style="color:#7C7E86;font-size:13px;font-weight:600">/ 10</span></div>
+<div ref="{{ trackRef }}" onPointerDown="{{ painDown }}" onPointerMove="{{ painMove }}" style="position:relative;height:44px;display:flex;align-items:center;cursor:pointer;touch-action:none">
+<div style="position:absolute;left:0;right:0;height:6px;border-radius:999px;background:#20232A"></div>
+<sc-if value="{{ painSet }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:0;width:{{ painPct }};height:6px;border-radius:999px;background:#8F9098"></div><div style="position:absolute;left:calc({{ painPct }} - 12px);width:24px;height:24px;border-radius:50%;background:#EDEEF0"></div></sc-if>
+</div>
+<div style="display:flex;justify-content:space-between;color:#8F9098;font-size:11px;margin-top:6px"><span>0 · none</span><span>10 · worst</span></div>
+<div onClick="{{ savePain }}" style="display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:10px;background:#6CA383;color:#0B0C0E;font-size:15px;font-weight:700;margin-top:16px;cursor:pointer;transition:opacity .2s;opacity:{{ saveOpacity }}">Save</div>
+<div onClick="{{ closeSheet }}" style="display:flex;align-items:center;justify-content:center;min-height:44px;color:#8F9098;font-size:14px;font-weight:600;margin-top:6px;cursor:pointer">Not now</div>
+</sc-if>
+</div>
+</div>
+
+<div style="flex:1 1 320px;max-width:380px;display:flex;flex-direction:column;gap:26px;color:#EDEEF0">
+<div>
+<div style="display:flex;align-items:center;gap:8px"><a href="./Home Explorations.dc.html#t24" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#EDEEF0;color:#090A0C;border-radius:4px">26</a><span style="font-size:13px;font-weight:600">Home · full stack demo</span></div>
+<p style="color:#8F9098;font-size:12.5px;line-height:1.6;margin:10px 0 0;text-wrap:pretty">Locked cards plus the open ones. Switch options here and scroll the phone. Taps show where each card goes.</p>
+</div>
+
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Header · scroll behavior</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{ optsHdr }}" as="o" hint-placeholder-count="3">
+<div onClick="{{ o.pick }}" style="min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}"><span style="font-size:12px;font-weight:700;color:{{ o.fg }}">{{ o.label }}</span></div>
+</sc-for>
+</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">{{ hdrNote }}</div>
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-top:6px">Wordmark size</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
+<sc-for list="{{ optsMark }}" as="o" hint-placeholder-count="4">
+<div onClick="{{ o.pick }}" style="min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}"><span style="font-size:12px;font-weight:700;color:{{ o.fg }}">{{ o.label }}</span></div>
+</sc-for>
+</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">Scroll the phone to test. Settings stays top right in every mode.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Motion · cards load</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{ optsMotion }}" as="o" hint-placeholder-count="3">
+<div onClick="{{ o.pick }}" style="min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}"><span style="font-size:12px;font-weight:700;color:{{ o.fg }}">{{ o.label }}</span></div>
+</sc-for>
+</div>
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Motion · check-in lands</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{ optsArrive }}" as="o" hint-placeholder-count="3">
+<div onClick="{{ o.pick }}" style="min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}"><span style="font-size:12px;font-weight:700;color:{{ o.fg }}">{{ o.label }}</span></div>
+</sc-for>
+</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">{{ motionNote }}</div>
+<div style="display:flex;gap:16px">
+<div onClick="{{ replay }}" style="min-height:32px;display:flex;align-items:center;color:#659BC8;font-size:12px;font-weight:600;cursor:pointer">Replay load</div>
+<div onClick="{{ resetCk }}" style="min-height:32px;display:flex;align-items:center;color:#659BC8;font-size:12px;font-weight:600;cursor:pointer">{{ resetLabel }}</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Check-in · 29b</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">Whole card opens the sheet. Save collapses the card. Not now, the handle or the scrim close the sheet and the card stays until the 48h window ends.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Program state · overview turns 14–22</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{ optsPs }}" as="o" hint-placeholder-count="3">
+<div onClick="{{ o.pick }}" style="min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}"><span style="font-size:12px;font-weight:700;color:{{ o.fg }}">{{ o.label }}</span></div>
+</sc-for>
+</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">{{ psNote }}</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Program length · blocks</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">
+<sc-for list="{{ optsLen }}" as="o" hint-placeholder-count="6">
+<div onClick="{{ o.pick }}" style="min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}"><span style="font-size:12px;font-weight:700;color:{{ o.fg }}">{{ o.label }}</span><span style="font-size:11px;font-weight:600;color:#8F9098">{{ o.sub }}</span></div>
+</sc-for>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Locked</div>
+<div style="color:#EDEEF0;font-size:12.5px;line-height:1.6;text-wrap:pretty">Program card · 24a vertical fill columns + stat row<br>Check-in · 29b, above today<br>Subheader · with week<br>Header · glass settings button, always top right<br>Header · Apple’s large title (37c, 2026-11-25): the wordmark on its own row under the gear scrolls away, then 17px centred on the gear’s row<br>Wordmark · 34px</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">Wordmark size gets judged on device.</div>
+</div>
+
+
+<div style="border-top:1px solid #20232A;padding-top:16px;color:#7C7E86;font-size:12px;line-height:1.55">Switch length to test how labels and columns scale.</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  state = { ps: 'active', hdr: 'below', mark: 34, sy: 0, motion: 'rise', arrive: 'pulse', prog: '24a', len: '11', ck: '29b', ckOn: true, ckSaved: null, pain: null, sheet: false, subWeek: true, toast: '', toastOn: false };
+  trackRef = React.createRef();
+
+  showToast(t) {
+    clearTimeout(this._t);
+    this.setState({ toast: t, toastOn: true });
+    this._t = setTimeout(() => this.setState({ toastOn: false }), 1600);
+  }
+  componentWillUnmount() { clearTimeout(this._t); clearTimeout(this._s); clearTimeout(this._p); }
+  setPain(e) {
+    const r = this.trackRef.current && this.trackRef.current.getBoundingClientRect();
+    if (!r || !r.width) return;
+    const v = Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 10);
+    if (v !== this.state.pain) this.setState({ pain: v });
+  }
+  finish(v) {
+    this.setState({ sheet: false });
+    const el = this.rootRef.current && this.rootRef.current.querySelector('[data-anim="ck"]');
+    if (!el || !el.animate) { this.setState({ ckOn: false, pain: null }); return; }
+    const hh = el.offsetHeight;
+    const an = el.animate([{ height: hh + 'px', opacity: 1, marginBottom: '0px', paddingTop: '12px', paddingBottom: '12px' }, { height: '0px', opacity: 0, marginBottom: '-12px', paddingTop: '0px', paddingBottom: '0px' }], { duration: 320, delay: 260, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+    an.onfinish = () => this.setState({ ckOn: false, pain: null });
+  }
+  componentDidMount() { this._p = setTimeout(() => this.play(), 80); window.addEventListener('message', e => { const q = e.data; if (q && q.apexCmd === 'programState') this.setState({ ps: q.ps }); }); }
+  play() {
+    const root = this.rootRef.current; if (!root || !root.animate) return;
+    const m = this.state.motion, a = this.state.arrive;
+    root.getAnimations && root.querySelectorAll('[data-anim],[data-dot]').forEach(el => el.getAnimations().forEach(x => x.cancel()));
+    let i = 0, last = 0;
+    root.querySelectorAll('[data-anim]').forEach(el => {
+      if (el.dataset.anim === 'ck' && a !== 'static') return;
+      const d = i++ * 55; last = d;
+      if (m === 'none') return;
+      const kf = m === 'rise'
+        ? [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }]
+        : [{ opacity: 0, transform: 'translateY(18px) scale(.98)' }, { opacity: 1, transform: 'translateY(-3px) scale(1)', offset: 0.62 }, { opacity: 1, transform: 'none' }];
+      el.animate(kf, { duration: m === 'rise' ? 420 : 620, delay: d, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+    });
+    const ck = root.querySelector('[data-anim="ck"]');
+    if (ck && a !== 'static') {
+      const hh = ck.offsetHeight, t0 = (m === 'none' ? 0 : last + 480) + 200;
+      ck.animate([{ height: '0px', opacity: 0, marginBottom: '-12px', paddingTop: '0px', paddingBottom: '0px' }, { height: hh + 'px', opacity: 1, marginBottom: '0px', paddingTop: '12px', paddingBottom: '12px' }], { duration: 440, delay: t0, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+      if (a === 'pulse') { const dot = ck.querySelector('[data-dot]'); dot && dot.animate([{ boxShadow: '0 0 0 0 rgba(101,155,200,0.6)' }, { boxShadow: '0 0 0 8px rgba(101,155,200,0)' }], { duration: 900, delay: t0 + 400, iterations: 1, easing: 'ease-out' }); }
+    }
+  }
+  replayNow() { this.setState({ ckOn: true, pain: null, sheet: false }, () => requestAnimationFrame(() => this.play())); }
+
+  program() {
+    const PR = {
+      '4':  { name: 'Foundation', now: 2, ph: [['Foundation', [4,4,4,2]]] },
+      '8':  { name: 'Pillars Lite', now: 4, ph: [['Hypertrophy', [4,4,4]], ['Strength', [4,4,2]], ['Peak', [3,3]]] },
+      '11': { name: 'Pillars', now: 2, ph: [['Hypertrophy', [4,4,4,4,2]], ['Strength', [4,4,4,2]], ['Peak', [4,4]]] },
+      '12': { name: 'Strength Base', now: 5, ph: [['Base', [3,3,3]], ['Hypertrophy', [4,4,4,2]], ['Strength', [4,4,4]], ['Peak', [3,3]]] },
+      '16': { name: 'Meet Prep', now: 7, ph: [['Base', [3,3,3]], ['Hypertrophy', [4,4,4,2]], ['Strength', [4,4,4,2]], ['Peak', [3,3,3]], ['Taper', [3,3]]] },
+      '26': { name: 'Off-season', now: 13, ph: [['Base', [3,3,3,3]], ['Hypertrophy', [4,4,4,2,4,4,4,2]], ['Strength', [4,4,4,4,4,4,2]], ['Power', [3,3,3,2]], ['Peak', [3,3,3]]] },
+    };
+    return PR[this.state.len];
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pg = this.program();
+    const p = s.prog, isH = p.startsWith('23');
+    const doneCol = p === '23b' ? '#8F9098' : '#6CA383';
+    const plan = pg.ph.flatMap(x => x[1]);
+    const total = plan.length;
+    const done = plan.map((pl, i) => i < pg.now ? (i % 5 === 1 ? pl - 1 : pl) : i === pg.now ? Math.min(2, pl - 1) : 0);
+    const sessions = done.reduce((a, b) => a + b, 0);
+    const owed = plan.slice(0, pg.now).reduce((a, b) => a + b, 0) + done[pg.now];
+    const adherence = Math.round(sessions / owed * 100) + '%';
+    const prs = String(Math.max(1, Math.round(pg.now * 0.7)));
+    let idx = 0, nowPhase = '';
+    const nBlocks = pg.ph.length;
+    const phases = pg.ph.map(([name, pls]) => {
+      const start = idx;
+      const weeks = pls.map(pl => {
+        const i = idx++, dl = pl === 2, f = done[i] / pl, col = i === pg.now ? (s.ps === 'paused' ? '#5C5F68' : s.ps === 'ended' ? doneCol : '#659BC8') : doneCol;
+        return { pct: (f * 100) + '%', col, hh: dl ? '3px' : '6px', vh: dl ? '22px' : '44px', th: dl ? '16px' : '32px',
+          cells: Array.from({ length: pl }, (_, k) => ({ bg: (pl - 1 - k) < done[i] ? col : '#20232A' })) };
+      });
+      const cur = pg.now >= start && pg.now < idx;
+      if (cur) nowPhase = name;
+      return { name, n: pls.length, fg: cur ? '#8F9098' : '#7C7E86', weeks, start, end: idx, pls, sep: idx < total };
+    });
+    // 19b: horizontal collapses to one bar per block past 16 weeks
+    const hPhases = total > 16 ? phases.map(ph => {
+      const pl = ph.pls.reduce((a, b) => a + b, 0), d = done.slice(ph.start, ph.end).reduce((a, b) => a + b, 0);
+      const cur = pg.now >= ph.start && pg.now < ph.end;
+      return { ...ph, weeks: [{ pct: (d / pl * 100) + '%', col: cur ? '#659BC8' : doneCol, hh: '6px' }] };
+    }) : phases;
+    const single = nBlocks === 1, under = nBlocks > 1 && nBlocks <= 4, row = nBlocks >= 5;
+    const dense = total > 16;
+    const nextPh = phases.find(ph => ph.start > pg.now);
+    const nextDl = plan.findIndex((pl, i) => i > pg.now && pl === 2);
+    const nextBits = [];
+    if (nextDl >= 0) nextBits.push(`Deload in week ${nextDl + 1}`);
+    if (nextPh) nextBits.push(`${nextPh.name} starts week ${nextPh.start + 1}`);
+
+    const seg = on => ({ bd: on ? '#659BC8' : '#2C3039', bg: on ? 'rgba(101,155,200,0.10)' : 'transparent', fg: on ? '#659BC8' : '#EDEEF0' });
+    const mk = list => list.map(([id, label]) => ({ id, label, ...seg(p === id), pick: () => this.setState({ prog: id }) }));
+    const notes = {
+      '23a': 'Horizontal, done weeks moss.', '23b': 'Horizontal, done weeks grey.', '23c': 'Horizontal plus stats.', '23d': 'Horizontal plus next line.',
+      '24a': 'Fill columns plus stat row. Deloads half height.', '24b': 'One cell per session. A miss is an empty cell.',
+      '24c': 'Adherence as hero, thin columns beside it.', '24d': 'Fill columns, adherence in header, footer line.',
+    };
+    const ckNotes = {
+      '22a': 'Locked 22a, for reference. About 300px.',
+      '25a': 'Number row, one tap saves. No Save button, ✕ dismisses. About 130px.',
+      '25b': 'One-line prompt, about 66px. The whole card opens a sheet with the 22a slider. ✕ dismisses.',
+      '25c': 'Inline slider, number beside the question, ✕ dismisses. Save slides in only after the slider is touched. About 120px, 180px once touched.',
+    };
+    const rec = [[32,'F'],[31,'S'],[28,'S'],[36,'M'],[26,'T'],[33,'W'],[38,'T']].map(([h, d], i) => ({ h: h + 'px', d, bg: i === 6 ? '#659BC8' : '#2C3039', fg: i === 6 ? '#EDEEF0' : '#7C7E86' }));
+    const painSet = s.pain != null;
+    const ck = s.ckOn ? s.ck : null;
+    const weekLine = `Week ${pg.now + 1} of ${total}`;
+
+    return {
+      subheader: s.ps === 'ended' ? '' : [pg.name, s.subWeek ? weekLine : null, s.ps === 'paused' ? 'Paused' : single ? null : nowPhase].filter(Boolean).join(' · '),
+      psActive: s.ps === 'active', psPaused: s.ps === 'paused', psEnded: s.ps === 'ended', notEnded: s.ps !== 'ended',
+      futBd: s.ps === 'active' ? '1.5px solid #3A3D45' : '0px solid transparent', headLeft: s.ps === 'ended' ? pg.name : 'Program',
+      tapResume: () => { this.setState({ ps: 'active' }); this.showToast('Resumed · Thursday’s session is back on'); },
+      tapChoose: () => this.showToast('Opens Programs'), tapLogFree: () => this.showToast('Log a workout without a program · to design'),
+      tapEndedCard: () => this.showToast('Opens Pillars’ summary'),
+      optsPs: [['active','Active'],['paused','Paused'],['ended','Ended']].map(([k, label]) => ({ label, ...seg(s.ps === k), pick: () => this.setState({ ps: k }) })),
+      psNote: ({ active: 'Week 3 of 11, as built.', paused: 'Paused (turns 17–19, 22a with 21f’s text): the paused card takes Today’s place; the program card says Paused and this week’s column is grey; nothing planned after today.', ended: 'Ended (turns 14–15, 19a): No Active Program on top; the ended program’s card at the foot opens its summary; adherence counts up to the day it ended.' })[s.ps],
+      tapSettings: () => this.showToast('Opens Settings'),
+      tapStart: () => this.showToast('Start Workout · begins the session'),
+      tapPreview: () => this.showToast('Opens the Workout tab day view'),
+      tapRecovery: () => this.showToast('Opens Whoop'),
+      tapWeek: () => this.showToast('Opens Calendar on today'),
+      tapD17: (e) => { e && e.stopPropagation && e.stopPropagation(); this.showToast('Opens Calendar on Mon, Aug 17'); }, tapD18: (e) => { e && e.stopPropagation && e.stopPropagation(); this.showToast('Opens Calendar on Tue, Aug 18'); }, tapD19: (e) => { e && e.stopPropagation && e.stopPropagation(); this.showToast('Opens Calendar on Wed, Aug 19'); }, tapD20: (e) => { e && e.stopPropagation && e.stopPropagation(); this.showToast('Opens Calendar on Thu, Aug 20'); }, tapD21: (e) => { e && e.stopPropagation && e.stopPropagation(); this.showToast('Opens Calendar on Fri, Aug 21'); }, tapD22: (e) => { e && e.stopPropagation && e.stopPropagation(); this.showToast('Opens Calendar on Sat, Aug 22'); }, tapD23: (e) => { e && e.stopPropagation && e.stopPropagation(); this.showToast('Opens Calendar on Sun, Aug 23'); },
+      tapProgram: () => this.showToast('Opens the Program screen'),
+      recBars: rec,
+
+      ck22: ck === '22a', ck25a: ck === '25a' || (s.ck === '25a' && s.ckSaved != null), ck25b: ck === '25b', ck25c: ck === '25c',
+      ckAsking: s.ckSaved == null, ckDone: s.ckSaved != null, savedText: `Saved · pain ${s.ckSaved} of 10`,
+      painCells: Array.from({ length: 11 }, (_, v) => ({ v, bg: 'rgba(237,238,240,0.06)', fg: '#EDEEF0', pick: () => {
+        this.setState({ ckSaved: v, ckOn: false });
+        clearTimeout(this._s); this._s = setTimeout(() => this.setState({ ckSaved: null }), 1400);
+      } })),
+      trackRef: this.trackRef,
+      painDown: e => { e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); this.setPain(e); },
+      painMove: e => { if (e.buttons) this.setPain(e); },
+      painSet, painText: painSet ? String(s.pain) : '–', painNumColor: painSet ? '#EDEEF0' : '#7C7E86',
+      painPct: (painSet ? s.pain * 10 : 0) + '%',
+      saveOpacity: painSet ? 1 : 0.35,
+      saveRows: painSet ? '1fr' : '0fr',
+      savePain: e => { e && e.stopPropagation && e.stopPropagation(); if (painSet) this.finish(s.pain); },
+      dismissPain: () => this.setState({ sheet: false }),
+      dismissStop: e => { e.stopPropagation(); this.finish(null); },
+      openSheet: () => this.setState({ sheet: true }),
+      closeSheet: () => this.setState({ sheet: false }),
+      scrimOpacity: s.sheet ? 1 : 0, scrimEvents: s.sheet ? 'auto' : 'none',
+      sheetTransform: s.sheet ? 'translateY(0)' : 'translateY(105%)',
+
+      ...(() => {
+        const M = s.mark, full = Math.max(52, M + 18), mode = s.hdr;
+        const p = mode === 'collapse' ? Math.min(1, s.sy / 56) : 0;
+        const size = mode === 'collapse' ? Math.round(M - (M - 17) * p) : M;
+        const row = mode === 'collapse' ? Math.round(full - (full - 44) * p) : full;
+        const scrolled = s.sy > 2;
+        return {
+          hdrFloat: mode === 'float' || mode === 'standard' || mode === 'below', hdrBelow: mode === 'below', hdrOverlay: mode === 'pinned' || mode === 'collapse', hdrStd: mode === 'standard' || mode === 'below',
+          stdOp: String(Math.max(0, Math.min(1, (s.sy - full + 8) / 16))), stdEdge: String(Math.max(0, Math.min(1, s.sy / 30))), stdH: (mode === 'below' ? 120 : 54 + 4 + (row - 44) / 2 + 44 + 18) + 'px',
+          markPx: size + 'px', markGap: Math.round(size * 0.14) + 'px', markLs: (size * 0.045).toFixed(2) + 'px',
+          rowH: row + 'px', spacerH: (full + 19 + 10) + 'px',
+          subH: (17 * (1 - p)) + 'px', subOp: String(1 - p), hdrPadB: (10 - 4 * p) + 'px',
+          hdrBlur: scrolled ? 'blur(14px) saturate(1.1)' : 'none',
+          edgeBg: scrolled ? 'linear-gradient(180deg,rgba(9,10,12,0.92) 0%,rgba(9,10,12,0.78) 55%,rgba(9,10,12,0) 100%)' : 'transparent',
+          edgeMask: scrolled ? 'linear-gradient(180deg,#000 0%,#000 60%,transparent 100%)' : 'none', edgePad: scrolled ? '22px' : '0px',
+          gearTop: (mode === 'below' ? 58 : 54 + 4 + (row - 44) / 2) + 'px',
+          onScroll: e => { const y = e.currentTarget.scrollTop; if (this._raf) return; this._raf = requestAnimationFrame(() => { this._raf = null; if (Math.abs(y - this.state.sy) > 0.5) this.setState({ sy: y }); }); },
+          optsHdr: [['below','Below the gear'],['standard','Same line'],['collapse','Old: shrinks']].map(([k, label]) => ({ label, ...seg(s.hdr === k), pick: () => { if (this.rootRef.current) this.rootRef.current.scrollTop = 0; this.setState({ hdr: k, sy: 0 }); } })),
+          hdrNote: ({ below: 'Locked 2026-11-25 (turn 37c), Apple’s large title: 34px wordmark on its own row under the gear. The gear has its own row at the top; the large wordmark sits on the row under it and scrolls away, then the small wordmark fades in centred on the gear’s row. Everything below moves down 44px.', standard: 'Built 2026-11-24, replaced by 37c on 2026-11-25. The wordmark and subheader scroll away with the cards; once the wordmark has gone, a 17px wordmark fades in centred in the bar over a soft edge. The subheader does not come back. Settings stays top right.', float: 'Wordmark and subheader scroll away. Only the glass gear stays, floating over the cards.', pinned: 'Wordmark, subheader and gear all stay put. Cards fade under a soft scroll edge. Costs about 85px of fixed space.', collapse: 'iOS 26 large-title pattern. The wordmark shrinks to 17px and the subheader folds away over the first 56px. Cards fade under a soft scroll edge, with no hard line. About 44px fixed once collapsed.' })[mode],
+          optsMark: [22, 26, 30, 34].map(n => ({ label: n + 'px', ...seg(s.mark === n), pick: () => this.setState({ mark: n }) })),
+        };
+      })(),
+      rootRef: this.rootRef, ckOn: s.ckOn,
+      optsMotion: [['none','None'],['rise','Rise'],['spring','Spring']].map(([k,label]) => ({ label, ...seg(s.motion === k), pick: () => this.setState({ motion: k }, () => this.replayNow()) })),
+      optsArrive: [['static','With the rest'],['slide','Slides in'],['pulse','Slide + pulse']].map(([k,label]) => ({ label, ...seg(s.arrive === k), pick: () => this.setState({ arrive: k }, () => this.replayNow()) })),
+      motionNote: ({ none: 'Cards appear at once.', rise: 'Cards fade up 12px, 55ms apart. 420ms each, no overshoot.', spring: 'Cards rise 18px and overshoot 3px, 55ms apart. The bounce you mentioned, kept small.' })[s.motion] + ' ' + ({ static: 'Check-in loads in order with the rest.', slide: 'Check-in arrives last, opening space above Today and pushing it down.', pulse: 'Check-in arrives last, then its blue dot rings once.' })[s.arrive],
+      replay: () => this.replayNow(),
+      progName: pg.name, adherence, prs, sessions: String(sessions), weekLine,
+      stdHead: p !== '24c',
+      headRight: s.ps === 'ended' ? 'Ended Aug 20' : s.ps === 'paused' ? 'Paused · ' + weekLine : p === '24d' ? `${adherence} adherence` : weekLine,
+      isHoriz: isH, isFill: p === '24a' || p === '24d', isCells: p === '24b', isHero: p === '24c',
+      phases, hPhases,
+      namesUnder: under, vNamesUnder: under && !isH && p !== '24c', namesRow: row,
+      blockGap: dense ? '5px' : '8px', colGap: dense ? '2px' : '4px', colRadius: dense ? '2px' : '3px', thinW: dense ? '4px' : '6px',
+      showStats: ['23c', '24a', '24b'].includes(p),
+      showNext: p === '23d' && nextBits.length > 0, nextLine: nextBits.join(' · '),
+      showFooter: p === '24d',
+
+      optsCk: [['22a','Full'],['25a','Tap row'],['25b','Prompt'],['25c','Slim slider']].map(([id, label]) => ({ id, label, ...seg(s.ck === id), pick: () => this.setState({ ck: id, ckOn: true, pain: null, ckSaved: null, sheet: false }) })),
+      ckNote: ckNotes[s.ck],
+      resetCk: () => s.ckOn ? this.setState({ ckOn: false, sheet: false }) : this.replayNow(),
+      resetLabel: s.ckOn ? 'Hide check-in (not due)' : 'Show check-in again',
+      optsLen: [['4','4 wk','1 block'],['8','8 wk','3 blocks'],['11','11 wk','3 blocks'],['12','12 wk','4 blocks'],['16','16 wk','5 blocks'],['26','26 wk','5 blocks']].map(([k, label, sub]) => ({ label, sub, ...seg(s.len === k), pick: () => this.setState({ len: k }) })),
+      optsV: mk([['24a','Fill'],['24b','Cells'],['24c','Hero'],['24d','Header']]),
+      optsH: mk([['23a','Moss'],['23b','Grey'],['23c','Stats'],['23d','Next']]),
+      progNote: notes[p] + (row ? ' 5 blocks: names move to a row below (19b).' : single ? ' One block: no names.' : ''),
+      optsSub: [[true,'With week'],[false,'Without week']].map(([k, label]) => ({ label, ...seg(s.subWeek === k), pick: () => this.setState({ subWeek: k }) })),
+      toast: s.toast, toastOpacity: s.toastOn ? 1 : 0,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "states": [
+    { "name": "fixture.grey", "page": "scripts/tests/fixtures/mock/page.html" },
+    { "name": "fixture.blue", "page": "scripts/tests/fixtures/mock/page.html", "clicks": ["Blue"] },
+    { "name": "fixture.broken", "page": "scripts/tests/fixtures/mock/page.html", "clicks": ["Nope"] },
+    { "name": "fixture.empty", "page": "scripts/tests/fixtures/mock/empty.html" }
+  ]
+}

@@ -1,0 +1,477 @@
+# Home screen redesign brief — entire project
+
+This project’s pages, files, and uploads as this browser tab had them at export.
+Anything left out is listed below.
+
+## Contents
+
+- `APEX App Demo.dc.html`
+- `APEX README.md`
+- `All Exercises Demo.dc.html`
+- `All Exercises Explorations.dc.html`
+- `CLAUDE.md`
+- `Calendar Demo.dc.html`
+- `Calendar Explorations.dc.html`
+- `Exercise Detail Demo · Accessory.dc.html`
+- `Exercise Detail Demo · Long Name.dc.html`
+- `Exercise Detail Demo.dc.html`
+- `Exercise Detail Explorations.dc.html`
+- `Exercise Header Options Demo.dc.html`
+- `Exo2-ExtraBold.ttf`
+- `Header Audit Demo.dc.html`
+- `History Demo.dc.html`
+- `History Explorations.dc.html`
+- `Home Demo.dc.html`
+- `Home Explorations.dc.html`
+- `Library Demo.dc.html`
+- `Library Explorations.dc.html`
+- `Motion Explorations.dc.html`
+- `Program Overview Demo.dc.html`
+- `Program Overview Explorations.dc.html`
+- `Program Preview Demo.dc.html`
+- `Program Summary Demo · Ended.dc.html`
+- `Program Summary Demo.dc.html`
+- `Program Summary Explorations.dc.html`
+- `Progress Demo.dc.html`
+- `Progress Explorations.dc.html`
+- `Run Explorations.dc.html`
+- `Session Detail Demo.dc.html`
+- `Session Detail Explorations.dc.html`
+- `Today Card Demo.dc.html`
+- `Workout Explorations.dc.html`
+- `Workout Landing Demo.dc.html`
+- `Workout Session Demo.dc.html`
+- `_ds/apex-design-system-d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0/README.md`
+- `_ds/apex-design-system-d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0/_ds_bundle.js`
+- `_ds/apex-design-system-d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0/_ds_manifest.json`
+- `_ds/apex-design-system-d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0/fonts/Exo2-ExtraBold.ttf`
+- `_ds/apex-design-system-d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0/fonts/Orbitron-ExtraBold.ttf`
+- `_ds/apex-design-system-d6ba3f54-69ba-40fe-aa51-48b8a8d6bcd0/styles.css`
+- `app/accessory.dc.html`
+- `app/calendar.dc.html`
+- `app/exercise.dc.html`
+- `app/exercises.dc.html`
+- `app/history.dc.html`
+- `app/home.dc.html`
+- `app/library.dc.html`
+- `app/live.dc.html`
+- `app/preview.dc.html`
+- `app/program.dc.html`
+- `app/progress.dc.html`
+- `app/session.dc.html`
+- `app/summary.dc.html`
+- `app/summaryEnded.dc.html`
+- `app/workout.dc.html`
+- `calendar-decisions.md`
+- `exercise-decisions.md`
+- `exercise-detail-notes.md`
+- `exercises-decisions.md`
+- `github.md`
+- `history-decisions.md`
+- `home-decisions.md`
+- `iOS 27 Compare.dc.html`
+- `inventory.md`
+- `ios27-audit.md`
+- `ios27/a_cal.jpg`
+- `ios27/a_cal_s.jpg`
+- `ios27/a_hist.jpg`
+- `ios27/a_hist_s.jpg`
+- `ios27/a_home.jpg`
+- `ios27/a_rec.jpg`
+- `ios27/a_sheet.jpg`
+- `ios27/a_sum.jpg`
+- `ios27/b_cal.jpg`
+- `ios27/b_cal_s.jpg`
+- `ios27/b_hist.jpg`
+- `ios27/b_hist_s.jpg`
+- `ios27/b_home.jpg`
+- `ios27/b_rec.jpg`
+- `ios27/b_sheet.jpg`
+- `ios27/b_sum.jpg`
+- `ios27/rA.jpg`
+- `ios27/rB.jpg`
+- `ios27/t1.jpg`
+- `ios27/t1_s.jpg`
+- `ios27/t2.jpg`
+- `logging-decisions.md`
+- `logo-mark.png`
+- `motion-decisions.md`
+- `overview-decisions.md`
+- `progress-decisions.md`
+- `run-decisions.md`
+- `session-decisions.md`
+- `shots/audit/calendar.png`
+- `shots/audit/exercise.png`
+- `shots/audit/history.png`
+- `shots/audit/rec.png`
+- `shots/audit/ses.png`
+- `shots/audit/session.png`
+- `shots/audit/summary.png`
+- `shots/exercise-35a.png`
+- `shots/exercise-35b.png`
+- `shots/exercise-35c.png`
+- `shots/exercise-36a.png`
+- `shots/exercise-36b.png`
+- `shots/exercise-37a.png`
+- `shots/exercise-38a-rare.png`
+- `shots/exercise-38a.png`
+- `shots/exercise-38b-rare.png`
+- `shots/exercise-38b.png`
+- `shots/exercise-39.png`
+- `shots/exercise-40a.png`
+- `shots/exercise-40b.png`
+- `shots/exercise-41a.png`
+- `shots/exercise-41b.png`
+- `shots/exercise-42a.png`
+- `shots/exercise-42b.png`
+- `shots/exercise-43a.png`
+- `shots/exercise-43b.png`
+- `shots/exercise-43c.png`
+- `shots/exercise-44.png`
+- `shots/exercise-45a.png`
+- `shots/exercise-45b.png`
+- `shots/exercise-45c.png`
+- `shots/exercise-46a.png`
+- `shots/exercise-46b.png`
+- `shots/exercise-46c.png`
+- `shots/exercise-46d.png`
+- `shots/exercise-47.png`
+- `shots/exercise-48.png`
+- `shots/exercise-49a.png`
+- `shots/exercise-49b.png`
+- `shots/exercise-50-1a.png`
+- `shots/exercise-50-1b.png`
+- `shots/exercise-50-1c.png`
+- `shots/exercise-50-2a.png`
+- `shots/exercise-50-2b.png`
+- `shots/exercise-50-2c.png`
+- `shots/exercise-50-3a.png`
+- `shots/exercise-50-3b.png`
+- `shots/exercise-50-4a.png`
+- `shots/exercise-50-4b.png`
+- `shots/exercise-50-5a.png`
+- `shots/exercise-50-5b.png`
+- `shots/exercise-51-a.png`
+- `shots/exercise-51-b.png`
+- `shots/exercise-51-c.png`
+- `shots/exercise-52-a.png`
+- `shots/exercise-52-b.png`
+- `shots/exercise-52-c.png`
+- `shots/exercise-52-d.png`
+- `shots/exercise-52-e.png`
+- `shots/exercise-53-20a.png`
+- `shots/exercise-53-20b.png`
+- `shots/exercise-53-confirm.png`
+- `shots/exercise-53-menu-ar.png`
+- `shots/exercise-53-menu-un.png`
+- `shots/exercises-10a.png`
+- `shots/exercises-10b.png`
+- `shots/exercises-11a.png`
+- `shots/exercises-11b.png`
+- `shots/exercises-11c.png`
+- `shots/exercises-12a-3.png`
+- `shots/exercises-12a.png`
+- `shots/exercises-12b.png`
+- `shots/exercises-12c.png`
+- `shots/exercises-13a.png`
+- `shots/exercises-13b.png`
+- `shots/exercises-13c.png`
+- `shots/exercises-14b.png`
+- `shots/exercises-15a.png`
+- `shots/exercises-15b.png`
+- `shots/exercises-15c.png`
+- `shots/exercises-16a.png`
+- `shots/exercises-16b.png`
+- `shots/exercises-17a.png`
+- `shots/exercises-18-44.png`
+- `shots/exercises-18a.png`
+- `shots/exercises-18b.png`
+- `shots/exercises-19a.png`
+- `shots/exercises-19b.png`
+- `shots/exercises-19c.png`
+- `shots/exercises-1a-end.png`
+- `shots/exercises-1a-top.png`
+- `shots/exercises-1b-end.png`
+- `shots/exercises-1b-top.png`
+- `shots/exercises-1c-end.png`
+- `shots/exercises-1c-top.png`
+- `shots/exercises-2a-end.png`
+- `shots/exercises-2a-top.png`
+- `shots/exercises-2b-end.png`
+- `shots/exercises-2b-top.png`
+- `shots/exercises-2c-end.png`
+- `shots/exercises-2c-top.png`
+- `shots/exercises-3a-all.png`
+- `shots/exercises-3a-legs.png`
+- `shots/exercises-3b-all.png`
+- `shots/exercises-3b-legs.png`
+- `shots/exercises-3c-all.png`
+- `shots/exercises-3c-legs.png`
+- `shots/exercises-3c-menu.png`
+- `shots/exercises-4a-legs.png`
+- `shots/exercises-4a-list.png`
+- `shots/exercises-4a-sheet.png`
+- `shots/exercises-4b-legs.png`
+- `shots/exercises-4b-list.png`
+- `shots/exercises-4c-legs.png`
+- `shots/exercises-4c-list.png`
+- `shots/exercises-5a-sheet.png`
+- `shots/exercises-5b-legs.png`
+- `shots/exercises-5b-sheet.png`
+- `shots/exercises-5c-menu.png`
+- `shots/exercises-5c-sub.png`
+- `shots/exercises-6a-closed.png`
+- `shots/exercises-6a-open.png`
+- `shots/exercises-6b-closed.png`
+- `shots/exercises-6b-open.png`
+- `shots/exercises-6c-all.png`
+- `shots/exercises-6c-legs.png`
+- `shots/exercises-7a.png`
+- `shots/exercises-7b.png`
+- `shots/exercises-7c.png`
+- `shots/exercises-8-zoom.png`
+- `shots/exercises-8a.png`
+- `shots/exercises-8b.png`
+- `shots/exercises-8c.png`
+- `shots/exercises-9a-empty.png`
+- `shots/exercises-9a-filled.png`
+- `shots/exercises-9b-empty.png`
+- `shots/exercises-9b-filled.png`
+- `shots/exercises-h1.png`
+- `shots/exercises-h2.png`
+- `shots/exercises-h3.png`
+- `shots/exercises-hist-picked.png`
+- `shots/exercises-history-rha.png`
+- `shots/exercises-history-today.png`
+- `shots/exercises-hra.png`
+- `shots/exercises-hrb.png`
+- `shots/history-9a.png`
+- `shots/history-9b.png`
+- `shots/home-35a.png`
+- `shots/home-35b.png`
+- `shots/home-36a.png`
+- `shots/home-36b.png`
+- `shots/home-37a.png`
+- `shots/home-37b.png`
+- `shots/home-37c.png`
+- `shots/home-37d.png`
+- `shots/library-1a.png`
+- `shots/library-1b.png`
+- `shots/library-1c.png`
+- `shots/library-2a.png`
+- `shots/library-2b.png`
+- `shots/library-2c.png`
+- `shots/library-t3-2a.png`
+- `shots/library-t3-3a.png`
+- `shots/library-t3-3b.png`
+- `shots/library-t3-3c.png`
+- `shots/library-t4-4a.png`
+- `shots/library-t4-4b.png`
+- `shots/overview-1a-s.png`
+- `shots/overview-1a.png`
+- `shots/overview-1b.png`
+- `shots/overview-1c-s.png`
+- `shots/overview-1c.png`
+- `shots/overview-2a-end.png`
+- `shots/overview-2a-s.png`
+- `shots/overview-2a.png`
+- `shots/overview-2b-s.png`
+- `shots/overview-2b.png`
+- `shots/overview-2c.png`
+- `shots/overview-menu.png`
+- `shots/overview-t10-12-was.png`
+- `shots/overview-t10-12a.png`
+- `shots/overview-t10-12b.png`
+- `shots/overview-t10-12c.png`
+- `shots/overview-t10-strip-joined.png`
+- `shots/overview-t10-strip-notch.png`
+- `shots/overview-t10-strip-now.png`
+- `shots/overview-t11-13a-run.png`
+- `shots/overview-t11-13a.png`
+- `shots/overview-t11-13b-run.png`
+- `shots/overview-t11-13b.png`
+- `shots/overview-t11-14a.png`
+- `shots/overview-t11-14b-full.png`
+- `shots/overview-t12-15a-s.png`
+- `shots/overview-t12-15a.png`
+- `shots/overview-t12-15b-s.png`
+- `shots/overview-t12-15b.png`
+- `shots/overview-t12-15c-s.png`
+- `shots/overview-t12-15c.png`
+- `shots/overview-t13-16a.png`
+- `shots/overview-t13-16b.png`
+- `shots/overview-t13-16c.png`
+- `shots/overview-t13-16d.png`
+- `shots/overview-t13-run.png`
+- `shots/overview-t14-17a.png`
+- `shots/overview-t14-17b.png`
+- `shots/overview-t14-18a.png`
+- `shots/overview-t14-18b.png`
+- `shots/overview-t14-18c.png`
+- `shots/overview-t15-17c.png`
+- `shots/overview-t15-19a.png`
+- `shots/overview-t15-19b.png`
+- `shots/overview-t15-19c.png`
+- `shots/overview-t16-20a.png`
+- `shots/overview-t16-20b.png`
+- `shots/overview-t16-20c.png`
+- `shots/overview-t16-21-menu.png`
+- `shots/overview-t16-21a.png`
+- `shots/overview-t16-21b.png`
+- `shots/overview-t17-21c.png`
+- `shots/overview-t17-22a.png`
+- `shots/overview-t17-22b.png`
+- `shots/overview-t18-21d.png`
+- `shots/overview-t19-21e.png`
+- `shots/overview-t19-21f.png`
+- `shots/overview-t19-weeks.png`
+- `shots/overview-t20-23a.png`
+- `shots/overview-t20-23b.png`
+- `shots/overview-t20-23c.png`
+- `shots/overview-t21-24a.png`
+- `shots/overview-t21-24b.png`
+- `shots/overview-t22-24c.png`
+- `shots/overview-t22-24d.png`
+- `shots/overview-t3-3a.png`
+- `shots/overview-t3-3b.png`
+- `shots/overview-t3-3c.png`
+- `shots/overview-t3-4a.png`
+- `shots/overview-t3-4b.png`
+- `shots/overview-t3-5a.png`
+- `shots/overview-t3-5b.png`
+- `shots/overview-t3-5c.png`
+- `shots/overview-t3-w.png`
+- `shots/overview-t4-6a.png`
+- `shots/overview-t4-6b.png`
+- `shots/overview-t4-6c.png`
+- `shots/overview-t5-std.png`
+- `shots/overview-t5-swap.png`
+- `shots/overview-t5-was.png`
+- `shots/overview-t6-8a.png`
+- `shots/overview-t6-8b.png`
+- `shots/overview-t6-pr-full.png`
+- `shots/overview-t6-prb-full.png`
+- `shots/overview-t6-prb-sheet.png`
+- `shots/overview-t6-wk-full.png`
+- `shots/overview-t7-10a.png`
+- `shots/overview-t7-10b-sheet.png`
+- `shots/overview-t7-10b.png`
+- `shots/overview-t7-9a.png`
+- `shots/overview-t7-9b.png`
+- `shots/overview-t7-wk-open.png`
+- `shots/overview-t8-11a-s.png`
+- `shots/overview-t8-11a.png`
+- `shots/overview-t8-11b.png`
+- `shots/overview-t8-none10a.png`
+- `shots/overview-t9-card.png`
+- `shots/overview-t9-prog.png`
+- `shots/overview-t9-weeks.png`
+- `shots/progress-24a.png`
+- `shots/progress-24b.png`
+- `shots/progress-25a.png`
+- `shots/progress-25b.png`
+- `shots/progress-25c.png`
+- `shots/progress-26a.png`
+- `shots/progress-26b.png`
+- `shots/progress-26c.png`
+- `shots/progress-26d.png`
+- `shots/progress-27a.png`
+- `shots/progress-28a.png`
+- `shots/progress-29-1a.png`
+- `shots/progress-29-1b.png`
+- `shots/progress-29-1c.png`
+- `shots/progress-29-2a.png`
+- `shots/progress-29-2b.png`
+- `shots/progress-29-2c.png`
+- `shots/progress-29-2d.png`
+- `shots/progress-29-3a.png`
+- `shots/progress-29-3b.png`
+- `shots/progress-29-3c.png`
+- `shots/progress-29-4a.png`
+- `shots/progress-29-4b.png`
+- `shots/progress-29-5a.png`
+- `shots/progress-29-5b.png`
+- `shots/progress-29-6a.png`
+- `shots/progress-29-6b.png`
+- `shots/progress-29-7a.png`
+- `shots/progress-29-7b.png`
+- `shots/run-t1-1a.png`
+- `shots/run-t1-1b-trends.png`
+- `shots/run-t1-1b.png`
+- `shots/run-t1-1c.png`
+- `shots/run-t2-2a.png`
+- `shots/run-t2-2b.png`
+- `shots/run-t2-2c.png`
+- `shots/run-t2-4a.png`
+- `shots/run-t2-4b.png`
+- `shots/run-t3-5a.png`
+- `shots/run-t3-5b-open.png`
+- `shots/run-t3-5b.png`
+- `shots/run-t3-6a.png`
+- `shots/run-t3-6b.png`
+- `shots/session-14a.png`
+- `shots/summary-11-1a.png`
+- `shots/summary-11-1b.png`
+- `shots/summary-11-2a.png`
+- `shots/summary-11-2b.png`
+- `shots/summary-11-3a.png`
+- `shots/summary-11-3b.png`
+- `shots/summary-11-4a.png`
+- `shots/summary-11-4b.png`
+- `shots/summary-11-5a.png`
+- `shots/summary-11-5b.png`
+- `shots/summary-11-5c.png`
+- `shots/summary-11-6a.png`
+- `shots/summary-11-6b.png`
+- `shots/summary-11-7a.png`
+- `shots/summary-11-7b.png`
+- `shots/tabs-home.jpg`
+- `shots/tabs-progress.jpg`
+- `shots/tabs-workout.jpg`
+- `shots/workout-22a.png`
+- `shots/workout-22b.png`
+- `shots/workout-23-22.png`
+- `shots/workout-23-26.png`
+- `shots/workout-23-28.png`
+- `shots/workout-24-a-on.png`
+- `shots/workout-24-a-open.png`
+- `shots/workout-24-a-rest.png`
+- `shots/workout-24-b.png`
+- `shots/workout-24-c.png`
+- `shots/workout-25-today.png`
+- `shots/workout-25a.png`
+- `shots/workout-25b.png`
+- `shots/workout-25c-open.png`
+- `shots/workout-25c.png`
+- `shots/workout-26r-open.png`
+- `shots/workout-26r.png`
+- `shots/workout-26z-open.png`
+- `shots/workout-26z.png`
+- `shots/workout-27-a.png`
+- `shots/workout-27-b.png`
+- `shots/workout-27-c.png`
+- `shots/workout-27-now.png`
+- `shots/workout-28-a1.png`
+- `shots/workout-28-a2.png`
+- `shots/workout-28-b1.png`
+- `shots/workout-28-b2.png`
+- `shots/workout-28-b3.png`
+- `shots/workout-28-c1.png`
+- `shots/workout-28-c2.png`
+- `shots/workout-29-d1.png`
+- `shots/workout-29-d2.png`
+- `shots/workout-29-d3.png`
+- `shots/workout-29-ref.png`
+- `summary-decisions.md`
+- `support.js`
+- `workout-decisions.md`
+- `workout-notes.md`
+
+## Viewing
+
+To view a page, start a local web server in this folder (for example `python3 -m http.server`), then open a page through it. These are the project’s own files, so a page that relies on the editor may not run from a folder.
+
+## Left out of this export
+
+This export leaves out files the editor keeps for its own use. It also leaves out hidden files
+(files whose names start with a dot), except the ones a page saves for itself.

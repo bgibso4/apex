@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face { font-family:'ApexExo2'; src:url('./Exo2-ExtraBold.ttf') format('truetype'); font-weight:800; font-display:block; }
+body{margin:0;background:#050506;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}
+a{color:#659BC8;text-decoration:none} a:hover{color:#8FB6D9}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;justify-content:center;padding:40px 32px;box-sizing:border-box">
+
+<div data-screen-label="Today card demo" style="width:390px;height:844px;flex:none;border:1px solid #20232A;border-radius:44px;overflow:hidden;position:relative;background:radial-gradient(ellipse 90% 45% at 50% -5%,#141A22 0%,#0C0E11 55%,#090A0C 100%)">
+<div style="height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;color:#EDEEF0;font-size:13px;font-weight:600"><span>7:52</span><span>100%</span></div>
+<div style="position:absolute;top:54px;left:0;right:0;bottom:0;overflow-y:auto">
+
+<sc-if value="{{ onHome }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:12px;padding:4px 20px 120px">
+<div style="display:flex;align-items:center;justify-content:space-between;min-height:44px">
+<span style="display:inline-flex;align-items:center;gap:2px"><img src="./logo-mark.png" alt="" style="height:15px;width:auto;display:block"><span style="font-family:'ApexExo2';font-size:15px;color:#EDEEF0;letter-spacing:0.7px;line-height:1">PEX</span></span>
+<span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#7C7E86;font-size:17px;margin-right:-12px">⚙</span>
+</div>
+
+<div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:16px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Today · Thursday, Aug 20</div>
+<div style="color:#EDEEF0;font-size:20px;font-weight:800;letter-spacing:-0.3px;margin-top:6px">Upper Strength · Heavy Pull</div>
+<div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums">{{ metaLine }}</div>
+
+<sc-if value="{{ lineStatic }}" hint-placeholder-val="{{ false }}">
+<div style="color:#8F9098;font-size:12.5px;font-weight:600;margin-top:13px;padding-top:12px;border-top:1px solid #20232A;font-variant-numeric:tabular-nums">{{ recoveryText }}</div>
+</sc-if>
+<sc-if value="{{ lineDoor }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ openLineSheet }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;margin-top:9px;border-top:1px solid #20232A;cursor:pointer" style-active="opacity:0.6">
+<span style="color:#8F9098;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ recoveryText }}</span>
+<span style="color:#7C7E86;font-size:13px">›</span>
+</div>
+</sc-if>
+
+<div onClick="{{ startWorkout }}" style="display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:10px;background:#659BC8;color:#0B0C0E;font-size:15px;font-weight:700;margin-top:14px;cursor:pointer" style-active="background:#5688B3">Start Workout</div>
+<div onClick="{{ onPreview }}" style="display:flex;align-items:center;justify-content:center;gap:5px;min-height:40px;color:#7C7E86;font-size:12.5px;font-weight:600;margin:4px 0 -8px;cursor:pointer" style-hover="color:#8F9098">Preview session<span>{{ previewGlyph }}</span></div>
+
+<div style="display:grid;grid-template-rows:{{ discloseRows }};transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1)">
+<div style="overflow:hidden;min-height:0">
+<div style="border-top:1px solid #20232A;margin-top:8px">
+<sc-for list="{{ rowsShort }}" as="r" hint-placeholder-count="6">
+<div style="display:flex;align-items:center;justify-content:space-between;min-height:32px"><span style="color:#8F9098;font-size:12.5px;font-weight:600">{{ r.name }}</span><span style="color:#7C7E86;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.scheme }}</span></div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<div style="background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #20232A;border-top-color:#2C3039;border-radius:10px;padding:14px 16px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">This week</span>
+<span style="color:#7C7E86;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">3 of 11 · Hypertrophy ›</span>
+</div>
+<div style="display:flex;gap:6px;margin-top:12px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="color:#7C7E86;font-size:11px;font-weight:700">M</span><span style="width:32px;height:32px;border-radius:999px;background:#6CA3831A;border:1px solid #6CA383;display:flex;align-items:center;justify-content:center;color:#6CA383;font-size:13px">✓</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="color:#7C7E86;font-size:11px;font-weight:700">T</span><span style="width:32px;height:32px;border-radius:999px;background:#6CA3831A;border:1px solid #6CA383;display:flex;align-items:center;justify-content:center;color:#6CA383;font-size:13px">✓</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="color:#7C7E86;font-size:11px;font-weight:700">W</span><span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#7C7E86;font-size:12px;font-weight:600">19</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="color:#7C7E86;font-size:11px;font-weight:700">T</span><span style="width:32px;height:32px;border-radius:999px;border:1.5px solid #659BC8;display:flex;align-items:center;justify-content:center;color:#659BC8;font-size:12px;font-weight:700">20</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="color:#7C7E86;font-size:11px;font-weight:700">F</span><span style="width:32px;height:32px;border-radius:999px;border:1px solid #2C3039;display:flex;align-items:center;justify-content:center;color:#7C7E86;font-size:12px;font-weight:600">21</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="color:#7C7E86;font-size:11px;font-weight:700">S</span><span style="width:32px;height:32px;border-radius:999px;border:1px solid #2C3039;display:flex;align-items:center;justify-content:center;color:#7C7E86;font-size:12px;font-weight:600">22</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="color:#7C7E86;font-size:11px;font-weight:700">S</span><span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#7C7E86;font-size:12px;font-weight:600">23</span></div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ onWorkout }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;padding:4px 20px 120px">
+<div style="display:flex;align-items:center;min-height:44px;color:#EDEEF0;font-size:17px;font-weight:700">Workout</div>
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-top:10px">Thursday, Aug 20 · Week 3 of 11</div>
+<div style="color:#EDEEF0;font-size:22px;font-weight:800;letter-spacing:-0.3px;margin-top:6px">Upper Strength · Heavy Pull</div>
+<div style="color:#8F9098;font-size:13px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums">{{ metaLine }}</div>
+<div style="margin-top:16px;border-top:1px solid #20232A">
+<sc-for list="{{ rowsLong }}" as="r" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column;justify-content:center;min-height:58px;border-bottom:1px solid #20232A">
+<span style="color:#EDEEF0;font-size:14px;font-weight:600">{{ r.name }}</span>
+<span style="color:#7C7E86;font-size:12px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums">{{ r.scheme }}</span>
+</div>
+</sc-for>
+</div>
+<div onClick="{{ startWorkout }}" style="display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:10px;background:#659BC8;color:#0B0C0E;font-size:15px;font-weight:700;margin-top:18px;cursor:pointer" style-active="background:#5688B3">Start Workout</div>
+</div>
+</sc-if>
+</div>
+
+<div style="position:absolute;left:50%;bottom:118px;transform:translateX(-50%);z-index:4;padding:10px 14px;border-radius:8px;background:#20232A;color:#EDEEF0;font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .2s;opacity:{{ toastOpacity }}">{{ toast }}</div>
+
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:3;pointer-events:none"><div style="position:absolute;left:0;right:0;bottom:0;height:92px;background:linear-gradient(0deg,rgba(9,10,12,0.7) 0%,rgba(9,10,12,0.35) 50%,rgba(9,10,12,0) 100%)"></div><div style="position:relative;margin:0 20px 26px;height:62px;box-sizing:border-box;padding:4px;border-radius:999px;display:flex;background:rgba(28,30,36,0.62);border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.2),0 0 0 1px rgba(0,0,0,0.5);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);pointer-events:auto"><div style="flex:1;height:54px;border-radius:999px;background:rgba(255,255,255,0.11);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#659BC8;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.3 3.3a1.1 1.1 0 0 1 1.4 0l8.4 7.1a1 1 0 0 1-1.3 1.5l-.8-.7V20a1.4 1.4 0 0 1-1.4 1.4h-3.4v-5.6a.8.8 0 0 0-.8-.8h-2.8a.8.8 0 0 0-.8.8v5.6H6.4A1.4 1.4 0 0 1 5 20v-8.8l-.8.7a1 1 0 0 1-1.3-1.5Z"/></svg><span>Home</span></div><div style="flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="1.2" y="9.2" width="2.6" height="5.6" rx="1"/><rect x="4.4" y="6.4" width="3.4" height="11.2" rx="1.3"/><rect x="7.6" y="10.8" width="8.8" height="2.4" rx=".6"/><rect x="16.2" y="6.4" width="3.4" height="11.2" rx="1.3"/><rect x="20.2" y="9.2" width="2.6" height="5.6" rx="1"/></svg><span>Workout</span></div><div style="flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17.5l5.6-5.8 4 3.6L20.5 7"/><path d="M14.8 6.6h5.9v5.9"/></svg><span>Progress</span></div><div style="flex:1;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#EDEEF0;font-size:10px;font-weight:600;letter-spacing:0.1px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15.2" cy="3.9" r="2.1" fill="currentColor" stroke="none"/><path d="M13.6 7.6l-2.9 6"/><path d="M7.4 10.2l3.4-2.6 3.2 2.4 2.8.4"/><path d="M10.7 13.6l3.2 2.6-1.4 5"/><path d="M10.7 13.6l-2.2 3.6-4.2.6"/></svg><span>Run</span></div></div><div style="position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:134px;height:5px;border-radius:999px;background:rgba(237,238,240,0.82)"></div></div>
+
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:5;background:rgba(0,0,0,0.55);transition:opacity .28s;opacity:{{ scrimOpacity }};pointer-events:{{ scrimEvents }}"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:6;background:linear-gradient(180deg,#14161B 0%,#0E1013 100%);border:1px solid #2C3039;border-bottom:none;border-radius:16px 16px 0 0;padding:0 16px 34px;transition:transform .32s cubic-bezier(.2,.8,.2,1);transform:{{ sheetTransform }}">
+<div onClick="{{ closeSheet }}" style="display:flex;justify-content:center;padding:10px 0 12px;cursor:pointer"><div style="width:36px;height:5px;border-radius:999px;background:#2C3039"></div></div>
+
+<sc-if value="{{ sheetPreview }}" hint-placeholder-val="{{ false }}">
+<div style="color:#EDEEF0;font-size:15px;font-weight:700;text-align:center">Upper Strength · Heavy Pull</div>
+<div style="color:#7C7E86;font-size:11px;font-weight:600;text-align:center;margin-top:3px;font-variant-numeric:tabular-nums">{{ metaLine }}</div>
+<div style="margin-top:10px;border-top:1px solid #20232A">
+<sc-for list="{{ rowsLong }}" as="r" hint-placeholder-count="6">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;border-bottom:1px solid #20232A"><span style="color:#EDEEF0;font-size:13px;font-weight:600">{{ r.name }}</span><span style="color:#7C7E86;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.scheme }}</span></div>
+</sc-for>
+</div>
+<div style="color:#7C7E86;font-size:11px;font-weight:600;text-align:center;margin-top:12px">Drag down to close · nothing is saved</div>
+</sc-if>
+
+<sc-if value="{{ sheetAdjust }}" hint-placeholder-val="{{ false }}">
+<div style="color:#EDEEF0;font-size:15px;font-weight:700;text-align:center">Adjust today</div>
+<div style="color:#7C7E86;font-size:11px;font-weight:600;text-align:center;margin-top:3px">Today only · the program is untouched</div>
+<div style="margin-top:12px;border-top:1px solid #20232A">
+<sc-for list="{{ adjustOpts }}" as="o" hint-placeholder-count="3">
+<div onClick="{{ o.pick }}" style="min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #20232A;cursor:pointer" style-active="opacity:0.6">
+<div style="display:flex;flex-direction:column">
+<span style="color:#EDEEF0;font-size:13.5px;font-weight:600">{{ o.title }}</span>
+<span style="color:#7C7E86;font-size:11.5px;font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums">{{ o.sub }}</span>
+</div>
+<span style="color:#659BC8;font-size:14px;font-weight:700">{{ o.mark }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetWhy }}" hint-placeholder-val="{{ false }}">
+<div style="color:#EDEEF0;font-size:15px;font-weight:700;text-align:center">Recovery 34%</div>
+<div style="margin-top:12px;border-top:1px solid #20232A">
+<div style="display:flex;align-items:center;justify-content:space-between;min-height:44px;border-bottom:1px solid #20232A"><span style="color:#8F9098;font-size:12.5px;font-weight:600">30-day average</span><span style="color:#EDEEF0;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums">68%</span></div>
+<div style="display:flex;align-items:center;justify-content:space-between;min-height:44px;border-bottom:1px solid #20232A"><span style="color:#8F9098;font-size:12.5px;font-weight:600">Sleep last night</span><span style="color:#EDEEF0;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums">5:12</span></div>
+<div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="color:#8F9098;font-size:12.5px;font-weight:600">HRV vs baseline</span><span style="color:#EDEEF0;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums">−23%</span></div>
+</div>
+<div style="color:#7C7E86;font-size:11.5px;font-weight:600;line-height:1.5;margin-top:12px">Nothing changes unless you change it. Your RPE caps already lower the loads on a day like this.</div>
+</sc-if>
+</div>
+</div>
+
+<div style="flex:1 1 320px;max-width:380px;display:flex;flex-direction:column;gap:26px;color:#EDEEF0">
+<div>
+<div style="display:flex;align-items:center;gap:8px"><a href="./Home Explorations.dc.html#t4" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#EDEEF0;color:#090A0C;border-radius:4px">4</a><span style="font-size:13px;font-weight:600">Today card · interactive demo</span></div>
+<p style="color:#8F9098;font-size:12.5px;line-height:1.6;margin:10px 0 0;text-wrap:pretty">Pick one option in each group, then use the phone. Changing an option resets the phone.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Preview session</div>
+<div style="display:flex;gap:6px">
+<sc-for list="{{ previewOpts }}" as="o" hint-placeholder-count="3">
+<div onClick="{{ o.pick }}" style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}">
+<span style="font:600 11px ui-monospace,Menlo,monospace;color:{{ o.fg }}">{{ o.id }}</span>
+<span style="font-size:11px;font-weight:600;color:#8F9098">{{ o.label }}</span>
+</div>
+</sc-for>
+</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">{{ previewNote }}</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Morning</div>
+<div style="display:flex;gap:6px">
+<sc-for list="{{ dayOpts }}" as="o" hint-placeholder-count="2">
+<div onClick="{{ o.pick }}" style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}">
+<span style="font-size:12px;font-weight:700;color:{{ o.fg }}">{{ o.label }}</span>
+<span style="font-size:11px;font-weight:600;color:#8F9098">{{ o.sub }}</span>
+</div>
+</sc-for>
+</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">3d's threshold rule: above 40% the card says nothing about recovery. Below it, one line appears.</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;transition:opacity .2s;opacity:{{ badGroupOpacity }}">
+<div style="color:#7C7E86;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Bad-day line</div>
+<div style="display:flex;gap:6px">
+<sc-for list="{{ badOpts }}" as="o" hint-placeholder-count="3">
+<div onClick="{{ o.pick }}" style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:6px;cursor:pointer;border:1px solid {{ o.bd }};background:{{ o.bg }}">
+<span style="font:600 11px ui-monospace,Menlo,monospace;color:{{ o.fg }}">{{ o.id }}</span>
+<span style="font-size:11px;font-weight:600;color:#8F9098">{{ o.label }}</span>
+</div>
+</sc-for>
+</div>
+<div style="color:#8F9098;font-size:12px;line-height:1.55;text-wrap:pretty">{{ badNote }}</div>
+</div>
+
+<div style="border-top:1px solid #20232A;padding-top:16px;color:#7C7E86;font-size:12px;line-height:1.55">Stamp in chat, e.g. “4c + 4f”. That locks the today card; next is the week strip.</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { preview: '4a', bad: '4d', day: 'bad', tab: 'home', disclosed: false, sheetOpen: false, sheetKind: 'preview', adjust: null, toast: '', toastOn: false };
+
+  reset(patch) {
+    this.setState({ tab: 'home', disclosed: false, sheetOpen: false, adjust: null, ...patch });
+  }
+  openSheet(kind) { this.setState({ sheetKind: kind, sheetOpen: true }); }
+  showToast(t) {
+    clearTimeout(this._t);
+    this.setState({ toast: t, toastOn: true });
+    this._t = setTimeout(() => this.setState({ toastOn: false }), 1600);
+  }
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  renderVals() {
+    const s = this.state;
+    const EX = [
+      { name: 'Weighted Pull-Up', sets: 4, reps: 8, pct: '75%', last: '45 lb' },
+      { name: 'Barbell Row', sets: 4, reps: 8, pct: '75%', last: '165 lb' },
+      { name: 'Trap Bar Deadlift', sets: 3, reps: 8, pct: '', last: '315 lb' },
+      { name: 'Face Pull', sets: 3, reps: 15, pct: '', last: '40 lb' },
+      { name: 'Hammer Curl', sets: 3, reps: 10, pct: '', last: '35 lb' },
+      { name: 'Pallof Press', sets: 3, reps: 12, pct: '', last: '25 lb' },
+    ];
+    const isBad = s.day === 'bad';
+    const adj = isBad && s.bad === '4e' ? s.adjust : null;
+    const scheme = (e, last) => {
+      const sets = adj === 'drop' ? e.sets - 1 : e.sets;
+      let t = `${sets} × ${e.reps}`;
+      if (e.pct) t += ` · ${e.pct}`;
+      if (adj === 'cut') t += ' · −10%';
+      if (last) t += ` · last ${e.last}`;
+      return t;
+    };
+    const total = EX.reduce((a, e) => a + e.sets, 0);
+    const mins = adj === 'drop' ? 42 : 55;
+    const metaLine = `6 exercises · about ${mins} min${adj ? ' · adjusted' : ''}`;
+
+    let recoveryText = 'Recovery 34% · lowest in 3 weeks';
+    if (adj === 'drop') recoveryText = 'Recovery 34% · one set dropped today';
+    if (adj === 'cut') recoveryText = 'Recovery 34% · loads cut 10% today';
+
+    const seg = (on) => ({ bd: on ? '#659BC8' : '#2C3039', bg: on ? 'rgba(101,155,200,0.10)' : 'transparent', fg: on ? '#659BC8' : '#EDEEF0' });
+
+    const previewOpts = [
+      { id: '4a', label: 'Fold in place' },
+      { id: '4b', label: 'Sheet' },
+      { id: '4c', label: 'Day view' },
+    ].map(o => ({ ...o, ...seg(s.preview === o.id), pick: () => this.reset({ preview: o.id }) }));
+    const badOpts = [
+      { id: '4d', label: 'Fact only' },
+      { id: '4e', label: 'Adjust sheet' },
+      { id: '4f', label: 'Why sheet' },
+    ].map(o => ({ ...o, ...seg(s.bad === o.id), pick: () => this.reset({ bad: o.id, day: 'bad' }) }));
+    const dayOpts = [
+      { id: 'good', label: 'Normal', sub: 'Recovery 78%' },
+      { id: 'bad', label: 'Bad', sub: 'Recovery 34%' },
+    ].map(o => ({ ...o, ...seg(s.day === o.id), pick: () => this.reset({ day: o.id }) }));
+
+    const previewNotes = {
+      '4a': 'Tap “Preview session ⌄”. The list folds open under Start and the card grows about 200px. Cheapest to build.',
+      '4b': 'Opens a bottom sheet over Home with last-time loads. Tap the dim area or the grabber to close. New sheet, same grammar as the logging sheets.',
+      '4c': 'Jumps to the Workout tab’s day view (approximated here). No new UI. Tap Home in the tab bar to come back.',
+    };
+    const badNotes = {
+      '4d': 'The line states the fact, nothing to tap. The RPE caps do the regulating. Nothing to build.',
+      '4e': 'Tap the line to open Adjust today. Pick a choice and the card, preview and day view all update. New feature: sheet + session change rule.',
+      '4f': 'Tap the line to see why it’s low. Read-only, nothing changes. Cheap, and it’s the front half of 4e if that ever gets built.',
+    };
+
+    const newTotal = EX.reduce((a, e) => a + e.sets - 1, 0);
+    const adjustOpts = [
+      { key: 'drop', title: 'Drop one set from every exercise', sub: `${total} sets become ${newTotal} · about 42 min` },
+      { key: 'cut', title: 'Cut top-set loads 10%', sub: 'Same sets and reps, lighter bar' },
+      { key: null, title: 'Proceed as planned', sub: 'The RPE caps will do the regulating' },
+    ].map(o => ({
+      ...o,
+      mark: s.adjust === o.key ? '✓' : '',
+      pick: () => {
+        this.setState({ adjust: o.key, sheetOpen: false });
+        this.showToast(o.key ? 'Today adjusted · program untouched' : 'Back to the plan');
+      },
+    }));
+
+    return {
+      onHome: s.tab === 'home',
+      onWorkout: s.tab === 'workout',
+      homeTabColor: s.tab === 'home' ? '#659BC8' : '#7C7E86',
+      workoutTabColor: s.tab === 'workout' ? '#659BC8' : '#7C7E86',
+      goHome: () => this.setState({ tab: 'home' }),
+      goWorkout: () => this.setState({ tab: 'workout', disclosed: false }),
+
+      metaLine,
+      recoveryText,
+      lineStatic: isBad && s.bad === '4d',
+      lineDoor: isBad && s.bad !== '4d',
+      openLineSheet: () => this.openSheet(s.bad === '4e' ? 'adjust' : 'why'),
+
+      previewGlyph: s.preview === '4a' ? (s.disclosed ? '⌃' : '⌄') : s.preview === '4c' ? '›' : '',
+      onPreview: () => {
+        if (s.preview === '4a') this.setState({ disclosed: !s.disclosed });
+        else if (s.preview === '4b') this.openSheet('preview');
+        else this.setState({ tab: 'workout' });
+      },
+      discloseRows: s.preview === '4a' && s.disclosed ? '1fr' : '0fr',
+      rowsShort: EX.map(e => ({ name: e.name, scheme: scheme(e, false) })),
+      rowsLong: EX.map(e => ({ name: e.name, scheme: scheme(e, true) })),
+
+      startWorkout: () => this.showToast('Start Workout · begins the session'),
+      toast: s.toast,
+      toastOpacity: s.toastOn ? 1 : 0,
+
+      closeSheet: () => this.setState({ sheetOpen: false }),
+      scrimOpacity: s.sheetOpen ? 1 : 0,
+      scrimEvents: s.sheetOpen ? 'auto' : 'none',
+      sheetTransform: s.sheetOpen ? 'translateY(0)' : 'translateY(105%)',
+      sheetPreview: s.sheetKind === 'preview',
+      sheetAdjust: s.sheetKind === 'adjust',
+      sheetWhy: s.sheetKind === 'why',
+      adjustOpts,
+
+      previewOpts, badOpts, dayOpts,
+      previewNote: previewNotes[s.preview],
+      badNote: isBad ? badNotes[s.bad] : 'Switch Morning to Bad to see this line.',
+      badGroupOpacity: isBad ? 1 : 0.4,
+    };
+  }
+}
+</script>
+</body>
+</html>

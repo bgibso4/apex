@@ -87,3 +87,39 @@ custom_rules:
     excluded: 'Packages/ApexKit/(Sources/Screens|Tests/ScreensTests)/'
     message: "Only Screens may import SwiftUI or UIKit: every other module builds for macOS so its tests run in make fast."
     severity: error
+
+  # The three rules below hold views to the generated tokens (design/tokens.json). They apply to Screens and
+  # leave out its DesignSystem folder, where the tokens and the components built on them live.
+  no_raw_color:
+    name: "No raw colours"
+    # A Color built or named in place (Color.clear is no colour); a system colour by its short name, as an
+    # argument, a value or one side of a choice; a hierarchical style (.secondary) passed to a style modifier.
+    # Elsewhere .primary and .secondary are the design's own words for a button's role.
+    regex: '(?<!Tokens\.)\bColor(\(|\.(?!clear\b)\w)|[(\[,:?=]\s*\.(black|white|gray|red|orange|yellow|green|mint|teal|cyan|blue|indigo|purple|pink|brown|accentColor)\b|\.(foregroundStyle|foregroundColor|tint|fill|stroke|background)\(\s*\.(primary|secondary|tertiary|quaternary)\b'
+    included: &screens 'Packages/ApexKit/Sources/Screens/'
+    excluded: &design_system 'Packages/ApexKit/Sources/Screens/DesignSystem/'
+    excluded_match_kinds: &prose [comment, doccomment, string]
+    message: "Colours come from Tokens.Color (design/tokens.json), never a raw value."
+    severity: error
+
+  no_raw_font:
+    name: "No raw fonts"
+    # A Font built or named in place; a text style by its short name, as an argument, a value or one side of a
+    # choice; a weight set on top of a token's own.
+    regex: '\bFont([.(]|\s*=\s*\.)|\.font\(([^)\n]*[?:])?\s*\.|\.(fontWeight|bold)\('
+    included: *screens
+    excluded: *design_system
+    excluded_match_kinds: *prose
+    message: "Type comes from Tokens.Typography (design/tokens.json)."
+    severity: error
+
+  no_raw_animation:
+    name: "No raw animations"
+    # withAnimation and .animation take a Tokens.Motion value: no other argument, and never the default. An
+    # Animation is never built in place, nor set by its short name (a transaction's animation).
+    regex: '(\bwithAnimation|\.animation)\s*(\((?!\s*Tokens\.Motion\.)|\{)|\bAnimation[.(]|\banimation\s*[:=]\s*\.'
+    included: *screens
+    excluded: *design_system
+    excluded_match_kinds: *prose
+    message: "Animate only with Tokens.Motion (design/tokens.json)."
+    severity: error

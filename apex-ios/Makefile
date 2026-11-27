@@ -37,8 +37,10 @@ sim:
 	@xcrun simctl list devices 'iOS $(SIM_OS)' | grep -qF '    $(SIM_DEVICE) (' || \
 		xcrun simctl create '$(SIM_DEVICE)' '$(SIM_MODEL)' com.apple.CoreSimulator.SimRuntime.iOS-$(subst .,-,$(SIM_OS))
 
+# Everything generated: the tokens (design/tokens.json to Generated/Tokens.swift), then the Xcode project.
 generate:
 	@command -v xcodegen >/dev/null || { echo "error: xcodegen is missing. Install it: brew install xcodegen" >&2; exit 1; }
+	swift scripts/generate-tokens.swift
 	xcodegen generate --quiet
 
 build: sim generate
@@ -91,7 +93,10 @@ unused-run: sim
 # Everything CI's `checks` job runs (.github/workflows/ios.yml). `fast` is the Mac slice: it compiles for macOS every
 # module the Fast scheme's tests reach, so UIKit or an iOS-only API in one of them fails here. SwiftUI compiles on
 # macOS, so only the lint rule catches that import.
-ci-checks:
+# It starts by regenerating: a committed Generated/ file that differs from what its source gives fails here.
+ci-checks: generate
+	@[ -z "$$(git status --porcelain -- ':(glob)**/Generated/**')" ] || \
+		{ echo "error: generated files differ from the committed ones: run make -C apex-ios generate and commit" >&2; exit 1; }
 	$(MAKE) --no-print-directory lint test-hooks test-scripts test-lint fast unused-run
 
 # Run on this checkout's simulator. Named, never `booted`: another worktree's simulator may be booted too.

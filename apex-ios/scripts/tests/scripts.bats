@@ -70,3 +70,94 @@ path.write_bytes(path.read_bytes().replace(b"Demo XX", "Demo ·".encode()))' exp
   [[ "$output" == error:*nope.zip* ]] || false
   [ ! -e dest ]
 }
+
+# --- generate-tokens ---
+
+# One token of each kind.
+TOKENS='{
+  "color": { "card-top": "#14161B", "accent-tint": "#659BC81A" },
+  "type": { "hero-numeral": { "size": 34, "weight": 800, "tracking": -0.5 }, "body": { "size": 9.5, "weight": 400 } },
+  "spacing": { "card-gap": 12 },
+  "radius": { "card": 10 },
+  "size": { "tap-target": 44 },
+  "motion": {
+    "animation": {
+      "quick": { "curve": "easeOut", "duration": 0.18 },
+      "smooth": { "curve": "spring", "duration": 0.35, "bounce": 0 },
+      "month-flip": { "curve": "bezier", "duration": 0.26, "control": [0.2, 0.8, 0.2, 1] }
+    },
+    "duration": { "toast-hold": 3 },
+    "distance": { "month-flip": 28 }
+  }
+}'
+
+# generate [JSON]: runs the generator on JSON (default: $TOKENS), from tokens.json to Tokens.swift in the test folder.
+generate() {
+  printf '%s\n' "${1:-$TOKENS}" >tokens.json
+  run swift "$SCRIPTS/generate-tokens.swift" tokens.json Tokens.swift
+}
+
+# has_line TEXT: Tokens.swift has a line that is exactly TEXT after its indentation.
+has_line() { grep -qxE " *$(printf '%s' "$1" | sed 's/[][().*+?^$|\\/]/\\&/g')" Tokens.swift; }
+
+# fails_untouched JSON TEXT: the generator rejects JSON, names TEXT, and leaves an earlier Tokens.swift as it was.
+fails_untouched() {
+  generate
+  cp Tokens.swift before.swift
+  generate "$1"
+  [ "$status" -ne 0 ]
+  [[ "$output" == error:*"$2"* ]] || false
+  cmp Tokens.swift before.swift
+}
+
+@test "the generator writes every token kind" {
+  generate
+  [ "$status" -eq 0 ]
+  [ "$(head -1 Tokens.swift)" = "// GENERATED · run make generate. Source: design/tokens.json. Do not edit." ]
+  has_line "static let cardTop = SwiftUI.Color("
+  has_line ".sRGB, red: 0x14 / 255, green: 0x16 / 255, blue: 0x1B / 255, opacity: 1)"
+  has_line "static let heroNumeral = Font.system(size: 34, weight: .heavy).monospacedDigit()"
+  has_line "static let heroNumeralTracking: CGFloat = -0.5"
+  has_line "static let body = Font.system(size: 9.5, weight: .regular).monospacedDigit()"
+  run grep bodyTracking Tokens.swift
+  [ "$status" -eq 1 ]
+  has_line "static let cardGap: CGFloat = 12"
+  has_line "static let card: CGFloat = 10"
+  has_line "static let tapTarget: CGFloat = 44"
+  has_line "static let quick = Animation.easeOut(duration: 0.18)"
+  has_line "static let smooth = Animation.spring(duration: 0.35, bounce: 0)"
+  has_line "static let monthFlip = Animation.timingCurve(0.2, 0.8, 0.2, 1, duration: 0.26)"
+  has_line "static let toastHold: TimeInterval = 3"
+  has_line "static let monthFlip: CGFloat = 28"
+}
+
+@test "an 8-digit colour carries its alpha" {
+  generate
+  has_line ".sRGB, red: 0x65 / 255, green: 0x9B / 255, blue: 0xC8 / 255, opacity: 0x1A / 255)"
+}
+
+@test "a second run changes nothing" {
+  generate
+  cp Tokens.swift first.swift
+  generate
+  cmp Tokens.swift first.swift
+}
+
+@test "the generator fails on an unknown key and leaves the output as it was" {
+  fails_untouched "${TOKENS/\"tracking\": -0.5/\"lineHeight\": 40}" lineHeight
+}
+
+@test "the generator fails on a colour that is not 6 or 8 hex digits" {
+  fails_untouched "${TOKENS/\#14161B/#14161}" "#14161"
+}
+
+@test "the generator fails on an unknown curve" {
+  fails_untouched "${TOKENS/easeOut/bounceOut}" bounceOut
+}
+
+@test "the committed Tokens.swift passes swift format lint --strict" {
+  cd "$SCRIPTS/.."
+  generated=Packages/ApexKit/Sources/Screens/DesignSystem/Generated/Tokens.swift
+  [ -f "$generated" ]
+  swift format lint --strict "$generated"
+}

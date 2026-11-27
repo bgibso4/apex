@@ -1,14 +1,20 @@
-name: CI
+name: RN
 
 on:
   pull_request:
     branches: [main]
+    paths: ['apex-rn/**', '.github/workflows/rn.yml']
   push:
     branches: [main]
+    paths: ['apex-rn/**', '.github/workflows/rn.yml']
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apex-rn
 
 jobs:
   typecheck:
@@ -20,6 +26,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: apex-rn/package-lock.json
       - run: npm ci
       - run: npx tsc --noEmit
 
@@ -32,6 +39,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: apex-rn/package-lock.json
       - run: npm ci
       - run: npm run lint
 
@@ -44,5 +52,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: apex-rn/package-lock.json
       - run: npm ci
       - run: npm test

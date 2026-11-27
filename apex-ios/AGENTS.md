@@ -17,7 +17,17 @@ App/ApexApp.swift              @main: reads the launch options, shows RootScreen
 Packages/ApexKit/              all logic, one local package (Package.swift)
   Sources/Core/                shared vocabulary and the launch options. Mac-buildable
   Sources/Screens/             SwiftUI views. iOS-only
+  Sources/Screens/DesignSystem/Generated/   Tokens.swift, generated from design/tokens.json
   Tests/CoreTests/             Mac tests for Core
+design/                        Ben's design export and what is made from it (design/README.md)
+  export/                      the export as imported (100 files); replaced whole by `make design-import`
+  tokens.json                  the token source, written from export/APEX README.md
+  states.json                  the mock side of the state catalog: state name, demo page, switches to click
+  mocks/<state>.png            generated reference images, committed
+scripts/design-import.py       an export zip to design/export/
+scripts/generate-tokens.swift  design/tokens.json to Generated/Tokens.swift
+scripts/render-mocks.py        design/states.json to design/mocks/, through mock-frame.html in headless Chrome
+scripts/tests/                 bats tests for those three scripts, and their fixtures
 scripts/pre-commit             lint, only when apex-ios files are staged
 scripts/pre-commit-wrapper     the git hook `make setup` installs: runs pre-commit, passes on a branch without it
 scripts/test-lint-rules.sh     fixture tests for the custom lint rules (lint-fixtures/, lint-negatives/)
@@ -35,7 +45,7 @@ docs/                          iOS specs, plans and the roadmap. Created with th
 | Command | Does |
 |---|---|
 | `make setup` | check tools, install the git pre-commit hook, create this checkout's simulator, generate the project |
-| `make generate` | XcodeGen: writes `Apex.xcodeproj` from `project.yml` |
+| `make generate` | writes `Generated/Tokens.swift` from `design/tokens.json`, then `Apex.xcodeproj` from `project.yml` (XcodeGen) |
 | `make build` | build the app for this checkout's simulator (`APEX <checkout folder> iPhone 17`: an iPhone 17 on iOS 27.0, created on demand; `SIM_DEVICE=` overrides) |
 | `make fast` | Mac tests, no simulator. The loop agents live in |
 | `make lint` | SwiftLint and swift-format, both strict |
@@ -43,11 +53,14 @@ docs/                          iOS specs, plans and the roadmap. Created with th
 | `make unused` | Periphery dead-code scan |
 | `make test-lint` | fixture tests for the SwiftLint custom rules |
 | `make test-hooks` | bats tests for the hook scripts and the pre-commit script |
-| `make ci-checks` | everything CI's `checks` job runs: generate, lint, hook tests, lint-rule tests, the Mac tests, Periphery |
+| `make test-scripts` | bats tests for the design scripts. The mock tests need Google Chrome |
+| `make ci-checks` | everything CI's `checks` job runs: generate, a check that the committed generated files match, lint, hook tests, script tests, lint-rule tests, the Mac tests, Periphery |
+| `make design-import ZIP=<path>` | replaces `design/export/` from a new export, lists what changed against git, runs `mocks` |
+| `make mocks` | renders `design/mocks/<state>.png` for every state in `design/states.json` (`STATE=<name>` for one). Needs Google Chrome and the network; never runs in CI |
 | `make run` | build, install and launch on this checkout's simulator |
 | `make device` | build and install on a connected iPhone (`DEVICE=<name>`) |
 
-`affected`, `retest`, `gate`, `mocks`, `compare`, `frames` and `design-import` arrive in plans 3 and 4.
+`affected`, `retest`, `gate`, `compare` and `frames` arrive in plan 4.
 
 ## Module dependencies
 
@@ -82,6 +95,10 @@ A new test target must be added to the `Fast` scheme in `project.yml` (`ScreensT
 - **Journeys prove wiring:** the real app, launched, with a real database on disk, moving between screens, killed and restored.
 
 A behaviour is tested through its screen model on the Mac, never by a journey. Pictures and journeys arrive with the first screen; today only the Mac layer exists.
+
+## Designed states
+
+A state Ben designed has one name, such as `home.noProgram`. `design/states.json` maps the name to its demo page and the switches that reach it, and `make mocks` writes `design/mocks/<name>.png`: 390 × 844 points at 3×. The simulator is 402 × 874 points, so mock and app are compared side by side, never pixel-matched. A state that clicks cannot reach gets a hand-captured image in the same folder, named in the commit. The Swift side of the catalog (fixture, picture test, preview, `make run STATE=`) arrives with the first screen and uses the same names.
 
 ## Definition of done
 
@@ -118,7 +135,11 @@ Build what the design rules imply, open a GitHub issue labelled `needs-ben` with
 ## Hard rules
 
 - Lint config, hook config and test tolerances change only with Ben's OK. Never widen a threshold to make something pass.
-- Never hand-edit the generated `.xcodeproj` or any `Generated/` file; change the source (`project.yml`) and `make generate`.
+- Never hand-edit the generated `.xcodeproj` or any `Generated/` file; change the source (`project.yml`, `design/tokens.json`) and `make generate`.
+- Colours, type and animations only from the generated tokens; lint rejects raw ones in `Screens` outside `DesignSystem/`. Spacing and radii too: no bare layout number where a token exists, and a measurement with no token is a named private constant that cites its design source.
+- `design/export/` is never edited by hand; `design/export/APEX README.md` is the design system and `_ds/` is stale.
+- Only options stamped Locked count; the highest turn wins; where a demo and a Motion tile differ the tile is right.
+- No shadows.
 - Never bypass git hooks: no `--no-verify`, no `git commit -n` (or any short-flag cluster containing `n`), no `-c core.hooksPath=…`. The Bash guard blocks these, and any Bash command whose non-message text contains them. If the pre-commit hook fails, fix the cause; never skip it.
 - Every new piece of logic gets unit tests; every bug fix gets a regression test.
 - iPhone, portrait, dark only, English only. No `#available` branches (iOS 27 minimum).
@@ -136,3 +157,4 @@ Build what the design rules imply, open a GitHub issue labelled `needs-ben` with
 
 - The approved design: `docs/superpowers/specs/2026-11-27-ios-agentic-foundations-design.html` (repo root)
 - Where the work stands: `docs/superpowers/handoff.md` (repo root)
+- The design folder, and what to do when a new export arrives: `design/README.md`

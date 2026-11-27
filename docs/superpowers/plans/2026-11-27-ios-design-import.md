@@ -72,7 +72,7 @@ apex-ios/
 - Produces: `scripts/design-import.py ZIP DEST`. Exit 0 and one line `imported N files, M skipped (shots/)`; exit 1 with `error: …` on stderr.
 - Produces: make targets `design-import` (`ZIP=` required) and `test-scripts` (`bats scripts/tests`); `test-scripts` joins `ci-checks` after `test-hooks`.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/ios-design-import docs/ios-design-import-plan
@@ -81,7 +81,7 @@ make -C apex-ios setup && /usr/bin/time -p make -C apex-ios fast
 
 Note the warm `make fast` time (it was 1.6 to 1.9 s when plan 2 merged). Task 2 compares against it.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 `scripts/tests/scripts.bats`. A helper builds a fixture zip with Python's `zipfile` in `$BATS_TEST_TMPDIR`. Every `[[ ]]` ends in `|| false` (see the note at the top of `scripts/hooks/tests/hooks.bats`).
 
@@ -98,16 +98,16 @@ Note the warm `make fast` time (it was 1.6 to 1.9 s when plan 2 merged). Task 2 
 @test "a missing zip fails with a message"
 ```
 
-- [ ] **Step 3: Run them and watch them fail**
+- [x] **Step 3: Run them and watch them fail**
 
 Run: `bats apex-ios/scripts/tests`
 Expected: 5 failures, the script does not exist.
 
-- [ ] **Step 4: Write `design-import.py`**
+- [x] **Step 4: Write `design-import.py`**
 
 Signature in Interfaces. Order matters for Review Focus 1 and 2: read and check every entry name first; then extract into a new temporary folder beside `DEST`; only then replace `DEST` with it. Skip directory entries and anything under `shots/`. Refuse a name that is absolute or has a `..` part. Python standard library only.
 
-- [ ] **Step 5: Run the tests, add the make targets, import the real export**
+- [x] **Step 5: Run the tests, add the make targets, import the real export**
 
 Makefile: `design-import` fails with a usage line when `ZIP` is empty, else runs `python3 -I scripts/design-import.py "$(ZIP)" design/export`. Add `test-scripts` and put it in `ci-checks`.
 
@@ -122,11 +122,11 @@ git status --short --ignored apex-ios/design/export | grep '^!!' ; echo "ignored
 
 Expected: 5 tests pass; "imported 100 files, 355 skipped (shots/)"; 100 files; about 21 MB; 3 names with a middot; no ignored file (exit 1 from grep). An ignored file would mean a root or `apex-ios` ignore rule is silently dropping part of the export: narrow the rule's cause, never the export.
 
-- [ ] **Step 6: Write `design/README.md`**
+- [x] **Step 6: Write `design/README.md`**
 
 Under 30 lines. What each of `export/`, `tokens.json`, `states.json` and `mocks/` is; the four rules (never edit `export/`; `APEX README.md` is the design system and `_ds/` is stale; the export's own rules, quoted from the Global Constraints above; `shots/` is left out, so Explorations pages show missing images); the two commands (`make design-import ZIP=`, `make mocks`).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): design-import and the design export in apex-ios/design"
@@ -167,7 +167,7 @@ The first values, all from `design/export/APEX README.md` (sections Color, Type,
 
 The README gives the three timings as ranges (quick 150 to 200 ms, smooth 300 to 350 ms, snappy about 300 ms with a small bounce). The single values above are the ones its locked moments use (180 ms colour fades, 350 ms smooth spring). The bounce of 0.15 is a default Ben has not seen: open a GitHub issue labelled `needs-ben` and `iOS` saying so, and keep going. The workout flow's own moments (Motion section, "Workout flow") are not tokens yet: the segment that builds that screen adds them.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `scripts.bats`. A helper writes a small `tokens.json` to `$BATS_TEST_TMPDIR` and runs the generator with both paths.
 
@@ -189,22 +189,22 @@ Add to `scripts.bats`. A helper writes a small `tokens.json` to `$BATS_TEST_TMPD
 @test "the committed Tokens.swift passes swift format lint --strict"
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 5 import tests pass, the 7 new ones fail.
 
-- [ ] **Step 3: Write `tokens.json` and the generator**
+- [x] **Step 3: Write `tokens.json` and the generator**
 
 Port the reading helpers, `camelCased`, `write` and the overall shape of filing-cabinet's generator; drop the asset catalog, the symbols, the text-style table and everything light or dark. Read and check the whole file before writing anything (Review Focus 3). The output's first line is `// GENERATED · run make generate. Source: design/tokens.json. Do not edit.` Weight names: 400 `.regular`, 500 `.medium`, 600 `.semibold`, 700 `.bold`, 800 `.heavy`.
 
-- [ ] **Step 4: Wire it in**
+- [x] **Step 4: Wire it in**
 
 - Makefile `generate`: `swift scripts/generate-tokens.swift` before `xcodegen generate --quiet`.
 - `ci-checks`: runs `generate` first, then fails with "generated files differ from the committed ones: run make -C apex-ios generate and commit" when `git status --porcelain -- Packages/ApexKit/Sources/Screens/DesignSystem/Generated` prints anything.
 - `RootScreen`: the body's colour becomes `Tokens.Color.fieldBase`; delete the comment that said it would.
 
-- [ ] **Step 5: Run everything**
+- [x] **Step 5: Run everything**
 
 ```bash
 make -C apex-ios test-scripts
@@ -217,13 +217,13 @@ xcrun simctl io "APEX $(basename "$PWD") iPhone 17" screenshot apex-ios/build/la
 
 Expected: 12 tests pass; `generate` leaves only the new files; lint clean; the app builds and runs. Open `apex-ios/build/launch-tokens.png` with the Read tool: a near-black screen (#090A0C) with the status bar. Compare the warm `make fast` time with Step 1 of Task 1. If the generator adds more than 1 s, make `generate` skip it when `Tokens.swift` is newer than both `tokens.json` and the script, keep `ci-checks` running it always, and say so in the hand-off.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): design tokens generated from design/tokens.json"
 ```
 
-- [ ] **Step 7: Check the guard and the stop gate already cover this**
+- [x] **Step 7: Check the guard and the stop gate already cover this**
 
 ```bash
 echo '{"tool_input":{"file_path":"'"$PWD"'/apex-ios/Packages/ApexKit/Sources/Screens/DesignSystem/Generated/Tokens.swift"}}' | CLAUDE_PROJECT_DIR="$PWD" apex-ios/scripts/hooks/guard-generated.sh; echo "guard exit $?"
@@ -232,7 +232,7 @@ a="$(apex-ios/scripts/hooks/swift-fingerprint.sh)"; printf ' ' >> apex-ios/desig
 
 Expected: `guard exit 2`; "fingerprint sees tokens.json". Both were built in plan 2; no hook changes.
 
-- [ ] **Step 8: Prove the drift check fails**
+- [x] **Step 8: Prove the drift check fails**
 
 Change `card` in `tokens.json` from 10 to 11 without running `generate`, run `make -C apex-ios ci-checks`. Expected: it fails with the "generated files differ" message. Then `git checkout apex-ios/design/tokens.json && make -C apex-ios generate && git status --short` shows nothing.
 
@@ -246,7 +246,7 @@ Change `card` in `tokens.json` from 10 to 11 without running `generate`, run `ma
 - Consumes: `Tokens` from Task 2; the fixture runner from plan 2.
 - Produces: custom rules `no_raw_color`, `no_raw_font`, `no_raw_animation`, each applied to `Packages/ApexKit/Sources/Screens/` except `Packages/ApexKit/Sources/Screens/DesignSystem/`, severity error.
 
-- [ ] **Step 1: Write the fixtures and extend the runner**
+- [x] **Step 1: Write the fixtures and extend the runner**
 
 Runner: add the three rules to its list. A fixture of these rules is linted at `Packages/ApexKit/Sources/Screens/Home`; one named `*_in_design_system` at `Packages/ApexKit/Sources/Screens/DesignSystem`; one named `*_in_core` at `Packages/ApexKit/Sources/Core`. Put these `case` arms before the existing ones.
 
@@ -258,16 +258,16 @@ Runner: add the three rules to its list. A fixture of these rules is linted at `
 
 Messages: "Colours come from Tokens.Color (design/tokens.json), never a raw value." · "Type comes from Tokens.Typography (design/tokens.json)." · "Animate only with Tokens.Motion (design/tokens.json)."
 
-- [ ] **Step 2: Run it and watch the positives fail**
+- [x] **Step 2: Run it and watch the positives fail**
 
 Run: `make -C apex-ios test-lint`
 Expected: the 11 new positive fixtures print FAIL; the 13 from plan 2 still pass.
 
-- [ ] **Step 3: Write the three rules**
+- [x] **Step 3: Write the three rules**
 
 Regexes are yours; the fixtures decide. Spacing and radius numbers get no lint rule (a regex cannot tell a spacing from a count): AGENTS.md carries that one as a review rule in Task 5.
 
-- [ ] **Step 4: Run everything**
+- [x] **Step 4: Run everything**
 
 ```bash
 make -C apex-ios test-lint && make -C apex-ios lint
@@ -275,7 +275,7 @@ make -C apex-ios test-lint && make -C apex-ios lint
 
 Expected: 31 fixtures pass (11 new positives, 7 new negatives, 13 from plan 2); lint is clean on the real sources, which proves `RootScreen` no longer holds a raw colour.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): lint rejects raw colours, fonts and animations outside the design system"
@@ -313,7 +313,7 @@ How it works, proved by hand on 2026-11-27 with this export: a page that holds o
 
 The dumped DOM's `<title>` is the result. That run took 0.8 to 0.9 s a state, and two runs gave byte-identical 1170 × 2532 images.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 The fixture page needs no network: a `<div data-screen-label="x">` filling the page, grey, and a hidden `<span>` with the text `Blue` whose click turns the div blue. The fixture `states.json` has `fixture.grey` (no clicks), `fixture.blue` (`["Blue"]`), `fixture.broken` (`["Nope"]`) and `fixture.empty` (a page with no `data-screen-label`).
 
@@ -330,16 +330,16 @@ The fixture page needs no network: a `<div data-screen-label="x">` filling the p
 @test "an unknown state name fails"
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 12 earlier tests pass, the 6 new ones fail.
 
-- [ ] **Step 3: Write `mock-frame.html` and `render-mocks.py`**
+- [x] **Step 3: Write `mock-frame.html` and `render-mocks.py`**
 
 As described above. The image is written to a temporary file and moved over the old one only when the title is `done` (Review Focus 4). Stop the server on every exit path. A missing Chrome is `error: Google Chrome not found (set CHROME=…)`.
 
-- [ ] **Step 4: Run the tests and render the real states**
+- [x] **Step 4: Run the tests and render the real states**
 
 Makefile: `mocks` runs `python3 -I scripts/render-mocks.py design/states.json design/mocks $(STATE)`; `design-import` ends with `$(MAKE) --no-print-directory mocks`.
 
@@ -354,7 +354,7 @@ Expected: 18 tests pass; two images, and the second run changes nothing (`git st
 
 The mocks tests need Chrome on the runner. After the push in Task 5, read the `checks` log: if the six mocks tests fail because Chrome is missing, move them to their own file `scripts/tests/mocks.bats` run by a new `test-mocks` target that `ci-checks` does not call, record it as a ruling, and say in the hand-off that they run locally only. Do not skip them silently inside a test.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): make mocks renders reference images for named states"
@@ -365,7 +365,7 @@ git add apex-ios && git commit -m "feat(ios): make mocks renders reference image
 **Files:**
 - Modify: `apex-ios/AGENTS.md`, `apex-ios/CLAUDE.md`
 
-- [ ] **Step 1: Update the rules files**
+- [x] **Step 1: Update the rules files**
 
 `AGENTS.md`, stating only what is true when this merges:
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
 
 HOOKS="$BATS_TEST_DIRNAME/.."
+SCRIPTS="$BATS_TEST_DIRNAME/../.."
+REPO="$BATS_TEST_DIRNAME/../../../.."
 
 # A repo with one commit on main, holding apex-ios/A.swift and apex-ios/.gitignore.
 make_repo() {
@@ -32,11 +34,11 @@ edit_json() { printf '{"session_id":"s1","tool_name":"Edit","tool_input":{"file_
 bash_json() { jq -n --arg c "$1" '{session_id:"s1",tool_name:"Bash",tool_input:{command:$c}}'; }
 stop_json() { echo '{"session_id":"s1","hook_event_name":"Stop"}'; }
 
-# A `swift` on PATH that records its arguments.
-stub_swift() {
+# Puts a stand-in for a tool on PATH that records its arguments in $BATS_TEST_TMPDIR/<tool>-calls.
+stub() {
   mkdir -p "$BATS_TEST_TMPDIR/bin"
-  printf '#!/bin/sh\necho "$@" >>"%s"\n' "$BATS_TEST_TMPDIR/swift-calls" >"$BATS_TEST_TMPDIR/bin/swift"
-  chmod +x "$BATS_TEST_TMPDIR/bin/swift"
+  printf '#!/bin/sh\necho "$@" >>"%s"\n' "$BATS_TEST_TMPDIR/$1-calls" >"$BATS_TEST_TMPDIR/bin/$1"
+  chmod +x "$BATS_TEST_TMPDIR/bin/$1"
   PATH="$BATS_TEST_TMPDIR/bin:$PATH"
 }
 
@@ -342,14 +344,14 @@ nojq_path() {
 }
 
 @test "format on edit formats a Swift file under apex-ios" {
-  stub_swift
+  stub swift
   run "$HOOKS/format-on-edit.sh" <<<"$(edit_json "$CLAUDE_PROJECT_DIR/apex-ios/A.swift")"
   [ "$status" -eq 0 ]
   grep -qF "apex-ios/A.swift" "$BATS_TEST_TMPDIR/swift-calls"
 }
 
 @test "format on edit ignores a Swift file outside apex-ios" {
-  stub_swift
+  stub swift
   mkdir -p "$CLAUDE_PROJECT_DIR/apex-rn"
   printf 'let x = 1\n' >"$CLAUDE_PROJECT_DIR/apex-rn/x.swift"
   run "$HOOKS/format-on-edit.sh" <<<"$(edit_json "$CLAUDE_PROJECT_DIR/apex-rn/x.swift")"
@@ -370,4 +372,53 @@ nojq_path() {
   mkdir -p "$CLAUDE_PROJECT_DIR/apex-rn"
   printf 'let x = 1\n' >"$CLAUDE_PROJECT_DIR/apex-rn/x.swift"
   [ "$before" = "$("$HOOKS/swift-fingerprint.sh")" ]
+}
+
+@test "pre-commit runs lint when a file under apex-ios is staged" {
+  stub make
+  set_swift 'let a = 2'
+  git -C "$CLAUDE_PROJECT_DIR" add apex-ios/A.swift
+  run "$SCRIPTS/pre-commit"
+  [ "$status" -eq 0 ]
+  grep -q -- '-C apex-ios lint' "$BATS_TEST_TMPDIR/make-calls"
+}
+
+@test "pre-commit does nothing when only other files are staged" {
+  stub make
+  mkdir -p "$CLAUDE_PROJECT_DIR/apex-rn"
+  printf 'export const a = 1\n' >"$CLAUDE_PROJECT_DIR/apex-rn/x.ts"
+  git -C "$CLAUDE_PROJECT_DIR" add apex-rn/x.ts
+  run "$SCRIPTS/pre-commit"
+  [ "$status" -eq 0 ]
+  [ ! -e "$BATS_TEST_TMPDIR/make-calls" ]
+}
+
+# The wrapper is the file `make setup` copies into the shared git hooks folder, so this is its exact text.
+@test "the wrapper passes when the script is missing" {
+  run "$SCRIPTS/pre-commit-wrapper"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "the wrapper runs the script when it exists" {
+  mkdir -p "$CLAUDE_PROJECT_DIR/apex-ios/scripts"
+  printf '#!/bin/sh\nexit 7\n' >"$CLAUDE_PROJECT_DIR/apex-ios/scripts/pre-commit"
+  chmod +x "$CLAUDE_PROJECT_DIR/apex-ios/scripts/pre-commit"
+  run "$SCRIPTS/pre-commit-wrapper"
+  [ "$status" -eq 7 ]
+}
+
+@test "settings.json wires every hook script and each one exists" {
+  local commands command script
+  commands="$(jq -r '.hooks[][].hooks[].command' "$REPO/.claude/settings.json")"
+  [ "$(wc -l <<<"$commands")" -eq 5 ]
+  while read -r command; do
+    [[ "$command" == '"$CLAUDE_PROJECT_DIR"/apex-ios/scripts/hooks/'*.sh ]]
+    script="$REPO/${command#\"\$CLAUDE_PROJECT_DIR\"/}"
+    [ -f "$script" ]
+    [ -x "$script" ]
+  done <<<"$commands"
+  for script in stop-gate format-on-edit guard-generated guard-hook-bypass; do
+    grep -qF "/$script.sh" <<<"$commands"
+  done
 }

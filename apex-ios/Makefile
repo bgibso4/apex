@@ -20,11 +20,14 @@ DEVICE         ?= iPhone
 
 .PHONY: setup sim generate build fast lint format test-hooks test-lint unused unused-run run device
 
-# Fail loudly, with the install command, when a required tool is missing.
+# Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
+# a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
 setup:
 	@missing=0; for tool in xcodegen swiftlint xcbeautify jq bats periphery; do \
 		command -v $$tool >/dev/null || { echo "missing: brew install $$tool"; missing=1; }; \
 	done; [ $$missing -eq 0 ] || exit 1
+	@hooks="$$(git rev-parse --path-format=absolute --git-path hooks)"; mkdir -p "$$hooks" && \
+		install -m 755 scripts/pre-commit-wrapper "$$hooks/pre-commit"
 	@$(MAKE) --no-print-directory sim generate
 
 # Create this checkout's simulator when it is missing.

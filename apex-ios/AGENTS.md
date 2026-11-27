@@ -19,6 +19,7 @@ Packages/ApexKit/              all logic, one local package (Package.swift)
   Sources/Screens/             SwiftUI views. iOS-only
   Tests/CoreTests/             Mac tests for Core
 scripts/pre-commit             lint, only when apex-ios files are staged
+scripts/pre-commit-wrapper     the git hook `make setup` installs: runs pre-commit, passes on a branch without it
 scripts/test-lint-rules.sh     fixture tests for the custom lint rules (lint-fixtures/, lint-negatives/)
 scripts/hooks/                 Claude Code hooks (see CLAUDE.md) and their bats tests
 docs/                          iOS specs, plans and the roadmap. Created with the first product segment

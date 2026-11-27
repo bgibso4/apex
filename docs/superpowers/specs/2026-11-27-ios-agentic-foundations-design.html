@@ -202,6 +202,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The suite is kept fast by a time ceiling.</strong><span class="why">Option A in <a href="#speed">Keeping it fast</a>, chosen 27 Nov.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Agents push branches, open pull requests, and merge them when CI is green.</strong><span class="why">Chosen 27 Nov: "everything gets green, everything looks good, just go." The conditions are in <a href="#flow">Workflow</a>.</span></div></div>
 
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Each segment runs in a fresh agent session, handed off through Herdr.</strong><span class="why">Asked for on 27 Nov. See <a href="#flow">Workflow</a>.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The data model and backend get designed before product work starts.</strong><span class="why">Raised 27 Nov. Its own design round, in parallel with the tooling. See <a href="#later">Crashes and backend</a>.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The React Native app moves into its own folder.</strong><span class="why">It keeps working and stays frozen. Nothing is deleted.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Hooks are committed in <code>.claude/settings.json</code>.</strong><span class="why">An exception to your global rule, as filing-cabinet has.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>APEX owns its design system and tokens. Cadre is a reference, never a dependency.</strong><span class="why">The export's design system is loaded into the iOS folder. Updating Cadre from it is a separate follow-up.</span></div></div>
@@ -498,6 +500,17 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
     </ul>
     <p>Anything only you can judge, such as a gap in a mock or how a motion feels on the phone, becomes a GitHub issue labelled <code>needs-ben</code> with the default the agent took. Work continues on that default.</p>
   </div>
+  <div class="group">
+    <h3>A fresh session for each segment</h3>
+    <p>You asked for this on 27 Nov, to stop one long session filling up and getting worse. One segment, one session:</p>
+    <ul>
+      <li>When a pull request merges, the session writes the next plan, updates the hand-off note, starts a new agent in a new Herdr tab named for the segment, and stops.</li>
+      <li>The new session starts from files, never from a conversation: the design doc, the plan with its ticked boxes, and <code>docs/superpowers/handoff.md</code>.</li>
+      <li>A session also hands off mid-segment, at a task boundary, when its context is getting long.</li>
+      <li>Finished tabs are left for you to close. Nothing closes a tab it didn't open, and never the project's first tab.</li>
+    </ul>
+    <p class="muted small">The Herdr commands are personal tooling, so they become an arsenal skill and are not committed here. Until that exists they are written out in the hand-off note.</p>
+  </div>
 </section>
 
 <section id="later">
@@ -509,8 +522,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
   </div>
   <div class="group">
     <h3>Backend</h3>
-    <p>Not part of this work, and it needs its own conversation before the database plan. What that conversation starts from:</p>
+    <p>Not part of the tooling, but the first product segment can't start without it: the data model is a foundation too (Ben, 27 Nov). It gets its own design round with you, run while the tooling is being built, and it must be approved before any screen that stores data. What that round starts from:</p>
     <ul>
+      <li>The redesign changes the data whatever the server is: exercises keyed by ID, muscle tags, a generic cardio record, more than one session a day, a session's planned day and its real date. July's rule of no schema changes until cutover collides with that and has to be revisited.</li>
       <li>Today's Worker uses one shared key. That works for you alone and has no accounts.</li>
       <li>Whoop sign-in needs a server whatever else is chosen.</li>
       <li>The iCloud file backup already exists and needs no account.</li>
@@ -558,7 +572,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
     <h3>Follow-ups, not in this work</h3>
     <ul>
       <li>The roadmap of product segments, written as the foundation finishes.</li>
-      <li>The backend conversation.</li>
+      <li>The data and backend design round, started in parallel with the tooling.</li>
+      <li>A Herdr hand-off skill in arsenal.</li>
       <li>TestFlight uploads, from filing-cabinet's scripts.</li>
       <li>Bringing Cadre's design reference up to date from APEX's.</li>
       <li>Crash capture, with the first build on your phone.</li>

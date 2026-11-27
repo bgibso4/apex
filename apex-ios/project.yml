@@ -37,7 +37,11 @@ targets:
       - package: ApexKit
         product: Core
       - package: ApexKit
+        product: ScreenModels
+      - package: ApexKit
         product: Screens
+      - package: ApexKit
+        product: TestSupport
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_ID)

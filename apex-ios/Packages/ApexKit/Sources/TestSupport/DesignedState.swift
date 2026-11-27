@@ -9,6 +9,11 @@ public enum DesignedState: String, CaseIterable, Sendable {
     /// The screen the state belongs to: the part of its name before the dot.
     public var screen: String { String(rawValue.prefix { $0 != "." }) }
 
+    /// What to say when a state is asked for by a name that is not one.
+    public static func unknownMessage(for name: String) -> String {
+        "Unknown state \(name). Known states: \(allCases.map(\.rawValue).joined(separator: ", "))"
+    }
+
     /// The app as the state's mock shows it.
     @MainActor public func appModel() -> AppModel {
         switch self {

@@ -6,6 +6,8 @@ enum Tokens {
     enum Color {
         static let accent = SwiftUI.Color(
             .sRGB, red: 0x65 / 255, green: 0x9B / 255, blue: 0xC8 / 255, opacity: 1)
+        static let accentPressed = SwiftUI.Color(
+            .sRGB, red: 0x56 / 255, green: 0x88 / 255, blue: 0xB3 / 255, opacity: 1)
         static let accentTint = SwiftUI.Color(
             .sRGB, red: 0x65 / 255, green: 0x9B / 255, blue: 0xC8 / 255, opacity: 0x1A / 255)
         static let border = SwiftUI.Color(
@@ -43,6 +45,8 @@ enum Tokens {
         static let button = Font.system(size: 15, weight: .bold).monospacedDigit()
         static let buttonSecondary = Font.system(size: 14, weight: .semibold).monospacedDigit()
         static let cardName = Font.system(size: 14, weight: .bold).monospacedDigit()
+        static let cardTitle = Font.system(size: 20, weight: .heavy).monospacedDigit()
+        static let cardTitleTracking: CGFloat = -0.3
         static let eyebrow = Font.system(size: 11, weight: .bold).monospacedDigit()
         static let eyebrowTracking: CGFloat = 0.6
         static let graphBlock = Font.system(size: 9.5, weight: .regular).monospacedDigit()
@@ -81,6 +85,7 @@ enum Tokens {
         static let buttonPrimary: CGFloat = 50
         static let buttonTonal: CGFloat = 44
         static let tapTarget: CGFloat = 44
+        static let wordmark: CGFloat = 34
     }
 
     enum Motion {

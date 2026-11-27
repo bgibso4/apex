@@ -174,20 +174,20 @@ What is on screen, top to bottom (measure against the demo; `home.noProgram.png`
 - **The tab bar:** the system's, four tabs in `AppTab` order, a filled symbol over its title. Workout, Progress and Run show the bare field.
 - **Not built here:** the check-in, Recovery, This week and program cards. They need data that does not exist yet.
 
-- [ ] **Step 1: Resources and the root**
+- [x] **Step 1: Resources and the root**
 
 `RootScreen(model:)` is a `TabView` bound to `model.selectedTab`. `ApexApp` builds the model: in a Debug build with `-State <name>`, `DesignedState(rawValue:)` then `appModel()`, and an unknown name stops the app with a message listing every `DesignedState` name; otherwise `AppModel(home: HomeModel(lastEnded: nil, calendar: .current))`. Register the font once, where the wordmark component lives.
 
-- [ ] **Step 2: Build the components and the screen**
+- [x] **Step 2: Build the components and the screen**
 
 Only the components this screen needs, each in `DesignSystem/`, each reading tokens. A `#Preview("home.noProgram")` beside `HomeScreen` renders `RootScreen(model: DesignedState.homeNoProgram.appModel())`.
 
-- [ ] **Step 3: Checks**
+- [x] **Step 3: Checks**
 
 Run: `make -C apex-ios fast && make -C apex-ios lint && make -C apex-ios unused && make -C apex-ios build`
 Expected: all pass, with no Periphery suppression added.
 
-- [ ] **Step 4: Look at it**
+- [x] **Step 4: Look at it**
 
 ```bash
 make -C apex-ios run STATE=home.noProgram
@@ -197,16 +197,16 @@ make -C apex-ios run && xcrun simctl io "APEX $(basename "$PWD") iPhone 17" scre
 
 Open both with the Read tool beside `design/mocks/home.noProgram.png`. The first has the "PILLARS ENDED AUG 20" eyebrow; the second has none. Header, card, buttons, type and spacing match the mock; the cards not built are absent; the tab bar is the system's. Fix what differs before going on.
 
-- [ ] **Step 5: Ask Ben what the mock does not cover**
+- [x] **Step 5: Ask Ben what the mock does not cover**
 
 One GitHub issue labelled `needs-ben` and `iOS`, with the defaults taken: the card with no eyebrow when no program has ever ended; the two buttons and the gear doing nothing until their destinations exist; Home showing only this card until the other cards' data exists. Keep going.
 
-- [ ] **Step 6: Prove the unknown state stops**
+- [x] **Step 6: Prove the unknown state stops**
 
 Run: `make -C apex-ios run STATE=home.nope`, then read the app's log (`xcrun simctl spawn "<simulator>" log show --last 1m --predicate 'subsystem == "com.cadre.apex"'` or the crash message).
 Expected: the app stops; the message names `home.nope` and lists `home.noProgram`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): the tab bar and Home with no program"

@@ -37,10 +37,15 @@ sim:
 	@xcrun simctl list devices 'iOS $(SIM_OS)' | grep -qF '    $(SIM_DEVICE) (' || \
 		xcrun simctl create '$(SIM_DEVICE)' '$(SIM_MODEL)' com.apple.CoreSimulator.SimRuntime.iOS-$(subst .,-,$(SIM_OS))
 
-# Everything generated: the tokens (design/tokens.json to Generated/Tokens.swift), then the Xcode project.
+# Everything generated: the tokens (design/tokens.json to Generated/Tokens.swift), the wordmark's font and logo mark
+# (copied from the export only when they differ: a rewritten file would recompile Screens), then the Xcode project.
+GENERATED_RESOURCES := Packages/ApexKit/Sources/Screens/DesignSystem/Generated/Resources
 generate:
 	@command -v xcodegen >/dev/null || { echo "error: xcodegen is missing. Install it: brew install xcodegen" >&2; exit 1; }
 	swift scripts/generate-tokens.swift
+	@mkdir -p $(GENERATED_RESOURCES) && for file in Exo2-ExtraBold.ttf logo-mark.png; do \
+		cmp -s design/export/$$file $(GENERATED_RESOURCES)/$$file || cp design/export/$$file $(GENERATED_RESOURCES)/$$file; \
+	done
 	xcodegen generate --quiet
 
 build: sim generate
@@ -99,11 +104,12 @@ ci-checks: generate
 		{ echo "error: generated files differ from the committed ones: run make -C apex-ios generate and commit" >&2; exit 1; }
 	$(MAKE) --no-print-directory lint test-hooks test-scripts test-lint fast unused-run
 
-# Run on this checkout's simulator. Named, never `booted`: another worktree's simulator may be booted too.
+# Run on this checkout's simulator, in a designed state when one is named (`STATE=home.noProgram`). The simulator is
+# named, never `booted`: another worktree's simulator may be booted too.
 run: build
 	xcrun simctl boot '$(SIM_DEVICE)' 2>/dev/null || true
 	xcrun simctl install '$(SIM_DEVICE)' '$(APP_PRODUCT)'
-	xcrun simctl launch '$(SIM_DEVICE)' $(BUNDLE_ID)
+	xcrun simctl launch --terminate-running-process '$(SIM_DEVICE)' $(BUNDLE_ID) $(if $(STATE),-State $(STATE))
 
 # Build for a connected iPhone and install it. Needs the phone plugged in, unlocked and trusted.
 device: generate

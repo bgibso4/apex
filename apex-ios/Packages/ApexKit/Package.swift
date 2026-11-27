@@ -24,7 +24,8 @@ let package = Package(
         .target(name: "TestSupport", dependencies: ["ScreenModels"], swiftSettings: moduleSettings),
         .target(
             name: "Screens",
-            dependencies: ["Core"],
+            dependencies: ["Core", "ScreenModels", "TestSupport"],
+            resources: [.process("DesignSystem/Generated/Resources")],
             swiftSettings: mainActorSettings
         ),
         .testTarget(name: "CoreTests", dependencies: ["Core"], swiftSettings: moduleSettings),

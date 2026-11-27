@@ -25,4 +25,11 @@ struct DesignedStateTests {
         #expect(model.selectedTab == .home)
         #expect(model.home.noProgramEyebrow == "Pillars ended Aug 20")
     }
+
+    @Test func anUnknownNameIsAnsweredWithEveryKnownOne() {
+        let message = DesignedState.unknownMessage(for: "home.nope")
+
+        #expect(message.contains("home.nope"))
+        #expect(DesignedState.allCases.allSatisfy { message.contains($0.rawValue) })
+    }
 }

@@ -41,13 +41,13 @@
 **Interfaces:**
 - Produces: the React Native project root is `apex-rn/`. Every later task and plan runs its npm commands there.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout -b chore/repo-split
 ```
 
-- [ ] **Step 2: Record the baseline from the root, before anything moves**
+- [x] **Step 2: Record the baseline from the root, before anything moves**
 
 ```bash
 npx tsc --noEmit; echo "tsc exit $?"
@@ -58,14 +58,14 @@ npm test 2>&1 | grep -E '^(Tests|Test Suites):'
 
 Save the four results. They are the numbers Step 5 and Step 7 must reproduce exactly.
 
-- [ ] **Step 3: Move the tracked paths**
+- [x] **Step 3: Move the tracked paths**
 
 ```bash
 mkdir apex-rn
 git mv app src __tests__ __mocks__ assets modules plugins app.json babel.config.js eslint.config.mjs metro.config.js package.json package-lock.json tsconfig.json .npmrc .gitignore apex-rn/
 ```
 
-- [ ] **Step 4: Move the untracked build state, and split the ignore rules**
+- [x] **Step 4: Move the untracked build state, and split the ignore rules**
 
 Move (plain `mv`, these are untracked): `node_modules ios .expo dist coverage expo-env.d.ts` → `apex-rn/`, each only if it exists.
 
@@ -106,7 +106,7 @@ node_modules/
 .DS_Store
 ```
 
-- [ ] **Step 5: Verify the app tests exactly as before**
+- [x] **Step 5: Verify the app tests exactly as before**
 
 ```bash
 cd apex-rn
@@ -117,7 +117,7 @@ npm test 2>&1 | grep -E '^(Tests|Test Suites):'
 
 Expected: the same three results as Step 2, number for number.
 
-- [ ] **Step 6: Verify the ignore rules**
+- [x] **Step 6: Verify the ignore rules**
 
 ```bash
 git check-ignore -q apex-rn/ios/Podfile && echo "generated ios ignored"
@@ -128,7 +128,7 @@ git status --short | grep -v '^R ' | grep -v '^A  .gitignore' | grep -v '^M  ape
 
 Expected: both echo lines print, the count is above 0, and the last command prints nothing (only renames and the two ignore files are staged).
 
-- [ ] **Step 7: Verify the Worker**
+- [x] **Step 7: Verify the Worker**
 
 ```bash
 (cd workers/health-api && npm test 2>&1 | tail -5)
@@ -136,7 +136,7 @@ Expected: both echo lines print, the count is above 0, and the last command prin
 
 Expected: the same result as Step 2.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A apex-rn .gitignore
@@ -152,13 +152,13 @@ git commit -m "chore: move the React Native app into apex-rn/"
 **Interfaces:**
 - Produces: the root `CLAUDE.md` table. Plan 2 replaces the `apex-ios/` row's "Read first" cell when `apex-ios/AGENTS.md` exists.
 
-- [ ] **Step 1: Move the React Native rules**
+- [x] **Step 1: Move the React Native rules**
 
 ```bash
 git mv CLAUDE.md apex-rn/CLAUDE.md
 ```
 
-- [ ] **Step 2: Edit `apex-rn/CLAUDE.md`**
+- [x] **Step 2: Edit `apex-rn/CLAUDE.md`**
 
 Three changes and no others:
 
@@ -171,7 +171,7 @@ Three changes and no others:
 2. Every `docs/…` path becomes `../docs/…` (the mockups rule, Key References, and the `docs/` entry in the Project Structure tree, which gets the note "at the repo root").
 3. The Engineering Tenets line that claims an E2E suite stays as written (frozen file; the spec's audit already records that none exists).
 
-- [ ] **Step 3: Write the root `CLAUDE.md`**
+- [x] **Step 3: Write the root `CLAUDE.md`**
 
 ```markdown
 # APEX
@@ -189,7 +189,7 @@ Two apps live in this repo and share only this root. One pull request touches on
 - `PRIVACY.md` stays at the root: its web address may be registered elsewhere.
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 ```bash
 grep -c 'docs/' apex-rn/CLAUDE.md; grep -n '[^./]docs/' apex-rn/CLAUDE.md | grep -v '\.\./docs/'
@@ -198,7 +198,7 @@ test -f docs/superpowers/specs/2026-03-22-health-api-d1-design.md && echo "worke
 
 Expected: the second grep prints nothing (every docs path is `../docs/`), and the echo prints.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CLAUDE.md apex-rn/CLAUDE.md
@@ -213,7 +213,7 @@ git commit -m "docs: root CLAUDE.md points to each side; RN rules move with the 
 **Interfaces:**
 - Produces: workflow `RN` with jobs `TypeScript`, `Lint`, `Tests` (names unchanged). Plan 5 adds `ios.yml` beside it.
 
-- [ ] **Step 1: Move and edit the workflow**
+- [x] **Step 1: Move and edit the workflow**
 
 ```bash
 git mv .github/workflows/ci.yml .github/workflows/rn.yml
@@ -226,7 +226,7 @@ Changes to `rn.yml`, and no others:
 - top level gains `defaults: { run: { working-directory: apex-rn } }`
 - each `actions/setup-node` step gains `cache-dependency-path: apex-rn/package-lock.json`
 
-- [ ] **Step 2: Verify the file parses and the three jobs remain**
+- [x] **Step 2: Verify the file parses and the three jobs remain**
 
 ```bash
 ruby -ryaml -e 'y = YAML.load_file(".github/workflows/rn.yml"); puts y["jobs"].keys.sort.join(","); puts y["defaults"]["run"]["working-directory"]'
@@ -234,7 +234,7 @@ ruby -ryaml -e 'y = YAML.load_file(".github/workflows/rn.yml"); puts y["jobs"].k
 
 Expected: `lint,test,typecheck` then `apex-rn`.
 
-- [ ] **Step 3: Confirm a path-filtered workflow can't block a merge**
+- [x] **Step 3: Confirm a path-filtered workflow can't block a merge**
 
 ```bash
 gh api repos/bgibso4/apex/branches/main/protection -q '.required_status_checks.contexts | length'
@@ -242,7 +242,7 @@ gh api repos/bgibso4/apex/branches/main/protection -q '.required_status_checks.c
 
 Expected: `0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github/workflows
@@ -253,7 +253,7 @@ git commit -m "ci: RN checks run from apex-rn/ and only when it changes"
 
 **Files:** none tracked. Updates the untracked `.claude/launch.json` so Ben's local preview still starts.
 
-- [ ] **Step 1: Clean prebuild from the new folder**
+- [x] **Step 1: Clean prebuild from the new folder**
 
 ```bash
 cd apex-rn && npx expo prebuild --clean --platform ios
@@ -261,13 +261,13 @@ cd apex-rn && npx expo prebuild --clean --platform ios
 
 Expected: exits 0 and `apex-rn/ios/APEX.xcworkspace` exists. `git status --short` shows nothing new.
 
-- [ ] **Step 2: Simulator build, through the `ios-verifier` agent**
+- [x] **Step 2: Simulator build, through the `ios-verifier` agent**
 
 Ask `ios-verifier` to build the workspace `apex-rn/ios/APEX.xcworkspace`, the app scheme it lists, Debug, for `generic/platform=iOS Simulator` with `CODE_SIGNING_ALLOWED=NO`, and to return PASS or FAIL with the errors.
 
 Expected: PASS.
 
-- [ ] **Step 3: Point the local preview at the new folder**
+- [x] **Step 3: Point the local preview at the new folder**
 
 In `.claude/launch.json`, `runtimeArgs` becomes `["--prefix", "apex-rn", "run", "start"]`.
 

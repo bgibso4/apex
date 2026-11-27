@@ -75,7 +75,7 @@ Not verified in plans 2 and 3: `make device` on Ben's phone; the stop gate's blo
 - **Why filing-cabinet got slow** is in its `docs/superpowers/specs/2026-11-22-test-suite-restructure-design.md`, with measured rates. Its snapshot helper waits 1 s before each picture for Liquid Glass to settle; plan 4 measures whether APEX needs that.
 - **This Mac:** Xcode 27.2, Swift 6.4.2, simulator runtimes iOS 27.0 and 27.1. XcodeGen 2.49.0, SwiftLint 0.65.1 (CI checks that version), Periphery 3.8.0; `xcbeautify`, `jq`, `bats`, `ffmpeg` and Google Chrome are installed. Ben's phone is an iPhone 16 Pro.
 - **Local state of this checkout.** `apex-rn/node_modules` is a fresh `npm ci` at Expo 58. `make -C apex-ios setup` has run: the git pre-commit hook is installed and the simulator `APEX apex iPhone 17` exists. `.claude/launch.json` (untracked, ignored) starts the React Native preview. The export zip is `~/Desktop/Home screen redesign brief-project.zip`.
-- **Do not run `npm ci` in `workers/health-api`.** Its lockfile is stale (see "Open with Ben").
+- The Worker's lockfile was fixed in pull request 92 (2026-11-27): a clean `npm ci` in `workers/health-api` now installs `@cadre/shared` 0.2.1 and its 26 tests pass.
 - **`main` is protected** with no required check names and no required reviews, so merging needs no approval. The repo is public: macOS CI runners are free.
 
 ## Open with Ben
@@ -91,7 +91,10 @@ Not verified in plans 2 and 3: `make device` on Ben's phone; the stop gate's blo
 - **Branches must not pile up** (Ben, 2026-11-27). When your code pull request merges, delete its branch and the plan branch it carried, locally and on the remote.
 - Data is settled enough to build on (Ben, 2026-11-27): a SQL database on the phone is the source of truth; the Cloudflare copy is a backup only; Whoop sign-in is the one critical use of the Worker. The tables are designed with the first screen that stores data, not before.
 - How Ben is asked questions while away from his Mac is the lead's to handle (GitHub issues labelled `needs-ben` for now).
-- **The Worker's lockfile is stale, on `main`.** `workers/health-api/package-lock.json` resolves `@cadre/shared` to v0.2.0 while `package.json` pins v0.2.1. After a clean `npm ci`, 2 of its 26 tests fail, and a deploy from a clean install would ship a contract that drops `weight_increment` and the programs completion columns. It needs a lockfile refresh in its own pull request. Worker changes wait for Ben.
+- **Lead's decisions on plan 4** (2026-11-27): its defaults above stand. Two additions, because slow and flaky tests are what Ben most wants kept out:
+  - The time report covers the `checks` job as well as the simulator tests. That job went from 2 min 11 s to 4 min 7 s in one plan; report its split again in your numbers, and say what you would cut if it keeps growing.
+  - If the `make test-scripts` stall comes back, it is a bug to find that day, not something to re-run past. Time each test and report what you find.
+- **When you report done, expect a clean-up message** (Ben, 2026-11-27): delete your merged branches locally and on the remote, then the lead closes your tab.
 - A follow-up for arsenal, not this repo: worktree cleanup could delete the worktree's `APEX <folder> iPhone 17` simulator.
 - Cadre's design reference is to be brought up to date from APEX's. Not started, not blocking.
 

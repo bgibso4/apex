@@ -79,7 +79,7 @@ apex-ios/
 - Produces: make targets `setup`, `sim`, `generate`, `fast`; variables `PROJECT := Apex.xcodeproj`, `DERIVED := $(CURDIR)/.build/DerivedData`, `SIM_DEVICE`, `SIM_MODEL := iPhone 17`, `SIM_OS ?= 27.0`, `SIM_DEST`, `BEAUTIFY := xcbeautify`.
 - Produces: scheme `Fast` (macOS, package tests only) and the `FastTests` aggregate target. The app target and its scheme arrive in Task 2, when they have sources.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout main && git pull && git checkout -b feat/ios-skeleton docs/ios-skeleton-plan
@@ -87,7 +87,7 @@ git checkout main && git pull && git checkout -b feat/ios-skeleton docs/ios-skel
 
 The plan's own branch is the base, so one pull request carries the plan, the hand-off note and the work.
 
-- [ ] **Step 2: Write `Package.swift`, `project.yml`, `Signing.xcconfig`, `.gitignore` and the Makefile's first targets**
+- [x] **Step 2: Write `Package.swift`, `project.yml`, `Signing.xcconfig`, `.gitignore` and the Makefile's first targets**
 
 `Package.swift`: port `Packages/FilingCabinetKit/Package.swift`. Name `ApexKit`, `// swift-tools-version: 6.4`, `platforms: [.iOS(.v27), .macOS(.v27)]`, the same `moduleSettings`. No `defaultLocalization`. Products and targets, and nothing else:
 
@@ -129,7 +129,7 @@ build/
 - `generate` is `xcodegen generate --quiet` only. No token generator (plan 3), no `Package.resolved` copy, no `XCB_FLAGS`.
 - `fast` runs the `Fast` scheme on `platform=macOS`. The fingerprint record is added in Task 5.
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 `Tests/CoreTests/LaunchOptionsTests.swift`, Swift Testing:
 
@@ -156,16 +156,16 @@ struct LaunchOptionsTests {
 }
 ```
 
-- [ ] **Step 4: Run it and watch it fail**
+- [x] **Step 4: Run it and watch it fail**
 
 Run: `make -C apex-ios setup && make -C apex-ios fast`
 Expected: `setup` creates the simulator and generates `Apex.xcodeproj`; `fast` fails to compile with "cannot find 'LaunchOptions' in scope".
 
-- [ ] **Step 5: Implement `LaunchOptions`**
+- [x] **Step 5: Implement `LaunchOptions`**
 
 `Sources/Core/Launch/LaunchOptions.swift`, the signature in Interfaces. `-UITest` is the only flag. Doc comment on the type: launch flags are parsed only in Debug; unknown flags are ignored.
 
-- [ ] **Step 6: Run it and watch it pass, and check the per-checkout simulator**
+- [x] **Step 6: Run it and watch it pass, and check the per-checkout simulator**
 
 ```bash
 make -C apex-ios fast
@@ -175,7 +175,7 @@ git status --short
 
 Expected: 4 tests pass with no simulator booted; the grep prints one device; `git status` shows no `Apex.xcodeproj` and no `.build/`. Note the wall time of a warm `make fast` for the hand-off.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): ApexKit package, generated project and the Mac test loop"
@@ -193,7 +193,7 @@ git add apex-ios && git commit -m "feat(ios): ApexKit package, generated project
 - Produces: package target and product `Screens` (depends on `Core`, with `.defaultIsolation(MainActor.self)`); application target `Apex`; scheme `Apex`.
 - Produces: make targets `build`, `run`, `device`; variables `BUNDLE_ID := com.cadre.apex`, `APP_PRODUCT`, `DEVICE_PRODUCT`, `DEVICE ?= iPhone`.
 
-- [ ] **Step 1: Add the app target, its scheme and the make targets**
+- [x] **Step 1: Add the app target, its scheme and the make targets**
 
 `Package.swift`: add the `Screens` library product and target.
 
@@ -201,17 +201,17 @@ git add apex-ios && git commit -m "feat(ios): ApexKit package, generated project
 
 Makefile: port `build`, `run` and `device`. `run` boots this checkout's simulator, installs and launches; no `STATE=` yet (plan 4) and no `run-fake`. `device` is ported as written, without `READER_ARGS`. No `build-fingerprint.sh` call (plan 4).
 
-- [ ] **Step 2: Run the build and watch it fail**
+- [x] **Step 2: Run the build and watch it fail**
 
 Run: `make -C apex-ios build`
 Expected: fails at `generate` or at compile, because `App/` and `Sources/Screens/` have no sources yet.
 
-- [ ] **Step 3: Write `RootScreen` and `ApexApp`**
+- [x] **Step 3: Write `RootScreen` and `ApexApp`**
 
 - `RootScreen`: an empty screen. Body is `Color.black.ignoresSafeArea()`. One comment: the field colour comes from the generated tokens in plan 3.
 - `ApexApp`: `@main`, a `WindowGroup` showing `RootScreen()` with `.preferredColorScheme(.dark)`. In `init`, build `LaunchOptions(arguments: CommandLine.arguments, isDebugBuild:)` with the flag from `#if DEBUG`, and when `isUITest` call `UIView.setAnimationsEnabled(false)`.
 
-- [ ] **Step 4: Build, launch and look at it**
+- [x] **Step 4: Build, launch and look at it**
 
 ```bash
 make -C apex-ios build
@@ -221,12 +221,12 @@ mkdir -p apex-ios/build && xcrun simctl io "APEX $(basename "$(git rev-parse --s
 
 Expected: both succeed. Open `apex-ios/build/launch.png` with the Read tool: a black screen with the status bar, no crash dialog. List the path in the hand-off.
 
-- [ ] **Step 5: Prove the device build compiles**
+- [x] **Step 5: Prove the device build compiles**
 
 Run: `xcodebuild build -project apex-ios/Apex.xcodeproj -scheme Apex -destination 'generic/platform=iOS' -derivedDataPath apex-ios/.build/DerivedData CODE_SIGNING_ALLOWED=NO | xcbeautify`
 Expected: build succeeds. `make device` itself needs Ben's phone and stays unverified; say so in the hand-off.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): app target that launches to an empty screen"
@@ -243,16 +243,16 @@ git add apex-ios && git commit -m "feat(ios): app target that launches to an emp
 - Consumes: the Makefile from Tasks 1 and 2.
 - Produces: make targets `lint`, `format`, `test-lint`, `unused`, `unused-run`; variable `SWIFT_DIRS := App Packages/ApexKit/Sources Packages/ApexKit/Tests`.
 
-- [ ] **Step 1: Write the fixtures and the fixture runner first**
+- [x] **Step 1: Write the fixtures and the fixture runner first**
 
 Port `scripts/test-lint-rules.sh` and the fixtures for the five rules kept. Changes to the runner: the rule list is the five above; a fixture named `*_in_screens` is linted at `Packages/ApexKit/Sources/Screens`, `*_in_screens_tests` at `Packages/ApexKit/Tests/ScreensTests`, any other `no_ui_imports_in_mac_modules*` fixture at `Packages/ApexKit/Sources/NewModule` (a module name no list mentions), the rest at `Packages/Fixture/Sources`.
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `apex-ios/scripts/test-lint-rules.sh`
 Expected: every positive fixture prints FAIL, since no config exists.
 
-- [ ] **Step 3: Write the lint and format config**
+- [x] **Step 3: Write the lint and format config**
 
 - `.swift-format`: port unchanged.
 - `.swiftlint.yml`: port. `excluded` keeps `**/Generated/**`, `**/.build`, `scripts/lint-fixtures`, `scripts/lint-negatives`. Same `opt_in_rules` and `disabled_rules`. Custom rules: keep `no_print` (message names subsystem `com.cadre.apex`), `try_optional_needs_reason`, `no_shared_in_package`, `disable_needs_reason`. Drop `localized_needs_bundle` and `analytics_token_enum_only`.
@@ -260,7 +260,7 @@ Expected: every positive fixture prints FAIL, since no config exists.
 - `.periphery.yml`: port with `project: Apex.xcodeproj`, `schemes: [Apex]`. Drop `retain_unused_imported_modules`.
 - Makefile: port `lint`, `format`, `test-lint`, `unused` and `unused-run` (without `$(XCB_FLAGS)`).
 
-- [ ] **Step 4: Run everything and watch it pass**
+- [x] **Step 4: Run everything and watch it pass**
 
 ```bash
 make -C apex-ios test-lint
@@ -271,7 +271,7 @@ make -C apex-ios unused
 
 Expected: every fixture prints PASS, including the three negatives; `format` changes nothing after a second run; `lint` and `unused` exit 0 with no findings. If Periphery reports a declaration, remove the declaration or make it used. Never add a file-wide or config-wide exemption.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): strict lint, format and dead-code checks with rule fixtures"
@@ -287,7 +287,7 @@ git add apex-ios && git commit -m "feat(ios): strict lint, format and dead-code 
 - Consumes: the make targets of Tasks 1 to 3 and, by name, those of Tasks 5 to 7 (`test-hooks`, `ci-checks`).
 - Produces: `apex-ios/AGENTS.md`, which every later plan and segment reads first and extends.
 
-- [ ] **Step 1: Write `apex-ios/AGENTS.md`**
+- [x] **Step 1: Write `apex-ios/AGENTS.md`**
 
 Port filing-cabinet's `AGENTS.md` section by section. State only what is true when this plan merges; later plans add their own rows.
 
@@ -304,7 +304,7 @@ Port filing-cabinet's `AGENTS.md` section by section. State only what is true wh
 - **Hard rules:** port the list, with these changes. Keep: Ben's OK for lint config, hook config and tolerances; never hand-edit generated files; never bypass git hooks (same wording); unit tests for new logic and a regression test for each bug fix; Swift 6 and the banned constructs; `package` access between modules and `public` only for what the app or tests use; `os.Logger` with subsystem `com.cadre.apex`, never `print()`; `try?` only with a reason; one primary type per file, inject collaborators, no singletons, protocols only at real seams; third-party packages pinned with `exact:`; Periphery suppressions per declaration. Change: "iPhone, portrait, dark only, English only. No `#available` branches." Add: "No accessibility work: no VoiceOver labels, Reduce Motion paths, Dynamic Type handling or audits. An accessibility identifier is added only where a journey needs one." Add: "One pull request touches one side. Nothing under `apex-rn/` changes in an iOS pull request." Add: "User-facing copy uses middots and never em dashes." Drop: the New York font rule, localization, the Scan button, snapshot references (plan 4 adds its own), tokens (plan 3 adds its own), HEIC, personal documents.
 - **Read next:** the design doc path, and `docs/superpowers/handoff.md`.
 
-- [ ] **Step 2: Write `apex-ios/CLAUDE.md`**
+- [x] **Step 2: Write `apex-ios/CLAUDE.md`**
 
 First line `@AGENTS.md`. Then, ported from filing-cabinet's `CLAUDE.md`:
 
@@ -313,7 +313,7 @@ First line `@AGENTS.md`. Then, ported from filing-cabinet's `CLAUDE.md`:
 - **Verification:** use the `ios-verifier` agent for build and test evidence; ask it for the make targets, not raw `xcodebuild test`.
 - **Workspace:** personal agent tooling comes from arsenal and is never committed; the root `.claude/settings.json` is committed by approved exception.
 
-- [ ] **Step 3: Update the root files**
+- [x] **Step 3: Update the root files**
 
 Root `CLAUDE.md`: the `apex-ios/` row's "Read first" cell becomes `` `apex-ios/AGENTS.md` ``. No other change.
 
@@ -328,7 +328,7 @@ skills-lock.json
 .herdr/
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 ```bash
 git check-ignore -q .claude/launch.json && git check-ignore -q .claude/skills/x && git check-ignore -q .claude/settings.local.json && echo "local tooling ignored"
@@ -339,7 +339,7 @@ for t in setup generate build fast lint format unused test-lint test-hooks ci-ch
 
 Expected: "local tooling ignored"; exit 1 for `settings.json`; both counts 0; no "missing" line.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apex-ios/AGENTS.md apex-ios/CLAUDE.md CLAUDE.md .gitignore
@@ -358,7 +358,7 @@ git commit -m "docs(ios): AGENTS.md and CLAUDE.md for apex-ios; root pointer and
 - Produces: `swift-fingerprint.sh [print|current|record FP]`, with the green record at `apex-ios/.build/apex-fast-green`.
 - Produces: make target `test-hooks`; `fast` now records the fingerprint on success.
 
-- [ ] **Step 1: Write the bats tests first**
+- [x] **Step 1: Write the bats tests first**
 
 Port `scripts/hooks/tests/hooks.bats` (28 tests). Changes to the setup: the temporary repo gets an `apex-ios/` folder holding `A.swift` and a `.gitignore` with `.build/`; it has one commit on `main` so a merge base exists; `APEX_FAST_CMD` replaces `FC_FAST_CMD`. The ported test "a committed change that was never verified still runs Fast" makes its commit on a branch off `main`, so the merge-base check sees it. Paths in the guard tests become `/r/apex-ios/Apex.xcodeproj/project.pbxproj` and `/r/apex-ios/Packages/ApexKit/Sources/Screens/Generated/Tokens.swift`. Drop the string-catalog half of the last test; keep `design/tokens.json`.
 
@@ -380,12 +380,12 @@ Add these tests:
   # CLAUDE_PROJECT_DIR is a repo without apex-ios: stop gate, format and guard-generated exit 0
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `bats apex-ios/scripts/hooks/tests`
 Expected: every test fails, the scripts do not exist.
 
-- [ ] **Step 3: Port the five scripts**
+- [x] **Step 3: Port the five scripts**
 
 Each is a port of the file with the same name. Changes:
 
@@ -398,7 +398,7 @@ Each is a port of the file with the same name. Changes:
 
 Makefile: add `test-hooks` (`bats scripts/hooks/tests`), and change `fast` to take the fingerprint before the run and record it after a pass, as filing-cabinet's does.
 
-- [ ] **Step 4: Run them and watch them pass**
+- [x] **Step 4: Run them and watch them pass**
 
 ```bash
 make -C apex-ios test-hooks
@@ -407,7 +407,7 @@ make -C apex-ios fast && apex-ios/scripts/hooks/swift-fingerprint.sh current && 
 
 Expected: 35 tests pass; "green recorded" prints.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): stop gate, format on edit and guards, with bats tests"
@@ -423,7 +423,7 @@ git add apex-ios && git commit -m "feat(ios): stop gate, format on edit and guar
 - Consumes: the five scripts and `make lint`.
 - Produces: the committed hook wiring. From the next session on, every agent in this repo runs under it.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `hooks.bats`:
 
@@ -440,13 +440,13 @@ Add to `hooks.bats`:
 
 Run: `make -C apex-ios test-hooks`. Expected: the four new tests fail.
 
-- [ ] **Step 2: Write the wiring**
+- [x] **Step 2: Write the wiring**
 
 - `.claude/settings.json`: port filing-cabinet's. Same events, matchers and timeouts (`PreToolUse` Edit|Write|MultiEdit and Bash, `PostToolUse` Edit|Write|MultiEdit, `Stop` and `SubagentStop` with `timeout: 1200`). Each command is `"$CLAUDE_PROJECT_DIR"/apex-ios/scripts/hooks/<script>`. Nothing else in the file.
 - `apex-ios/scripts/pre-commit`: from the repo root, exit 0 unless `git diff --cached --name-only -- apex-ios` prints something; then `make --no-print-directory -C apex-ios lint`. No snapshot listing (plan 4).
 - `setup` in the Makefile: install the wrapper as filing-cabinet does, into the shared hooks folder. The wrapper's text: find `"$(git rev-parse --show-toplevel)/apex-ios/scripts/pre-commit"`, exit 0 when it is not an executable file, else `exec` it.
 
-- [ ] **Step 3: Run the tests and install**
+- [x] **Step 3: Run the tests and install**
 
 ```bash
 make -C apex-ios test-hooks
@@ -456,11 +456,11 @@ git add .claude/settings.json apex-ios && git commit -m "feat(ios): wire the hoo
 
 Expected: 39 tests pass; the commit runs the pre-commit hook, which runs lint (files under `apex-ios/` are staged) and passes.
 
-- [ ] **Step 4: Prove the pre-commit hook blocks**
+- [x] **Step 4: Prove the pre-commit hook blocks**
 
 Add `let x = try? JSONSerialization.data(withJSONObject: [])` with no comment to `LaunchOptions.swift`, stage it, run `git commit -m probe`. Expected: the commit is refused with `try_optional_needs_reason`. Then `git restore --staged --worktree apex-ios/Packages/ApexKit/Sources/Core/Launch/LaunchOptions.swift`.
 
-- [ ] **Step 5: Note what is not proved**
+- [x] **Step 5: Note what is not proved**
 
 Claude Code reads hook settings when a session starts, so this session may never run under the new hooks. The bats suite is the proof. If the stop gate does fire in this session, say what it did in the hand-off; if it does not, say "not seen live" there.
 
@@ -476,13 +476,13 @@ Claude Code reads hook settings when a session starts, so this session may never
 
 Why now and not in plan 5: with the path filter on `rn.yml`, a pull request that touches no React Native file gets no checks at all, and "merge when CI is green" would mean nothing until plan 5. The checks job is the cheap half of filing-cabinet's CI; the simulator half stays in plan 5.
 
-- [ ] **Step 1: Add `ci-checks` to the Makefile**
+- [x] **Step 1: Add `ci-checks` to the Makefile**
 
 Port `ci-checks`, cut down to: `generate`, then `lint test-hooks test-lint`, then `xcodebuild test` of the `Fast` scheme on `platform=macOS` (the Mac slice: it compiles every Mac module and runs its tests, so a stray UI import fails here), then `unused-run`. No generated-file drift check (plan 3), no changed-snapshots listing, no `check-resolved`.
 
 Run: `make -C apex-ios ci-checks`. Expected: exit 0. Note the wall time.
 
-- [ ] **Step 2: Write the workflow**
+- [x] **Step 2: Write the workflow**
 
 `.github/actions/xcode-setup/action.yml`: port. Keep "Select Xcode 27", "Install tools" and the SwiftLint 0.65.1 version check. Keep "Cache Swift packages" with paths under `apex-ios/.build/` and key hashing `apex-ios/Packages/ApexKit/Package.swift` and `apex-ios/project.yml`. Drop the `job` input and the compilation cache step.
 
@@ -495,7 +495,7 @@ Run: `make -C apex-ios ci-checks`. Expected: exit 0. Note the wall time.
 - One job, id and name `checks`, `runs-on: xcode-27`, `timeout-minutes: 30`, `env: CODE_SIGNING_ALLOWED: "NO"` and `SIM_DEVICE: iPhone 17` (the image's own simulator; Periphery builds for it).
 - Steps: `actions/checkout@v7` with `fetch-depth: 0`; the `xcode-setup` action; `make -C apex-ios ci-checks`.
 
-- [ ] **Step 3: Verify the file locally**
+- [x] **Step 3: Verify the file locally**
 
 ```bash
 ruby -ryaml -e 'y = YAML.load_file(".github/workflows/ios.yml"); on = y["on"] || y[true]; puts y["jobs"].keys.join(","); puts on["pull_request"]["paths"].inspect; puts y["concurrency"]["group"]'
@@ -503,7 +503,7 @@ ruby -ryaml -e 'y = YAML.load_file(".github/workflows/ios.yml"); on = y["on"] ||
 
 Expected: `checks`, the four paths, and a group starting `ios-`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .github apex-ios/Makefile && git commit -m "ci(ios): checks job for apex-ios (lint, hook tests, Mac tests, dead code)"

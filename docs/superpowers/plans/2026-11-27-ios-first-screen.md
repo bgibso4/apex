@@ -228,7 +228,7 @@ git add apex-ios && git commit -m "feat(ios): the tab bar and Home with no progr
 
 What changes from filing-cabinet's scripts: three modes (`affected`, `retest`, `gate`), where `gate` is its `full ALL=1` with no argument and no policy text; no snapshot variants; no smoke set and no shared set; no string-catalog and no identifier rules in `affected-tests.sh`. Paths are relative to `apex-ios/`, and a changed path outside `apex-ios/` affects nothing.
 
-- [ ] **Step 1: Write the failing bats tests**
+- [x] **Step 1: Write the failing bats tests**
 
 Port from filing-cabinet's two bats files, keeping these (rename nothing that still fits):
 
@@ -255,20 +255,20 @@ affected.bats
   @test "check-map passes on the committed map"
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `make -C apex-ios test-scripts`
 Expected: the 21 tests from plan 3 pass; the 18 new ones fail, the scripts do not exist.
 
-- [ ] **Step 3: Write the scripts, the targets and the map**
+- [x] **Step 3: Write the scripts, the targets and the map**
 
 `test-map.txt` starts with: `*.md`, `docs/`, `design/`, `scripts/`, `Packages/ApexKit/Tests/` to `NONE`; `design/tokens.json`, `scripts/generate-tokens.swift`, `Makefile`, `project.yml`, `Package.resolved`, `App/`, `Packages/ApexKit/Package.swift`, `Sources/Core/`, `Sources/TestSupport/`, `Sources/ScreenModels/App`, `Sources/Screens/DesignSystem/`, `Sources/Screens/RootScreen.swift`, `UITests/Support/` to `ALL`; `Sources/ScreenModels/Home/` and `Sources/Screens/Home/` to `AppJourneyTests` (the journey reads Home's card; Task 4 adds `HomePictureTests` to both rows). Add `affected-tests.sh --check-map` to `ci-checks`, and `UITests` to `SWIFT_DIRS`. `make build` and every other target that builds into the derived data folder calls `build-fingerprint.sh forget` first.
 
-- [ ] **Step 4: Write the journey**
+- [x] **Step 4: Write the journey**
 
 `AppJourneyTests.testTheAppLaunchesToHomeAndTheTabsSwitch`: launch the real app (`-UITest`, no `-State`); "No Active Program" appears; tap Workout, Progress, Run in the tab bar, each becoming the selected tab with the Home card gone; tap Home, the card is back. Find elements by their text and the tab bar's own buttons: no identifier is needed. `Support/Launch.swift` is one function, `launchApp(_ flags: [String] = []) -> XCUIApplication`; do not port the relaunch machinery until a class has several journeys. `Support/Wait.swift` keeps `appears(within:)` and `disappears(within:)` and what they need.
 
-- [ ] **Step 5: Run everything**
+- [x] **Step 5: Run everything**
 
 ```bash
 make -C apex-ios test-scripts
@@ -279,11 +279,11 @@ make -C apex-ios affected
 
 Expected: 39 bats tests pass. `gate` builds once and runs the journey, and its summary line gives build and test seconds. `retest` runs it again with no build. `affected` on this branch runs everything, because the branch touches `project.yml`. Note the journey's seconds from each.
 
-- [ ] **Step 6: Prove the journey can fail**
+- [x] **Step 6: Prove the journey can fail**
 
 Change the expected text in the journey to "No Active Programme", run `make -C apex-ios retest ONLY=ApexUITests/AppJourneyTests`. Expected: retest refuses (the sources changed). Run `make -C apex-ios affected`. Expected: the journey fails on that line. Restore the text, run `affected` again, green.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apex-ios && git commit -m "feat(ios): the simulator test runner (affected, retest, gate) and the launch journey"

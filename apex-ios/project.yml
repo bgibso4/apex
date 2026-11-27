@@ -57,6 +57,24 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
 
+  # The journeys: the real app, driven from outside its process.
+  ApexUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+        excludes:
+          - "**/.DS_Store"
+    dependencies:
+      - target: Apex
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_ID).uitests
+        TEST_TARGET_NAME: Apex
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+
 # Empty aggregate: a scheme needs one build target from this project, and Fast must not
 # build the app. The package tests it runs come from the scheme's test targets.
 aggregateTargets:
@@ -73,9 +91,9 @@ schemes:
       config: Debug
     test:
       config: Debug
-      # Everything, on the simulator. Test targets are added here as they appear.
+      # Every simulator test: what `make gate` runs. Package tests run on the Mac, in Fast.
       targets:
-        - package: ApexKit/CoreTests
+        - name: ApexUITests
 
   # Mac-only loop: no app target, no simulator. Every package test target but ScreensTests is listed here;
   # `make fast` fails when one is missing (check-fast-scheme).

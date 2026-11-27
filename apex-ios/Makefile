@@ -20,7 +20,7 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 DEVICE         ?= iPhone
 
 .PHONY: setup sim generate build check-fast-scheme fast lint format test-hooks test-scripts test-lint unused unused-run \
-	ci-checks run device design-import mocks
+	ci-checks affected retest gate run device design-import mocks
 
 # Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
 # a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
@@ -49,6 +49,7 @@ generate:
 	xcodegen generate --quiet
 
 build: sim generate
+	scripts/build-fingerprint.sh forget
 	set -o pipefail; xcodebuild build -project $(PROJECT) -scheme Apex \
 		-destination '$(SIM_DEST)' -derivedDataPath $(DERIVED) | $(BEAUTIFY)
 
@@ -67,7 +68,7 @@ fast: check-fast-scheme
 		-destination 'platform=macOS' -derivedDataPath $(DERIVED) | $(BEAUTIFY) && \
 		scripts/hooks/swift-fingerprint.sh record "$$fp"
 
-SWIFT_DIRS := App Packages/ApexKit/Sources Packages/ApexKit/Tests
+SWIFT_DIRS := App Packages/ApexKit/Sources Packages/ApexKit/Tests UITests
 
 # swift-format owns formatting; SwiftLint owns everything else. Both are strict.
 lint:
@@ -99,10 +100,30 @@ unused-run: sim
 # module the Fast scheme's tests reach, so UIKit or an iOS-only API in one of them fails here. SwiftUI compiles on
 # macOS, so only the lint rule catches that import.
 # It starts by regenerating: a committed Generated/ file that differs from what its source gives fails here.
+# The map check fails when scripts/test-map.txt names a test class that does not exist or leaves one out.
 ci-checks: generate
 	@[ -z "$$(git status --porcelain -- ':(glob)**/Generated/**')" ] || \
 		{ echo "error: generated files differ from the committed ones: run make -C apex-ios generate and commit" >&2; exit 1; }
+	scripts/affected-tests.sh --check-map
 	$(MAKE) --no-print-directory lint test-hooks test-scripts test-lint fast unused-run
+
+# Simulator test runs, all through scripts/sim-tests.sh. It builds once, runs the tests without building again and
+# appends a line per run to .build/test-runs.log.
+#   make retest ONLY="<Target/Class[/test]> …"  while fixing: no build; refuses when the sources changed since the last one
+#   make affected                               at the end of a task: the classes the branch's changes touch
+#                                               (scripts/test-map.txt; BASE=<ref>, default origin/main)
+#   make gate                                   before a pull request: every simulator test
+SIM_TESTS = ONLY='$(ONLY)' BASE='$(BASE)' SIM_DEST='$(SIM_DEST)' PROJECT='$(PROJECT)' DERIVED='$(DERIVED)' \
+	scripts/sim-tests.sh
+
+affected: sim generate
+	@$(SIM_TESTS) affected
+
+retest: sim
+	@$(SIM_TESTS) retest
+
+gate: sim generate
+	@$(SIM_TESTS) gate
 
 # Run on this checkout's simulator, in a designed state when one is named (`STATE=home.noProgram`). The simulator is
 # named, never `booted`: another worktree's simulator may be booted too.

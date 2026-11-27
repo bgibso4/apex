@@ -88,10 +88,11 @@ if [ "${1:-}" = "--check-map" ]; then
 fi
 
 merge_base="$(git merge-base "${1:-origin/main}" HEAD)"
-# --relative: only paths under apex-ios/, written from it.
-changed="$({ git diff --name-only --relative "$merge_base"; git ls-files --others --exclude-standard; } | sort -u)"
+# --relative: only paths under apex-ios/, written from it. --no-renames: a moved file counts under its old path too.
+changed="$({ git diff --name-only --relative --no-renames "$merge_base"; git ls-files --others --exclude-standard; } | sort -u)"
 
-classes=""
+# The classes to run, or ALL alone as soon as anything asks for everything.
+picked=""
 while IFS= read -r path; do
 	[ -n "$path" ] || continue
 	for target in $(targets_for "$path"); do
@@ -99,16 +100,18 @@ while IFS= read -r path; do
 			echo ALL
 			exit 0
 		fi
-		classes+="$target"$'\n'
+		picked+="$target"$'\n'
 	done
 done <<<"$changed"
 
-for class in $(echo "$classes" | sort -u); do
+ids=""
+for class in $(echo "$picked" | sort -u); do
 	target="$(target_of "$class")"
 	if [ -z "$target" ]; then
 		echo "no test file declares $class: running everything" >&2
 		echo ALL
 		exit 0
 	fi
-	echo "$target/$class"
-done | sort
+	ids+="$target/$class"$'\n'
+done
+printf '%s' "$ids" | sort

@@ -34,8 +34,15 @@ enum SnapshotHost {
 
     /// Draws the app in every designed state of `screen` and compares each picture with its reference, which is
     /// named for the state. Each state gets a new window in the host app's scene, so the safe areas and the glass
-    /// are the real ones. A screen with no designed state fails.
+    /// are the real ones. A screen with no designed state fails, and so does a host app with animations on.
     static func assertStates(ofScreen screen: String, file: StaticString = #filePath, line: UInt = #line) throws {
+        // An animation still running when the picture is taken makes it depend on timing, and one that moves no
+        // frame (a fade, a rolling number) gets past `settle`.
+        guard !UIView.areAnimationsEnabled else {
+            XCTFail(
+                "Pictures need animations off: the Apex scheme's test action passes -UITest", file: file, line: line)
+            return
+        }
         let states = DesignedState.allCases.filter { $0.screen == screen }
         if states.isEmpty {
             XCTFail("No designed state belongs to the screen \"\(screen)\"", file: file, line: line)

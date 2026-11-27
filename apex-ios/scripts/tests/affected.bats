@@ -73,6 +73,29 @@ affected() { run --separate-stderr "$AFFECTED" "$@"; }
   [ "$output" = "$(printf 'ApexSnapshotTests/HomePictureTests\nApexUITests/AppJourneyTests')" ]
 }
 
+@test "a deleted test file beside other changes runs everything, and prints nothing else" {
+  change Sources/Screens/Home/HomeScreen.swift
+  # The deleted class sorts after one that still exists, so that one is found first.
+  git rm -q SnapshotTests/HomePictureTests.swift && git commit -qm delete
+  affected main
+  [ "$status" -eq 0 ]
+  [ "$output" = ALL ]
+  [[ "$stderr" == *"no test file declares HomePictureTests"* ]] || false
+}
+
+@test "a file moved from one screen's folder to another runs both screens' classes" {
+  printf 'Sources/Screens/Run/ RunPictureTests\n' >>scripts/test-map.txt
+  printf 'final class RunPictureTests: XCTestCase {}\n' >SnapshotTests/RunPictureTests.swift
+  mkdir -p Sources/Screens/Home Sources/Screens/Run
+  printf 'struct Shared {}\nlet a = 1\nlet b = 2\nlet c = 3\n' >Sources/Screens/Home/Shared.swift
+  git add -A . && git commit -qm base2 && git branch -qf main HEAD
+  git mv Sources/Screens/Home/Shared.swift Sources/Screens/Run/Shared.swift
+  printf 'let d = 4\n' >>Sources/Screens/Run/Shared.swift
+  git add -A . && git commit -qm move
+  affected main
+  [ "$output" = "$(printf 'ApexSnapshotTests/HomePictureTests\nApexSnapshotTests/RunPictureTests\nApexUITests/AppJourneyTests')" ]
+}
+
 @test "docs and scripts run nothing" {
   change docs/roadmap.md scripts/frames.sh AGENTS.md
   affected main

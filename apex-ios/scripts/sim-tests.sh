@@ -43,6 +43,7 @@ affected | retest)
 	;;
 esac
 scope="$(echo $scope)" # one line, space-separated
+case " $scope " in *" ALL "*) scope=ALL ;; esac # everything, whatever else is named
 if [ -z "$scope" ]; then
 	echo "nothing to run: the changes touch no app code or tests."
 	exit 0

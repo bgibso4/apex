@@ -72,6 +72,14 @@ called() { grep -q -- "$1" "$CALLS" 2>/dev/null; }
   called "-only-testing:ApexSnapshotTests/B"
 }
 
+@test "ALL among the classes still runs everything" {
+  STUB_AFFECTED="$(printf 'ApexUITests/A\nALL')" sim affected
+  [ "$status" -eq 0 ]
+  called test-without-building
+  run ! called -only-testing
+  [ "$(cut -f3 .build/test-runs.log)" = ALL ]
+}
+
 @test "affected with nothing to run says so and builds nothing" {
   STUB_AFFECTED="" sim affected
   [ "$status" -eq 0 ]

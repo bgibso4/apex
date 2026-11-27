@@ -40,7 +40,7 @@ sim:
 # The generated project is gitignored, so the pins for the app's packages (swift-snapshot-testing and what it needs)
 # live in the tracked ./Package.resolved. XcodeGen cannot carry that file, so `generate` copies it to where Xcode
 # reads it, and every build refuses to resolve to anything else (XCB_FLAGS). After changing a package's version in
-# project.yml: build once without the flag, then copy $(RESOLVED_DEST)/Package.resolved back here and commit it.
+# project.yml: build once without the flags, then copy $(RESOLVED_DEST)/Package.resolved back here and commit it.
 RESOLVED_DEST := $(PROJECT)/project.xcworkspace/xcshareddata/swiftpm
 # Flags for every xcodebuild call (and Periphery's build). The second stops xcodebuild asking each package's remote
 # for updates on every call: measured on 2026-11-27, that took 1.9 s of a 4.3 s `make fast`, and needed the network.

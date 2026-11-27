@@ -29,7 +29,8 @@ SnapshotTests/                 the pictures (ApexSnapshotTests, hosted in the ap
 UITests/                       the journeys (ApexUITests): AppJourneyTests, Support/ (launchApp, the waits)
 design/                        Ben's design export and what is made from it (design/README.md)
   export/                      the export as imported; replaced whole by `make design-import`
-  tokens.json                  the token source, written from export/APEX README.md
+  tokens.json                  the token source, written from export/APEX README.md (and, for a value the demos
+                               use that the README does not name, from the demos: issue 95)
   states.json                  the mock side of the state catalog: state name, demo page, switches to click
   mocks/<state>.png            generated reference images, committed
 scripts/design-import.py       an export zip to design/export/
@@ -142,12 +143,12 @@ The Swift side is `DesignedState` in `TestSupport`: one case per state, with the
 3. A new screen adds `SnapshotTests/<Screen>PictureTests.swift`, one test that calls `SnapshotHost.assertStates(ofScreen:)`, and its rows in `scripts/test-map.txt`. A new state on an existing screen needs no test change.
 4. `make snapshots-record`, then `make retest ONLY=ApexSnapshotTests/<Screen>PictureTests`, then `make compare STATE=<name>` and open the image.
 
-A reference is `SnapshotTests/__Snapshots__/<Screen>PictureTests/state.<name>.png`, with the dot in the name written as a hyphen. A changed reference is named in its commit with the reason. A picture is compared at a perceptual precision of 0.98, through `CPUImageMatch` first (its file says why).
+A reference is `SnapshotTests/__Snapshots__/<Screen>PictureTests/state.<name>.png`, with the dot in the name written as a hyphen. A changed reference is named in its commit with the reason. Record a reference on a freshly booted simulator (`xcrun simctl shutdown "<simulator>"`, then `make snapshots-record`): fresh simulators draw the same picture byte for byte, and CI's is always fresh. A picture is compared at a perceptual precision of 0.98, through `CPUImageMatch` first (its file says why), with the app's animations off.
 
 ## Keeping it fast
 
-- The simulator tests have a ceiling on their total test time: `scripts/gate-ceiling.txt`, 20 s, recorded from this Mac. Plan 5 records it again from CI.
-- Every simulator run prints the report: the total, its share of the ceiling and the five slowest tests. Over 80% it warns. Over the ceiling it says so; that fails a run only in CI, never locally.
+- The simulator tests have a ceiling on their total test time, in `scripts/gate-ceiling.txt`, with how it was recorded. Today it is recorded from Ben's Mac; plan 5 records it again from CI.
+- Every simulator run prints the report: the total, its share of the ceiling and the five slowest tests. Over 80% it warns. Over the ceiling it says so, and fails only when `test-times.py` is given `--enforce`: no local run passes that flag, and CI will from plan 5.
 - A run is never green when no test ran, a test did not pass or was skipped, or one test took over 60 s.
 - Over the ceiling: speed a test up, move the behaviour to a Mac test, or remove the test. Raising the ceiling needs Ben.
 - Keep the simulator booted: the test targets boot it and leave it running, because a run that finds it shut down takes about 40 s longer.

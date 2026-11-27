@@ -118,6 +118,10 @@ schemes:
       config: Debug
     test:
       config: Debug
+      # The pictures are drawn inside the app, and need its animations off (SnapshotHost checks). The journeys
+      # launch the app themselves, with the same flag.
+      commandLineArguments:
+        "-UITest": true
       # Every simulator test: what `make gate` runs. Package tests run on the Mac, in Fast.
       targets:
         - name: ApexSnapshotTests

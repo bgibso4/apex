@@ -5,10 +5,11 @@ import UIKit
 /// A CPU check run before swift-snapshot-testing's own comparison.
 ///
 /// The library's perceptual comparison runs on Core Image and Metal, and on the simulator it rejects differences far
-/// inside the tolerance. Measured here on 2026-11-27 (Xcode 27.2, iOS 27.0 simulator): system glass draws the same
-/// within one simulator session and up to 2/255 differently in under 0.1% of pixels after a restart, a delta E of
-/// at most 1.55; the library reported 4.6% of pixels over a delta E of 2. Filing-cabinet met the same fault on
-/// GitHub's runners. This check passes only if every pixel is within the same delta E threshold the library uses,
+/// inside the tolerance. Measured here on 2026-11-27 (Xcode 27.2, iOS 27.0 simulator): ten freshly booted
+/// simulators drew the same picture byte for byte, and the references are recorded from one. A simulator that had
+/// been running for hours drew system glass up to 2/255 differently in under 0.1% of pixels, a delta E of at most
+/// 1.55, and the library reported 4.6% of pixels over a delta E of 2. Filing-cabinet met the same fault on GitHub's
+/// runners. This check passes only if every pixel is within the same delta E threshold the library uses,
 /// measured with CIE76, which is never smaller than the library's CIE94: it cannot pass anything the library would
 /// fail when it measures correctly. Anything it rejects still goes to the library's comparison for the failure
 /// message and the difference images.

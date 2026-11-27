@@ -5,7 +5,7 @@ Ben's design export and what is made from it. Run commands as `make -C apex-ios 
 | Path | Is |
 |---|---|
 | `export/` | the export as imported: the demos, the phone-only pages in `app/`, the decision logs, the notes, the design system |
-| `tokens.json` | the app's design tokens, written from `export/APEX README.md`; `make generate` turns them into Swift |
+| `tokens.json` | the app's design tokens, written from `export/APEX README.md`, and from the demos for a value they use that the README does not name (`card-title`, `accent-pressed`); `make generate` turns them into Swift |
 | `states.json` | the designed states that have a reference image: state name, demo page, the switches that reach it |
 | `mocks/<state>.png` | the reference images, written by `make mocks` and committed |
 

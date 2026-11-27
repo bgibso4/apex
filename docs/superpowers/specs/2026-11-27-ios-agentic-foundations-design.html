@@ -130,7 +130,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
 .verdict { font-size: 14px; }
 
 .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.option { cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.option { text-align: left; }
 .option[aria-pressed="true"] { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-tint), transparent 70%), linear-gradient(180deg, var(--card-top), var(--card-base)); }
 .option .pro, .option .con { font-size: 13px; color: var(--text-2); }
 .option .pick { color: var(--accent); font-size: 12px; font-weight: 600; }
@@ -153,15 +153,15 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
 <div class="wrap">
 
 <header class="top">
-  <p class="eyebrow">Design doc &middot; Draft for Ben's approval &middot; 27 Nov 2026</p>
+  <p class="eyebrow">Design doc &middot; Approved by Ben &middot; 27 Nov 2026</p>
   <h1 class="wordmark">APEX iOS Foundations</h1>
-  <p class="sub">How this repo gets set up so agents can build the native app from your mocks, in stacked pull requests, without waiting on you. Nothing here is built yet.</p>
+  <p class="sub">How this repo gets set up so agents can build the native app from your mocks, in pull requests that merge when CI is green, without waiting on you. Nothing here is built yet.</p>
 </header>
 
 <nav class="chips" aria-label="Sections"><div class="row">
   <a href="#why">Why</a><a href="#decisions">Decisions</a><a href="#layout">Repo layout</a><a href="#project">The iOS project</a>
   <a href="#tests">Tests</a><a href="#speed">Keeping it fast</a><a href="#mocks">Mocks</a><a href="#flow">Workflow</a>
-  <a href="#later">Crashes and backend</a><a href="#order">Build order</a><a href="#answers">Your answers</a>
+  <a href="#later">Crashes and backend</a><a href="#order">Build order</a>
 </div></nav>
 
 <section id="why">
@@ -170,7 +170,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
   <p>You spent months on high-fidelity mocks with motion. Agents will turn them into a native app. Their work is only as good as the checks around it: what they can run, what they can see, and what stops them calling something done when it isn't. Filing-cabinet proved the approach. It also showed where it hurts: the simulator tests grew until an end-of-task run took over 20 minutes.</p>
   <div class="grid3">
     <div class="card"><h3>Goals</h3><ul class="small">
-      <li>An agent can take a segment from mock to a green pull request alone.</li>
+      <li>An agent can take a segment from mock to a merged pull request alone.</li>
       <li>Every screen is checked against its mock by image, by the agent.</li>
       <li>Test time is measured from day one and has a ceiling.</li>
       <li>The React Native app and the iOS app share only the repo root.</li>
@@ -192,23 +192,22 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
 
 <section id="decisions">
   <p class="eyebrow">Decisions</p>
-  <h2>What is settled, what I decided, what needs you</h2>
+  <h2>What you decided and what I decided</h2>
   <div class="seg" role="group" aria-label="Filter decisions">
     <button type="button" data-filter="all" aria-pressed="true">All</button>
     <button type="button" data-filter="you" aria-pressed="false">You decided</button>
     <button type="button" data-filter="mine" aria-pressed="false">My calls</button>
-    <button type="button" data-filter="open" aria-pressed="false">Needs you</button>
   </div>
   <div class="decisions" id="decisionList">
-    <div class="decision" data-kind="open"><span><span class="tag open">Needs you</span></span><div><strong>How the suite is kept fast.</strong><span class="why">Three options in <a href="#speed">Keeping it fast</a>. I'd pick the time ceiling.</span></div></div>
-    <div class="decision" data-kind="open"><span><span class="tag open">Needs you</span></span><div><strong>A standing OK for agents to push branches and open pull requests for iOS work.</strong><span class="why">Your current rule is to ask before every push. Stacked PRs with no waiting need this relaxed. Merging stays yours. See <a href="#flow">Workflow</a>.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The suite is kept fast by a time ceiling.</strong><span class="why">Option A in <a href="#speed">Keeping it fast</a>, chosen 27 Nov.</span></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Agents push branches, open pull requests, and merge them when CI is green.</strong><span class="why">Chosen 27 Nov: "everything gets green, everything looks good, just go." The conditions are in <a href="#flow">Workflow</a>.</span></div></div>
 
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>The React Native app moves into its own folder.</strong><span class="why">It keeps working and stays frozen. Nothing is deleted.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Hooks are committed in <code>.claude/settings.json</code>.</strong><span class="why">An exception to your global rule, as filing-cabinet has.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>APEX owns its design system and tokens. Cadre is a reference, never a dependency.</strong><span class="why">The export's design system is loaded into the iOS folder. Updating Cadre from it is a separate follow-up.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>No accessibility work.</strong><span class="why">Also recorded in your motion log on 25 Nov.</span></div></div>
     <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>No telemetry. Crash reports only, free. No accounts for now.</strong></div></div>
-    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Filing-cabinet's workflow is the base. Agents never wait on you. You review and merge when you can.</strong></div></div>
+    <div class="decision" data-kind="you"><span><span class="tag you">You</span></span><div><strong>Filing-cabinet's workflow is the base. Agents never wait on you. You review when you want; nothing waits on a review.</strong></div></div>
 
     <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>Folders are <code>apex-rn/</code> and <code>apex-ios/</code>. <code>workers/</code> and <code>docs/</code> stay at the root.</strong><span class="why">The Worker outlives the React Native app. The existing docs are shared history; moving 165 files buys nothing.</span></div></div>
     <div class="decision" data-kind="mine"><span><span class="tag mine">My call</span></span><div><strong>iOS 27 minimum. iPhone, portrait, dark only, English only.</strong><span class="why">July's spec said iOS 26. Your Mac runs Xcode 27.2 and the mocks were audited against iOS 27.</span></div></div>
@@ -371,7 +370,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
 </section>
 
 <section id="speed">
-  <p class="eyebrow">Keeping it fast &middot; needs you</p>
+  <p class="eyebrow">Keeping it fast &middot; option A chosen</p>
   <h2>What I meant, and whether it's the right way</h2>
   <p>You asked. "Hard cap on journeys" and "time budgets" were two names for one worry: nothing in filing-cabinet pushed back when a slow test was added. Each one cost five seconds and looked harmless. A hundred and thirteen of them cost ten minutes. So the question is what pushes back.</p>
   <div class="group">
@@ -410,26 +409,26 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
   <div class="group">
     <h3>Then, what pushes back when the suite grows anyway</h3>
     <div class="options" id="speedOptions">
-      <button type="button" class="card option" data-choice="A" aria-pressed="true">
+      <div class="card option" data-choice="A" aria-pressed="true">
         <h3>A &middot; A time ceiling</h3>
         <p class="small">The gate has a ceiling on test time, set at about twice what it measures when first recorded. Every pull request shows the total, the change against main and the five slowest tests. Over 80% it warns. Over the ceiling the pull request fails until something is sped up, moved to the Mac, or removed. Raising the ceiling needs your OK.</p>
         <p class="small">It is checked in CI, against CI's own timings. Locally, <code>make gate</code> prints the same report and never fails on time.</p>
         <p class="pro">For: measures the thing you care about. Agents can fix a breach without you.</p>
         <p class="con">Against: timing varies run to run. The headroom is what keeps that from tripping it.</p>
-        <p class="pick">My pick</p>
-      </button>
-      <button type="button" class="card option" data-choice="B" aria-pressed="false">
+        <p class="pick">Chosen by Ben, 27 Nov</p>
+      </div>
+      <div class="card option" data-choice="B">
         <h3>B &middot; An approved list</h3>
         <p class="small">The journeys are a named list in one file, as filing-cabinet's smoke set was. Adding one needs your OK.</p>
         <p class="pro">For: simple, and never fails by chance.</p>
         <p class="con">Against: it counts tests when the problem is minutes. It doesn't cover pictures. An agent that wants a new journey waits on you.</p>
-      </button>
-      <button type="button" class="card option" data-choice="C" aria-pressed="false">
+      </div>
+      <div class="card option" data-choice="C">
         <h3>C &middot; Rules and a report</h3>
         <p class="small">The placement rules above, plus the timing report on every pull request. Nothing fails on time.</p>
         <p class="pro">For: nothing new that can block.</p>
         <p class="con">Against: this is roughly where filing-cabinet was. Each addition looked fine on its own.</p>
-      </button>
+      </div>
     </div>
     <p>With A there is no separate count cap on journeys. Every journey runs in the gate, so each one spends from the same ceiling. I'm withdrawing "hard cap" as its own idea. Under all three, a single test that runs longer than 60 seconds fails, which stops hangs and one giant journey.</p>
   </div>
@@ -469,32 +468,35 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
 </section>
 
 <section id="flow">
-  <p class="eyebrow">Workflow &middot; needs you</p>
-  <h2>How a segment gets built without you</h2>
+  <p class="eyebrow">Workflow</p>
+  <h2>How a segment gets built and merged without you</h2>
   <ol class="steps">
     <li><div><strong>Take the next segment</strong> from <code>apex-ios/docs/roadmap.md</code>, the ordered list of what to build.</div></li>
     <li><div><strong>Write its plan</strong> from the demo, the decision log and the build notes.</div></li>
     <li><div><strong>Build it test-first.</strong> The stop gate keeps the Mac tests green throughout.</div></li>
     <li><div><strong>Run <code>affected</code> and <code>compare</code></strong> for every state touched, and open the images.</div></li>
     <li><div><strong>A second agent reviews</strong> the branch. Findings are fixed.</div></li>
-    <li><div><strong>Open the pull request</strong> on top of the previous segment's branch, with the images and anything not verified.</div></li>
-    <li><div><strong>CI is green: start the next segment.</strong> Nobody waits for the merge.</div></li>
+    <li><div><strong>Open the pull request</strong> with the images and anything not verified.</div></li>
+    <li><div><strong>CI is green: merge it</strong> and start the next segment from main.</div></li>
   </ol>
   <div class="group">
-    <h3>Rules for the stack</h3>
+    <h3>When an agent may merge</h3>
+    <p>You approved this on 27 Nov. A pull request merges without you when all of these hold:</p>
     <ul>
-      <li>Agents never merge. You merge from the bottom, with a merge commit, and delete the branch. GitHub then points the next pull request at main.</li>
-      <li>A fix to a lower pull request is a new commit there, merged upward through the stack. No force-pushes once a pull request is open.</li>
-      <li>Anything only you can decide becomes a GitHub issue labelled <code>needs-ben</code>, with the default the agent took. Work continues on that default.</li>
+      <li>Every CI check is green. None skipped, none re-run until it passed by luck.</li>
+      <li>The second agent's review has passed.</li>
+      <li>The hand-off lists the images the agent opened, and states plainly anything it didn't verify.</li>
     </ul>
+    <p>It merges with a merge commit and deletes the branch. While CI runs, the next segment may start on top of the open branch.</p>
   </div>
   <div class="group">
-    <h3>What I need from you</h3>
-    <p>Your standing rule is that I ask before every push. This workflow needs agents to push iOS branches and open pull requests on their own. Merging, and anything on <code>main</code>, stays with you.</p>
-    <div class="seg" role="group" aria-label="Push permission" id="pushChoice">
-      <button type="button" data-push="yes" aria-pressed="true">Yes, push and open PRs for iOS work</button>
-      <button type="button" data-push="no" aria-pressed="false">No, keep asking</button>
-    </div>
+    <h3>What still waits for you</h3>
+    <ul>
+      <li>Any change to lint config, hook config, test tolerances or the time ceiling. That pull request stays open until you say yes.</li>
+      <li>Anything that touches production: the Worker, its database, secrets.</li>
+      <li>Force-pushes and anything that rewrites <code>main</code>. Never done.</li>
+    </ul>
+    <p>Anything only you can judge, such as a gap in a mock or how a motion feels on the phone, becomes a GitHub issue labelled <code>needs-ben</code> with the default the agent took. Work continues on that default.</p>
   </div>
 </section>
 
@@ -566,25 +568,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
     <h3>Risks</h3>
     <ul>
       <li>The design is about 90% done. Re-imports will happen, which is why import is one command.</li>
-      <li>A deep stack means a fix low down is merged up through every branch above it.</li>
+      <li>Merging on green means a mistake no check catches reaches main before you see it. The review agent and the image checks are the guard, and any merge can be reverted.</li>
       <li>The picture cost is unknown until measured. If it stays near two seconds, the gate needs a second CI job sooner.</li>
     </ul>
   </div>
-</section>
-
-<section id="answers" class="reply">
-  <p class="eyebrow">Your answers</p>
-  <h2>Two choices, then paste this back to me</h2>
-  <p>The choices you made above are already in the text. Add anything that's wrong or missing.</p>
-  <div class="qa">
-    <label for="replyNotes" class="small muted">Anything to change</label>
-    <textarea id="replyNotes" placeholder="Optional. What's wrong or missing."></textarea>
-  </div>
-  <div class="qa">
-    <label for="replyText" class="small muted">Your reply</label>
-    <textarea id="replyText" readonly></textarea>
-  </div>
-  <button type="button" class="btn" id="copyBtn">Copy reply</button>
 </section>
 
 </div>
@@ -593,7 +580,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var all = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
-  var state = { scope: "shared", choice: "A", push: "yes" };
+  var state = { scope: "shared" };
 
   function press(buttons, chosen) {
     buttons.forEach(function (b) { b.setAttribute("aria-pressed", b === chosen ? "true" : "false"); });
@@ -651,39 +638,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
     button.addEventListener("click", function () { press(scopes, button); state.scope = button.dataset.scope; model(); });
   });
 
-  // Choices and the reply
-  var CHOICE_TEXT = {
-    A: "A, the time ceiling",
-    B: "B, the approved list of journeys",
-    C: "C, rules and a report only"
-  };
-  function reply() {
-    var lines = [
-      "Design doc: approved with these answers.",
-      "1. Keeping the suite fast: option " + CHOICE_TEXT[state.choice] + ".",
-      "2. Pushing branches and opening PRs for iOS work without asking: " + (state.push === "yes" ? "yes. Merging stays mine." : "no, keep asking.")
-    ];
-    var notes = $("replyNotes").value.trim();
-    if (notes) lines.push("Changes: " + notes);
-    $("replyText").value = lines.join("\n");
-  }
-  var options = all("#speedOptions .option");
-  options.forEach(function (button) {
-    button.addEventListener("click", function () { press(options, button); state.choice = button.dataset.choice; reply(); });
-  });
-  var pushes = all("[data-push]");
-  pushes.forEach(function (button) {
-    button.addEventListener("click", function () { press(pushes, button); state.push = button.dataset.push; reply(); });
-  });
-  $("replyNotes").addEventListener("input", reply);
-  $("copyBtn").addEventListener("click", function () {
-    var done = function () { $("copyBtn").textContent = "Copied"; setTimeout(function () { $("copyBtn").textContent = "Copy reply"; }, 1600); };
-    var fallback = function () { $("replyText").focus(); $("replyText").select(); $("copyBtn").textContent = "Selected. Press copy"; };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText($("replyText").value).then(done, fallback);
-    else fallback();
-  });
-
   model();
-  reply();
 })();
 </script>

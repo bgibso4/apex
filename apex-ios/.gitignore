@@ -1,0 +1,13 @@
+# Generated
+*.xcodeproj
+.build/
+DerivedData/
+*.xcresult
+
+# Local only
+Signing.local.xcconfig
+xcuserdata/
+.swiftpm/
+
+# Local compare and screenshot output
+build/

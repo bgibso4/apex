@@ -101,13 +101,33 @@ func animation(_ name: String, _ value: Any) -> String {
     }
 }
 
+/// Debug builds only, for the device lab (Screens/Lab): each spring's bounce as a number, and the same spring with
+/// another bounce. The lab tries a value on the phone and still animates only with `Tokens.Motion`. Nil when no token
+/// is a spring. `animation` has checked every field by the time this runs.
+func springTrials(_ animations: [(name: String, value: Any)], depth: Int) -> String? {
+    let pad = String(repeating: "    ", count: depth)
+    let pairs = animations.flatMap { token -> [String] in
+        guard let fields = token.value as? [String: Any], fields["curve"] as? String == "spring" else { return [] }
+        let what = "motion.animation \(token.name)"
+        let name = camelCased(token.name)
+        let spring = ".spring(duration: \(number(fields["duration"], "\(what) duration")), bounce: bounce)"
+        return [
+            "\(pad)    static let \(name)Bounce: Double = \(number(fields["bounce"], "\(what) bounce"))",
+            "\(pad)    static func \(name)(bounce: Double) -> Animation { \(spring) }",
+        ]
+    }
+    guard !pairs.isEmpty else { return nil }
+    let comment = "\(pad)    // For the device lab: each spring's bounce, and the same spring with another bounce."
+    return (["\(pad)#if DEBUG", comment] + pairs + ["\(pad)#endif"]).joined(separator: "\n")
+}
+
 func numbers(_ value: Any?, _ what: String, type: String) -> [String] {
     tokens(value, what).map { "\(camelCased($0.name)): \(type) = \(number($0.value, "\(what) \($0.name)"))" }
 }
 
 // MARK: Writing
 
-/// `enum name { static let … }` at `depth` levels of indentation, with `nested` enums after the declarations.
+/// `enum name { static let … }` at `depth` levels of indentation, with the `nested` blocks after the declarations.
 func enumeration(_ name: String, depth: Int, _ declarations: [String], nested: [String] = []) -> String {
     let pad = String(repeating: "    ", count: depth)
     let lines = declarations.map { "\(pad)    static let \($0)" }
@@ -120,6 +140,7 @@ else { fail("\(input.path) is not readable JSON") }
 
 let source = record(json, "tokens.json", keys: ["color", "type", "spacing", "radius", "size", "motion"])
 let motion = record(source["motion"], "motion", keys: ["animation", "duration", "distance"])
+let animations = tokens(motion["animation"], "motion.animation")
 let sections = [
     enumeration("Color", depth: 1, tokens(source["color"], "color").map(color)),
     enumeration("Typography", depth: 1, tokens(source["type"], "type").flatMap(typography)),
@@ -129,8 +150,8 @@ let sections = [
     enumeration(
         "Motion",
         depth: 1,
-        tokens(motion["animation"], "motion.animation").map(animation),
-        nested: [
+        animations.map(animation),
+        nested: [springTrials(animations, depth: 2)].compactMap { $0 } + [
             enumeration("Duration", depth: 2, numbers(motion["duration"], "motion.duration", type: "TimeInterval")),
             enumeration("Distance", depth: 2, numbers(motion["distance"], "motion.distance", type: "CGFloat")),
         ]),

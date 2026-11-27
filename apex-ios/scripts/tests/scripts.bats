@@ -148,6 +148,22 @@ fails_untouched() {
   has_line "static let monthFlip: CGFloat = 28"
 }
 
+@test "a spring gets its bounce and a way to try another, in Debug builds only" {
+  generate
+  has_line "static let smoothBounce: Double = 0"
+  has_line "static func smooth(bounce: Double) -> Animation { .spring(duration: 0.35, bounce: bounce) }"
+  # Both sit between #if DEBUG and #endif, and no other curve gets the pair.
+  [ "$(sed -n '/#if DEBUG/,/#endif/p' Tokens.swift | grep -c 'Bounce\|(bounce: Double)')" -eq 2 ]
+  [ "$(grep -c 'Bounce\|(bounce: Double)' Tokens.swift)" -eq 2 ]
+}
+
+@test "with no spring there is no Debug block" {
+  generate "${TOKENS/\"smooth\": \{ \"curve\": \"spring\", \"duration\": 0.35, \"bounce\": 0 \},/}"
+  [ "$status" -eq 0 ]
+  run grep -c "#if DEBUG" Tokens.swift
+  [ "$output" -eq 0 ]
+}
+
 @test "an 8-digit colour carries its alpha" {
   generate
   has_line ".sRGB, red: 0x65 / 255, green: 0x9B / 255, blue: 0xC8 / 255, opacity: 0x1A / 255)"

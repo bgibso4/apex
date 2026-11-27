@@ -18,7 +18,7 @@ DEVICE_PRODUCT := $(DERIVED)/Build/Products/Debug-iphoneos/Apex.app
 # Name, UDID or serial of the target iPhone (see `xcrun devicectl list devices`).
 DEVICE         ?= iPhone
 
-.PHONY: setup sim generate build fast lint format test-hooks test-lint unused unused-run run device
+.PHONY: setup sim generate build fast lint format test-hooks test-lint unused unused-run ci-checks run device
 
 # Fail loudly, with the install command, when a required tool is missing. Then install the git pre-commit hook:
 # a copy of scripts/pre-commit-wrapper in the shared hooks folder, which every branch and worktree uses.
@@ -73,6 +73,11 @@ unused: generate unused-run
 
 unused-run: sim
 	periphery scan -- -destination '$(SIM_DEST)'
+
+# Everything CI's `checks` job runs (.github/workflows/ios.yml). `fast` is the Mac slice: it compiles every Mac module
+# and runs its tests, so a stray UI import fails here as well as in lint.
+ci-checks:
+	$(MAKE) --no-print-directory lint test-hooks test-lint fast unused-run
 
 # Run on this checkout's simulator. Named, never `booted`: another worktree's simulator may be booted too.
 run: build

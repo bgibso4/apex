@@ -1,0 +1,35 @@
+name: iOS
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['apex-ios/**', '.claude/settings.json', '.github/workflows/ios.yml', '.github/actions/xcode-setup/**']
+  push:
+    branches: [main]
+    paths: ['apex-ios/**', '.claude/settings.json', '.github/workflows/ios.yml', '.github/actions/xcode-setup/**']
+
+# The prefix differs from rn.yml's `ci-`: with the same group the two workflows would cancel each other.
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Lint, the hook and lint-rule tests, the Mac tests and the dead-code scan. No simulator tests yet.
+  checks:
+    name: checks
+    # Xcode 27 image (macOS 27, iOS 27.0 simulators incl. iPhone 17).
+    runs-on: xcode-27
+    timeout-minutes: 30
+    env:
+      CODE_SIGNING_ALLOWED: "NO"
+      # The image's own simulator; Periphery builds for it. Locally the Makefile names one per checkout.
+      SIM_DEVICE: iPhone 17
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/xcode-setup
+      - run: make -C apex-ios ci-checks

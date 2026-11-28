@@ -14,12 +14,14 @@ let package = Package(
     platforms: [.iOS(.v27), .macOS(.v27)],
     products: [
         .library(name: "Core", targets: ["Core"]),
+        .library(name: "Training", targets: ["Training"]),
         .library(name: "ScreenModels", targets: ["ScreenModels"]),
         .library(name: "Screens", targets: ["Screens"]),
         .library(name: "TestSupport", targets: ["TestSupport"]),
     ],
     targets: [
         .target(name: "Core", swiftSettings: moduleSettings),
+        .target(name: "Training", dependencies: ["Core"], swiftSettings: moduleSettings),
         .target(name: "ScreenModels", swiftSettings: mainActorSettings),
         .target(name: "TestSupport", dependencies: ["ScreenModels"], swiftSettings: moduleSettings),
         .target(
@@ -29,6 +31,7 @@ let package = Package(
             swiftSettings: mainActorSettings
         ),
         .testTarget(name: "CoreTests", dependencies: ["Core"], swiftSettings: moduleSettings),
+        .testTarget(name: "TrainingTests", dependencies: ["Core", "Training"], swiftSettings: moduleSettings),
         .testTarget(name: "ScreenModelsTests", dependencies: ["ScreenModels"], swiftSettings: mainActorSettings),
         .testTarget(
             name: "TestSupportTests",

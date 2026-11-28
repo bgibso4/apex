@@ -88,7 +88,7 @@ Decisions that follow from it:
 
 ### Task 0: The numbers before
 
-- [ ] **Step 1:** On a clean tree run and note wall time and test counts: `make fast` (twice, the second is the warm one), `make build`, `make gate`. They go in the hand-off as "before".
+- [x] **Step 1:** On a clean tree run and note wall time and test counts: `make fast` (twice, the second is the warm one), `make build`, `make gate`. They go in the hand-off as "before".
 
 ### Task 1: `Day`, a calendar day
 
@@ -107,16 +107,16 @@ Decisions that follow from it:
   }
   ```
 
-- [ ] **Step 1: Write the failing tests** (`DayTests`):
+- [x] **Step 1: Write the failing tests** (`DayTests`):
   - `theDayIsTheCalendarsNotGMTs`: 2026-08-21 02:00 GMT is `2026-08-20` in America/Toronto and `2026-08-21` in GMT.
   - `isoRoundTrips`: `Day(iso: "2026-08-03")?.iso == "2026-08-03"`.
   - `whatIsNotADayIsNil`, parameterised: `""`, `"2026-13-45"`, `"2026-02-30"`, `"2026-8-3"`, `"20260803"`, `"2026-08-03T00:00:00Z"`, `" 2026-08-03"`.
   - `daysBetween`: Aug 20 since Aug 3 is 17; Aug 3 since Aug 20 is -17; Mar 1 since Feb 28 2026 is 1; across the autumn clock change (2026-11-02 since 2026-10-31) is 2.
   - `daysAreOrdered`: `2026-08-03 < 2026-08-20`, `2025-12-31 < 2026-01-01`.
-- [ ] **Step 2:** `make fast`: fails to compile (no `Day`).
-- [ ] **Step 3: Implement.** Stored year, month, day. Day arithmetic through a Gregorian calendar fixed to GMT, so no clock change can shorten a day.
-- [ ] **Step 4:** `make fast` passes; `make lint` clean.
-- [ ] **Step 5: Commit** `feat(ios): Day, a calendar day`.
+- [x] **Step 2:** `make fast`: fails to compile (no `Day`).
+- [x] **Step 3: Implement.** Stored year, month, day. Day arithmetic through a Gregorian calendar fixed to GMT, so no clock change can shorten a day.
+- [x] **Step 4:** `make fast` passes; `make lint` clean.
+- [x] **Step 5: Commit** `feat(ios): Day, a calendar day`.
 
 ### Task 2: The `Training` module: a program, a run, the built-in programs
 
@@ -150,13 +150,13 @@ Decisions that follow from it:
   }
   ```
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `ProgramRunTests`, on an 11-week program started 2026-08-03: Aug 3 → 1; Aug 9 → 1; Aug 10 → 2; Aug 20 → 3; the last day (Oct 18) → 11; Oct 19 → nil; Aug 2 → nil.
   - `BuiltInProgramsTests`: ids are unique; the ids are exactly `functional-athlete`, `functional-athlete-pillars`, `pillars-hypertrophy`, in that order; week counts 11, 11, 6; every program has 6 days a week; Pillars' blocks are Hypertrophy 5, Strength 5, Realization 1 with weeks 5 and 10 the only deloads; Pillars Hypertrophy has no deload; no name, goal, level or line contains an em dash or is empty.
-- [ ] **Step 2:** `make fast` fails (`check-fast-scheme` until the scheme lists the target, then no `Training`).
-- [ ] **Step 3: Implement** with the values in "Defaults taken", 3.
-- [ ] **Step 4:** `make fast`, `make lint` pass.
-- [ ] **Step 5: Commit** `feat(ios): the Training module: programs, a run and its week`.
+- [x] **Step 2:** `make fast` fails (`check-fast-scheme` until the scheme lists the target, then no `Training`).
+- [x] **Step 3: Implement** with the values in "Defaults taken", 3.
+- [x] **Step 4:** `make fast`, `make lint` pass.
+- [x] **Step 5: Commit** `feat(ios): the Training module: programs, a run and its week`.
 
 ### Task 3: The `Store` module
 

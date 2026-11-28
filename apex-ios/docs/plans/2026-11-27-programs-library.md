@@ -275,21 +275,21 @@ Measurements, all from `design/export/app/library.dc.html` unless a token is nam
 - `BlockBars`: blocks 10 apart, each as wide as its share of the weeks but never narrower than its label; bars 3 apart, 8 high (a deload 4, centred), radius 2; the block's name 6 under its bars as an `Eyebrow` on one line, truncated. Fills: done `barDone`, current `accent`, upcoming `barUpcoming`, plain `barPlain`.
 - `StatRow`: equal columns, a 1 pt `border` line between them; value `recordValue` in `text`, label 2 under it in `metricLabel`, `textMuted`; numerals tabular.
 
-- [ ] **Step 1:** Tokens: add the five in "Defaults taken", 10 to `design/tokens.json`; `make generate`. `design/states.json`: `{ "name": "programs.active", "page": "design/export/app/library.dc.html" }`; `make mocks STATE=programs.active`; open the image.
-- [ ] **Step 2: Write the failing tests.** `DesignedStateTests`: `programsActiveIsTheMocksLibrary` (Home's path is `[.programs]`; the sections are "Active" with Pillars tagged "Week 3 of 11", then "All programs" with five). Add the `DesignedState` case and `SnapshotTests/ProgramsPictureTests.swift` (one test: `SnapshotHost.assertStates(ofScreen: "programs")`), and its `test-map.txt` row: `Packages/ApexKit/Sources/Screens/Programs/ AppJourneyTests ProgramsPictureTests`.
-- [ ] **Step 3: Build the screen.** `HomeScreen`'s stack takes `$model.path` and a destination for `.programs`; `NoProgramCard` takes the action for "Choose a program". `ProgramsScreen` draws `model.sections` and calls `refresh()` when it appears. `ProportionalRow` is a `Layout`: each child's width is its weight's share of what is left after the gaps, raised to the child's own minimum, the others sharing the rest.
-- [ ] **Step 4:** `make fast`, `make lint`, `make build`. Then on a freshly booted simulator: `make snapshots-record ONLY=ApexSnapshotTests/ProgramsPictureTests`, `make retest ONLY=ApexSnapshotTests/ProgramsPictureTests`, `make compare STATE=programs.active`. Open `build/compare/programs.active.png` and fix what differs from the mock for a reason other than the defaults taken. `HomePictureTests` passes on its unchanged reference.
-- [ ] **Step 5:** The list with no active program: `make run`, tap through to Programs, take a screenshot (`xcrun simctl io <simulator> screenshot`), open it.
-- [ ] **Step 6: Commit** `feat(ios): Programs, the Library: the built-in programs as cards` (the body names the new reference image).
+- [x] **Step 1:** Tokens: add the five in "Defaults taken", 10 to `design/tokens.json`; `make generate`. `design/states.json`: `{ "name": "programs.active", "page": "design/export/app/library.dc.html" }`; `make mocks STATE=programs.active`; open the image.
+- [x] **Step 2: Write the failing tests.** `DesignedStateTests`: `programsActiveIsTheMocksLibrary` (Home's path is `[.programs]`; the sections are "Active" with Pillars tagged "Week 3 of 11", then "All programs" with five). Add the `DesignedState` case and `SnapshotTests/ProgramsPictureTests.swift` (one test: `SnapshotHost.assertStates(ofScreen: "programs")`), and its `test-map.txt` row: `Packages/ApexKit/Sources/Screens/Programs/ AppJourneyTests ProgramsPictureTests`.
+- [x] **Step 3: Build the screen.** `HomeScreen`'s stack takes `$model.path` and a destination for `.programs`; `NoProgramCard` takes the action for "Choose a program". `ProgramsScreen` draws `model.sections` and calls `refresh()` when it appears. `ProportionalRow` is a `Layout`: each child's width is its weight's share of what is left after the gaps, raised to the child's own minimum, the others sharing the rest.
+- [x] **Step 4:** `make fast`, `make lint`, `make build`. Then on a freshly booted simulator: `make snapshots-record ONLY=ApexSnapshotTests/ProgramsPictureTests`, `make retest ONLY=ApexSnapshotTests/ProgramsPictureTests`, `make compare STATE=programs.active`. Open `build/compare/programs.active.png` and fix what differs from the mock for a reason other than the defaults taken. `HomePictureTests` passes on its unchanged reference.
+- [x] **Step 5:** The list with no active program: `make run`, tap through to Programs, take a screenshot (`xcrun simctl io <simulator> screenshot`), open it.
+- [x] **Step 6: Commit** `feat(ios): Programs, the Library: the built-in programs as cards` (the body names the new reference image).
 
 ### Task 6: The journey step, and the whole gate
 
 **Files:**
 - Modify: `UITests/AppJourneyTests.swift`
 
-- [ ] **Step 1:** In the existing journey, after the tabs and before the lab: tap "Choose a program"; the navigation bar "Programs" appears within 5 s and the text "Pillars Hypertrophy" exists; tap the bar's back button; Home's card appears. This is the real app on a real database file: a store that failed to open would have stopped the launch.
-- [ ] **Step 2:** `make gate` green. Note the test time, its share of the ceiling and the five slowest.
-- [ ] **Step 3: Commit** `test(ios): the journey opens Programs from Home`.
+- [x] **Step 1:** In the existing journey, after the tabs and before the lab: tap "Choose a program"; the navigation bar "Programs" appears within 5 s and the text "Pillars Hypertrophy" exists; tap the bar's back button; Home's card appears. This is the real app on a real database file: a store that failed to open would have stopped the launch.
+- [x] **Step 2:** `make gate` green. Note the test time, its share of the ceiling and the five slowest.
+- [x] **Step 3: Commit** `test(ios): the journey opens Programs from Home`.
 
 ### Task 7: Docs, evidence, review, merge
 

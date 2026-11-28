@@ -11,14 +11,19 @@ AGENTS.md                      the single copy of the iOS rules (this file)
 CLAUDE.md                      @AGENTS.md plus Claude-only notes
 Makefile                       the only entry point
 project.yml                    XcodeGen source of the generated (gitignored) Apex.xcodeproj
-Package.resolved               the pins for the app's packages (swift-snapshot-testing and what it needs)
+Package.resolved               the pins for the app's packages (swift-snapshot-testing and what it needs, GRDB)
 Signing.xcconfig               team and bundle ID
 .swiftlint.yml .swift-format .periphery.yml   lint, format and dead-code config
 App/ApexApp.swift              @main: reads the launch options, builds the AppModel, shows RootScreen
 Packages/ApexKit/              all logic, one local package (Package.swift)
-  Sources/Core/                shared vocabulary and the launch options. Mac-buildable
+  Sources/Core/                shared vocabulary (Day, a calendar day), the launch options. Mac-buildable
+  Sources/Training/            what a program is: a built-in definition, a run of it, the week a day falls in.
+                               Mac-buildable
+  Sources/Store/               the database: SQLite on the phone, the source of truth. The only module that knows
+                               SQL or GRDB (see "The store"). Mac-buildable
   Sources/ScreenModels/        AppModel and one observable model per screen: all behaviour. Mac-buildable
-  Sources/TestSupport/         DesignedState, the Swift side of the state catalog, and fixtures. Mac-buildable
+  Sources/TestSupport/         DesignedState, the Swift side of the state catalog, and fixtures (the mocks' sample
+                               programs). Mac-buildable
   Sources/Screens/             SwiftUI views, one folder per screen. iOS-only
   Sources/ScreenModels/Lab/    the device lab's models: LabModel, LabExhibit, LabTrial. Debug builds only
   Sources/Screens/Lab/         the device lab's screens. Debug builds only (see "Device lab")
@@ -26,6 +31,7 @@ Packages/ApexKit/              all logic, one local package (Package.swift)
   Sources/Screens/DesignSystem/Generated/   Tokens.swift, generated from design/tokens.json
   Sources/Screens/DesignSystem/Generated/Resources/   the wordmark's font and logo mark, copied from design/export
   Tests/<Module>Tests/         Mac tests, one target per Mac-buildable module
+  Tests/StoreTests/schema.sql  the schema every migration adds up to: a test compares
 SnapshotTests/                 the pictures (ApexSnapshotTests, hosted in the app): SnapshotHost, CPUImageMatch,
                                one <Screen>PictureTests per screen, __Snapshots__/ (the references, committed)
 UITests/                       the journeys (ApexUITests): AppJourneyTests, Support/ (launchApp, the waits)
@@ -52,7 +58,7 @@ scripts/pre-commit             lint, only when apex-ios files are staged
 scripts/pre-commit-wrapper     the git hook `make setup` installs: runs pre-commit, passes on a branch without it
 scripts/test-lint-rules.sh     fixture tests for the custom lint rules (lint-fixtures/, lint-negatives/)
 scripts/hooks/                 Claude Code hooks (see CLAUDE.md) and their bats tests
-docs/                          iOS specs, plans and the roadmap. Created with the first product segment
+docs/                          iOS specs, plans (docs/plans/) and the roadmap (docs/roadmap.md)
 /.claude/settings.json         the hook wiring
 /.github/workflows/ios.yml     CI: the checks job and the gate
 /.github/actions/xcode-setup/  CI: Xcode and tool setup
@@ -96,11 +102,30 @@ A package's version changes in `project.yml`. Then build once without the Makefi
 | Module | Depends on |
 |---|---|
 | `Core` | nothing |
-| `ScreenModels` | nothing (`Core` once it uses it) |
-| `TestSupport` | `ScreenModels` |
+| `Training` | `Core` |
+| `Store` | `Core`, `Training`, GRDB |
+| `ScreenModels` | `Core`, `Training` |
+| `TestSupport` | `Core`, `Training`, `Store`, `ScreenModels` |
 | `Screens` | `Core`, `ScreenModels`, `TestSupport` |
 
-A module exists only once it has code. `Training` and `Store` arrive with the plans that need them. `Screens` takes `TestSupport` for its previews, and the app for `-State`; a Release build ignores that flag.
+A module exists only once it has code. `Screens` takes `TestSupport` for its previews, and the app for `-State`; a Release build ignores that flag.
+
+`ScreenModels` does not depend on `Store`. A model is given the reads and writes it needs as functions (`ProgramsModel(programs:currentRun:today:)`), and the app passes the store's own (`store.currentRun`). A test passes the same from a store in memory, or a function that throws.
+
+## The store
+
+The app's data is a SQLite database on the phone, `apex.sqlite` in Application Support, and it is the source of truth. `Store` opens it with GRDB (pinned in `Packages/ApexKit/Package.swift`); no other module imports GRDB or writes SQL. Why GRDB and not SwiftData or our own layer: `docs/plans/2026-11-27-programs-library.md`.
+
+- **Tables are designed with the first screen that stores the data**, never ahead of it. The schema today is `Tests/StoreTests/schema.sql`.
+- **A migration is SQL text**, registered in `Sources/Store/Migrations.swift` as `v1`, `v2`, … and run once, in order. One migration per change.
+- **A merged migration is never edited.** A database on the phone has already run it. A change is a new migration.
+- **To add one:** register `vN` with its SQL; update `schema.sql` to what the schema now is (`MigrationTests` compares the two); add a test to `MigrationTests` that builds the schema before it (`migrator.migrate(queue, upTo: "v<N-1>")`), adds rows, migrates, and checks the rows. All of it runs on the Mac, in memory, in milliseconds.
+- **Tables are `STRICT`.** A text column with a shape has a `CHECK` for it, so a bad value is refused when it is written. What a check cannot see (a day no calendar has) is reported when it is read (`StoreError.notADay`), never replaced by a guess.
+- **A calendar day is text, `2026-08-03`** (`Day.iso`), never an instant: a schedule is in days, and an instant read in another time zone lands on another day.
+- **A database a newer build has migrated is refused** (`StoreError.newerSchema`) and nothing in it is changed. Every checkout's build has the same bundle ID, so an older build can meet a newer file. The app stops at launch when its database cannot be opened, with the reason logged.
+- **Reads and writes are synchronous** on one connection: each is a query of a row or two, and a screen's state is whole the moment its model exists, which is what a picture needs. A screen with long lists may add `async` reads inside `Store`.
+- **Tests use the real store in memory** (`Store(.inMemory)`), never a stand-in. A designed state reads its records back from a store of its own in memory (`TestSupport/Fixtures.swift`), and never opens the file.
+- **The built-in programs are code** (`Program.builtIn` in `Training`), not rows: the database holds what Ben does with them, by program id. An id never changes once a build has shipped it.
 
 ## Launch flags
 
@@ -124,17 +149,17 @@ A new test target must be added to the `Fast` scheme in `project.yml` (`ScreensT
 
 - **Mac tests prove behaviour:** every rule, state change and edge case, through the screen models and domain logic. They run in `make fast`, in milliseconds each.
 - **Pictures prove appearance:** one image per designed state, on the simulator. About 0.9 s each.
-- **Journeys prove wiring:** the real app, launched, with a real database on disk, moving between screens, killed and restored. Most screens add none. The one today takes about 7 s, of which the device lab's way in is 1.4 s.
+- **Journeys prove wiring:** the real app, launched, with a real database on disk, moving between screens, killed and restored. Most screens add none. The one today takes about 8 s, of which the device lab's way in is 1.4 s and opening Programs about 1 s.
 
 A behaviour is tested through its screen model on the Mac, never by a journey.
 
-Which simulator run, when (wall time measured on 2026-11-27 with 8 tests):
+Which simulator run, when (wall time measured on 2026-11-27 with 9 tests):
 
 | When | Run | Took |
 |---|---|---|
 | Fixing one test | `make retest ONLY=…` | 4 s for a picture class, 12 s for the journey |
 | End of a task | `make affected` | 12 to 16 s |
-| Before a pull request | `make gate` | 16 s |
+| Before a pull request | `make gate` | 20 s |
 | On a pull request | CI: `checks` and `gate`, side by side (`plan` decides in 6 s that the gate runs) | `checks` about 5 min, `gate` about 8 min 30 s |
 | On a push to `main` | CI: `checks`. `gate` too, unless a run already passed it on exactly the same files: the merge of a pull request that was up to date with `main` skips it | about 5 min |
 

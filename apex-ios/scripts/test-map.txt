@@ -31,6 +31,8 @@ Package.resolved ALL
 App/ ALL
 Packages/ApexKit/Package.swift ALL
 Packages/ApexKit/Sources/Core/ ALL
+Packages/ApexKit/Sources/Training/ ALL
+Packages/ApexKit/Sources/Store/ ALL
 Packages/ApexKit/Sources/TestSupport/ ALL
 Packages/ApexKit/Sources/ScreenModels/App ALL
 Packages/ApexKit/Sources/Screens/DesignSystem/ ALL

@@ -189,14 +189,14 @@ Decisions that follow from it:
   ) STRICT
   ```
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `StoreTests`: `aNewStoreHasNoRun`; `aStartedRunIsTheCurrentOne` (program `functional-athlete-pillars`, day 2026-08-03, read back equal); `theNewestRunIsTheCurrentOne`; `aRunSurvivesClosingTheFile` (a file in a new temporary folder that does not exist yet: open, start, let the store go, open again, read; remove the folder after); `aDayThatIsNotADayIsReported` (open a file store, close it, write `started_on = '2026-13-45'` with a plain GRDB queue, which passes the `GLOB`, reopen: `currentRun()` throws `StoreError.notADay("2026-13-45")`).
   - `MigrationTests`: `theSchemaIsTheCommittedOne` (after `Migrations.migrator.migrate` on an in-memory queue, every `sql` in `sqlite_master` for objects that are not SQLite's or GRDB's own, ordered by name and joined with `;\n`, equals `schema.sql` beside the test, read by `#filePath`); `theTableRefusesABadDay` (inserting `started_on` of `''` or `'Aug 3'` throws); `theTableRefusesAnEmptyProgram`; `aDatabaseFromANewerBuildIsRefused` (a file migrated by the real migrator plus one more registered migration `v999`: `Store(.file(url))` throws `.newerSchema`, and the file's `grdb_migrations` rows are unchanged).
-- [ ] **Step 2:** `make fast` fails.
-- [ ] **Step 3: Implement.** A `DatabaseQueue`. The newer-schema check uses the migrator's own test for it (`hasBeenSuperseded`), before migrating. `ProgramRunRow` is the one place a row becomes a `ProgramRun`.
-- [ ] **Step 4:** `make fast`, `make lint`, `make build`, `make unused` pass. Note the clean-build and warm `make fast` times with GRDB.
-- [ ] **Step 5:** `scripts/test-map.txt`: `Packages/ApexKit/Sources/Training/ ALL` and `Packages/ApexKit/Sources/Store/ ALL` under "Shared".
-- [ ] **Step 6: Commit** `feat(ios): the store: a SQL database on the phone, its first table and migration`.
+- [x] **Step 2:** `make fast` fails.
+- [x] **Step 3: Implement.** A `DatabaseQueue`. The newer-schema check uses the migrator's own test for it (`hasBeenSuperseded`), before migrating. `ProgramRunRow` is the one place a row becomes a `ProgramRun`.
+- [x] **Step 4:** `make fast`, `make lint`, `make build`, `make unused` pass. Note the clean-build and warm `make fast` times with GRDB.
+- [x] **Step 5:** `scripts/test-map.txt`: `Packages/ApexKit/Sources/Training/ ALL` and `Packages/ApexKit/Sources/Store/ ALL` under "Shared".
+- [x] **Step 6: Commit** `feat(ios): the store: a SQL database on the phone, its first table and migration`.
 
 ### Task 4: The screen models, the fixtures, the app's wiring
 

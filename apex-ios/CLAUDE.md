@@ -6,7 +6,7 @@ Rules, commands and the definition of done are in AGENTS.md. This file holds wha
 
 ## Where we are
 
-The foundation is done (plans 1 to 5): the first screen, the simulator test loop, and CI running both `checks` and the simulator `gate`. Product segments follow `apex-ios/docs/roadmap.md`, which arrives with the first segment's pull request.
+The foundation is done (plans 1 to 5). Product segments follow `docs/roadmap.md`. Segment 1a is built: the store (a SQL database on the phone, through GRDB) and Programs, the Library, opened from Home. Next is 1b: the program preview and Start.
 
 ## Hooks (committed in the root `.claude/settings.json`, scripts in `apex-ios/scripts/hooks/`)
 

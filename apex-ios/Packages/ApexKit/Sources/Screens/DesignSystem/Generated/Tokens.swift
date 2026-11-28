@@ -10,6 +10,12 @@ enum Tokens {
             .sRGB, red: 0x56 / 255, green: 0x88 / 255, blue: 0xB3 / 255, opacity: 1)
         static let accentTint = SwiftUI.Color(
             .sRGB, red: 0x65 / 255, green: 0x9B / 255, blue: 0xC8 / 255, opacity: 0x1A / 255)
+        static let barDone = SwiftUI.Color(
+            .sRGB, red: 0xA4 / 255, green: 0xA5 / 255, blue: 0xAC / 255, opacity: 1)
+        static let barPlain = SwiftUI.Color(
+            .sRGB, red: 0x3A / 255, green: 0x3F / 255, blue: 0x4A / 255, opacity: 1)
+        static let barUpcoming = SwiftUI.Color(
+            .sRGB, red: 0x2C / 255, green: 0x30 / 255, blue: 0x39 / 255, opacity: 1)
         static let border = SwiftUI.Color(
             .sRGB, red: 0x20 / 255, green: 0x23 / 255, blue: 0x2A / 255, opacity: 1)
         static let borderTop = SwiftUI.Color(
@@ -54,6 +60,8 @@ enum Tokens {
         static let helper = Font.system(size: 12, weight: .medium).monospacedDigit()
         static let heroNumeral = Font.system(size: 34, weight: .heavy).monospacedDigit()
         static let heroNumeralTracking: CGFloat = -0.5
+        static let metricLabel = Font.system(size: 11, weight: .semibold).monospacedDigit()
+        static let programName = Font.system(size: 20, weight: .bold).monospacedDigit()
         static let readout = Font.system(size: 24, weight: .heavy).monospacedDigit()
         static let readoutTracking: CGFloat = -0.3
         static let recordLarge = Font.system(size: 30, weight: .heavy).monospacedDigit()

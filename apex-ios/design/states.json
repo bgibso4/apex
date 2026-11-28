@@ -1,6 +1,7 @@
 {
   "states": [
     { "name": "home.workoutDay", "page": "design/export/app/home.dc.html" },
-    { "name": "home.noProgram", "page": "design/export/app/home.dc.html", "clicks": ["Ended"] }
+    { "name": "home.noProgram", "page": "design/export/app/home.dc.html", "clicks": ["Ended"] },
+    { "name": "programs.active", "page": "design/export/app/library.dc.html" }
   ]
 }

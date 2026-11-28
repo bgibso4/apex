@@ -37,6 +37,18 @@ struct DesignedStateTests {
         #expect(model.home.noProgramEyebrow == "Pillars ended Aug 20")
     }
 
+    @Test func programsActiveIsTheMocksLibrary() {
+        let model = DesignedState.programsActive.appModel()
+
+        #expect(DesignedState.programsActive.screen == "programs")
+        #expect(model.selectedTab == .home)
+        #expect(model.home.path == [.programs])
+        #expect(model.programs.sections.map(\.label) == ["Active", "All programs"])
+        #expect(model.programs.sections.first?.cards.map(\.name) == ["Pillars"])
+        #expect(model.programs.sections.first?.cards.first?.tag == "Week 3 of 11")
+        #expect(model.programs.sections.last?.cards.count == 5)
+    }
+
     @Test func anUnknownNameIsAnsweredWithEveryKnownOne() {
         let message = DesignedState.unknownMessage(for: "home.nope")
 

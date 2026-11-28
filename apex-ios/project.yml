@@ -40,6 +40,10 @@ targets:
       - package: ApexKit
         product: Core
       - package: ApexKit
+        product: Training
+      - package: ApexKit
+        product: Store
+      - package: ApexKit
         product: ScreenModels
       - package: ApexKit
         product: Screens
@@ -137,5 +141,7 @@ schemes:
       config: Debug
       targets:
         - package: ApexKit/CoreTests
+        - package: ApexKit/TrainingTests
+        - package: ApexKit/StoreTests
         - package: ApexKit/ScreenModelsTests
         - package: ApexKit/TestSupportTests

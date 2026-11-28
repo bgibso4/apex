@@ -261,12 +261,12 @@ One fresh reviewer agent on the most capable model reads the branch diff against
 
 The hand-off lists: what CI now runs and when; `fast`, `ci-checks`, CI `checks` and CI `gate` times before and after, with each job's split; the gate's report from CI copied whole; the ceiling and the run it was recorded from; whether the boot-alongside build was needed; anything not verified, plainly. Two things cannot be verified before the merge and must be said: the skip on `main` (it first runs on this pull request's own merge) and the change against `main` (it first has a number on the next pull request).
 
-- [ ] **Step 5: Merge on green, then watch `main`**
+- [x] **Step 5: Merge on green, then watch `main`**
 
 Wait for both jobs on the last commit with `gh run watch <id> --exit-status`. Then `gh pr merge --merge --delete-branch`, `git checkout main && git pull`, delete `docs/ios-ci-gate-plan` locally and on the remote.
 Then find the push run on `main` (`gh run list --branch main --limit 3`).
 Expected: `plan` says "same files as run <id>, which passed the gate", `gate` is skipped, `checks` is green. If the gate ran instead, read `plan`'s log: a pull request that was behind `main` is the honest reason; anything else is a bug in `gate-run.sh` to fix that day.
 
-- [ ] **Step 6: Hand off**
+- [x] **Step 6: Hand off**
 
 Follow `docs/superpowers/handoff.md`. The foundation is done: the next session writes `apex-ios/docs/roadmap.md`, the ordered list of product segments, from `apex-ios/design/export/inventory.md`.

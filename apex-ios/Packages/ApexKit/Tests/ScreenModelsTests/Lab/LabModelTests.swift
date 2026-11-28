@@ -1,5 +1,6 @@
 #if DEBUG
     import ScreenModels
+    import TestSupport
     import Testing
 
     struct LabModelTests {
@@ -20,7 +21,7 @@
         }
 
         @Test func theAppsLabStartsClosed() {
-            #expect(!AppModel(home: HomeModel(lastEnded: nil, calendar: .current)).lab.isOpen)
+            #expect(!DesignedState.homeNoProgram.appModel().lab.isOpen)
         }
     }
 #endif

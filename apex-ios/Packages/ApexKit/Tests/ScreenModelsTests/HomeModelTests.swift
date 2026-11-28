@@ -21,6 +21,16 @@ struct HomeModelTests {
         #expect(HomeModel(lastEnded: ended, calendar: toronto).noProgramEyebrow == "Pillars ended Aug 20")
     }
 
+    @Test func choosingAProgramOpensPrograms() {
+        let model = HomeModel(lastEnded: nil, calendar: .current)
+        #expect(model.path.isEmpty)
+
+        model.chooseProgram()
+        model.chooseProgram()
+
+        #expect(model.path == [.programs])
+    }
+
     private func calendar(in zone: String) throws -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = try #require(TimeZone(identifier: zone))

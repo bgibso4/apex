@@ -239,7 +239,7 @@ Decisions that follow from it:
   //              extension Store { static func fixture(run: ProgramRun? = nil) -> Store }  (in memory; a failure stops with a message)
   ```
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `SampleProgramsTests`: the six names in the mock's order (Pillars, Anchor, Summit, Foundations, Rebuild, Engine); weeks 11, 6, 12, 8, 4, 8; days 5, 4, 4, 3, 3, 4.
   - `ProgramsModelTests`, with `Program.samples`, an in-memory store and a fixed today:
     - `withNoRunThereAreNoLabels`: one section, label nil, six cards in catalog order, every bar `.plain`, no tag.
@@ -252,11 +252,11 @@ Decisions that follow from it:
     - `refreshFollowsTheDayAndTheStore`: today moves from Aug 9 to Aug 10 → after `refresh()` the tag reads "Week 2 of 11"; a run started through the store after the model was made appears after `refresh()`.
     - `theOnlyProgramBeingActiveLeavesNoAllPrograms`: a catalog of one, active → one section, "Active".
   - `HomeModelTests`: `choosingAProgramOpensPrograms` (`path == [.programs]`; calling it twice leaves one).
-- [ ] **Step 2:** `make fast` fails.
-- [ ] **Step 3: Implement.** `refresh()` reads the store; on an error it logs and keeps what it had. `ApexApp` opens `Store(.file(URL.applicationSupportDirectory.appending(path: "apex.sqlite")))`, and on a failure logs a fault and stops with the same message (as it does for an unknown state). A designed state never opens that file. `DesignedState.homeNoProgram` gets `Program.samples` and an empty fixture store.
-- [ ] **Step 4:** `make fast`, `make lint`, `make build` pass.
-- [ ] **Step 5:** `scripts/test-map.txt`: `Packages/ApexKit/Sources/ScreenModels/Programs/ AppJourneyTests ProgramsPictureTests`; `Packages/ApexKit/Sources/ScreenModels/Stat.swift ALL`.
-- [ ] **Step 6: Commit** `feat(ios): the Programs model, and Home's way to it`.
+- [x] **Step 2:** `make fast` fails.
+- [x] **Step 3: Implement.** `refresh()` reads the store; on an error it logs and keeps what it had. `ApexApp` opens `Store(.file(URL.applicationSupportDirectory.appending(path: "apex.sqlite")))`, and on a failure logs a fault and stops with the same message (as it does for an unknown state). A designed state never opens that file. `DesignedState.homeNoProgram` gets `Program.samples` and an empty fixture store.
+- [x] **Step 4:** `make fast`, `make lint`, `make build` pass.
+- [x] **Step 5:** `scripts/test-map.txt`: `Packages/ApexKit/Sources/ScreenModels/Programs/ AppJourneyTests ProgramsPictureTests`; `Packages/ApexKit/Sources/ScreenModels/Stat.swift ALL`.
+- [x] **Step 6: Commit** `feat(ios): the Programs model, and Home's way to it`.
 
 ### Task 5: The screen, its designed state and its picture
 

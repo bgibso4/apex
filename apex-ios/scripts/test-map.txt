@@ -35,6 +35,7 @@ Packages/ApexKit/Sources/Training/ ALL
 Packages/ApexKit/Sources/Store/ ALL
 Packages/ApexKit/Sources/TestSupport/ ALL
 Packages/ApexKit/Sources/ScreenModels/App ALL
+Packages/ApexKit/Sources/ScreenModels/Stat.swift ALL
 Packages/ApexKit/Sources/Screens/DesignSystem/ ALL
 Packages/ApexKit/Sources/Screens/RootScreen.swift ALL
 # The device lab (Debug builds only): its sheet is on the root and its way in is on Home's wordmark.
@@ -48,3 +49,4 @@ SnapshotTests/CPUImageMatch.swift ALL CPUImageMatchTests
 # One screen each.
 Packages/ApexKit/Sources/ScreenModels/Home/ AppJourneyTests HomePictureTests
 Packages/ApexKit/Sources/Screens/Home/ AppJourneyTests HomePictureTests
+Packages/ApexKit/Sources/ScreenModels/Programs/ AppJourneyTests ProgramsPictureTests

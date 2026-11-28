@@ -29,8 +29,12 @@ let package = Package(
         .target(name: "Core", swiftSettings: moduleSettings),
         .target(name: "Training", dependencies: ["Core"], swiftSettings: moduleSettings),
         .target(name: "Store", dependencies: ["Core", "Training", grdb], swiftSettings: moduleSettings),
-        .target(name: "ScreenModels", swiftSettings: mainActorSettings),
-        .target(name: "TestSupport", dependencies: ["ScreenModels"], swiftSettings: moduleSettings),
+        .target(name: "ScreenModels", dependencies: ["Core", "Training"], swiftSettings: mainActorSettings),
+        .target(
+            name: "TestSupport",
+            dependencies: ["Core", "Training", "Store", "ScreenModels"],
+            swiftSettings: moduleSettings
+        ),
         .target(
             name: "Screens",
             dependencies: ["Core", "ScreenModels", "TestSupport"],
@@ -46,10 +50,14 @@ let package = Package(
             exclude: ["schema.sql"],
             swiftSettings: moduleSettings
         ),
-        .testTarget(name: "ScreenModelsTests", dependencies: ["ScreenModels"], swiftSettings: mainActorSettings),
+        .testTarget(
+            name: "ScreenModelsTests",
+            dependencies: ["Core", "Training", "Store", "ScreenModels", "TestSupport"],
+            swiftSettings: mainActorSettings
+        ),
         .testTarget(
             name: "TestSupportTests",
-            dependencies: ["ScreenModels", "TestSupport"],
+            dependencies: ["Training", "ScreenModels", "TestSupport"],
             swiftSettings: mainActorSettings
         ),
     ]

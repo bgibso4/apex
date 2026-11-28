@@ -1,3 +1,4 @@
+import Core
 import Foundation
 import ScreenModels
 
@@ -18,7 +19,10 @@ public enum DesignedState: String, CaseIterable, Sendable {
     @MainActor public func appModel() -> AppModel {
         switch self {
         case .homeNoProgram:
-            AppModel(home: HomeModel(lastEnded: .pillars, calendar: .gmt))
+            AppModel(
+                home: HomeModel(lastEnded: .pillars, calendar: .gmt),
+                programs: .samples(today: .mockToday)
+            )
         }
     }
 }
@@ -26,6 +30,11 @@ public enum DesignedState: String, CaseIterable, Sendable {
 extension EndedProgram {
     /// The demo's `Ended` state: "Pillars ended Aug 20". Noon on 2026-08-20 GMT.
     fileprivate static let pillars = EndedProgram(name: "Pillars", endedOn: Date(timeIntervalSince1970: 1_787_227_200))
+}
+
+extension Day {
+    /// The day the mocks are drawn on: Thursday 2026-08-20.
+    fileprivate static let mockToday = Day.fixture("2026-08-20")
 }
 
 extension Calendar {

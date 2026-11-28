@@ -25,7 +25,7 @@ public struct RootScreen: View {
 
     @ViewBuilder private func screen(for tab: AppTab) -> some View {
         switch tab {
-        case .home: HomeScreen(model: model.home)
+        case .home: HomeScreen(model: model.home, programs: model.programs)
         // Not built yet: the bare field.
         case .workout, .progress, .run: ScreenField()
         }

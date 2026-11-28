@@ -5,6 +5,8 @@ import SwiftUI
 struct NoProgramCard: View {
     /// The program that last ended and its day. Nil when no program has ever ended.
     let eyebrow: String?
+    /// "Choose a program": opens Programs.
+    let chooseProgram: () -> Void
 
     private enum Gap {
         static let eyebrowToTitle: CGFloat = 6
@@ -30,11 +32,9 @@ struct NoProgramCard: View {
                     .font(Tokens.Typography.value)
                     .foregroundStyle(Tokens.Color.textSecondary)
                     .padding(.top, Gap.titleToLine)
-                Button("Choose a program") {
-                    // Opens Programs: wired when the Programs screen exists.
-                }
-                .buttonStyle(.primary)
-                .padding(.top, Gap.lineToPrimary)
+                Button("Choose a program", action: chooseProgram)
+                    .buttonStyle(.primary)
+                    .padding(.top, Gap.lineToPrimary)
                 Button("Log a workout without a program") {
                     // Not designed yet (the demo says "to design"): wired when it is.
                 }

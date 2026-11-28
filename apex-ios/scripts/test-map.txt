@@ -50,3 +50,4 @@ SnapshotTests/CPUImageMatch.swift ALL CPUImageMatchTests
 Packages/ApexKit/Sources/ScreenModels/Home/ AppJourneyTests HomePictureTests
 Packages/ApexKit/Sources/Screens/Home/ AppJourneyTests HomePictureTests
 Packages/ApexKit/Sources/ScreenModels/Programs/ AppJourneyTests ProgramsPictureTests
+Packages/ApexKit/Sources/Screens/Programs/ AppJourneyTests ProgramsPictureTests
